@@ -68,13 +68,13 @@ CREATE TABLE IF NOT EXISTS audit_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
--- Seed: super-admin (brief §6.1). Login: dev@heritclothings.com / Testing123!
+-- Seed: super-admin (brief §6.1). Login: dev@heritclothing.com / Testing123!
 -- Change this password immediately after first login in production.
 -- ---------------------------------------------------------------------------
 INSERT INTO users (name, email, password_hash, role, status)
 VALUES (
   'Herit Admin',
-  'dev@heritclothings.com',
+  'dev@heritclothing.com',
   '$2y$12$N5U.MHXD6qE3xTsFC.joEu3y6Ysr4fA.2hnd2EilVC2zMKV6nSDXG',
   'super_admin',
   'active'

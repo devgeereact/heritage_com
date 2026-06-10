@@ -8,23 +8,21 @@
 
 ## 1. Project-specific values — FILL THESE IN
 
-> **Assumption (state, then proceed):** cPanel-prefixed DB names below are placeholders
-> following the usual convention. Confirm the real names in cPanel → MySQL Databases and
-> match them in the server-only `config.php`. They are NOT used at build time.
-
 | Item | Value |
 |---|---|
-| Project / repo | `heritage_com` (local) → set GitHub remote |
+| Project / repo | `devgeereact/heritage_com` |
+| Remote | `git@github.com:devgeereact/heritage_com.git` |
 | Product | **HeritOS** — Herit Clothing brand operations platform |
-| Domain | `heritclothings.com` |
-| Document root | `/home/<cpanel_user>/heritclothings.com` |
-| Database name | `<cpanel_user>_heritos` (confirm in cPanel) |
-| Database user | `<cpanel_user>_heritos` (usually same as DB name) |
+| Domain | `heritclothing.com` |
+| Document root | `/home/<cpanel_user>/heritclothing.com` (confirm cPanel user) |
+| Database name | `heritage_com` |
+| Database user | `heritage_com` |
 | Database host | `localhost` |
 | Deploy branch | `main` |
-| FTP username | `<ftp_user>@heritclothings.com` |
+| FTP username | `heritage_com@heritclothing.com` |
+| OpenRouter model | `anthropic/claude-sonnet-4.6` (`OR_MODEL`) |
 | Base kit | Larkon React v2 (JS) — ecommerce admin, Vite + Bootstrap |
-| Seed login | `dev@heritclothings.com` / `Testing123!` (`super_admin`) |
+| Seed login | `dev@heritclothing.com` / `Testing123!` (`super_admin`) |
 
 ---
 

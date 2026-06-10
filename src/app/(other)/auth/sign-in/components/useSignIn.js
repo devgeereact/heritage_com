@@ -26,7 +26,7 @@ const useSignIn = () => {
   } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
-      email: 'dev@heritclothings.com',
+      email: 'dev@heritclothing.com',
       password: 'Testing123!'
     }
   });

@@ -21,14 +21,14 @@ root, exactly as the project's `CLAUDE.md` describes.
 
 ## Smoke test (proves the pipe)
 
-- Visit `https://heritclothings.com/api.php` → should return a JSON array
+- Visit `https://heritclothing.com/api.php` → should return a JSON array
   (the two seeded items, or `[]` once cleared).
 - The React app calls these through `API_BASE` (see `src/context/constants.js`):
-  dev → `https://heritclothings.com`, production → relative (same origin).
+  dev → `https://heritclothing.com`, production → relative (same origin).
 
 ## Seed login
 
-`dev@heritclothings.com` / `Testing123!` (`super_admin`). Change the password
+`dev@heritclothing.com` / `Testing123!` (`super_admin`). Change the password
 immediately in production.
 
 ## Files

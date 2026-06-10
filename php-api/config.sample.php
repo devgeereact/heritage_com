@@ -12,8 +12,8 @@
 
 // ---- Database (cPanel → MySQL Databases) -------------------------------------
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'heritcl_heritos');   // <-- set to your cPanel DB name
-define('DB_USER', 'heritcl_heritos');   // <-- set to your cPanel DB user
+define('DB_NAME', 'heritage_com');      // <-- confirm exact cPanel DB name
+define('DB_USER', 'heritage_com');      // <-- confirm exact cPanel DB user
 define('DB_PASS', 'CHANGE_ME');         // <-- set to the DB user password
 
 // ---- Auth --------------------------------------------------------------------
@@ -21,11 +21,12 @@ define('TOKEN_SECRET', 'CHANGE_ME_long_random_string'); // sign/verify session t
 define('TOKEN_TTL_DAYS', 14);
 
 // ---- OpenRouter (server-side AI only — key never reaches the browser) --------
-define('OPENROUTER_KEY', '');                       // <-- set on server only
-define('OR_MODEL', 'anthropic/claude-3.5-sonnet');  // pick from openrouter.ai/models
+define('OPENROUTER_KEY', '');                        // <-- set on server only
+define('OR_MODEL', 'anthropic/claude-sonnet-4.6');   // pick from openrouter.ai/models
 
 // ---- CORS --------------------------------------------------------------------
 // Dev server origin allowed to call the live API. Production is same-origin.
+// Vite dev may pick a different port; widen this if your dev port changes.
 define('CORS_ORIGIN', 'http://localhost:5173');
 
 // ---- Connect -----------------------------------------------------------------

@@ -1,6 +1,6 @@
 # HeritOS — Herit Clothing brand operations platform
 
-The system behind [heritclothings.com](https://heritclothings.com): products and
+The system behind [heritclothing.com](https://heritclothing.com): products and
 variants, orders across web and the Ajuwon Market floor, stock, customers,
 marketing and money — with a 2026 AI layer. Full feature spec in
 [`HeritOS.html`](HeritOS.html) (14 modules, 182 features).
@@ -30,7 +30,7 @@ See [`php-api/README.md`](php-api/README.md): create the DB, import `schema.sql`
 copy `config.sample.php` → `config.php` with real credentials, upload the PHP
 files + `.htaccess` to the document root.
 
-Seed login: `dev@heritclothings.com` / `Testing123!` — change in production.
+Seed login: `dev@heritclothing.com` / `Testing123!` — change in production.
 
 ## Project memory
 

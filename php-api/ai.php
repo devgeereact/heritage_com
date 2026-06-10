@@ -39,7 +39,7 @@ curl_setopt_array($ch, [
   CURLOPT_HTTPHEADER => [
     'Authorization: Bearer ' . OPENROUTER_KEY,
     'Content-Type: application/json',
-    'HTTP-Referer: https://heritclothings.com',
+    'HTTP-Referer: https://heritclothing.com',
     'X-Title: HeritOS',
   ],
   CURLOPT_TIMEOUT => 60,
