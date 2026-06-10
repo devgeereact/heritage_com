@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button, Spinner, Alert, Dropdown, Badge } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
@@ -25,7 +26,7 @@ const Card = ({ o, onStage }) => {
   return (
     <div className="tl-card">
       <div className="d-flex justify-content-between align-items-start">
-        <span className="tl-code">{o.code}</span>
+        <Link to={`/tailoring/${o.id}`} className="tl-code text-decoration-none">{o.code}</Link>
         <span className="tl-garment text-capitalize">{o.garment_type}</span>
       </div>
       <div className="tl-customer">{o.customer_name}</div>
