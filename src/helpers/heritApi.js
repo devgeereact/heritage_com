@@ -51,6 +51,16 @@ export const heritApi = {
   ai: (task, prompt, opts = {}) =>
     request('/ai.php', { method: 'POST', body: { task, prompt, ...opts } }),
 
+  // Tailoring & production
+  tailoring: {
+    list: () => request('/tailoring.php?action=list'),
+    get: (id) => request(`/tailoring.php?action=get&id=${id}`),
+    tailors: () => request('/tailoring.php?action=tailors'),
+    create: (data) => request('/tailoring.php?action=create', { method: 'POST', body: data }),
+    setStage: (id, stage, note) =>
+      request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: { stage, note } }),
+  },
+
   // Generic escape hatches for feature modules
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body }),

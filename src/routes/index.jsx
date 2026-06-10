@@ -158,6 +158,9 @@ const SolarIcons = lazy(() => import('@/app/(admin)/icons/solaricons/page'));
 // Public site
 const Landing = lazy(() => import('@/app/(public)/landing/page'));
 
+// Tailoring & Production (HeritOS core module)
+const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
+
 // Auth Routes
 const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
 const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
@@ -174,6 +177,10 @@ const generalRoutes = [{
   path: '/dashboard',
   name: 'Dashboard',
   element: <Dashboard />
+}, {
+  path: '/tailoring',
+  name: 'Tailoring',
+  element: <Tailoring />
 }];
 const appsRoutes = [{
   name: 'Chat',

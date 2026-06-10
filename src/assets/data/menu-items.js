@@ -8,6 +8,15 @@ export const MENU_ITEMS = [{
   icon: 'solar:widget-5-bold-duotone',
   url: '/dashboard'
 }, {
+  key: 'tailoring',
+  label: 'Tailoring',
+  icon: 'solar:scissors-square-bold-duotone',
+  url: '/tailoring',
+  badge: {
+    text: 'Core',
+    variant: 'primary'
+  }
+}, {
   key: 'products',
   label: 'Products',
   icon: 'solar:t-shirt-bold-duotone',

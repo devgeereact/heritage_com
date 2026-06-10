@@ -83,3 +83,85 @@ ON DUPLICATE KEY UPDATE email = email;
 
 -- Seed a couple of smoke-test items so the dashboard shows data on first load.
 INSERT INTO items (label) VALUES ('HeritOS pipe online'), ('Ajuwon Market, Lagos');
+
+-- ===========================================================================
+-- TAILORING & PRODUCTION — the core of the business (bespoke menswear).
+-- ===========================================================================
+
+-- Customers (minimal; CRM module extends this later). Saved measurements live
+-- here so a returning customer's fit is ready for the next order.
+CREATE TABLE IF NOT EXISTS customers (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name          VARCHAR(160) NOT NULL,
+  phone         VARCHAR(40) NULL,
+  email         VARCHAR(190) NULL,
+  measurements  JSON NULL,          -- {chest, waist, hip, shoulder, sleeve, length, neck, trouser_length, ...}
+  notes         TEXT NULL,
+  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at    TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY idx_phone (phone)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A tailoring job: one garment, cut to one customer, moved through the workshop.
+CREATE TABLE IF NOT EXISTS tailoring_orders (
+  id                INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  code              VARCHAR(20) NOT NULL,        -- HC-0001
+  customer_id       INT UNSIGNED NOT NULL,
+  garment_type      ENUM('agbada','kaftan','senator','suit','shirt','trouser','other') NOT NULL DEFAULT 'agbada',
+  fabric            VARCHAR(160) NULL,           -- Ankara, Adire, Aso-oke, plain suiting...
+  measurements      JSON NULL,                   -- snapshot for this order
+  notes             TEXT NULL,
+  assigned_tailor_id INT UNSIGNED NULL,          -- users.id, role tailor
+  stage             ENUM('measure','cut','sew','finish','fitting','done','cancelled')
+                    NOT NULL DEFAULT 'measure',
+  price             DECIMAL(12,2) NOT NULL DEFAULT 0,
+  deposit           DECIMAL(12,2) NOT NULL DEFAULT 0,
+  due_date          DATE NULL,
+  created_by        INT UNSIGNED NULL,
+  created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at        TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_code (code),
+  KEY idx_stage (stage),
+  KEY idx_customer (customer_id),
+  KEY idx_tailor (assigned_tailor_id),
+  CONSTRAINT fk_torder_customer FOREIGN KEY (customer_id) REFERENCES customers (id),
+  CONSTRAINT fk_torder_tailor   FOREIGN KEY (assigned_tailor_id) REFERENCES users (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Stage history — who moved a job, when, with a note. Drives the audit trail.
+CREATE TABLE IF NOT EXISTS tailoring_events (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_id    INT UNSIGNED NOT NULL,
+  stage       VARCHAR(20) NOT NULL,
+  note        VARCHAR(255) NULL,
+  user_id     INT UNSIGNED NULL,
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_order (order_id),
+  CONSTRAINT fk_tevent_order FOREIGN KEY (order_id) REFERENCES tailoring_orders (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed: a couple of tailors and demo tailoring jobs so the board has content.
+INSERT INTO users (name, email, password_hash, role, status) VALUES
+  ('Tunde (Tailor)', 'tunde@heritclothing.com', '$2y$12$N5U.MHXD6qE3xTsFC.joEu3y6Ysr4fA.2hnd2EilVC2zMKV6nSDXG', 'tailor', 'active'),
+  ('Bola (Tailor)',  'bola@heritclothing.com',  '$2y$12$N5U.MHXD6qE3xTsFC.joEu3y6Ysr4fA.2hnd2EilVC2zMKV6nSDXG', 'tailor', 'active')
+ON DUPLICATE KEY UPDATE email = email;
+
+INSERT INTO customers (name, phone, measurements) VALUES
+  ('Chukwu Okafor', '+2348030000001', '{"chest":42,"waist":36,"shoulder":18,"sleeve":25,"length":58}'),
+  ('Emeka Bello',   '+2348030000002', '{"chest":40,"waist":34,"shoulder":17.5,"sleeve":24,"length":56}')
+ON DUPLICATE KEY UPDATE name = name;
+
+INSERT INTO tailoring_orders (code, customer_id, garment_type, fabric, stage, price, deposit, due_date, assigned_tailor_id)
+SELECT 'HC-0001', c.id, 'agbada', 'Aso-oke (royal blue)', 'cut', 85000, 40000, DATE_ADD(CURDATE(), INTERVAL 10 DAY),
+       (SELECT id FROM users WHERE email='tunde@heritclothing.com')
+FROM customers c WHERE c.name='Chukwu Okafor' LIMIT 1;
+
+INSERT INTO tailoring_orders (code, customer_id, garment_type, fabric, stage, price, deposit, due_date, assigned_tailor_id)
+SELECT 'HC-0002', c.id, 'senator', 'Plain cotton (cream)', 'sew', 45000, 20000, DATE_ADD(CURDATE(), INTERVAL 5 DAY),
+       (SELECT id FROM users WHERE email='bola@heritclothing.com')
+FROM customers c WHERE c.name='Emeka Bello' LIMIT 1;
