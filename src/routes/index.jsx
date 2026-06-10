@@ -155,15 +155,20 @@ const GridjsTable = lazy(() => import('@/app/(admin)/tables/gridjs/page'));
 const BoxIcons = lazy(() => import('@/app/(admin)/icons/boxicons/page'));
 const SolarIcons = lazy(() => import('@/app/(admin)/icons/solaricons/page'));
 
+// Public site
+const Landing = lazy(() => import('@/app/(public)/landing/page'));
+
 // Auth Routes
 const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
 const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
 const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-pass/page'));
 const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'));
-const initialRoutes = [{
+
+// Public routes — no auth, rendered in OtherLayout (no admin chrome).
+export const publicRoutes = [{
   path: '/',
-  name: 'root',
-  element: <Navigate to="/dashboard" />
+  name: 'Landing',
+  element: <Landing />
 }];
 const generalRoutes = [{
   path: '/dashboard',
@@ -660,4 +665,4 @@ export const authRoutes = [{
   path: '/coming-soon',
   element: <ComingSoon />
 }];
-export const appRoutes = [...initialRoutes, ...generalRoutes, ...appsRoutes, ...customRoutes, ...baseUIRoutes, ...advancedUIRoutes, ...chartsNMapsRoutes, ...formsRoutes, ...tableRoutes, ...iconRoutes, ...productRoutes, ...CategoryRoutes, ...InventoryRoutes, ...OrdersRoutes, ...AttributeRoutes, ...PurchaseRoutes, ...InvoiceRoutes, ...RoleRoutes, ...CustomerRoutes, ...SellerRoutes, ...CouponRoutes];
+export const appRoutes = [...generalRoutes, ...appsRoutes, ...customRoutes, ...baseUIRoutes, ...advancedUIRoutes, ...chartsNMapsRoutes, ...formsRoutes, ...tableRoutes, ...iconRoutes, ...productRoutes, ...CategoryRoutes, ...InventoryRoutes, ...OrdersRoutes, ...AttributeRoutes, ...PurchaseRoutes, ...InvoiceRoutes, ...RoleRoutes, ...CustomerRoutes, ...SellerRoutes, ...CouponRoutes];
