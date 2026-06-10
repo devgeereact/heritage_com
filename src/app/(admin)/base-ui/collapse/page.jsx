@@ -1,0 +1,29 @@
+import UIExamplesList from '@/components/UIExamplesList';
+import AllCollapse from './components/AllCollapse';
+import { Col, Container, Row } from 'react-bootstrap';
+import PageTItle from '@/components/PageTItle';
+const Collapse = () => {
+  return <>
+      <PageTItle title="Collapse" />
+      <Container>
+        <Row>
+          <Col xl={9}>
+            <AllCollapse />
+          </Col>
+          <Col xl={3}>
+            <UIExamplesList examples={[{
+            label: 'Default Example',
+            link: '#default'
+          }, {
+            label: 'Horizontal Collapse',
+            link: '#horizontal'
+          }, {
+            label: 'Multiple Targets',
+            link: '#multiple-targets'
+          }]} />
+          </Col>
+        </Row>
+      </Container>
+    </>;
+};
+export default Collapse;

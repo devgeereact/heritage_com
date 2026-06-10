@@ -1,0 +1,75 @@
+<?php
+/**
+ * HeritOS — shared API helpers. Every endpoint does `require '_lib.php';`
+ * (which itself requires config.php and gives us $conn).
+ */
+require __DIR__ . '/config.php';
+
+/** Emit CORS headers and short-circuit pre-flight OPTIONS. */
+function cors() {
+  header('Access-Control-Allow-Origin: ' . CORS_ORIGIN);
+  header('Vary: Origin');
+  header('Access-Control-Allow-Credentials: true');
+  header('Access-Control-Allow-Headers: Content-Type, Authorization');
+  header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+}
+
+/** Send a JSON response and stop. */
+function json($data, $code = 200) {
+  http_response_code($code);
+  header('Content-Type: application/json');
+  echo json_encode($data);
+  exit;
+}
+
+function fail($msg, $code = 400) { json(['error' => $msg], $code); }
+
+/** Decode the JSON request body to an associative array. */
+function body() {
+  $raw = file_get_contents('php://input');
+  $d = json_decode($raw, true);
+  return is_array($d) ? $d : [];
+}
+
+function method() { return $_SERVER['REQUEST_METHOD']; }
+
+/** Read the Bearer token from the Authorization header. */
+function bearer() {
+  $h = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+  if (preg_match('/Bearer\s+(.+)/i', $h, $m)) return trim($m[1]);
+  return null;
+}
+
+/**
+ * Require a valid session token; returns the user row (id, name, email, role).
+ * Pass a list of allowed roles to gate by role (server-side, never trust client).
+ */
+function require_auth($roles = null) {
+  global $conn;
+  $tok = bearer();
+  if (!$tok) fail('Not authenticated', 401);
+  $stmt = $conn->prepare(
+    'SELECT u.id, u.name, u.email, u.role
+       FROM auth_tokens t JOIN users u ON u.id = t.user_id
+      WHERE t.token = ? AND t.expires_at > NOW() AND u.deleted_at IS NULL'
+  );
+  $stmt->bind_param('s', $tok);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $user = $res->fetch_assoc();
+  if (!$user) fail('Session expired', 401);
+  if ($roles && !in_array($user['role'], (array)$roles, true)) fail('Forbidden', 403);
+  return $user;
+}
+
+/** Write a row to the audit log. */
+function audit($userId, $action, $entity = null, $entityId = null, $meta = null) {
+  global $conn;
+  $m = $meta ? json_encode($meta) : null;
+  $stmt = $conn->prepare(
+    'INSERT INTO audit_log (user_id, action, entity, entity_id, meta) VALUES (?,?,?,?,?)'
+  );
+  $stmt->bind_param('issis', $userId, $action, $entity, $entityId, $m);
+  $stmt->execute();
+}

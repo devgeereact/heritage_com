@@ -1,0 +1,16 @@
+# HeritOS — SPA routing for the React build on cPanel (Apache).
+# Place this in the document root alongside index.html and the PHP files.
+
+RewriteEngine On
+RewriteBase /
+
+# Let real files and the PHP API resolve directly.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Never rewrite the PHP endpoints.
+RewriteRule \.php$ - [L]
+
+# Everything else → index.html so React Router handles the route.
+RewriteRule ^ index.html [L]
