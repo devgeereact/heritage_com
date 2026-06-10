@@ -22,7 +22,7 @@ function App() {
       </header>
 
       <section className="cs-hero">
-        <span className="badge">Launching soon</span>
+        <span className="eyebrow">Launching soon</span>
         <h1>
           Something timeless
           <br />
@@ -35,20 +35,23 @@ function App() {
 
         {submitted ? (
           <p className="cs-thanks" role="status">
-            You're on the list. We'll be in touch.
+            You're on the list — we'll be in touch.
           </p>
         ) : (
-          <form className="cs-form" onSubmit={onSubmit}>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              aria-label="Email address"
-            />
-            <button type="submit">Notify me</button>
-          </form>
+          <>
+            <form className="cs-form" onSubmit={onSubmit}>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                aria-label="Email address"
+              />
+              <button type="submit">Notify me</button>
+            </form>
+            <p className="cs-note">No spam. One email when we launch.</p>
+          </>
         )}
       </section>
 
