@@ -61,6 +61,17 @@ export const heritApi = {
       request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: { stage, note } }),
   },
 
+  // Products & variants (catalogue)
+  products: {
+    list: () => request('/products.php?action=list'),
+    get: (id) => request(`/products.php?action=get&id=${id}`),
+    create: (data) => request('/products.php?action=create', { method: 'POST', body: data }),
+    setStock: (variantId, stock) =>
+      request(`/products.php?action=stock&id=${variantId}`, { method: 'POST', body: { stock } }),
+    setStatus: (id, status) =>
+      request(`/products.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+  },
+
   // Generic escape hatches for feature modules
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body }),

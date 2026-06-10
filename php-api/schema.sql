@@ -165,3 +165,57 @@ INSERT INTO tailoring_orders (code, customer_id, garment_type, fabric, stage, pr
 SELECT 'HC-0002', c.id, 'senator', 'Plain cotton (cream)', 'sew', 45000, 20000, DATE_ADD(CURDATE(), INTERVAL 5 DAY),
        (SELECT id FROM users WHERE email='bola@heritclothing.com')
 FROM customers c WHERE c.name='Emeka Bello' LIMIT 1;
+
+-- ===========================================================================
+-- PRODUCTS & VARIANTS — ready-to-wear catalogue (style × colour × size matrix).
+-- ===========================================================================
+
+CREATE TABLE IF NOT EXISTS products (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  code          VARCHAR(20) NOT NULL,            -- PRD-0001, used as SKU prefix
+  name          VARCHAR(190) NOT NULL,
+  category      VARCHAR(80) NULL,                -- Dresses, Agbada, Accessories...
+  fabric        VARCHAR(160) NULL,
+  description   TEXT NULL,
+  base_price    DECIMAL(12,2) NOT NULL DEFAULT 0,
+  image_url     VARCHAR(255) NULL,
+  status        ENUM('draft','active','archived') NOT NULL DEFAULT 'active',
+  created_by    INT UNSIGNED NULL,
+  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at    TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_code (code),
+  KEY idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One row per size × colour. SKU auto: <product code>-<SIZE>-<COLOR>.
+CREATE TABLE IF NOT EXISTS product_variants (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  product_id    INT UNSIGNED NOT NULL,
+  sku           VARCHAR(60) NOT NULL,
+  size          VARCHAR(20) NULL,
+  color         VARCHAR(40) NULL,
+  stock         INT NOT NULL DEFAULT 0,
+  price_override DECIMAL(12,2) NULL,             -- null = use product.base_price
+  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_sku (sku),
+  KEY idx_product (product_id),
+  CONSTRAINT fk_variant_product FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed: one demo product with a small size × colour matrix.
+INSERT INTO products (code, name, category, fabric, base_price, status, description)
+VALUES ('PRD-0001', 'Heritage Ankara Shirt', 'Shirts', 'Ankara (geometric)', 18000, 'active',
+        'Short-sleeve shirt cut from bold Ankara print. Ready to wear.')
+ON DUPLICATE KEY UPDATE name = name;
+
+INSERT INTO product_variants (product_id, sku, size, color, stock)
+SELECT p.id, CONCAT('PRD-0001-', s.size, '-', c.color), s.size, c.color, c.stock
+FROM products p
+JOIN (SELECT 'S' AS size UNION SELECT 'M' UNION SELECT 'L' UNION SELECT 'XL') s
+JOIN (SELECT 'Blue' AS color, 12 AS stock UNION SELECT 'Rust', 8) c
+WHERE p.code = 'PRD-0001'
+ON DUPLICATE KEY UPDATE product_variants.size = product_variants.size;

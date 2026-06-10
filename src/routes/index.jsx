@@ -162,6 +162,10 @@ const Landing = lazy(() => import('@/app/(public)/landing/page'));
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
 const TailoringDetail = lazy(() => import('@/app/(admin)/tailoring/[id]/page'));
 
+// Products & Variants (catalogue, real PHP)
+const Catalogue = lazy(() => import('@/app/(admin)/catalogue/page'));
+const CatalogueDetail = lazy(() => import('@/app/(admin)/catalogue/[id]/page'));
+
 // Auth Routes
 const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
 const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
@@ -186,6 +190,14 @@ const generalRoutes = [{
   path: '/tailoring/:id',
   name: 'Tailoring Detail',
   element: <TailoringDetail />
+}, {
+  path: '/catalogue',
+  name: 'Catalogue',
+  element: <Catalogue />
+}, {
+  path: '/catalogue/:id',
+  name: 'Catalogue Detail',
+  element: <CatalogueDetail />
 }];
 const appsRoutes = [{
   name: 'Chat',

@@ -17,6 +17,11 @@ export const MENU_ITEMS = [{
     variant: 'primary'
   }
 }, {
+  key: 'catalogue',
+  label: 'Catalogue',
+  icon: 'solar:t-shirt-2-bold-duotone',
+  url: '/catalogue'
+}, {
   key: 'products',
   label: 'Products',
   icon: 'solar:t-shirt-bold-duotone',
