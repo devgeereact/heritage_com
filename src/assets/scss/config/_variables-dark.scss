@@ -39,14 +39,14 @@ $light-border-subtle-dark:          $gray-700;
 $dark-border-subtle-dark:           $gray-500;
 // scss-docs-end theme-border-subtle-dark-variables
 
-$body-color-dark:                   #aab8c5;
-$body-bg-dark:                      #22282e;
+$body-color-dark:                   #e5e5e5;   // dark --foreground
+$body-bg-dark:                      #171717;   // dark --background
 
-$body-secondary-color-dark:         #8391a2;
-$body-secondary-bg-dark:            #282f36;
+$body-secondary-color-dark:         #a3a3a3;   // dark --muted-foreground
+$body-secondary-bg-dark:            #262626;   // dark --card / --muted
 
-$body-tertiary-color-dark:          #f1f1f1;
-$body-tertiary-bg-dark:             #2f3943;
+$body-tertiary-color-dark:          #e5e5e5;
+$body-tertiary-bg-dark:             #262626;
 
 $body-emphasis-color-dark:          #dee2e6;
 

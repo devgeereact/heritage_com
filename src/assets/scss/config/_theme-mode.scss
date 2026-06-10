@@ -18,63 +18,63 @@
     --#{$prefix}topbar-height:                 100px;
     --#{$prefix}footer-height:                 60px;
     
-    // Heading Variable
-    --#{$prefix}headings-color:                            #313b5e;
+    // Heading Variable — brand template foreground
+    --#{$prefix}headings-color:                            #262626;
 
-    --#{$prefix}input-border-color:             #d8dfe7;
-    --#{$prefix}input-focus-border-color:       #b0b0bb;
+    --#{$prefix}input-border-color:             #e5e7eb;   // --input
+    --#{$prefix}input-focus-border-color:       #f59e0b;   // --ring
 }
 
 
 /* Color system - Dark Mode only */
 html[data-bs-theme="dark"], [data-bs-theme="dark"] {
 
-    --#{$prefix}border-color:                   #2f3944;
+    --#{$prefix}border-color:                   #404040;   // dark --border
 
     --#{$prefix}light:                     #{$body-tertiary-bg-dark};
     --#{$prefix}dark:                      #{$body-tertiary-color-dark};
-    
+
     --#{$prefix}light-rgb:                 #{to-rgb($body-tertiary-bg-dark)};
     --#{$prefix}dark-rgb:                  #{to-rgb($body-tertiary-color-dark)};
 
-    // Heading Variable
-    --#{$prefix}headings-color:            #{$body-color-dark};
+    // Heading Variable — dark --foreground
+    --#{$prefix}headings-color:            #e5e5e5;
 
-    --#{$prefix}input-border-color:             #3a4551;
-    --#{$prefix}input-focus-border-color:       #4a5663;
+    --#{$prefix}input-border-color:             #404040;   // dark --input
+    --#{$prefix}input-focus-border-color:       #f59e0b;   // --ring
 }
 
 
-/* Main Menu Light */
+/* Main Menu Light — sidebar tokens */
 html[data-menu-color="light"]{
-    --#{$prefix}main-nav-bg:                               #f8f5f1;
-    --#{$prefix}main-nav-item-color:                       #797b97;
-    --#{$prefix}main-nav-item-hover-bg:                    transparent;
-    --#{$prefix}main-nav-item-hover-color:                 #f59e0b;
-    --#{$prefix}main-nav-border-color:                     #eaedf1;
+    --#{$prefix}main-nav-bg:                               #f9fafb;   // --sidebar
+    --#{$prefix}main-nav-item-color:                       #6b7280;   // --muted-foreground
+    --#{$prefix}main-nav-item-hover-bg:                    #fffbeb;   // --sidebar-accent
+    --#{$prefix}main-nav-item-hover-color:                 #92400e;   // --sidebar-accent-foreground
+    --#{$prefix}main-nav-border-color:                     #e5e7eb;   // --sidebar-border
 }
 
-/* Main Menu Dark */
+/* Main Menu Dark — dark sidebar tokens */
 html[data-menu-color="dark"],
 html[data-bs-theme="dark"][data-menu-color="light"] {
-    --#{$prefix}main-nav-bg:                               #262d34;
-    --#{$prefix}main-nav-item-color:                       #9097a7;
-    --#{$prefix}main-nav-item-hover-bg:                    transparent;
-    --#{$prefix}main-nav-item-hover-color:                 #{$white};
-    --#{$prefix}main-nav-border-color:                     #2f3944;
+    --#{$prefix}main-nav-bg:                               #0f0f0f;   // dark --sidebar
+    --#{$prefix}main-nav-item-color:                       #a3a3a3;   // dark --muted-foreground
+    --#{$prefix}main-nav-item-hover-bg:                    #92400e;   // dark --sidebar-accent
+    --#{$prefix}main-nav-item-hover-color:                 #fde68a;   // dark --sidebar-accent-foreground
+    --#{$prefix}main-nav-border-color:                     #404040;   // dark --sidebar-border
 }
 
 /* Topbar Light */
 html[data-topbar-color="light"] {
-    --#{$prefix}topbar-bg:                                 #f9f7f7;
-    --#{$prefix}topbar-item-color:                         #707793;
-    --#{$prefix}topbar-search-bg:                          #eae8e8;
+    --#{$prefix}topbar-bg:                                 #ffffff;   // --background
+    --#{$prefix}topbar-item-color:                         #6b7280;   // --muted-foreground
+    --#{$prefix}topbar-search-bg:                          #f3f4f6;   // --secondary
 }
 
 /* Topbar Dark */
-html[data-topbar-color="dark"], 
+html[data-topbar-color="dark"],
 html[data-bs-theme="dark"][data-topbar-color="light"]{
-    --#{$prefix}topbar-bg:                                 #22282e;
-    --#{$prefix}topbar-item-color:                         #dee2e6;
-    --#{$prefix}topbar-search-bg:                          #2c3238;
+    --#{$prefix}topbar-bg:                                 #171717;   // dark --background
+    --#{$prefix}topbar-item-color:                         #e5e5e5;   // dark --foreground
+    --#{$prefix}topbar-search-bg:                          #262626;   // dark --card/muted
 }
