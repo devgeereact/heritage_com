@@ -240,3 +240,45 @@ CREATE TABLE IF NOT EXISTS enquiries (
   KEY idx_status (status),
   KEY idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ===========================================================================
+-- ORDERS — selling side (ready-to-wear), across web, WhatsApp and the market.
+-- Distinct from tailoring_orders (bespoke). One queue from cart to delivered.
+-- ===========================================================================
+CREATE TABLE IF NOT EXISTS orders (
+  id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  code            VARCHAR(20) NOT NULL,        -- ORD-0001
+  customer_id     INT UNSIGNED NULL,           -- linked customer (optional)
+  customer_name   VARCHAR(160) NOT NULL,
+  customer_phone  VARCHAR(40) NULL,
+  channel         ENUM('web','whatsapp','market','instagram','phone') NOT NULL DEFAULT 'web',
+  status          ENUM('pending','paid','making','packing','shipped','delivered','cancelled')
+                  NOT NULL DEFAULT 'pending',
+  total           DECIMAL(12,2) NOT NULL DEFAULT 0,
+  paid            DECIMAL(12,2) NOT NULL DEFAULT 0,
+  payment_method  ENUM('cash','transfer','card','cod','unpaid') NOT NULL DEFAULT 'unpaid',
+  ship_address    TEXT NULL,
+  notes           TEXT NULL,
+  created_by      INT UNSIGNED NULL,
+  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at      TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_code (code),
+  KEY idx_status (status),
+  KEY idx_channel (channel),
+  KEY idx_customer (customer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_id        INT UNSIGNED NOT NULL,
+  variant_id      INT UNSIGNED NULL,           -- product_variants.id (optional)
+  label           VARCHAR(190) NOT NULL,       -- snapshot: "Heritage Kaftan — M / Indigo"
+  sku             VARCHAR(60) NULL,
+  qty             INT NOT NULL DEFAULT 1,
+  unit_price      DECIMAL(12,2) NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_order (order_id),
+  CONSTRAINT fk_oitem_order FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

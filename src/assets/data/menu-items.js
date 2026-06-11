@@ -22,6 +22,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:t-shirt-2-bold-duotone',
   url: '/catalogue'
 }, {
+  key: 'sales',
+  label: 'Orders',
+  icon: 'solar:cart-large-2-bold-duotone',
+  url: '/sales'
+}, {
   key: 'enquiries',
   label: 'Enquiries',
   icon: 'solar:inbox-line-bold-duotone',

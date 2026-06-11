@@ -173,6 +173,10 @@ const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
 const Crm = lazy(() => import('@/app/(admin)/crm/page'));
 const CrmDetail = lazy(() => import('@/app/(admin)/crm/[id]/page'));
 
+// Sales / Orders (ready-to-wear)
+const Sales = lazy(() => import('@/app/(admin)/sales/page'));
+const SalesDetail = lazy(() => import('@/app/(admin)/sales/[id]/page'));
+
 // Auth Routes
 const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
 const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
@@ -217,6 +221,14 @@ const generalRoutes = [{
   path: '/crm/:id',
   name: 'Customer Detail',
   element: <CrmDetail />
+}, {
+  path: '/sales',
+  name: 'Orders',
+  element: <Sales />
+}, {
+  path: '/sales/:id',
+  name: 'Order Detail',
+  element: <SalesDetail />
 }];
 const appsRoutes = [{
   name: 'Chat',

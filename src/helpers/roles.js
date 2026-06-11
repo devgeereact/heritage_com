@@ -17,6 +17,7 @@ const SECTIONS = {
   catalogue: ['super_admin', 'admin', 'manager', 'editor', 'employee', 'seller'],
   enquiries: ['super_admin', 'admin', 'manager', 'employee'],
   crm: ['super_admin', 'admin', 'manager', 'tailor', 'employee'],
+  sales: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
   profile: ALL,
 
   // Larkon operational sections — managers and admins.
