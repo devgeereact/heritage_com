@@ -7,7 +7,19 @@ require __DIR__ . '/config.php';
 
 /** Emit CORS headers and short-circuit pre-flight OPTIONS. */
 function cors() {
-  header('Access-Control-Allow-Origin: ' . CORS_ORIGIN);
+  // Production is same-origin (no Origin header). In dev, Vite may pick any
+  // localhost port (auto-port), so reflect any localhost/127.0.0.1 origin, plus
+  // whatever CORS_ORIGIN is configured to. Anything else is not allowed.
+  $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+  $allowed = $origin !== '' && (
+    $origin === CORS_ORIGIN ||
+    preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)
+  );
+  if ($allowed) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+  } else {
+    header('Access-Control-Allow-Origin: ' . CORS_ORIGIN);
+  }
   header('Vary: Origin');
   header('Access-Control-Allow-Credentials: true');
   header('Access-Control-Allow-Headers: Content-Type, Authorization');

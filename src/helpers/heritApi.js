@@ -72,6 +72,16 @@ export const heritApi = {
       request(`/products.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
+  // Customers / CRM
+  customers: {
+    list: () => request('/customers.php?action=list'),
+    get: (id) => request(`/customers.php?action=get&id=${id}`),
+    create: (data) => request('/customers.php?action=create', { method: 'POST', body: data }),
+    update: (id, data) => request(`/customers.php?action=update&id=${id}`, { method: 'POST', body: data }),
+    setMeasurements: (id, measurements) =>
+      request(`/customers.php?action=measure&id=${id}`, { method: 'POST', body: { measurements } }),
+  },
+
   // Dashboard stats
   stats: () => request('/stats.php'),
 
