@@ -5,6 +5,31 @@
  */
 require __DIR__ . '/config.php';
 
+// config.php connected with mysqli exceptions OFF (so a bad connection returns
+// clean JSON, not a fatal). Now that we're connected, turn them ON so any
+// query/prepare error THROWS instead of silently returning false — a missing
+// table or bad column then surfaces as a clean 500, never an empty [] or a
+// raw fatal with a stack trace.
+if (function_exists('mysqli_report')) {
+  mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+}
+
+$__debug = defined('GK_DEBUG') && GK_DEBUG;
+
+// Any uncaught error/exception (including "prepare() returned false" Errors)
+// becomes a clean JSON 500. Detail is only included when GK_DEBUG is on.
+set_exception_handler(function ($e) use ($__debug) {
+  if (!headers_sent()) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+  }
+  echo json_encode([
+    'error' => 'Server error',
+    'detail' => $__debug ? ($e->getMessage()) : null,
+  ]);
+  exit;
+});
+
 /** Emit CORS headers and short-circuit pre-flight OPTIONS. */
 function cors() {
   // Production is same-origin (no Origin header). In dev, Vite may pick any
