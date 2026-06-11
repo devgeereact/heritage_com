@@ -27,6 +27,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:inbox-line-bold-duotone',
   url: '/enquiries'
 }, {
+  key: 'crm',
+  label: 'Customers',
+  icon: 'solar:users-group-rounded-bold-duotone',
+  url: '/crm'
+}, {
   key: 'products',
   label: 'Products',
   icon: 'solar:t-shirt-bold-duotone',
