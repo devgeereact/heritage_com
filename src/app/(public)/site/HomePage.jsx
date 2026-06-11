@@ -80,11 +80,11 @@ const HomePage = () => (
           <div className="hc-hero-right">
             <div>
               <div className="hc-swatch-row">
-                <div className="hc-swatch" style={{ background: '#b71c1c' }} />
-                <div className="hc-swatch" style={{ background: '#556b2f' }} />
-                <div className="hc-swatch" style={{ background: '#4682b4' }} />
-                <div className="hc-swatch" style={{ background: '#ff6f00' }} />
-                <div className="hc-swatch" style={{ background: '#8d6e63' }} />
+                <div className="hc-swatch" style={{ background: '#b91c1c' }} />
+                <div className="hc-swatch" style={{ background: '#9b2c2c' }} />
+                <div className="hc-swatch" style={{ background: '#7f1d1d' }} />
+                <div className="hc-swatch" style={{ background: '#b45309' }} />
+                <div className="hc-swatch" style={{ background: '#fdf2d6' }} />
               </div>
               <p className="hc-hero-quote">
                 Heritage that doesn&apos;t stay in the wardrobe for special occasions — it lives
@@ -100,7 +100,7 @@ const HomePage = () => (
     </section>
 
     {/* intro strip */}
-    <section className="hc-section--tight" style={{ background: '#d6d6d6', borderBottom: '2px solid #1f1f1f' }}>
+    <section className="hc-section--tight hc-strip">
       <div className="hc-container hc-text-center">
         <p style={{ fontSize: '1.35rem', fontWeight: 700, maxWidth: '52rem', margin: '0 auto', lineHeight: 1.4 }}>
           Herit Clothing celebrates African heritage through clothing. We take traditional fabrics,

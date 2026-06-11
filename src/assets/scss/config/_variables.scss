@@ -7,10 +7,10 @@
 $prefix:                        'bs-';
 
 
-// Font Family
-$font-family-primary:                             "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-secondary:                           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-serif:                               "Source Serif 4", Georgia, serif;
+// Font Family — Herit brand: Poppins (sans), Libre Baskerville (serif)
+$font-family-primary:                             "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-secondary:                           "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-serif:                               "Libre Baskerville", Georgia, serif;
 
 
 //
@@ -38,7 +38,8 @@ $indigo:  #53389f;
 $purple:  #7f56da;
 $pink:    #ff86c8;
 $red:     #ef4444;  // brand template destructive
-$orange:  #f59e0b;  // Herit Clothing brand amber
+$orange:  #f59e0b;  // amber (utility "orange" only)
+$maroon:  #9b2c2c;  // Herit Clothing brand maroon
 $yellow:  #f9b931;
 $green:   #22c55e;
 $teal:    #040505;
@@ -46,7 +47,7 @@ $cyan:    #4ecac2;
 // scss-docs-end color-variables
 
 // scss-docs-start theme-color-variables
-$primary:       $orange;
+$primary:       $maroon;
 $secondary:     $gray-600;
 $blue:          $blue;
 $indigo:        $indigo;

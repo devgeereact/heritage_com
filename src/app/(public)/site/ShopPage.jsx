@@ -57,7 +57,7 @@ const ShopPage = () => {
       </section>
 
       {/* filters */}
-      <section className="hc-section--tight" style={{ background: '#d6d6d6', borderBottom: '2px solid #1f1f1f' }}>
+      <section className="hc-section--tight hc-strip">
         <div className="hc-container">
           <div className="hc-grid hc-grid--3">
             <Chips label="Fabric" options={FABRICS} value={fabric} onChange={setFabric} />
