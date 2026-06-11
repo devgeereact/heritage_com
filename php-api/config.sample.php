@@ -12,10 +12,13 @@
  * or PHP will throw a parse error and every endpoint returns a blank 500.
  */
 
-// ---- Hardening — never leak PHP errors/paths to the browser ------------------
-// Production hides errors (a stack trace would expose server paths). Our code
-// returns clean JSON errors instead. Flip display to '1' only to debug locally.
-ini_set('display_errors', '0');
+// ---- Error reporting ---------------------------------------------------------
+// During bring-up these are ON so you can see PHP errors in the browser.
+// SECURITY: set display_errors / display_startup_errors back to '0' for
+// production — a stack trace leaks server paths. Our code returns clean JSON
+// errors regardless, so '0' is safe once everything works.
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 // ---- Database (cPanel → MySQL Databases) -------------------------------------
