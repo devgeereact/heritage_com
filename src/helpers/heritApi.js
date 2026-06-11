@@ -72,6 +72,9 @@ export const heritApi = {
       request(`/products.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
+  // Dashboard stats
+  stats: () => request('/stats.php'),
+
   // Enquiries / contact
   contact: {
     submit: (data) => request('/contact.php', { method: 'POST', body: data, auth: false }),
