@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card, CardBody, Table, Spinner, Alert, Badge, Dropdown } from 'react-bootstrap';
+import { Card, CardBody, Table, Spinner, Alert, Badge, Dropdown, Button } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
+import AiReplyModal from './components/AiReplyModal';
 
 const STATUSES = ['new', 'contacted', 'closed'];
 const statusVariant = (s) => (s === 'new' ? 'primary' : s === 'contacted' ? 'warning' : 'secondary');
@@ -12,6 +13,7 @@ const typeLabel = { fitting: 'Fitting', bespoke: 'Bespoke', wholesale: 'Wholesal
 const EnquiriesPage = () => {
   const [rows, setRows] = useState([]);
   const [state, setState] = useState('loading'); // loading | ready | offline
+  const [reply, setReply] = useState(null); // enquiry being replied to
   const { showNotification } = useNotificationContext();
 
   const load = useCallback(async () => {
@@ -69,12 +71,12 @@ const EnquiriesPage = () => {
               <thead className="table-light">
                 <tr>
                   <th>Received</th><th>Name</th><th>Contact</th><th>Type</th>
-                  <th>Interest</th><th>Message</th><th>Status</th>
+                  <th>Interest</th><th>Message</th><th>Status</th><th></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 && (
-                  <tr><td colSpan={7} className="text-center text-muted py-4">No enquiries yet.</td></tr>
+                  <tr><td colSpan={8} className="text-center text-muted py-4">No enquiries yet.</td></tr>
                 )}
                 {rows.map((r) => (
                   <tr key={r.id}>
@@ -101,6 +103,11 @@ const EnquiriesPage = () => {
                         </Dropdown.Menu>
                       </Dropdown>
                     </td>
+                    <td>
+                      <Button size="sm" variant="outline-primary" onClick={() => setReply(r)}>
+                        <IconifyIcon icon="solar:magic-stick-3-bold" /> Reply
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -108,6 +115,8 @@ const EnquiriesPage = () => {
           </CardBody>
         </Card>
       )}
+
+      <AiReplyModal enquiry={reply} show={!!reply} onHide={() => setReply(null)} />
     </>
   );
 };

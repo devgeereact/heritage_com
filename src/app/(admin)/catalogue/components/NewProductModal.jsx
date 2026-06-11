@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Form, Row, Col, Button, Spinner, Badge } from 'react-bootstrap';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -13,11 +14,31 @@ const NewProductModal = ({ show, onHide, onCreated }) => {
   const [colorInput, setColorInput] = useState('');
   const [colors, setColors] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const { showNotification } = useNotificationContext();
 
   useEffect(() => {
     if (show) { setForm(empty); setSizes(['S', 'M', 'L']); setColors([]); setColorInput(''); }
   }, [show]);
+
+  const writeWithAI = async () => {
+    if (!form.name.trim()) {
+      showNotification({ message: 'Add a product name first', variant: 'danger' });
+      return;
+    }
+    setAiBusy(true);
+    try {
+      const prompt = `Write a short, warm product description (2-3 sentences, UK English, no marketing cliches) for a Herit Clothing piece.\n`
+        + `Name: ${form.name}\nCategory: ${form.category || 'menswear'}\nFabric/print: ${form.fabric || 'African heritage fabric'}.\n`
+        + `Mention the fabric and that it celebrates African heritage. Plain, no hype.`;
+      const res = await heritApi.ai('product_description', prompt, { max_tokens: 200 });
+      setForm((f) => ({ ...f, description: (res.text || '').trim() }));
+    } catch (e) {
+      showNotification({ message: e.message || 'AI is not available right now', variant: 'danger' });
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const toggleSize = (s) => setSizes((arr) => (arr.includes(s) ? arr.filter((x) => x !== s) : [...arr, s]));
@@ -83,8 +104,14 @@ const NewProductModal = ({ show, onHide, onCreated }) => {
               <Form.Control value={form.fabric} onChange={set('fabric')} placeholder="Ankara, Adire, Aso-oke..." />
             </Col>
             <Col xs={12}>
-              <Form.Label>Description</Form.Label>
-              <Form.Control as="textarea" rows={2} value={form.description} onChange={set('description')} />
+              <div className="d-flex justify-content-between align-items-center">
+                <Form.Label className="mb-0">Description</Form.Label>
+                <Button type="button" size="sm" variant="outline-primary" onClick={writeWithAI} disabled={aiBusy}>
+                  {aiBusy ? <Spinner size="sm" /> : <IconifyIcon icon="solar:magic-stick-3-bold" />} Write with AI
+                </Button>
+              </div>
+              <Form.Control as="textarea" rows={3} className="mt-1" value={form.description} onChange={set('description')}
+                placeholder="A short description, or let AI draft one from the name and fabric." />
             </Col>
 
             <Col xs={12}><hr className="my-1" /></Col>
