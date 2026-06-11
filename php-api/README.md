@@ -40,5 +40,11 @@ immediately in production.
 | `api.php` | Smoke-test/default endpoint — `items` CRUD. |
 | `auth.php` | Login / logout / me — issues and validates session tokens. |
 | `ai.php` | OpenRouter proxy. Key stays server-side; staff-only. |
-| `schema.sql` | Foundation tables + super-admin seed. |
+| `tailoring.php` | Tailoring & Production — orders, stages, measurements (staff). |
+| `products.php` | Products & Variants — catalogue, size×colour matrix, stock (staff). |
+| `contact.php` | Public enquiry submit + staff inbox (list/status). |
+| `schema.sql` | All tables + seeds (foundation, tailoring, catalogue, enquiries). |
 | `.htaccess` | SPA routing (`RewriteBase /`). |
+
+When deploying, upload **all** the `.php` files above to the document root, and
+re-import `schema.sql` (or just the new sections) so the new tables exist.

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { DEFAULT_PAGE_TITLE } from '@/context/constants';
+import ContactForm from './ContactForm';
 import './landing.css';
 
 const offers = [
@@ -236,25 +237,38 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* CTA */}
+      {/* Contact */}
       <section className="hl-section" id="contact">
         <Container>
-          <div className="hl-cta">
-            <Row className="align-items-center g-4">
-              <Col lg={8}>
-                <h2 className="hl-h2 hl-serif">Ready for something cut to fit you?</h2>
-                <p className="mb-0 mt-2" style={{ color: 'rgba(255,255,255,.85)', maxWidth: '38rem' }}>
-                  Book a fitting at the workshop, or send a message and we will talk through
-                  the style, cloth and timing.
-                </p>
-              </Col>
-              <Col lg={4} className="text-lg-end">
-                <a href="mailto:hello@heritclothing.com" className="hl-btn hl-btn-light">
-                  <IconifyIcon icon="solar:letter-bold" /> hello@heritclothing.com
-                </a>
-              </Col>
-            </Row>
-          </div>
+          <Row className="g-5">
+            <Col lg={5}>
+              <div className="hl-kicker">Get in touch</div>
+              <h2 className="hl-h2 hl-serif mt-2">Ready for something cut to fit you?</h2>
+              <p className="hl-sub mt-2">
+                Book a fitting at the workshop, or send a message and we will talk through
+                the style, cloth and timing. We usually reply the same day.
+              </p>
+              <ul className="list-unstyled mt-4">
+                <li className="d-flex align-items-center gap-2 py-2">
+                  <span className="hl-contact-ico"><IconifyIcon icon="solar:map-point-bold" /></span>
+                  Ajuwon Market, Lagos, Nigeria
+                </li>
+                <li className="d-flex align-items-center gap-2 py-2">
+                  <span className="hl-contact-ico"><IconifyIcon icon="solar:letter-bold" /></span>
+                  hello@heritclothing.com
+                </li>
+                <li className="d-flex align-items-center gap-2 py-2">
+                  <span className="hl-contact-ico"><IconifyIcon icon="mdi:whatsapp" /></span>
+                  Message us on WhatsApp
+                </li>
+              </ul>
+            </Col>
+            <Col lg={7}>
+              <div className="hl-form-card">
+                <ContactForm />
+              </div>
+            </Col>
+          </Row>
         </Container>
       </section>
 

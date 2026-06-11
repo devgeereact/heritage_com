@@ -137,6 +137,27 @@
 }
 .hl-cta::after { content: ""; position: absolute; right: -60px; bottom: -60px; width: 240px; height: 240px; border-radius: 50%; background: rgba(255,255,255,.08); }
 
+/* Contact */
+.hl-contact-ico {
+  width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--hl-accent); color: var(--hl-amber-2); flex-shrink: 0;
+}
+.hl-form-card {
+  background: #fff; border: 1px solid #eceae6; border-radius: 1rem;
+  padding: 1.75rem; box-shadow: 0 20px 50px -30px rgba(120,53,15,.35);
+}
+.hl-label { font-size: .82rem; font-weight: 600; color: #44403c; margin-bottom: .35rem; display: block; }
+.hl-form .form-control, .hl-form .form-select { border-radius: .5rem; border-color: #e5e7eb; }
+.hl-form .form-control:focus, .hl-form .form-select:focus {
+  border-color: var(--hl-amber); box-shadow: 0 0 0 3px rgba(245,158,11,.15);
+}
+.hl-form-error {
+  background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+  border-radius: .5rem; padding: .6rem .85rem; font-size: .9rem; margin-bottom: 1rem;
+}
+.hl-form-done { text-align: center; padding: 2rem 1rem; }
+.hl-form-done > svg { font-size: 3rem; color: var(--hl-amber-2); }
+
 /* Footer */
 .hl-footer { background: #1c1917; color: #d6d3d1; padding: 3.5rem 0 1.5rem; }
 .hl-footer h6 { color: #fff; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1rem; }

@@ -219,3 +219,24 @@ JOIN (SELECT 'S' AS size UNION SELECT 'M' UNION SELECT 'L' UNION SELECT 'XL') s
 JOIN (SELECT 'Blue' AS color, 12 AS stock UNION SELECT 'Rust', 8) c
 WHERE p.code = 'PRD-0001'
 ON DUPLICATE KEY UPDATE product_variants.size = product_variants.size;
+
+-- ===========================================================================
+-- ENQUIRIES — public contact / fitting requests from the website.
+-- Created by visitors (no login); read and managed by staff.
+-- ===========================================================================
+CREATE TABLE IF NOT EXISTS enquiries (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name        VARCHAR(160) NOT NULL,
+  phone       VARCHAR(40) NULL,
+  email       VARCHAR(190) NULL,
+  type        ENUM('fitting','bespoke','wholesale','general') NOT NULL DEFAULT 'general',
+  interest    VARCHAR(120) NULL,        -- garment / what they want
+  message     TEXT NULL,
+  status      ENUM('new','contacted','closed') NOT NULL DEFAULT 'new',
+  source      VARCHAR(40) NOT NULL DEFAULT 'website',
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_status (status),
+  KEY idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

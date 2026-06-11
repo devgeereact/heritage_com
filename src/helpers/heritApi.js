@@ -72,6 +72,14 @@ export const heritApi = {
       request(`/products.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
+  // Enquiries / contact
+  contact: {
+    submit: (data) => request('/contact.php', { method: 'POST', body: data, auth: false }),
+    list: () => request('/contact.php?action=list'),
+    setStatus: (id, status) =>
+      request(`/contact.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+  },
+
   // Generic escape hatches for feature modules
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body }),

@@ -166,6 +166,9 @@ const TailoringDetail = lazy(() => import('@/app/(admin)/tailoring/[id]/page'));
 const Catalogue = lazy(() => import('@/app/(admin)/catalogue/page'));
 const CatalogueDetail = lazy(() => import('@/app/(admin)/catalogue/[id]/page'));
 
+// Enquiries (public contact form inbox)
+const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
+
 // Auth Routes
 const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
 const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
@@ -198,6 +201,10 @@ const generalRoutes = [{
   path: '/catalogue/:id',
   name: 'Catalogue Detail',
   element: <CatalogueDetail />
+}, {
+  path: '/enquiries',
+  name: 'Enquiries',
+  element: <Enquiries />
 }];
 const appsRoutes = [{
   name: 'Chat',
