@@ -7,6 +7,9 @@
  *
  * Provides: $conn (mysqli) + the constants every endpoint expects.
  * Keep the constant NAMES exactly as below — the PHP files read these names.
+ *
+ * IMPORTANT: use plain ASCII single quotes ('), not smart/curly quotes (’ ‘),
+ * or PHP will throw a parse error and every endpoint returns a blank 500.
  */
 
 // ---- Database (cPanel → MySQL Databases) -------------------------------------
@@ -16,17 +19,29 @@ define('DB_USER', 'devgeereact_heritage_com');         // exact cPanel DB user
 define('DB_PASS', 'CHANGE_ME');                        // the DB user's password
 
 // ---- Auth --------------------------------------------------------------------
-define('TOKEN_SECRET', 'CHANGE_ME_long_random_string');// reserved for signed tokens
-define('TOKEN_TTL_DAYS', 14);                          // session lifetime
+define('TOKEN_SECRET',   'CHANGE_ME_long_random_string'); // reserved for signed tokens
+define('TOKEN_TTL_DAYS', 14);                             // session lifetime in days
 
 // ---- OpenRouter (server-side AI only — key never reaches the browser) --------
 define('OPENROUTER_KEY', '');                          // sk-or-v1-...  (set on server)
-define('OR_MODEL', 'openai/gpt-oss-120b:free');        // model ai.php uses; pick from openrouter.ai/models
+define('OR_MODEL',       'openai/gpt-oss-120b:free');  // primary model ai.php uses
+define('OR_MODELS', [                                  // fallback chain, first → last
+    'openai/gpt-oss-120b:free',
+    'google/gemma-4-31b-it:free',
+    'qwen/qwen3-next-80b-a3b-instruct:free',
+    'anthropic/claude-sonnet-4-6',                     // paid fallback, last resort
+]);
+define('OR_REFERER', '');                              // '' = auto-detect from live request
+define('OR_TITLE',   'Heritage Clothing');             // shown on OpenRouter dashboard
+
+// ---- OpenWeather (https://openweathermap.org) --------------------------------
+define('OPENWEATHER_API_KEY', '');                     // CHANGE_ME
+define('OPENWEATHER_UNITS',   'metric');               // metric | imperial | standard
 
 // ---- CORS --------------------------------------------------------------------
 // Production is same-origin. In dev, _lib.php reflects ANY localhost port, so
 // this is only a fallback — no need to chase Vite's auto-port here.
-define('CORS_ORIGIN', 'http://localhost:5173');
+define('CORS_ORIGIN', 'https://heritclothing.com');
 
 // ---- Connect -----------------------------------------------------------------
 // PHP 8.1+ makes mysqli THROW on a failed connection by default, which becomes

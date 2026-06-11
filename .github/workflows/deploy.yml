@@ -14,6 +14,20 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run build
+      - name: Stage PHP API alongside React build
+        # Copy server-side PHP endpoints into dist/ so the FTP step uploads them
+        # to the doc root. config.php is server-only (gitignored); config.sample.php,
+        # README.md, and schema.sql are dev-only and stay out of the upload.
+        run: |
+          cp php-api/_lib.php       dist/
+          cp php-api/api.php        dist/
+          cp php-api/auth.php       dist/
+          cp php-api/ai.php         dist/
+          cp php-api/products.php   dist/
+          cp php-api/customers.php  dist/
+          cp php-api/stats.php      dist/
+          cp php-api/tailoring.php  dist/
+          cp php-api/contact.php    dist/
       - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:   ${{ secrets.FTP_SERVER }}
