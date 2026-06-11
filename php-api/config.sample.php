@@ -12,6 +12,12 @@
  * or PHP will throw a parse error and every endpoint returns a blank 500.
  */
 
+// ---- Hardening — never leak PHP errors/paths to the browser ------------------
+// Production hides errors (a stack trace would expose server paths). Our code
+// returns clean JSON errors instead. Flip display to '1' only to debug locally.
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+
 // ---- Database (cPanel → MySQL Databases) -------------------------------------
 define('DB_HOST', 'localhost');                        // stays localhost on Namecheap
 define('DB_NAME', 'devgeereact_heritage_com');         // exact cPanel DB name

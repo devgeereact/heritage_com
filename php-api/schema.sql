@@ -218,7 +218,7 @@ FROM products p
 JOIN (SELECT 'S' AS size UNION SELECT 'M' UNION SELECT 'L' UNION SELECT 'XL') s
 JOIN (SELECT 'Blue' AS color, 12 AS stock UNION SELECT 'Rust', 8) c
 WHERE p.code = 'PRD-0001'
-ON DUPLICATE KEY UPDATE product_variants.size = product_variants.size;
+ON DUPLICATE KEY UPDATE sku = sku;
 
 -- ===========================================================================
 -- ENQUIRIES — public contact / fitting requests from the website.
