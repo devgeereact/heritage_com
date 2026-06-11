@@ -2,11 +2,14 @@ import FallbackLoading from '@/components/FallbackLoading';
 import LogoBox from '@/components/LogoBox';
 import SimplebarReactClient from '@/components/wrappers/SimplebarReactClient';
 import { getMenuItems } from '@/helpers/Manu';
+import { filterMenuByRole } from '@/helpers/roles';
+import { useAuthContext } from '@/context/useAuthContext';
 import { Suspense } from 'react';
 import AppMenu from './components/AppMenu';
 import HoverMenuToggle from './components/HoverMenuToggle';
 const VerticalNavigationBarPage = () => {
-  const menuItems = getMenuItems();
+  const { user } = useAuthContext();
+  const menuItems = filterMenuByRole(getMenuItems(), user?.role);
   return <div className="main-nav">
       <LogoBox />
       <HoverMenuToggle />

@@ -6,6 +6,7 @@ import * as yup from 'yup';
 import { useAuthContext } from '@/context/useAuthContext';
 import { useNotificationContext } from '@/context/useNotificationContext';
 import heritApi from '@/helpers/heritApi';
+import { roleHome, canAccessPath } from '@/helpers/roles';
 const useSignIn = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -30,9 +31,11 @@ const useSignIn = () => {
       password: 'Testing123!'
     }
   });
-  const redirectUser = () => {
+  const redirectUser = (role) => {
     const redirectLink = searchParams.get('redirectTo');
-    if (redirectLink) navigate(redirectLink);else navigate('/');
+    // Honour redirectTo only if this role may open it; otherwise send them home.
+    if (redirectLink && canAccessPath(role, redirectLink)) navigate(redirectLink);
+    else navigate(roleHome(role));
   };
   const login = handleSubmit(async values => {
     setLoading(true);
@@ -46,7 +49,7 @@ const useSignIn = () => {
           user: res.user,
           token: res.token
         });
-        redirectUser();
+        redirectUser(res.user?.role);
         showNotification({
           message: 'Signed in to HeritOS. Redirecting...',
           variant: 'success'
