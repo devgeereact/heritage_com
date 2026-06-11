@@ -30,11 +30,14 @@ define('OR_MODEL', 'anthropic/claude-sonnet-4.6');   // pick from openrouter.ai/
 define('CORS_ORIGIN', 'http://localhost:5173');
 
 // ---- Connect -----------------------------------------------------------------
+// PHP 8.1+ makes mysqli THROW on a failed connection by default, which would be
+// an uncaught fatal (blank 500). Turn that off so we return a clean JSON error.
+mysqli_report(MYSQLI_REPORT_OFF);
 $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_errno) {
   http_response_code(500);
   header('Content-Type: application/json');
-  echo json_encode(['error' => 'Database connection failed']);
+  echo json_encode(['error' => 'Database connection failed', 'detail' => $conn->connect_error]);
   exit;
 }
 $conn->set_charset('utf8mb4');
