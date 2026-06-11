@@ -13,12 +13,13 @@
  */
 
 // ---- Error reporting ---------------------------------------------------------
-// During bring-up these are ON so you can see PHP errors in the browser.
-// SECURITY: set display_errors / display_startup_errors back to '0' for
-// production — a stack trace leaks server paths. Our code returns clean JSON
-// errors regardless, so '0' is safe once everything works.
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
+// One switch. Leave GK_DEBUG false in production: errors are still written to
+// the PHP error log, but never shown to visitors (a stack trace leaks server
+// paths). Flip to true only while debugging, then flip back.
+define('GK_DEBUG', false);                 // true only while debugging
+ini_set('display_errors', GK_DEBUG ? '1' : '0');
+ini_set('display_startup_errors', GK_DEBUG ? '1' : '0');
+ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
 // ---- Database (cPanel → MySQL Databases) -------------------------------------
