@@ -171,6 +171,9 @@ const TailoringDetail = lazy(() => import('@/app/(admin)/tailoring/[id]/page'));
 const Catalogue = lazy(() => import('@/app/(admin)/catalogue/page'));
 const CatalogueDetail = lazy(() => import('@/app/(admin)/catalogue/[id]/page'));
 
+// Inventory & Stock (real PHP)
+const Stock = lazy(() => import('@/app/(admin)/stock/page'));
+
 // Enquiries (public contact form inbox)
 const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
 
@@ -234,6 +237,10 @@ const generalRoutes = [{
   path: '/catalogue/:id',
   name: 'Catalogue Detail',
   element: <CatalogueDetail />
+}, {
+  path: '/stock',
+  name: 'Inventory',
+  element: <Stock />
 }, {
   path: '/enquiries',
   name: 'Enquiries',

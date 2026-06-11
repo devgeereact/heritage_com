@@ -282,3 +282,23 @@ CREATE TABLE IF NOT EXISTS order_items (
   KEY idx_order (order_id),
   CONSTRAINT fk_oitem_order FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- Stock adjustments — an audit trail of every change to variant stock.
+-- Orders deduct stock directly (orders.php); this table records manual moves:
+-- goods received, damages, customer returns, and stock-take corrections.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS stock_adjustments (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  variant_id    INT UNSIGNED NOT NULL,
+  delta         INT NOT NULL,                       -- signed: +received/+return, -damage, +/-correction
+  reason        VARCHAR(30) NOT NULL,               -- received|return|damage|count|correction
+  note          VARCHAR(255) NULL,
+  stock_after   INT NOT NULL,                       -- variant stock immediately after this move
+  user_id       INT UNSIGNED NULL,
+  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_variant (variant_id),
+  KEY idx_created (created_at),
+  CONSTRAINT fk_adj_variant FOREIGN KEY (variant_id) REFERENCES product_variants (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

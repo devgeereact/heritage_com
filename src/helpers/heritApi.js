@@ -82,6 +82,16 @@ export const heritApi = {
       request(`/customers.php?action=measure&id=${id}`, { method: 'POST', body: { measurements } }),
   },
 
+  // Inventory & stock
+  inventory: {
+    list: () => request('/stock.php?action=list'),
+    history: (variantId) => request(`/stock.php?action=history&id=${variantId}`),
+    adjust: (variantId, delta, reason, note) =>
+      request(`/stock.php?action=adjust&id=${variantId}`, { method: 'POST', body: { delta, reason, note } }),
+    setCount: (variantId, stock, note) =>
+      request(`/stock.php?action=set&id=${variantId}`, { method: 'POST', body: { stock, note } }),
+  },
+
   // Orders (selling side)
   orders: {
     list: () => request('/orders.php?action=list'),

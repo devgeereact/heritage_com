@@ -15,6 +15,7 @@ const SECTIONS = {
   dashboard: ALL,
   tailoring: ['super_admin', 'admin', 'manager', 'tailor'],
   catalogue: ['super_admin', 'admin', 'manager', 'editor', 'employee', 'seller'],
+  stock: ['super_admin', 'admin', 'manager', 'employee'],
   enquiries: ['super_admin', 'admin', 'manager', 'employee'],
   crm: ['super_admin', 'admin', 'manager', 'tailor', 'employee'],
   sales: ['super_admin', 'admin', 'manager', 'seller', 'employee'],

@@ -190,6 +190,10 @@ server-side via `require_auth($roles)` — never trust the client.
 **AI:** every AI feature calls `ai.php` (OpenRouter proxy, staff-only). Key + `OR_MODEL`
 live in `config.php`, never in the browser.
 
-**Status:** foundation done — kit transplanted, amber theme (`#f59e0b`), HeritOS
-branding, PHP API + schema, smoke widget on the dashboard (`PipeStatus`), real login.
-Next per §8: corporate/storefront shell, then CMS modules (products first).
+**Status:** foundation done — kit transplanted, **warm maroon brand** (`#9b2c2c`,
+Poppins/Libre Baskerville/IBM Plex Mono) across app + public site, real login.
+Public storefront live (multi-page: Home/About/Shop/Product/Gifting/Contact).
+Live PHP modules: Dashboard stats, Products & Variants (catalogue), Orders (sales),
+Customers (CRM), Production & Tailoring, Enquiries, **Inventory & Stock** (stock.php
+— stock by variant, low/out alerts, signed adjustments + stock-take, audit trail).
+Next per §8: Suppliers & Purchasing → Payments & Finance → Analytics.
