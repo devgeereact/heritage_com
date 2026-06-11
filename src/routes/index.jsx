@@ -155,8 +155,13 @@ const GridjsTable = lazy(() => import('@/app/(admin)/tables/gridjs/page'));
 const BoxIcons = lazy(() => import('@/app/(admin)/icons/boxicons/page'));
 const SolarIcons = lazy(() => import('@/app/(admin)/icons/solaricons/page'));
 
-// Public site
-const Landing = lazy(() => import('@/app/(public)/landing/page'));
+// Public site — multi-page marketing storefront (no auth, OtherLayout)
+const Home = lazy(() => import('@/app/(public)/site/HomePage'));
+const About = lazy(() => import('@/app/(public)/site/AboutPage'));
+const Shop = lazy(() => import('@/app/(public)/site/ShopPage'));
+const Product = lazy(() => import('@/app/(public)/site/ProductPage'));
+const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
+const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
@@ -186,8 +191,28 @@ const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'));
 // Public routes — no auth, rendered in OtherLayout (no admin chrome).
 export const publicRoutes = [{
   path: '/',
-  name: 'Landing',
-  element: <Landing />
+  name: 'Home',
+  element: <Home />
+}, {
+  path: '/about',
+  name: 'About',
+  element: <About />
+}, {
+  path: '/shop',
+  name: 'Shop',
+  element: <Shop />
+}, {
+  path: '/shop/:slug',
+  name: 'Product',
+  element: <Product />
+}, {
+  path: '/gifting',
+  name: 'Gifting',
+  element: <Gifting />
+}, {
+  path: '/contact',
+  name: 'Contact',
+  element: <Contact />
 }];
 const generalRoutes = [{
   path: '/dashboard',

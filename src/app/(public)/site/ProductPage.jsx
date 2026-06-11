@@ -1,0 +1,180 @@
+import { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import SiteLayout from './SiteLayout';
+import { PRODUCTS, getProduct, formatNgn } from './products';
+
+const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+
+const NotFoundPiece = () => (
+  <SiteLayout title="Piece not found">
+    <section className="hc-section hc-text-center">
+      <div className="hc-container">
+        <div className="hc-kicker hc-text-center" style={{ justifyContent: 'center' }}>404</div>
+        <h1 className="hc-h2 hc-mt-2">This thread leads nowhere.</h1>
+        <p className="hc-lead" style={{ margin: '1rem auto 0' }}>Let&apos;s get you back to the collection.</p>
+        <Link to="/shop" className="hc-btn hc-btn--primary hc-mt-4">Back to the shop</Link>
+      </div>
+    </section>
+  </SiteLayout>
+);
+
+const ProductPage = () => {
+  const { slug } = useParams();
+  const product = getProduct(slug);
+  const [size, setSize] = useState('M');
+  const [storyOpen, setStoryOpen] = useState(true);
+
+  if (!product) return <NotFoundPiece />;
+
+  const related = PRODUCTS.filter((p) => p.slug !== product.slug).slice(0, 4);
+
+  return (
+    <SiteLayout title={`${product.name} — ${product.fabric}`}>
+      <div className="hc-marquee">
+        <span>★ Free Lagos delivery over ₦25,000</span>
+        <span>★ Ships worldwide, tracked</span>
+        <span>★ 14-day returns</span>
+      </div>
+
+      <section className="hc-section">
+        <div className="hc-container">
+          <div className="hc-crumb hc-mt-1" style={{ marginBottom: '1.5rem' }}>
+            <Link to="/">Home</Link> / <Link to="/shop">Shop</Link> / <span style={{ color: 'var(--primary)' }}>{product.name}</span>
+          </div>
+
+          <div className="hc-grid hc-grid--2" style={{ gap: '3rem', alignItems: 'start' }}>
+            {/* media */}
+            <div>
+              <div className={`hc-tile ${product.tile}`} style={{ aspectRatio: '4 / 5' }}>
+                {product.premium && <span className="hc-tile-tag">Premium</span>}
+              </div>
+              <div className="hc-grid hc-grid--4 hc-mt-3" style={{ gap: '0.6rem' }}>
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className={`hc-tile ${product.tile}`} style={{ aspectRatio: '1', opacity: i === 0 ? 1 : 0.6 }} />
+                ))}
+              </div>
+            </div>
+
+            {/* info */}
+            <div>
+              <div className="hc-kicker">{product.fabric}</div>
+              <h1 className="hc-h2 hc-mt-2">{product.name}</h1>
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '1.4rem', color: 'var(--primary)', marginTop: '0.75rem' }}>
+                {formatNgn(product.priceNgn)} <span style={{ color: 'var(--muted-foreground)', fontWeight: 400, fontSize: '0.95rem' }}>· approx ${product.priceUsd}</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--muted-foreground)', marginTop: '0.3rem' }}>
+                Free Lagos delivery over ₦25,000
+              </p>
+
+              <p className="hc-lead hc-mt-3">{product.short}</p>
+
+              {/* size */}
+              <div className="hc-mt-4">
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>
+                  Size {product.type === 'Accessories' && '· one size'}
+                </div>
+                <div className="hc-flex hc-wrap" style={{ gap: '0.4rem' }}>
+                  {(product.type === 'Accessories' ? ['One size'] : SIZES).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSize(s)}
+                      className="hc-nav-link"
+                      style={{
+                        border: '2px solid var(--foreground)',
+                        background: size === s || product.type === 'Accessories' ? 'var(--foreground)' : 'transparent',
+                        color: size === s || product.type === 'Accessories' ? '#fff' : 'var(--foreground)',
+                        cursor: 'pointer', minWidth: '3rem', textAlign: 'center',
+                      }}
+                    >{s}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hc-flex hc-wrap hc-mt-4" style={{ gap: '0.8rem' }}>
+                <Link to="/contact" className="hc-btn hc-btn--primary">
+                  <IconifyIcon icon="solar:bag-4-bold" /> Make it yours
+                </Link>
+                <Link to="/contact" className="hc-btn hc-btn--ghost">
+                  <IconifyIcon icon="mdi:whatsapp" /> Ask about this piece
+                </Link>
+              </div>
+
+              {/* reassurance */}
+              <ul className="hc-check hc-mt-4">
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Made in Lagos</li>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Ships worldwide, tracked</li>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> 14-day returns on unworn items</li>
+              </ul>
+
+              {/* the story — expandable */}
+              <div className="hc-quote hc-mt-4" style={{ padding: '1.5rem' }}>
+                <button
+                  onClick={() => setStoryOpen((v) => !v)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'space-between', padding: 0 }}
+                >
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--primary)' }}>The story of this cloth</span>
+                  <IconifyIcon icon={storyOpen ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} style={{ color: 'var(--primary)' }} />
+                </button>
+                {storyOpen && <p style={{ fontSize: '1rem', fontWeight: 400, lineHeight: 1.65, marginTop: '1rem', color: 'var(--muted-foreground)' }}>{product.story}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* details / fit / care */}
+          <div className="hc-grid hc-grid--3 hc-mt-4" style={{ marginTop: '3rem' }}>
+            <div className="hc-card">
+              <span className="hc-card-badge">Details &amp; fit</span>
+              <ul className="hc-check" style={{ marginTop: '0.75rem' }}>
+                <li><IconifyIcon icon="solar:tag-bold" /> Fabric: {product.material}</li>
+                <li><IconifyIcon icon="solar:ruler-bold" /> Fit: {product.fit}</li>
+                <li><IconifyIcon icon="solar:user-bold" /> {product.model}</li>
+              </ul>
+            </div>
+            <div className="hc-card">
+              <span className="hc-card-badge">Care</span>
+              <p className="hc-card-desc" style={{ marginTop: '0.75rem' }}>
+                Hand-wash cold or gentle machine cycle, inside out. Dry in shade to keep the colours
+                rich. Warm iron on reverse.
+              </p>
+            </div>
+            <div className="hc-card hc-card--feature">
+              <span className="hc-card-badge">Gifting</span>
+              <p className="hc-card-desc" style={{ marginTop: '0.75rem' }}>
+                Every piece comes with the story of its fabric. Add a handwritten note and branded
+                wrap at checkout.
+              </p>
+              <Link to="/gifting" className="hc-card-link">Gift this piece <IconifyIcon icon="solar:arrow-right-linear" /></Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* related */}
+      <section className="hc-section hc-section--paper">
+        <div className="hc-container">
+          <div className="hc-head">
+            <div className="hc-kicker">More to wear</div>
+            <h2 className="hc-h2">From the same collection.</h2>
+          </div>
+          <div className="hc-grid hc-grid--4">
+            {related.map((p) => (
+              <Link to={`/shop/${p.slug}`} key={p.slug} className="hc-product">
+                <div className={`hc-tile ${p.tile} hc-product-media`}>
+                  {p.premium && <span className="hc-tile-tag">Premium</span>}
+                </div>
+                <div className="hc-product-body">
+                  <span className="hc-product-fab">{p.fabric}</span>
+                  <span className="hc-product-name">{p.name}</span>
+                  <span className="hc-product-price">{formatNgn(p.priceNgn)} <small>· ${p.priceUsd}</small></span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </SiteLayout>
+  );
+};
+
+export default ProductPage;
