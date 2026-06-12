@@ -61,6 +61,15 @@ define('PAYSTACK_PUBLIC',  '');            // pk_live_... (safe for the browser,
 define('FLW_SECRET',       '');            // FLWSECK-...  (server only)
 define('FLW_PUBLIC',       '');            // FLWPUBK-...
 
+// ---- Image AI (text-to-image — ai_image.php) ---------------------------------
+// Read by ai_image.php via cfg(). Leave blank to keep the visual-AI features in
+// "not configured" mode (the Studio shows a clean notice). Drop in a key to turn
+// image generation on — no code change. IMAGE_PROVIDER '' auto-picks whichever
+// key is set; force one with 'openai' or 'stability'.
+define('IMAGE_PROVIDER',   '');            // '' | 'openai' | 'stability'
+define('OPENAI_IMAGE_KEY', '');            // sk-...  (OpenAI Images / gpt-image-1)
+define('STABILITY_KEY',    '');            // sk-...  (Stability AI)
+
 // ---- Outgoing mail (SMTP) ----------------------------------------------------
 // Read by mail.php (via cfg(), which accepts either these $vars or define()d
 // constants of the same name). Leave $SMTP_HOST blank to fall back to PHP mail().

@@ -51,6 +51,10 @@ export const heritApi = {
   ai: (task, prompt, opts = {}) =>
     request('/ai.php', { method: 'POST', body: { task, prompt, ...opts } }),
 
+  // AI image proxy (text-to-image, server-side, staff-only)
+  aiImage: (task, prompt, opts = {}) =>
+    request('/ai_image.php', { method: 'POST', body: { task, prompt, ...opts } }),
+
   // Tailoring & production
   tailoring: {
     list: () => request('/tailoring.php?action=list'),
