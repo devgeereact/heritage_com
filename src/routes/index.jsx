@@ -174,6 +174,15 @@ const CatalogueDetail = lazy(() => import('@/app/(admin)/catalogue/[id]/page'));
 // Inventory & Stock (real PHP)
 const Stock = lazy(() => import('@/app/(admin)/stock/page'));
 
+// Remaining HeritOS modules (real PHP)
+const Suppliers = lazy(() => import('@/app/(admin)/suppliers/page'));
+const Finance = lazy(() => import('@/app/(admin)/finance/page'));
+const Analytics = lazy(() => import('@/app/(admin)/analytics/page'));
+const Marketing = lazy(() => import('@/app/(admin)/marketing/page'));
+const Pos = lazy(() => import('@/app/(admin)/pos/page'));
+const Studio = lazy(() => import('@/app/(admin)/studio/page'));
+const Channels = lazy(() => import('@/app/(admin)/channels/page'));
+
 // Enquiries (public contact form inbox)
 const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
 
@@ -241,6 +250,34 @@ const generalRoutes = [{
   path: '/stock',
   name: 'Inventory',
   element: <Stock />
+}, {
+  path: '/suppliers',
+  name: 'Suppliers',
+  element: <Suppliers />
+}, {
+  path: '/finance',
+  name: 'Finance',
+  element: <Finance />
+}, {
+  path: '/analytics',
+  name: 'Analytics',
+  element: <Analytics />
+}, {
+  path: '/marketing',
+  name: 'Marketing',
+  element: <Marketing />
+}, {
+  path: '/pos',
+  name: 'Market Sales',
+  element: <Pos />
+}, {
+  path: '/studio',
+  name: 'Brand Studio',
+  element: <Studio />
+}, {
+  path: '/channels',
+  name: 'Store & Channels',
+  element: <Channels />
 }, {
   path: '/enquiries',
   name: 'Enquiries',

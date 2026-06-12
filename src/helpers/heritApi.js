@@ -101,6 +101,45 @@ export const heritApi = {
       request(`/orders.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
+  // Suppliers & purchasing
+  suppliers: {
+    list: () => request('/suppliers.php?action=list'),
+    get: (id) => request(`/suppliers.php?action=get&id=${id}`),
+    create: (data) => request('/suppliers.php?action=create', { method: 'POST', body: data }),
+    update: (id, data) => request(`/suppliers.php?action=update&id=${id}`, { method: 'POST', body: data }),
+    poList: () => request('/suppliers.php?action=po_list'),
+    poGet: (id) => request(`/suppliers.php?action=po_get&id=${id}`),
+    poCreate: (data) => request('/suppliers.php?action=po_create', { method: 'POST', body: data }),
+    poReceive: (id) => request(`/suppliers.php?action=po_receive&id=${id}`, { method: 'POST' }),
+    poStatus: (id, status) => request(`/suppliers.php?action=po_status&id=${id}`, { method: 'POST', body: { status } }),
+  },
+
+  // Payments & finance
+  finance: {
+    payments: () => request('/payments.php?action=list'),
+    addPayment: (data) => request('/payments.php?action=create', { method: 'POST', body: data }),
+    expenses: () => request('/payments.php?action=expenses'),
+    addExpense: (data) => request('/payments.php?action=expense_create', { method: 'POST', body: data }),
+    summary: () => request('/payments.php?action=summary'),
+  },
+
+  // Analytics & reports
+  analytics: () => request('/analytics.php'),
+
+  // Marketing & social
+  marketing: {
+    list: () => request('/marketing.php?action=list'),
+    create: (data) => request('/marketing.php?action=create', { method: 'POST', body: data }),
+    setStatus: (id, status) => request(`/marketing.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+    remove: (id) => request(`/marketing.php?action=delete&id=${id}`, { method: 'POST' }),
+  },
+
+  // Platform settings / channels
+  settings: {
+    get: () => request('/settings.php'),
+    save: (data) => request('/settings.php', { method: 'POST', body: data }),
+  },
+
   // Dashboard stats
   stats: () => request('/stats.php'),
 

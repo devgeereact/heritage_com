@@ -193,7 +193,15 @@ live in `config.php`, never in the browser.
 **Status:** foundation done — kit transplanted, **warm maroon brand** (`#9b2c2c`,
 Poppins/Libre Baskerville/IBM Plex Mono) across app + public site, real login.
 Public storefront live (multi-page: Home/About/Shop/Product/Gifting/Contact).
-Live PHP modules: Dashboard stats, Products & Variants (catalogue), Orders (sales),
-Customers (CRM), Production & Tailoring, Enquiries, **Inventory & Stock** (stock.php
-— stock by variant, low/out alerts, signed adjustments + stock-take, audit trail).
-Next per §8: Suppliers & Purchasing → Payments & Finance → Analytics.
+Live PHP modules (all 14 §8 modules now built): Dashboard, Products & Variants
+(catalogue), Orders (sales), Customers (CRM), Production & Tailoring, Enquiries,
+Inventory & Stock (stock.php), Suppliers & Purchasing (suppliers.php — POs that
+bump stock on receive), Payments & Finance (payments.php — money in/out, cash
+position), Analytics & Reports (analytics.php — read-only over live tables),
+Marketing & Social (marketing.php — campaign planner), Market Sales/POS
+(pos page → orders.php, channel=market), Content & Brand Studio (studio → ai.php),
+Online Store & Channels + Platform (settings.php — channel toggles, store config).
+Each endpoint follows the `_lib.php` pattern (auth + audit); React pages go through
+`heritApi`, role-gated in roles.js, listed in menu-items.js.
+**Deploy note:** upload the new php-api/*.php to the cPanel doc root by hand and
+import the new tables from schema.sql (deploys only push dist/).

@@ -27,6 +27,41 @@ export const MENU_ITEMS = [{
   icon: 'solar:box-bold-duotone',
   url: '/stock'
 }, {
+  key: 'pos',
+  label: 'Market Sales',
+  icon: 'solar:shop-2-bold-duotone',
+  url: '/pos'
+}, {
+  key: 'suppliers',
+  label: 'Suppliers',
+  icon: 'solar:delivery-bold-duotone',
+  url: '/suppliers'
+}, {
+  key: 'finance',
+  label: 'Finance',
+  icon: 'solar:wallet-money-bold-duotone',
+  url: '/finance'
+}, {
+  key: 'marketing',
+  label: 'Marketing',
+  icon: 'solar:megaphone-bold-duotone',
+  url: '/marketing'
+}, {
+  key: 'analytics',
+  label: 'Analytics',
+  icon: 'solar:chart-2-bold-duotone',
+  url: '/analytics'
+}, {
+  key: 'studio',
+  label: 'Brand Studio',
+  icon: 'solar:magic-stick-3-bold-duotone',
+  url: '/studio'
+}, {
+  key: 'channels',
+  label: 'Store & Channels',
+  icon: 'solar:settings-bold-duotone',
+  url: '/channels'
+}, {
   key: 'sales',
   label: 'Orders',
   icon: 'solar:cart-large-2-bold-duotone',
