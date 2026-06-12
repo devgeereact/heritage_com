@@ -16,9 +16,17 @@ if (function_exists('mysqli_report')) {
 
 $__debug = defined('GK_DEBUG') && GK_DEBUG;
 
+// Emit CORS headers RIGHT NOW, before any query can fail. Previously these were
+// only sent when an endpoint called cors() — so a server-side 500 (thrown by the
+// exception handler below) carried no Access-Control-Allow-Origin, and the
+// browser reported a generic "Failed to fetch" instead of the real JSON error.
+// Sending them up front means even a 500 is readable cross-origin.
+cors_headers();
+
 // Any uncaught error/exception (including "prepare() returned false" Errors)
 // becomes a clean JSON 500. Detail is only included when GK_DEBUG is on.
 set_exception_handler(function ($e) use ($__debug) {
+  cors_headers(); // safe to re-call; header() just overwrites
   if (!headers_sent()) {
     http_response_code(500);
     header('Content-Type: application/json');
@@ -30,8 +38,9 @@ set_exception_handler(function ($e) use ($__debug) {
   exit;
 });
 
-/** Emit CORS headers and short-circuit pre-flight OPTIONS. */
-function cors() {
+/** Emit just the CORS response headers (no OPTIONS short-circuit). */
+function cors_headers() {
+  if (headers_sent()) return;
   // Production is same-origin (no Origin header). In dev, Vite may pick any
   // localhost port (auto-port), so reflect any localhost/127.0.0.1 origin, plus
   // whatever CORS_ORIGIN is configured to. Anything else is not allowed.
@@ -40,15 +49,16 @@ function cors() {
     $origin === CORS_ORIGIN ||
     preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)
   );
-  if ($allowed) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-  } else {
-    header('Access-Control-Allow-Origin: ' . CORS_ORIGIN);
-  }
+  header('Access-Control-Allow-Origin: ' . ($allowed ? $origin : CORS_ORIGIN));
   header('Vary: Origin');
   header('Access-Control-Allow-Credentials: true');
   header('Access-Control-Allow-Headers: Content-Type, Authorization');
   header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+}
+
+/** Emit CORS headers and short-circuit pre-flight OPTIONS. */
+function cors() {
+  cors_headers();
   if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 }
 
