@@ -4,9 +4,35 @@ import { Button, Spinner, Alert, Dropdown, Badge } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 import { useNotificationContext } from '@/context/useNotificationContext';
 import NewOrderModal from './components/NewOrderModal';
 import './tailoring.css';
+
+const PRODUCTION_AI = {
+  title: 'AI workshop planner',
+  subtitle: 'Fabric needs, a build schedule, true cost and realistic lead times for the bench.',
+  task: 'production_ai',
+  cta: 'Plan the bench',
+  sections: [
+    { key: 'FABRIC', icon: 'solar:scissors-square-bold-duotone', tone: 'primary', title: 'Fabric estimate' },
+    { key: 'SCHEDULE', icon: 'solar:calendar-bold-duotone', tone: 'info', title: 'Production schedule' },
+    { key: 'COST', icon: 'solar:tag-price-bold-duotone', tone: 'warning', title: 'Cost check' },
+    { key: 'LEADTIME', icon: 'solar:clock-circle-bold-duotone', tone: 'success', title: 'Lead-time predictor' },
+  ],
+  load: () => heritApi.tailoring.list(),
+  buildPrompt: (list) => {
+    const rows = (Array.isArray(list) ? list : []).filter((o) => o.stage !== 'cancelled').slice(0, 30)
+      .map((o) => `${o.code} ${o.garment_type} in ${o.fabric || '—'} [${o.stage}] for ${o.customer_name}${o.due_date ? ', due ' + o.due_date : ''}, ₦${Math.round(o.price || 0).toLocaleString()}`).join('; ');
+    return `Herit Clothing bespoke workshop (Lagos, agbada/kaftan/senator/etc in heritage fabrics). Active jobs: ${rows || 'none'}.
+
+Act as the workshop manager. Reference real job codes. Return EXACTLY these four sections, each starting with the tag on its own line then 1–2 sentences:
+[FABRIC] rough fabric/metres needed across the current jobs by garment type
+[SCHEDULE] the order to work the bench by due date and stage
+[COST] where pricing vs likely cost (fabric + labour) looks tight
+[LEADTIME] realistic completion dates to promise customers`;
+  },
+};
 
 const STAGES = [
   { key: 'measure', label: 'Measure', icon: 'solar:ruler-bold' },
@@ -132,6 +158,8 @@ const TailoringPage = () => {
           to the server and import <code>schema.sql</code>, then refresh.
         </Alert>
       )}
+
+      {state === 'ready' && active.length > 0 && <AiPanel {...PRODUCTION_AI} />}
 
       {state === 'ready' && (
         <div className="tl-board">

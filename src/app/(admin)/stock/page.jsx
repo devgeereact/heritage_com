@@ -3,7 +3,35 @@ import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Row, Col } from '
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 import AdjustStockModal from './components/AdjustStockModal';
+
+const INVENTORY_AI = {
+  title: 'AI stock intelligence',
+  subtitle: 'Demand forecast, reorder quantities, overproduction guard and a seasonal plan from live stock.',
+  task: 'inventory_ai',
+  cta: 'Forecast',
+  sections: [
+    { key: 'FORECAST', icon: 'solar:graph-up-bold-duotone', tone: 'primary', title: 'Demand forecast (per SKU)' },
+    { key: 'REORDER', icon: 'solar:box-bold-duotone', tone: 'danger', title: 'Reorder quantities' },
+    { key: 'GUARD', icon: 'solar:shield-warning-bold-duotone', tone: 'warning', title: 'Overproduction guard' },
+    { key: 'SEASON', icon: 'solar:calendar-bold-duotone', tone: 'info', title: 'Seasonal plan' },
+  ],
+  load: () => heritApi.inventory.list(),
+  buildPrompt: (d) => {
+    const v = (d.variants || []).slice(0, 40)
+      .map((x) => `${x.product_name} ${x.size}/${x.color} (${x.fabric || '—'}): ${x.stock} left [${x.state}]`).join('; ');
+    const s = d.summary || {};
+    return `Herit Clothing live stock (Lagos heritage-fashion brand). Summary: ${s.skus || 0} SKUs, ${s.units || 0} units, value ₦${Math.round(s.value || 0).toLocaleString()}, ${s.low || 0} low, ${s.out || 0} out.
+Variants: ${v || 'none'}.
+
+Act as the inventory planner. Be specific, name sizes/colours, give numbers. Return EXACTLY these four sections, each starting with the tag on its own line then 1–2 sentences:
+[FORECAST] which exact SKUs (size/colour) will sell fastest and likely run out
+[REORDER] how much of which pieces to make or buy next, with rough quantities
+[GUARD] what is overstocked or slow and should NOT be reordered
+[SEASON] what to stock ahead for the season/owambe demand in Lagos`;
+  },
+};
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
@@ -83,6 +111,8 @@ const StockPage = () => {
 
       {state === 'ready' && (
         <>
+          <AiPanel {...INVENTORY_AI} />
+
           <Row className="g-3 mb-3">
             <SummaryCard icon="solar:bag-smile-bold-duotone" label="Stock value" value={naira(s?.value)} tone="primary" />
             <SummaryCard icon="solar:box-bold-duotone" label="Units on hand" value={s?.units ?? 0} tone="info" />

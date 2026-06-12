@@ -3,9 +3,33 @@ import { Card, CardBody, Button, Spinner, Alert, Row, Col, Form, Table, Badge } 
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const PAY = ['cash', 'transfer', 'card'];
+
+const POS_AI = {
+  title: 'AI till insights',
+  subtitle: 'End-of-day reconciliation, busy hours and what to bundle at the stall.',
+  task: 'pos_ai',
+  cta: 'Read the stall',
+  sections: [
+    { key: 'RECONCILE', icon: 'solar:checklist-bold-duotone', tone: 'primary', title: 'Daily reconciliation' },
+    { key: 'BUSY', icon: 'solar:clock-circle-bold-duotone', tone: 'info', title: 'Busy hours' },
+    { key: 'BUNDLE', icon: 'solar:bag-smile-bold-duotone', tone: 'success', title: 'Bundle suggestions' },
+  ],
+  load: () => heritApi.orders.list(),
+  buildPrompt: (list) => {
+    const market = (Array.isArray(list) ? list : []).filter((o) => o.channel === 'market').slice(0, 30);
+    const rows = market.map((o) => `${o.code} ₦${Math.round(o.total || 0).toLocaleString()} ${o.payment_method}, ${o.unit_count || 0}u @ ${String(o.created_at || '').slice(0, 16)}`).join('; ');
+    return `Herit Clothing market stall (Ajuwon Market, Lagos) — point-of-sale orders (channel=market). Recent market sales: ${rows || 'none yet'}.
+
+Act as the stall manager. Return EXACTLY these three sections, each starting with the tag on its own line then 1–2 sentences:
+[RECONCILE] what cash/transfer/card should total for the recent sales, and anything to double-check
+[BUSY] which hours/days the stall sells most, from the timestamps
+[BUNDLE] which pieces to sell together at the till to lift the basket`;
+  },
+};
 
 /**
  * Market & In-Person Sales (POS). A fast counter screen: tap a variant to add
@@ -71,6 +95,8 @@ const PosPage = () => {
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
       {state === 'offline' && <Alert variant="warning"><strong>POS offline.</strong> Needs <code>stock.php</code> + <code>orders.php</code> live.</Alert>}
       {done && <Alert variant="success" onClose={() => setDone(null)} dismissible><strong>Sale {done.code} rung up — {naira(done.total)}.</strong> Stock updated.</Alert>}
+
+      {state === 'ready' && <AiPanel {...POS_AI} />}
 
       {state === 'ready' && (
         <Row className="g-3">

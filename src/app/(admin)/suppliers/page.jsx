@@ -3,10 +3,35 @@ import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Nav, Row, Col } f
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 import NewSupplierModal from './components/NewSupplierModal';
 import NewPOModal from './components/NewPOModal';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
+
+const SUPPLIERS_AI = {
+  title: 'AI purchasing intelligence',
+  subtitle: 'Reorder timing, price-rise watch and supplier comparison from your buying history.',
+  task: 'suppliers_ai',
+  cta: 'Advise',
+  layout: 'list',
+  sections: [
+    { key: 'FORECAST', icon: 'solar:calendar-mark-bold-duotone', tone: 'primary', title: 'Reorder forecast' },
+    { key: 'PRICE', icon: 'solar:graph-up-bold-duotone', tone: 'danger', title: 'Price-rise watch' },
+    { key: 'COMPARE', icon: 'solar:scale-bold-duotone', tone: 'info', title: 'Supplier comparison' },
+  ],
+  load: () => heritApi.suppliers.list(),
+  buildPrompt: (list) => {
+    const rows = (Array.isArray(list) ? list : []).slice(0, 25)
+      .map((s) => `${s.name} (${s.contact || 'no contact'}): ${s.po_count || 0} POs, ₦${Math.round(s.spent || 0).toLocaleString()} spent`).join('; ');
+    return `Herit Clothing fabric/trim suppliers (Lagos heritage-fashion brand). ${Array.isArray(list) ? list.length : 0} suppliers: ${rows || 'none'}.
+
+Act as the purchasing manager. Name real suppliers. Return EXACTLY these three sections, each starting with the tag on its own line then 1–2 sentences:
+[FORECAST] which suppliers to reorder from soon based on spend/frequency
+[PRICE] where rising fabric costs are a risk to watch
+[COMPARE] which suppliers look best value and where to consolidate buying`;
+  },
+};
 const PO_BADGE = { received: 'success', ordered: 'info', draft: 'secondary', cancelled: 'danger' };
 
 const SuppliersPage = () => {
@@ -58,6 +83,7 @@ const SuppliersPage = () => {
 
       {state === 'ready' && (
         <>
+          <AiPanel {...SUPPLIERS_AI} />
           {poSummary && (
             <Row className="g-3 mb-3">
               <Col md={4}><Card><CardBody><p className="text-muted mb-1">Open orders</p><h4 className="mb-0">{poSummary.open}</h4></CardBody></Card></Col>

@@ -4,9 +4,35 @@ import { Card, CardBody, Table, Button, Spinner, Alert, Badge } from 'react-boot
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 import NewCustomerModal from './components/NewCustomerModal';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
+
+const CRM_AI = {
+  title: 'AI customer intelligence',
+  subtitle: 'Lifetime value, churn risk, segments and styling angles from your customer base.',
+  task: 'crm_ai',
+  cta: 'Analyse customers',
+  sections: [
+    { key: 'LTV', icon: 'solar:crown-bold-duotone', tone: 'primary', title: 'Lifetime value — who to look after' },
+    { key: 'CHURN', icon: 'solar:user-cross-bold-duotone', tone: 'danger', title: 'Churn risk — going quiet' },
+    { key: 'SEGMENT', icon: 'solar:users-group-two-rounded-bold-duotone', tone: 'info', title: 'Segments to target' },
+    { key: 'STYLING', icon: 'solar:hanger-2-bold-duotone', tone: 'success', title: 'Styling & outreach angle' },
+  ],
+  load: () => heritApi.customers.list(),
+  buildPrompt: (list) => {
+    const rows = (Array.isArray(list) ? list : []).slice(0, 40)
+      .map((c) => `${c.name}: ${c.order_count || 0} orders, ${c.active_orders || 0} active, ₦${Math.round(c.ordered_value || 0).toLocaleString()} spent`).join('; ');
+    return `Herit Clothing customers (Lagos heritage-fashion brand, bespoke + ready-to-wear). ${Array.isArray(list) ? list.length : 0} customers. Data: ${rows || 'none'}.
+
+Act as the CRM analyst. Name real customers from the data. Return EXACTLY these four sections, each starting with the tag on its own line then 1–2 sentences:
+[LTV] the most valuable customers worth protecting, by spend/orders
+[CHURN] customers who look like they are going quiet and should be re-engaged
+[SEGMENT] a useful segment to target next (e.g. repeat owambe buyers) and why
+[STYLING] a concrete outreach or styling idea to drive the next order`;
+  },
+};
 
 const CrmPage = () => {
   const [rows, setRows] = useState([]);
@@ -49,6 +75,8 @@ const CrmPage = () => {
           and import the <code>customers</code> table from <code>schema.sql</code>, then refresh.
         </Alert>
       )}
+
+      {state === 'ready' && rows.length > 0 && <AiPanel {...CRM_AI} />}
 
       {state === 'ready' && (
         <Card>

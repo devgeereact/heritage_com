@@ -3,9 +3,34 @@ import { Card, CardBody, Table, Button, Spinner, Alert, Nav, Row, Col, Modal, Fo
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const PAY_METHODS = ['cash', 'transfer', 'card', 'cod'];
+
+const FINANCE_AI = {
+  title: 'AI finance read',
+  subtitle: 'Cash-flow forecast, margin insight, expense patterns and a plain-English profit read.',
+  task: 'finance_ai',
+  cta: 'Read the money',
+  sections: [
+    { key: 'CASHFLOW', icon: 'solar:graph-up-bold-duotone', tone: 'primary', title: 'Cash-flow forecast' },
+    { key: 'MARGIN', icon: 'solar:tag-price-bold-duotone', tone: 'success', title: 'Margin insight' },
+    { key: 'EXPENSE', icon: 'solar:bill-list-bold-duotone', tone: 'warning', title: 'Expense patterns' },
+    { key: 'PROFIT', icon: 'solar:wallet-money-bold-duotone', tone: 'info', title: 'Profit read' },
+  ],
+  load: () => heritApi.finance.summary(),
+  buildPrompt: (s) => {
+    const cats = (s.expenses_by_category || []).map((c) => `${c.category}: ₦${Math.round(c.total).toLocaleString()}`).join('; ');
+    return `Herit Clothing finances (Lagos heritage-fashion brand). All-time: in ₦${Math.round(s.in || 0).toLocaleString()}, out ₦${Math.round(s.out || 0).toLocaleString()}, net ₦${Math.round(s.net || 0).toLocaleString()}. This month: in ₦${Math.round(s.in_month || 0).toLocaleString()}, out ₦${Math.round(s.out_month || 0).toLocaleString()}, net ₦${Math.round(s.net_month || 0).toLocaleString()}. Outstanding owed: ₦${Math.round(s.outstanding || 0).toLocaleString()}. Expenses by category: ${cats || 'none'}.
+
+Act as the brand's finance partner. Be concrete, cite the numbers, no fluff. Return EXACTLY these four sections, each starting with the tag on its own line then 1–2 sentences:
+[CASHFLOW] is a thin month coming, and what the cash position looks like ahead
+[MARGIN] where the brand may be under-pricing or leaking margin
+[EXPENSE] which cost categories stand out and what to watch
+[PROFIT] a plain-English summary of whether the brand is making money`;
+  },
+};
 const EXP_CATS = ['fabric', 'tailoring', 'packaging', 'marketing', 'rent', 'fees', 'other'];
 
 const Kpi = ({ label, value, tone, icon }) => (
@@ -109,6 +134,8 @@ const FinancePage = () => {
 
       {state === 'ready' && (
         <>
+          <AiPanel {...FINANCE_AI} />
+
           <Row className="g-3 mb-3">
             <Kpi label="Money in" value={naira(summary?.in)} tone="success" icon="solar:arrow-down-bold-duotone" />
             <Kpi label="Money out" value={naira(summary?.out)} tone="danger" icon="solar:arrow-up-bold-duotone" />

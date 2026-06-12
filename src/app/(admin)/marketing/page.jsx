@@ -3,6 +3,33 @@ import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Row, Col, Modal, 
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
+
+const MARKETING_AI = {
+  title: 'AI marketing studio',
+  subtitle: 'On-brand captions, ad copy, an email angle, best posting time and audience read.',
+  task: 'marketing_ai',
+  cta: 'Generate ideas',
+  sections: [
+    { key: 'CAPTION', icon: 'solar:hashtag-bold-duotone', tone: 'primary', title: 'Caption & hashtags' },
+    { key: 'ADCOPY', icon: 'solar:megaphone-bold-duotone', tone: 'danger', title: 'Ad copy to test' },
+    { key: 'EMAIL', icon: 'solar:letter-bold-duotone', tone: 'info', title: 'Email / WhatsApp angle' },
+    { key: 'TIMING', icon: 'solar:clock-circle-bold-duotone', tone: 'warning', title: 'Best time to post' },
+    { key: 'AUDIENCE', icon: 'solar:users-group-rounded-bold-duotone', tone: 'success', title: 'Audience read' },
+  ],
+  load: () => heritApi.marketing.list(),
+  buildPrompt: (r) => {
+    const cs = (r.campaigns || []).slice(0, 15).map((c) => `${c.name} [${c.channel}/${c.status}]${c.goal ? ' — ' + c.goal : ''}`).join('; ');
+    return `Herit Clothing — Lagos brand fusing African heritage fabrics (Ankara, Adire, Aso-Oke) with contemporary cuts; sells online and at Ajuwon Market. Current campaigns: ${cs || 'none yet'}.
+
+Act as the brand's social/marketing lead. Voice: proud, warm, heritage-forward, never cheesy. Return EXACTLY these five sections, each starting with the tag on its own line then 1–2 sentences (real, postable copy where relevant):
+[CAPTION] one ready-to-post Instagram caption + 3-5 hashtags for a new drop
+[ADCOPY] two short ad lines to A/B test
+[EMAIL] the angle + subject line for the next email/WhatsApp blast
+[TIMING] when this audience is likely most active, and posting cadence
+[AUDIENCE] who is buying and what resonates with them`;
+  },
+};
 
 const CHANNELS = ['instagram', 'whatsapp', 'email', 'tiktok', 'facebook'];
 const STATUSES = ['planned', 'live', 'paused', 'done'];
@@ -66,6 +93,8 @@ const MarketingPage = () => {
 
       {state === 'ready' && (
         <>
+          <AiPanel {...MARKETING_AI} />
+
           <Row className="g-3 mb-3">
             <Col md={4}><Card><CardBody><p className="text-muted mb-1">Total campaigns</p><h4 className="mb-0">{summary?.total ?? 0}</h4></CardBody></Card></Col>
             <Col md={4}><Card><CardBody><p className="text-muted mb-1">Live now</p><h4 className="mb-0 text-success">{summary?.live ?? 0}</h4></CardBody></Card></Col>

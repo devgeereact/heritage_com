@@ -4,9 +4,35 @@ import { Card, CardBody, Table, Button, Spinner, Alert, Badge, ButtonGroup } fro
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiPanel from '@/components/AiPanel';
 import NewOrderModal from './components/NewOrderModal';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
+
+const ORDERS_AI = {
+  title: 'AI order intelligence',
+  subtitle: 'Risk flags, delivery ETAs, return patterns and who to nudge to buy again.',
+  task: 'orders_ai',
+  cta: 'Scan orders',
+  sections: [
+    { key: 'RISK', icon: 'solar:shield-warning-bold-duotone', tone: 'danger', title: 'Risk & address flags' },
+    { key: 'ETA', icon: 'solar:delivery-bold-duotone', tone: 'primary', title: 'Delivery ETAs' },
+    { key: 'RETURNS', icon: 'solar:restart-bold-duotone', tone: 'warning', title: 'Return-reason insight' },
+    { key: 'REORDER', icon: 'solar:refresh-circle-bold-duotone', tone: 'success', title: 'Reorder reminders' },
+  ],
+  load: () => heritApi.orders.list(),
+  buildPrompt: (list) => {
+    const rows = (Array.isArray(list) ? list : []).slice(0, 30)
+      .map((o) => `${o.code} ${o.customer_name} [${o.channel}/${o.status}] ₦${Math.round(o.total || 0).toLocaleString()} ${o.payment_method}, ${o.unit_count || 0}u`).join('; ');
+    return `Herit Clothing orders (Lagos heritage-fashion brand, web + WhatsApp + market). ${Array.isArray(list) ? list.length : 0} orders: ${rows || 'none'}.
+
+Act as the fulfilment lead. Reference real order codes. Return EXACTLY these four sections, each starting with the tag on its own line then 1–2 sentences:
+[RISK] orders that look risky or need address/payment checking before shipping
+[ETA] realistic delivery expectations to set, by destination/channel
+[RETURNS] any pattern in cancellations/returns worth fixing
+[REORDER] happy past customers worth nudging to buy again`;
+  },
+};
 const STATUSES = ['pending', 'paid', 'making', 'packing', 'shipped', 'delivered', 'cancelled'];
 const statusVariant = (s) => ({
   pending: 'secondary', paid: 'info', making: 'warning', packing: 'warning',
@@ -74,6 +100,8 @@ const SalesPage = () => {
           and import the <code>orders</code> tables from <code>schema.sql</code>, then refresh.
         </Alert>
       )}
+
+      {state === 'ready' && rows.length > 0 && <AiPanel {...ORDERS_AI} />}
 
       {state === 'ready' && (
         <>
