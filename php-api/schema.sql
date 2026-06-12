@@ -81,10 +81,10 @@ VALUES (
 )
 ON DUPLICATE KEY UPDATE email = email;
 
--- Seed a couple of smoke-test items so the dashboard shows data on first load.
--- (items has no unique key, so a re-import just adds a couple of harmless rows;
--- it never aborts the import.)
-INSERT INTO items (label) VALUES ('HeritOS pipe online'), ('Ajuwon Market, Lagos');
+-- (No items seed. `items` is the legacy api.php smoke-test table only; on some
+-- databases an older `items` exists without a `label` column, which made this
+-- seed abort the whole import with #1054. It's not used by any HeritOS module,
+-- so we just don't seed it.)
 
 -- ===========================================================================
 -- TAILORING & PRODUCTION — the core of the business (bespoke menswear).
