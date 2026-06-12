@@ -51,7 +51,12 @@ const AnalyticsPage = () => {
             <Kpi label="Avg order" value={naira(k?.avg_order)} tone="success" icon="solar:tag-price-bold-duotone" />
             <Kpi label="Customers" value={k?.customers ?? 0} tone="warning" icon="solar:users-group-rounded-bold-duotone" />
             <Kpi label="Stock value" value={naira(k?.stock_value)} tone="danger" icon="solar:bag-smile-bold-duotone" />
+            <Kpi label="Gross profit" value={naira(k?.profit)} tone="success" icon="solar:money-bag-bold-duotone" />
+            <Kpi label="Margin" value={`${Math.round((k?.margin ?? 0) * 100)}%`} tone="primary" icon="solar:pie-chart-2-bold-duotone" />
           </Row>
+          {(k?.cogs ?? 0) === 0 && (
+            <p className="text-muted small mb-3"><IconifyIcon icon="solar:info-circle-linear" className="me-1" />Profit is a floor — set each product&apos;s cost price (COGS) in the catalogue to sharpen it.</p>
+          )}
 
           <Row className="g-3">
             <Col xl={8}>

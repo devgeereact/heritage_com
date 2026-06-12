@@ -21,7 +21,7 @@ $action = $_GET['action'] ?? 'list';
 /* ---- LIST ---------------------------------------------------------------- */
 if ($action === 'list' && method() === 'GET') {
   $rows = [];
-  $sql = "SELECT c.id, c.name, c.phone, c.email,
+  $sql = "SELECT c.id, c.name, c.phone, c.email, c.tags, c.segment, c.loyalty_points,
                  COUNT(o.id) AS order_count,
                  SUM(o.stage NOT IN ('done','cancelled')) AS active_orders,
                  COALESCE(SUM(o.price), 0) AS ordered_value
@@ -66,10 +66,12 @@ if ($action === 'create' && method() === 'POST') {
   $phone = trim($b['phone'] ?? '');
   $email = trim($b['email'] ?? '');
   $notes = trim($b['notes'] ?? '');
+  $tags = trim($b['tags'] ?? '');
+  $segment = trim($b['segment'] ?? '');
   $measurements = isset($b['measurements']) ? json_encode($b['measurements']) : null;
 
-  $stmt = $conn->prepare('INSERT INTO customers (name, phone, email, notes, measurements) VALUES (?,?,?,?,?)');
-  $stmt->bind_param('sssss', $name, $phone, $email, $notes, $measurements);
+  $stmt = $conn->prepare('INSERT INTO customers (name, phone, email, notes, tags, segment, measurements) VALUES (?,?,?,?,?,?,?)');
+  $stmt->bind_param('sssssss', $name, $phone, $email, $notes, $tags, $segment, $measurements);
   $stmt->execute();
   $id = $conn->insert_id;
   audit($user['id'], 'customer_create', 'customer', $id, ['name' => $name]);
@@ -85,9 +87,11 @@ if ($action === 'update' && method() === 'POST') {
   $phone = trim($b['phone'] ?? '');
   $email = trim($b['email'] ?? '');
   $notes = trim($b['notes'] ?? '');
+  $tags = trim($b['tags'] ?? '');
+  $segment = trim($b['segment'] ?? '');
 
-  $stmt = $conn->prepare('UPDATE customers SET name=?, phone=?, email=?, notes=? WHERE id=? AND deleted_at IS NULL');
-  $stmt->bind_param('ssssi', $name, $phone, $email, $notes, $id);
+  $stmt = $conn->prepare('UPDATE customers SET name=?, phone=?, email=?, notes=?, tags=?, segment=? WHERE id=? AND deleted_at IS NULL');
+  $stmt->bind_param('ssssssi', $name, $phone, $email, $notes, $tags, $segment, $id);
   $stmt->execute();
   audit($user['id'], 'customer_update', 'customer', $id);
   json(['ok' => true]);

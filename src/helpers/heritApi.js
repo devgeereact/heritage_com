@@ -99,6 +99,9 @@ export const heritApi = {
     create: (data) => request('/orders.php?action=create', { method: 'POST', body: data }),
     setStatus: (id, status) =>
       request(`/orders.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+    track: (id, data) => request(`/orders.php?action=track&id=${id}`, { method: 'POST', body: data }),
+    setReturn: (id, return_status, return_reason) =>
+      request(`/orders.php?action=return&id=${id}`, { method: 'POST', body: { return_status, return_reason } }),
   },
 
   // Suppliers & purchasing

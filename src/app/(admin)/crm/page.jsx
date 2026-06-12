@@ -97,6 +97,14 @@ const CrmPage = () => {
                   <tr key={c.id}>
                     <td>
                       <Link to={`/crm/${c.id}`} className="fw-semibold text-decoration-none">{c.name}</Link>
+                      {(c.tags || c.segment) && (
+                        <div className="mt-1 d-flex flex-wrap gap-1">
+                          {c.segment && <Badge bg="primary" className="bg-opacity-75 fw-normal">{c.segment}</Badge>}
+                          {String(c.tags || '').split(',').map((t) => t.trim()).filter(Boolean).map((t) => (
+                            <Badge key={t} bg="light" text="dark" className="border fw-normal">{t}</Badge>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="small">
                       {c.phone && <div><IconifyIcon icon="solar:phone-bold" /> {c.phone}</div>}

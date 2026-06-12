@@ -24,7 +24,7 @@ $action = $_GET['action'] ?? 'list';
 /* ---- LIST ---------------------------------------------------------------- */
 if ($action === 'list' && method() === 'GET') {
   $rows = [];
-  $sql = "SELECT p.id, p.code, p.name, p.category, p.fabric, p.base_price, p.status, p.image_url,
+  $sql = "SELECT p.id, p.code, p.name, p.category, p.fabric, p.base_price, p.cost_price, p.status, p.image_url,
                  COUNT(v.id) AS variant_count,
                  COALESCE(SUM(v.stock), 0) AS total_stock
             FROM products p
@@ -65,6 +65,7 @@ if ($action === 'create' && method() === 'POST') {
   $fabric = trim($b['fabric'] ?? '');
   $description = trim($b['description'] ?? '');
   $basePrice = (float)($b['base_price'] ?? 0);
+  $costPrice = (float)($b['cost_price'] ?? 0);
   $sizes = array_values(array_filter(array_map('trim', (array)($b['sizes'] ?? []))));
   $colors = array_values(array_filter(array_map('trim', (array)($b['colors'] ?? []))));
   if ($name === '') fail('Product name is required');
@@ -75,10 +76,10 @@ if ($action === 'create' && method() === 'POST') {
   $code = 'PRD-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
 
   $stmt = $conn->prepare(
-    'INSERT INTO products (code, name, category, fabric, description, base_price, created_by)
-     VALUES (?,?,?,?,?,?,?)'
+    'INSERT INTO products (code, name, category, fabric, description, base_price, cost_price, created_by)
+     VALUES (?,?,?,?,?,?,?,?)'
   );
-  $stmt->bind_param('sssssdi', $code, $name, $category, $fabric, $description, $basePrice, $user['id']);
+  $stmt->bind_param('sssssddi', $code, $name, $category, $fabric, $description, $basePrice, $costPrice, $user['id']);
   $stmt->execute();
   $productId = $conn->insert_id;
 

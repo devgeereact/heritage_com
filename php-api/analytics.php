@@ -81,4 +81,20 @@ $r = $conn->query("SELECT DATE(created_at) AS day, COUNT(*) AS count FROM custom
                     GROUP BY DATE(created_at) ORDER BY day ASC");
 while ($r && $row = $r->fetch_assoc()) $out['new_customers'][] = ['day' => $row['day'], 'count' => (int)$row['count']];
 
+/* Profit / margin (COGS via variant → product cost_price) -------------------*/
+/* Only variant-backed lines carry a cost; revenue counts all lines, so this is
+ * a floor on profit until every line is mapped to a costed product. */
+$cogs = (float)($conn->query(
+  "SELECT COALESCE(SUM(i.qty * p.cost_price),0) AS c
+     FROM order_items i
+     JOIN orders o ON o.id = i.order_id
+     JOIN product_variants v ON v.id = i.variant_id
+     JOIN products p ON p.id = v.product_id
+    WHERE o.deleted_at IS NULL AND o.status <> 'cancelled'"
+)->fetch_assoc()['c'] ?? 0);
+$rev = (float)$out['kpis']['revenue'];
+$out['kpis']['cogs'] = $cogs;
+$out['kpis']['profit'] = $rev - $cogs;
+$out['kpis']['margin'] = $rev > 0 ? ($rev - $cogs) / $rev : 0;
+
 json($out);

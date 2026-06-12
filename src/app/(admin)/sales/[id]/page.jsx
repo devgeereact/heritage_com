@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Row, Col, Card, CardBody, Table, Badge, Spinner, Alert, Form } from 'react-bootstrap';
+import { Row, Col, Card, CardBody, Table, Badge, Spinner, Alert, Form, Button } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
@@ -35,6 +35,22 @@ const SalesDetailPage = () => {
       showNotification({ message: e.message || 'Could not update', variant: 'danger' });
       load();
     }
+  };
+
+  const [track, setTrack] = useState({ courier: '', tracking_ref: '', tracking_url: '' });
+  const saveTracking = async () => {
+    try {
+      await heritApi.orders.track(id, track);
+      showNotification({ message: 'Tracking saved — order marked shipped.', variant: 'success' });
+      load();
+    } catch (e) { showNotification({ message: e.message || 'Could not save tracking', variant: 'danger' }); }
+  };
+  const setReturn = async (return_status) => {
+    setO((p) => ({ ...p, return_status }));
+    try {
+      await heritApi.orders.setReturn(id, return_status, o.return_reason || '');
+      showNotification({ message: `Return: ${return_status}`, variant: 'success' });
+    } catch (e) { showNotification({ message: e.message || 'Could not update return', variant: 'danger' }); load(); }
   };
 
   if (state === 'loading') return <div className="text-center py-5"><Spinner /></div>;
@@ -111,6 +127,35 @@ const SalesDetailPage = () => {
               <Form.Select value={o.status} onChange={(e) => setStatus(e.target.value)} className="text-capitalize">
                 {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </Form.Select>
+            </CardBody>
+          </Card>
+
+          <Card className="mt-3">
+            <CardBody>
+              <h5 className="card-title mb-2">Shipping &amp; tracking</h5>
+              {o.tracking_ref ? (
+                <div className="mb-2 small">
+                  <div><span className="text-muted">Courier:</span> {o.courier || '—'}</div>
+                  <div><span className="text-muted">Ref:</span> {o.tracking_ref}</div>
+                  {o.tracking_url && <a href={o.tracking_url} target="_blank" rel="noreferrer">Track parcel <IconifyIcon icon="solar:arrow-right-up-linear" /></a>}
+                </div>
+              ) : <p className="text-muted small mb-2">No tracking yet. Add it to mark the order shipped.</p>}
+              <Form.Control className="mb-2" placeholder="Courier (GIG, DHL…)" value={track.courier} onChange={(e) => setTrack((t) => ({ ...t, courier: e.target.value }))} />
+              <Form.Control className="mb-2" placeholder="Tracking reference" value={track.tracking_ref} onChange={(e) => setTrack((t) => ({ ...t, tracking_ref: e.target.value }))} />
+              <Form.Control className="mb-2" placeholder="Tracking URL (optional)" value={track.tracking_url} onChange={(e) => setTrack((t) => ({ ...t, tracking_url: e.target.value }))} />
+              <Button size="sm" variant="primary" className="w-100" onClick={saveTracking} disabled={!track.tracking_ref.trim()}>
+                <IconifyIcon icon="solar:delivery-bold" className="me-1" /> Save &amp; mark shipped
+              </Button>
+            </CardBody>
+          </Card>
+
+          <Card className="mt-3">
+            <CardBody>
+              <h5 className="card-title mb-2">Return / exchange</h5>
+              <Form.Select value={o.return_status || 'none'} onChange={(e) => setReturn(e.target.value)} className="text-capitalize mb-2">
+                {['none', 'requested', 'approved', 'received', 'refunded', 'rejected'].map((s) => <option key={s} value={s}>{s}</option>)}
+              </Form.Select>
+              <Form.Control placeholder="Reason (size, fault…)" value={o.return_reason || ''} onChange={(e) => setO((p) => ({ ...p, return_reason: e.target.value }))} onBlur={() => setReturn(o.return_status || 'none')} />
             </CardBody>
           </Card>
         </Col>
