@@ -200,7 +200,9 @@ bump stock on receive), Payments & Finance (payments.php — money in/out, cash
 position), Analytics & Reports (analytics.php — read-only over live tables),
 Marketing & Social (marketing.php — campaign planner), Market Sales/POS
 (pos page → orders.php, channel=market), Content & Brand Studio (studio → ai.php),
-Online Store & Channels + Platform (settings.php — channel toggles, store config).
+Online Store & Channels + Platform (settings.php — channel toggles, store config),
+Weather & Ops (weather.php — Lagos forecast via Open-Meteo, no key, turned into
+trading nudges: rain → push online + protect deliveries, hot → lightweight pieces).
 Each endpoint follows the `_lib.php` pattern (auth + audit); React pages go through
 `heritApi`, role-gated in roles.js, listed in menu-items.js.
 **Deploy note:** upload the new php-api/*.php to the cPanel doc root by hand and

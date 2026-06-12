@@ -126,6 +126,9 @@ export const heritApi = {
   // Analytics & reports
   analytics: () => request('/analytics.php'),
 
+  // Weather & ops (Lagos forecast + brand nudges, via Open-Meteo)
+  weather: () => request('/weather.php'),
+
   // Marketing & social
   marketing: {
     list: () => request('/marketing.php?action=list'),

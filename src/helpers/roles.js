@@ -23,6 +23,7 @@ const SECTIONS = {
   pos: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
   studio: ['super_admin', 'admin', 'manager', 'editor'],
   channels: ['super_admin', 'admin', 'manager'],
+  weather: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
   enquiries: ['super_admin', 'admin', 'manager', 'employee'],
   crm: ['super_admin', 'admin', 'manager', 'tailor', 'employee'],
   sales: ['super_admin', 'admin', 'manager', 'seller', 'employee'],

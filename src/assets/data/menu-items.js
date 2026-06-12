@@ -52,6 +52,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:chart-2-bold-duotone',
   url: '/analytics'
 }, {
+  key: 'weather',
+  label: 'Weather & Ops',
+  icon: 'solar:cloud-sun-bold-duotone',
+  url: '/weather'
+}, {
   key: 'studio',
   label: 'Brand Studio',
   icon: 'solar:magic-stick-3-bold-duotone',
