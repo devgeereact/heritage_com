@@ -15,8 +15,13 @@ const LeftSideBarToggle = () => {
   const pathname = useLocation();
   const isFirstRender = useRef(true);
   const handleMenuSize = () => {
-    if (size === 'hidden') toggleBackdrop();
-    if (size === 'condensed') changeMenuSize('default');else if (size === 'default') changeMenuSize('condensed');
+    // On mobile the sidebar is an off-canvas overlay — just toggle it.
+    if (size === 'hidden') { toggleBackdrop(); return; }
+    // On desktop, collapse to the condensed rail and expand back. Covers the
+    // default 'sm-hover-active' state too (previously a no-op, so the hamburger
+    // did nothing from a fresh load).
+    if (size === 'condensed') changeMenuSize('sm-hover-active');
+    else changeMenuSize('condensed');
   };
   useEffect(() => {
     if (isFirstRender.current) {

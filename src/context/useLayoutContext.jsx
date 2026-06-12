@@ -130,6 +130,19 @@ const LayoutProvider = ({
       }
     }
   }, [queryParams]);
+  // Self-heal: a desktop user stuck in 'hidden' menu size shows the full sidebar
+  // as an overlay over the content (content isn't offset), which reads as the
+  // sidebar overlapping the page. On desktop that's never the right state —
+  // reset it to the pinned default and clear any leftover open-overlay class.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth >= 1200 && settings.menu.size === 'hidden') {
+      changeMenuSize('sm-hover-active');
+      document.documentElement.classList.remove('sidebar-enable');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     toggleDocumentAttribute('data-bs-theme', settings.theme);
     toggleDocumentAttribute('data-topbar-color', settings.topbarTheme);
