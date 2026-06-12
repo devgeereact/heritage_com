@@ -53,50 +53,62 @@ const HomePage = () => (
       ))}
     </div>
 
-    {/* hero */}
-    <section className="hc-hero">
+    {/* hero — bold, immersive heritage canvas */}
+    <section className="hc-hero hc-hero--bold">
+      <div className="hc-hero-weave" aria-hidden="true" />
+      <div className="hc-hero-glow" aria-hidden="true" />
       <div className="hc-container">
         <div className="hc-hero-grid">
           <div className="hc-hero-left">
-            <div className="hc-hero-tagline">Contemporary African Fashion · Est. Lagos</div>
-            <h1 className="hc-h1">Wear your <em>heritage</em>.</h1>
-            <p className="hc-lead hc-mt-3">
-              Contemporary African fashion, rooted in real heritage fabrics. We take traditional
-              prints and patterns and tailor them for now — so you can wear your culture with
-              pride, wherever you are. Made in Lagos, for the world.
+            <div className="hc-hero-eyebrow">
+              <span className="hc-hero-pulse" /> The Founders&apos; Drop is live
+            </div>
+            <h1 className="hc-hero-title">
+              Your culture,
+              <span className="hc-hero-em">cut&nbsp;for&nbsp;now.</span>
+            </h1>
+            <p className="hc-hero-sub">
+              Bold Ankara. Hand-dyed Adire. Woven Aso-Oke. Reworked into pieces you&apos;ll
+              actually live in — made by hand in Ajuwon Market, Lagos, and shipped worldwide.
             </p>
             <div className="hc-hero-actions">
-              <Link to="/shop" className="hc-btn hc-btn--primary">
+              <Link to="/shop" className="hc-btn hc-btn--gold hc-hero-cta">
                 <IconifyIcon icon="solar:bag-4-bold" /> Shop the collection
               </Link>
-              <Link to="/about" className="hc-btn hc-btn--ghost">
-                <IconifyIcon icon="solar:book-bookmark-linear" /> Our story
+              <Link to="/about" className="hc-btn hc-btn--glass">
+                <IconifyIcon icon="solar:play-circle-bold" /> Our story
               </Link>
             </div>
-            <div className="hc-hero-strip">
-              <div><div className="hc-stat-n">3</div><div className="hc-stat-l">Heritage fabrics</div></div>
-              <div><div className="hc-stat-n">100%</div><div className="hc-stat-l">Made in Lagos</div></div>
-              <div><div className="hc-stat-n">Worldwide</div><div className="hc-stat-l">Tracked shipping</div></div>
-              <div><div className="hc-stat-n">14-day</div><div className="hc-stat-l">Returns</div></div>
+            <div className="hc-hero-trust">
+              <div className="hc-hero-stars">
+                {[0, 1, 2, 3, 4].map((i) => <IconifyIcon key={i} icon="solar:star-bold" />)}
+                <span>Loved across Lagos &amp; beyond</span>
+              </div>
+              <div className="hc-hero-badges">
+                <span><IconifyIcon icon="solar:delivery-bold" /> Free Lagos delivery over ₦25k</span>
+                <span><IconifyIcon icon="solar:restart-bold" /> 14-day returns</span>
+              </div>
             </div>
           </div>
 
           <div className="hc-hero-right">
-            <div>
-              <div className="hc-swatch-row">
-                <div className="hc-swatch" style={{ background: '#b91c1c' }} />
-                <div className="hc-swatch" style={{ background: '#9b2c2c' }} />
-                <div className="hc-swatch" style={{ background: '#7f1d1d' }} />
-                <div className="hc-swatch" style={{ background: '#b45309' }} />
-                <div className="hc-swatch" style={{ background: '#fdf2d6' }} />
+            <div className="hc-fabric-stack">
+              <div className="hc-fabric-card hc-tile-asooke" style={{ '--i': 0 }}>
+                <span className="hc-fabric-tag">Premium</span>
+                <div className="hc-fabric-meta"><strong>Aso-Oke</strong><small>Woven, ceremonial</small></div>
               </div>
-              <p className="hc-hero-quote">
-                Heritage that doesn&apos;t stay in the wardrobe for special occasions — it lives
-                with you, every day.
-              </p>
+              <div className="hc-fabric-card hc-tile-ankara" style={{ '--i': 1 }}>
+                <span className="hc-fabric-tag">Bestseller</span>
+                <div className="hc-fabric-meta"><strong>Ankara</strong><small>Bold wax prints</small></div>
+                <span className="hc-fabric-price">from ₦18,500</span>
+              </div>
+              <div className="hc-fabric-card hc-tile-adire" style={{ '--i': 2 }}>
+                <span className="hc-fabric-tag">Signature</span>
+                <div className="hc-fabric-meta"><strong>Adire</strong><small>Hand-dyed indigo</small></div>
+              </div>
             </div>
             <div className="hc-hero-place">
-              <IconifyIcon icon="solar:map-point-bold" /> Ajuwon Market, Lagos, Nigeria
+              <IconifyIcon icon="solar:map-point-bold" /> Ajuwon Market · Lagos, Nigeria
             </div>
           </div>
         </div>
