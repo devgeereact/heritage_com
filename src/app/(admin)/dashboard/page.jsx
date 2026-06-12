@@ -3,6 +3,7 @@ import { Row, Alert } from 'react-bootstrap';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
 import HeritKpis from './components/HeritKpis';
+import AiBriefing from './components/AiBriefing';
 import WorkshopSnapshot from './components/WorkshopSnapshot';
 import PipeStatus from './components/PipeStatus';
 
@@ -32,6 +33,8 @@ const DashboardPage = () => {
       )}
 
       {stats && <HeritKpis stats={stats} />}
+
+      <AiBriefing />
 
       <Row className="g-3 mt-1">
         {stats && <WorkshopSnapshot byStage={stats.tailoring.by_stage} />}
