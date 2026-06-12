@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
 import { PRODUCTS, getProduct, formatNgn } from './products';
+import { useCart } from './cart';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
 
@@ -21,11 +22,22 @@ const NotFoundPiece = () => (
 
 const ProductPage = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { add } = useCart();
   const product = getProduct(slug);
   const [size, setSize] = useState('M');
   const [storyOpen, setStoryOpen] = useState(true);
+  const [added, setAdded] = useState(false);
 
   if (!product) return <NotFoundPiece />;
+
+  const chosenSize = product.type === 'Accessories' ? 'One size' : size;
+  const addToCart = () => {
+    add({ slug: product.slug, name: product.name, fabric: product.fabric, size: chosenSize, priceNgn: product.priceNgn, tile: product.tile });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
+  const buyNow = () => { addToCart(); navigate('/cart'); };
 
   const related = PRODUCTS.filter((p) => p.slug !== product.slug).slice(0, 4);
 
@@ -92,13 +104,16 @@ const ProductPage = () => {
               </div>
 
               <div className="hc-flex hc-wrap hc-mt-4" style={{ gap: '0.8rem' }}>
-                <Link to="/contact" className="hc-btn hc-btn--primary">
-                  <IconifyIcon icon="solar:bag-4-bold" /> Make it yours
-                </Link>
-                <Link to="/contact" className="hc-btn hc-btn--ghost">
-                  <IconifyIcon icon="mdi:whatsapp" /> Ask about this piece
-                </Link>
+                <button onClick={buyNow} className="hc-btn hc-btn--primary" style={{ cursor: 'pointer', border: 'none' }}>
+                  <IconifyIcon icon="solar:bag-4-bold" /> Add to bag · {formatNgn(product.priceNgn)}
+                </button>
+                <button onClick={addToCart} className="hc-btn hc-btn--ghost" style={{ cursor: 'pointer' }}>
+                  <IconifyIcon icon={added ? 'solar:check-circle-bold' : 'solar:cart-plus-bold'} /> {added ? 'Added' : 'Keep shopping'}
+                </button>
               </div>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.6rem' }}>
+                Or <Link to="/contact" style={{ color: 'var(--primary)' }}>ask about this piece on WhatsApp</Link> — bespoke sizing welcome.
+              </p>
 
               {/* reassurance */}
               <ul className="hc-check hc-mt-4">

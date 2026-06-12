@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { DEFAULT_PAGE_TITLE } from '@/context/constants';
+import { useCart } from './cart';
 import './site.css';
 
 const NAV = [
@@ -15,6 +16,7 @@ const NAV = [
 const SiteNav = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const { count } = useCart();
   useEffect(() => { setOpen(false); }, [pathname]);
 
   const isActive = (to) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
@@ -42,7 +44,12 @@ const SiteNav = () => {
               {n.label}
             </Link>
           ))}
-          <Link to="/contact" className="hc-btn hc-btn--primary hc-nav-cta">
+          <Link to="/cart" className="hc-nav-cart" aria-label={`Bag (${count})`}>
+            <IconifyIcon icon="solar:bag-4-bold" />
+            {count > 0 && <span className="hc-nav-cart-badge">{count}</span>}
+            <span className="hc-nav-cart-label">Bag</span>
+          </Link>
+          <Link to="/shop" className="hc-btn hc-btn--primary hc-nav-cta">
             <IconifyIcon icon="solar:bag-4-bold" /> Shop the drop
           </Link>
           <Link to="/auth/sign-in" className="hc-nav-login" aria-label="Staff login">

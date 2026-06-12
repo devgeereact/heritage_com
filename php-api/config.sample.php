@@ -48,6 +48,19 @@ define('OR_TITLE',   'Heritage Clothing');             // shown on OpenRouter da
 define('OPENWEATHER_API_KEY', '');                     // CHANGE_ME
 define('OPENWEATHER_UNITS',   'metric');               // metric | imperial | standard
 
+// ---- Payment gateways (storefront checkout — store.php) ----------------------
+// Read by store.php via cfg(). Leave the secrets blank to run the storefront in
+// "manual" mode: orders still place fine and the customer gets bank-transfer /
+// pay-on-delivery instructions; no card step is offered. Drop in a secret key to
+// switch card payments on — no code change needed.
+//   PAYMENT_PROVIDER: '' auto-picks whichever secret is set; force one with
+//   'paystack' or 'flutterwave'.
+define('PAYMENT_PROVIDER', '');            // '' | 'paystack' | 'flutterwave'
+define('PAYSTACK_SECRET',  '');            // sk_live_... / sk_test_...  (server only)
+define('PAYSTACK_PUBLIC',  '');            // pk_live_... (safe for the browser, if needed)
+define('FLW_SECRET',       '');            // FLWSECK-...  (server only)
+define('FLW_PUBLIC',       '');            // FLWPUBK-...
+
 // ---- Outgoing mail (SMTP) ----------------------------------------------------
 // Read by mail.php (via cfg(), which accepts either these $vars or define()d
 // constants of the same name). Leave $SMTP_HOST blank to fall back to PHP mail().

@@ -160,6 +160,8 @@ const Home = lazy(() => import('@/app/(public)/site/HomePage'));
 const About = lazy(() => import('@/app/(public)/site/AboutPage'));
 const Shop = lazy(() => import('@/app/(public)/site/ShopPage'));
 const Product = lazy(() => import('@/app/(public)/site/ProductPage'));
+const Cart = lazy(() => import('@/app/(public)/site/CartPage'));
+const Checkout = lazy(() => import('@/app/(public)/site/CheckoutPage'));
 const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
 const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
 
@@ -220,6 +222,14 @@ export const publicRoutes = [{
   path: '/shop/:slug',
   name: 'Product',
   element: <Product />
+}, {
+  path: '/cart',
+  name: 'Cart',
+  element: <Cart />
+}, {
+  path: '/checkout',
+  name: 'Checkout',
+  element: <Checkout />
 }, {
   path: '/gifting',
   name: 'Gifting',

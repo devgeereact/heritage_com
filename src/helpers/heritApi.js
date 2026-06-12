@@ -180,6 +180,14 @@ export const heritApi = {
       request('/users.php?action=password', { method: 'POST', body: { current, next } }),
   },
 
+  // Public storefront (no auth) — catalogue, checkout, payment
+  store: {
+    catalogue: () => request('/store.php?action=catalogue', { auth: false }),
+    checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
+    payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
+    payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
+  },
+
   // Generic escape hatches for feature modules
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body }),
