@@ -40,13 +40,17 @@ const fabrics = [
 
 const HomePage = () => (
   <SiteLayout title="Wear your heritage">
-    {/* announcement marquee */}
+    {/* announcement marquee — two identical tracks for a seamless loop */}
     <div className="hc-marquee">
-      <span>★ The Founders&apos; Drop is live</span>
-      <span>★ Free Lagos delivery over ₦25,000</span>
-      <span>★ Ships worldwide, tracked</span>
-      <span>★ 10% off your first piece — code HERIT10</span>
-      <span>★ #WearYourHeritage</span>
+      {[0, 1].map((k) => (
+        <div className="hc-marquee-track" key={k} aria-hidden={k === 1}>
+          <span>★ The Founders&apos; Drop is live</span>
+          <span>★ Free Lagos delivery over ₦25,000</span>
+          <span>★ Ships worldwide, tracked</span>
+          <span>★ 10% off your first piece — code HERIT10</span>
+          <span>★ #WearYourHeritage</span>
+        </div>
+      ))}
     </div>
 
     {/* hero */}

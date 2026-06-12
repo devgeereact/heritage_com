@@ -327,12 +327,65 @@
   background: linear-gradient(180deg, transparent 35%, rgba(40,15,15,0.6) 100%);
 }
 .hc-tile > * { position: relative; z-index: 1; }
-.hc-tile-ankara::before { background: repeating-linear-gradient(45deg, #9b2c2c, #9b2c2c 14px, #7f1d1d 14px, #7f1d1d 28px); }
-.hc-tile-adire::before  { background: repeating-linear-gradient(135deg, #5a1f1f, #5a1f1f 16px, #7f1d1d 16px, #7f1d1d 22px); }
-.hc-tile-asooke::before { background: repeating-linear-gradient(0deg, #b45309, #b45309 10px, #92400e 10px, #92400e 20px); }
-.hc-tile-mixed::before  { background: repeating-linear-gradient(45deg, #92400e, #92400e 12px, #6d3410 12px, #6d3410 24px); }
+/* Authentic heritage-fabric motifs, built from layered gradients (no images,
+   instant load, never a broken tile). Each reads as real cloth at thumbnail size. */
+/* Ankara — bold wax-print medallions on warm red */
+.hc-tile-ankara::before {
+  background-color: #8f2723;
+  background-image:
+    radial-gradient(circle at 50% 50%, #fef3c7 4%, transparent 5%),
+    radial-gradient(circle at 50% 50%, transparent 11%, #b45309 12%, #b45309 16%, transparent 17%),
+    radial-gradient(circle at 50% 50%, transparent 21%, #fdf2d6 22%, #fdf2d6 25%, transparent 26%),
+    radial-gradient(circle at 0% 0%, transparent 21%, #b45309 22%, transparent 26%),
+    radial-gradient(circle at 100% 0%, transparent 21%, #b45309 22%, transparent 26%),
+    radial-gradient(circle at 0% 100%, transparent 21%, #b45309 22%, transparent 26%),
+    radial-gradient(circle at 100% 100%, transparent 21%, #b45309 22%, transparent 26%);
+  background-size: 60px 60px;
+}
+/* Adire — indigo eleko resist, cream concentric rings */
+.hc-tile-adire::before {
+  background-color: #2b2d54;
+  background-image:
+    radial-gradient(circle at 50% 50%, transparent 29%, #e7d6b0 30%, #e7d6b0 33%, transparent 34%),
+    radial-gradient(circle at 50% 50%, transparent 17%, #cdb98a 18%, #cdb98a 20%, transparent 21%),
+    radial-gradient(circle at 50% 50%, #e7d6b0 6%, transparent 7%),
+    radial-gradient(circle at 0% 0%, transparent 29%, #e7d6b0 30%, transparent 34%),
+    radial-gradient(circle at 100% 0%, transparent 29%, #e7d6b0 30%, transparent 34%),
+    radial-gradient(circle at 0% 100%, transparent 29%, #e7d6b0 30%, transparent 34%),
+    radial-gradient(circle at 100% 100%, transparent 29%, #e7d6b0 30%, transparent 34%);
+  background-size: 52px 52px;
+}
+/* Aso-Oke — handwoven strip cloth with gold lurex grid */
+.hc-tile-asooke::before {
+  background-color: #9a4d12;
+  background-image:
+    repeating-linear-gradient(90deg, #b45309 0 7px, #8a3d0e 7px 14px),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(90deg, transparent 0 27px, rgba(254,243,199,0.55) 27px 29px, transparent 29px 58px),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(254,243,199,0.32) 27px 29px, transparent 29px 58px);
+}
+/* Mixed / trims — kente-style interlocking weave */
+.hc-tile-mixed::before {
+  background-color: #6d3410;
+  background-image:
+    repeating-linear-gradient(0deg, #9b2c2c 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(90deg, #b45309 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(0deg, rgba(254,243,199,0.22) 0 2px, transparent 2px 16px);
+  background-size: 34px 34px;
+}
 .hc-tile-plain::before  { background: linear-gradient(135deg, #2a1f1d, #44403c); }
-.hc-tile-ff::before     { background: linear-gradient(135deg, #b45309, #9b2c2c); }
+.hc-tile-ff::before     {
+  background-color: #9b2c2c;
+  background-image:
+    radial-gradient(circle at 50% 50%, transparent 24%, rgba(254,243,199,0.5) 25%, transparent 30%),
+    radial-gradient(circle at 0 0, transparent 24%, rgba(180,83,9,0.7) 25%, transparent 30%),
+    radial-gradient(circle at 100% 100%, transparent 24%, rgba(180,83,9,0.7) 25%, transparent 30%);
+  background-size: 64px 64px;
+}
+/* gentle zoom of the cloth on hover */
+.hc-tile::before { transition: transform 0.5s ease; }
+.hc-product:hover .hc-tile::before,
+a.hc-tile:hover::before { transform: scale(1.07); }
 .hc-tile span {
   font-family: var(--font-serif); font-weight: 700; font-size: 1.25rem;
   letter-spacing: -0.01em;
@@ -464,7 +517,43 @@
   padding: 0.6rem 0;
 }
 .hc-marquee span { display: inline-block; padding: 0 1.5rem; }
+/* seamless scrolling announcement bar */
+.hc-marquee { display: flex; }
+.hc-marquee-track {
+  display: inline-flex; flex-shrink: 0; min-width: 100%;
+  align-items: center; white-space: nowrap;
+  animation: hc-marquee 34s linear infinite;
+}
+.hc-marquee:hover .hc-marquee-track { animation-play-state: paused; }
+@keyframes hc-marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .hc-marquee-track { animation: none; } }
+
 .hc-strip { background: var(--muted); border-bottom: 1px solid var(--border); }
 .hc-mt-1 { margin-top: 0.5rem; } .hc-mt-2 { margin-top: 1rem; } .hc-mt-3 { margin-top: 1.5rem; } .hc-mt-4 { margin-top: 2rem; }
 .hc-text-center { text-align: center; }
 .hc-flex { display: flex; } .hc-gap { gap: 1rem; } .hc-wrap { flex-wrap: wrap; }
+
+/* ---------------------------------------------------------- hero panel texture */
+/* layer a faint Aso-Oke weave behind the espresso hero panel so it reads as cloth */
+.hc-hero-right::before {
+  content: ""; position: absolute; inset: 0; border-radius: var(--radius); z-index: 0;
+  opacity: 0.5; pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(180,83,9,0.18) 0 2px, transparent 2px 18px),
+    repeating-linear-gradient(0deg, rgba(254,243,199,0.06) 0 1px, transparent 1px 9px);
+  -webkit-mask-image: radial-gradient(120% 90% at 100% 0%, #000 0%, transparent 75%);
+          mask-image: radial-gradient(120% 90% at 100% 0%, #000 0%, transparent 75%);
+}
+.hc-hero-right > * { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------- scroll reveal */
+/* SiteLayout adds .hc-in to each <section> as it enters the viewport */
+.hc main > section { opacity: 1; }
+.hc main > section.hc-reveal { opacity: 0; transform: translateY(22px); }
+.hc main > section.hc-reveal.hc-in {
+  opacity: 1; transform: none;
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hc main > section.hc-reveal { opacity: 1; transform: none; }
+}

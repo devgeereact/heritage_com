@@ -136,6 +136,25 @@ const SiteLayout = ({ title, children }) => {
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
+  // Reveal each section as it scrolls into view. Skipped when the user prefers
+  // reduced motion; degrades to fully-visible if IntersectionObserver is absent.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    // Only animate sections that start below the fold — above-fold content shows
+    // immediately so the hero never flashes in.
+    const sections = Array.from(document.querySelectorAll('.hc main > section'))
+      .filter((s) => s.getBoundingClientRect().top > window.innerHeight * 0.85);
+    sections.forEach((s) => s.classList.add('hc-reveal'));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('hc-in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, [pathname]);
+
   return (
     <div className="hc hc-page">
       <SiteNav />
