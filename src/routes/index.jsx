@@ -183,6 +183,7 @@ const Pos = lazy(() => import('@/app/(admin)/pos/page'));
 const Studio = lazy(() => import('@/app/(admin)/studio/page'));
 const Channels = lazy(() => import('@/app/(admin)/channels/page'));
 const Weather = lazy(() => import('@/app/(admin)/weather/page'));
+const Team = lazy(() => import('@/app/(admin)/team/page'));
 
 // Enquiries (public contact form inbox)
 const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
@@ -279,6 +280,10 @@ const generalRoutes = [{
   path: '/channels',
   name: 'Store & Channels',
   element: <Channels />
+}, {
+  path: '/team',
+  name: 'Team & Access',
+  element: <Team />
 }, {
   path: '/weather',
   name: 'Weather & Ops',

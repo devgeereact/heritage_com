@@ -93,35 +93,20 @@ export const MENU_ITEMS = [{
   label: 'PLATFORM',
   isTitle: true
 }, {
-  key: 'channels',
-  label: 'Store & Channels',
-  icon: 'solar:shop-bold-duotone',
-  url: '/channels'
-}, {
-  key: 'settings',
-  label: 'Settings',
-  icon: 'solar:settings-bold-duotone',
-  url: '/settings'
-}, {
-  key: 'role',
-  label: 'Roles',
-  icon: 'solar:user-speak-rounded-bold-duotone',
-  children: [{
-    key: 'role-list',
-    label: 'List',
-    url: '/role/role-list',
-    parentKey: 'role'
-  }, {
-    key: 'role-add',
-    label: 'Create',
-    url: '/role/role-add',
-    parentKey: 'role'
-  }]
+  key: 'team',
+  label: 'Team & Access',
+  icon: 'solar:users-group-two-rounded-bold-duotone',
+  url: '/team'
 }, {
   key: 'permissions',
   label: 'Permissions',
   icon: 'solar:checklist-minimalistic-bold-duotone',
   url: '/permissions'
+}, {
+  key: 'channels',
+  label: 'Store & Channels',
+  icon: 'solar:shop-bold-duotone',
+  url: '/channels'
 }, {
   key: 'profile',
   label: 'Profile',

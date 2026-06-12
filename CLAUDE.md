@@ -202,8 +202,15 @@ Marketing & Social (marketing.php — campaign planner), Market Sales/POS
 (pos page → orders.php, channel=market), Content & Brand Studio (studio → ai.php),
 Online Store & Channels + Platform (settings.php — channel toggles, store config),
 Weather & Ops (weather.php — Lagos forecast via Open-Meteo, no key, turned into
-trading nudges: rain → push online + protect deliveries, hot → lightweight pieces).
+trading nudges: rain → push online + protect deliveries, hot → lightweight pieces),
+Team & Access (users.php — admin-only staff CRUD over the existing `users` table:
+add/invite, edit role+status, reset password, deactivate; guards against locking
+out the last super_admin; self password-change for any role). The Platform group
+now also has a real Permissions matrix (read-only, generated from roles.js so it
+can't drift from enforced access) and a real Profile page (own account + password
+change). The leftover Larkon Roles/Settings demo pages were dropped from the nav.
 Each endpoint follows the `_lib.php` pattern (auth + audit); React pages go through
 `heritApi`, role-gated in roles.js, listed in menu-items.js.
 **Deploy note:** upload the new php-api/*.php to the cPanel doc root by hand and
-import the new tables from schema.sql (deploys only push dist/).
+import the new tables from schema.sql (deploys only push dist/). `users.php` needs
+no new table — `users` already ships in schema.sql.

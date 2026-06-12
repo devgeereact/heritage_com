@@ -35,12 +35,42 @@ const SECTIONS = {
   seller: MANAGE, customer: MANAGE, review: MANAGE, apps: MANAGE, support: MANAGE,
 
   // Platform administration — admins only.
-  role: ADMIN, permissions: ADMIN, settings: ADMIN,
+  team: ADMIN, role: ADMIN, permissions: ADMIN, settings: ADMIN,
 
   // Kit demo / component galleries — admins only.
   'base-ui': ADMIN, 'advanced-ul': ADMIN, charts: ADMIN, maps: ADMIN,
   forms: ADMIN, tables: ADMIN, icons: ADMIN, widgets: ADMIN, pages: ADMIN,
 };
+
+// Staff roles, in seniority order. 'customer' isn't a staff login.
+export const STAFF_ROLES = ['super_admin', 'admin', 'manager', 'tailor', 'editor', 'seller', 'employee'];
+
+export const ROLE_LABELS = {
+  super_admin: 'Super Admin', admin: 'Admin', manager: 'Manager', tailor: 'Tailor',
+  editor: 'Editor', seller: 'Seller', employee: 'Employee', customer: 'Customer',
+};
+
+// The HeritOS modules shown in the Permissions matrix (real sidebar sections,
+// not Larkon kit demos), each with the roles allowed in from SECTIONS above.
+export const ACCESS_MATRIX = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'tailoring', label: 'Tailoring' },
+  { key: 'catalogue', label: 'Catalogue' },
+  { key: 'stock', label: 'Inventory' },
+  { key: 'pos', label: 'Market Sales' },
+  { key: 'suppliers', label: 'Suppliers' },
+  { key: 'sales', label: 'Orders' },
+  { key: 'crm', label: 'Customers' },
+  { key: 'enquiries', label: 'Enquiries' },
+  { key: 'marketing', label: 'Marketing' },
+  { key: 'studio', label: 'Brand Studio' },
+  { key: 'finance', label: 'Finance' },
+  { key: 'analytics', label: 'Analytics' },
+  { key: 'weather', label: 'Weather & Ops' },
+  { key: 'channels', label: 'Store & Channels' },
+  { key: 'team', label: 'Team & Access' },
+  { key: 'settings', label: 'Settings' },
+].map((m) => ({ ...m, roles: SECTIONS[m.key] ?? ADMIN }));
 
 /** First URL segment, e.g. "/tailoring/5" → "tailoring". */
 export const pathSection = (path = '') => {

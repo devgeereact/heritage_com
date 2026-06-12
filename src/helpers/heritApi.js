@@ -154,6 +154,22 @@ export const heritApi = {
       request(`/contact.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
+  // Team & Access (staff user management, admin-only)
+  team: {
+    list: () => request('/users.php?action=list'),
+    create: (data) => request('/users.php?action=create', { method: 'POST', body: data }),
+    update: (id, data) => request(`/users.php?action=update&id=${id}`, { method: 'POST', body: data }),
+    reset: (id) => request(`/users.php?action=reset&id=${id}`, { method: 'POST' }),
+    deactivate: (id) => request(`/users.php?action=deactivate&id=${id}`, { method: 'POST' }),
+  },
+
+  // Own account (any authenticated role)
+  account: {
+    me: () => request('/users.php?action=me'),
+    changePassword: (current, next) =>
+      request('/users.php?action=password', { method: 'POST', body: { current, next } }),
+  },
+
   // Generic escape hatches for feature modules
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body }),
