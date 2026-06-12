@@ -209,8 +209,17 @@ out the last super_admin; self password-change for any role). The Platform group
 now also has a real Permissions matrix (read-only, generated from roles.js so it
 can't drift from enforced access) and a real Profile page (own account + password
 change). The leftover Larkon Roles/Settings demo pages were dropped from the nav.
+Email (Inbox at /inbox): `mail.php` sends via SMTP (hand-rolled client, no
+Composer/PHPMailer; SSL 465 / STARTTLS 587 / AUTH LOGIN; PHP mail() fallback when
+SMTP_HOST blank) and `inbox.php` reads the mailbox over IMAP (PHP imap extension;
+list/get/mark-seen; clean 501 when unconfigured). SMTP_*/IMAP_* live in server
+config.php (mail host premium152.web-hosting.com, mailbox hello@heritclothing.com);
+`_lib.php`'s `cfg()` reads them whether they're $vars or define()d constants.
 Each endpoint follows the `_lib.php` pattern (auth + audit); React pages go through
 `heritApi`, role-gated in roles.js, listed in menu-items.js.
 **Deploy note:** upload the new php-api/*.php to the cPanel doc root by hand and
 import the new tables from schema.sql (deploys only push dist/). `users.php` needs
-no new table — `users` already ships in schema.sql.
+no new table — `users` already ships in schema.sql. `mail.php`/`inbox.php` need no
+table either — add the SMTP/IMAP block to config.php (see config.sample.php).
+For DBs where the full schema.sql aborts on a stale legacy table, import
+`schema_modules.sql` instead — it creates only the later-module tables.

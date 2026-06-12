@@ -60,6 +60,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:inbox-line-bold-duotone',
   url: '/enquiries'
 }, {
+  key: 'inbox',
+  label: 'Inbox',
+  icon: 'solar:letter-bold-duotone',
+  url: '/inbox'
+}, {
   key: 'marketing',
   label: 'Marketing',
   icon: 'solar:megaphone-bold-duotone',

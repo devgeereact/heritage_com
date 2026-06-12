@@ -48,6 +48,26 @@ define('OR_TITLE',   'Heritage Clothing');             // shown on OpenRouter da
 define('OPENWEATHER_API_KEY', '');                     // CHANGE_ME
 define('OPENWEATHER_UNITS',   'metric');               // metric | imperial | standard
 
+// ---- Outgoing mail (SMTP) ----------------------------------------------------
+// Read by mail.php (via cfg(), which accepts either these $vars or define()d
+// constants of the same name). Leave $SMTP_HOST blank to fall back to PHP mail().
+// On cPanel use the mail server host with a real mailbox + password.
+$SMTP_HOST      = '';                      // e.g. 'premium152.web-hosting.com' or 'localhost'
+$SMTP_PORT      = 465;                     // 465 = SSL, 587 = STARTTLS
+$SMTP_SECURE    = 'ssl';                   // 'ssl' | 'tls' | ''  (must match the port)
+$SMTP_USER      = 'hello@heritclothing.com';
+$SMTP_PASS      = 'CHANGE_ME';             // mailbox password (secret; never commit)
+$SMTP_FROM      = 'hello@heritclothing.com';
+$SMTP_FROM_NAME = 'HERIT CLOTHING';
+
+// ---- Incoming mail (IMAP) for the in-app inbox -------------------------------
+// Read by inbox.php. Requires the PHP imap extension. Leave $IMAP_HOST blank to
+// disable the inbox (the Inbox page then shows a clean "not configured" notice).
+$IMAP_HOST = '';                           // e.g. 'premium152.web-hosting.com' or 'localhost'
+$IMAP_PORT = 993;                          // 993 = IMAP over SSL
+$IMAP_USER = 'hello@heritclothing.com';
+$IMAP_PASS = 'CHANGE_ME';
+
 // ---- CORS --------------------------------------------------------------------
 // Production is same-origin. In dev, _lib.php reflects ANY localhost port, so
 // this is only a fallback — no need to chase Vite's auto-port here.

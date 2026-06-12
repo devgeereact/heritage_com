@@ -163,6 +163,16 @@ export const heritApi = {
     deactivate: (id) => request(`/users.php?action=deactivate&id=${id}`, { method: 'POST' }),
   },
 
+  // Email — IMAP inbox + SMTP send
+  inbox: {
+    list: (limit = 30) => request(`/inbox.php?action=list&limit=${limit}`),
+    get: (uid) => request(`/inbox.php?action=get&uid=${uid}`),
+    setSeen: (uid, seen = true) => request(`/inbox.php?action=seen&uid=${uid}`, { method: 'POST', body: { seen } }),
+  },
+  mail: {
+    send: (data) => request('/mail.php?action=send', { method: 'POST', body: data }),
+  },
+
   // Own account (any authenticated role)
   account: {
     me: () => request('/users.php?action=me'),

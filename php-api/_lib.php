@@ -81,6 +81,17 @@ function body() {
 
 function method() { return $_SERVER['REQUEST_METHOD']; }
 
+/**
+ * Read a config value that may be defined either as a constant (define('SMTP_HOST',…))
+ * or as a plain global variable ($SMTP_HOST = …) in config.php — so both styles work.
+ * Returns $default when neither is set or the value is an empty string.
+ */
+function cfg($name, $default = '') {
+  if (defined($name)) { $v = constant($name); return ($v === '' || $v === null) ? $default : $v; }
+  if (array_key_exists($name, $GLOBALS)) { $v = $GLOBALS[$name]; return ($v === '' || $v === null) ? $default : $v; }
+  return $default;
+}
+
 /** Read the Bearer token from the Authorization header. */
 function bearer() {
   $h = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');

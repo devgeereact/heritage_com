@@ -25,6 +25,7 @@ const SECTIONS = {
   channels: ['super_admin', 'admin', 'manager'],
   weather: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
   enquiries: ['super_admin', 'admin', 'manager', 'employee'],
+  inbox: ['super_admin', 'admin', 'manager', 'editor', 'employee'],
   crm: ['super_admin', 'admin', 'manager', 'tailor', 'employee'],
   sales: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
   profile: ALL,

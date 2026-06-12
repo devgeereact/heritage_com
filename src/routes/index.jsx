@@ -184,6 +184,7 @@ const Studio = lazy(() => import('@/app/(admin)/studio/page'));
 const Channels = lazy(() => import('@/app/(admin)/channels/page'));
 const Weather = lazy(() => import('@/app/(admin)/weather/page'));
 const Team = lazy(() => import('@/app/(admin)/team/page'));
+const Inbox = lazy(() => import('@/app/(admin)/inbox/page'));
 
 // Enquiries (public contact form inbox)
 const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
@@ -284,6 +285,10 @@ const generalRoutes = [{
   path: '/team',
   name: 'Team & Access',
   element: <Team />
+}, {
+  path: '/inbox',
+  name: 'Inbox',
+  element: <Inbox />
 }, {
   path: '/weather',
   name: 'Weather & Ops',
