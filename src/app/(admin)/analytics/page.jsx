@@ -3,6 +3,7 @@ import { Card, CardBody, Table, Spinner, Alert, Row, Col, Button, Badge } from '
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import AiInsights from './AiInsights';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
@@ -41,6 +42,8 @@ const AnalyticsPage = () => {
 
       {state === 'ready' && (
         <>
+          <AiInsights data={d} />
+
           <Row className="g-3 mb-3">
             <Kpi label="Revenue" value={naira(k?.revenue)} tone="primary" icon="solar:money-bag-bold-duotone" />
             <Kpi label="Orders" value={k?.orders ?? 0} tone="info" icon="solar:cart-large-2-bold-duotone" />
