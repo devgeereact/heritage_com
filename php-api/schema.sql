@@ -82,7 +82,10 @@ VALUES (
 ON DUPLICATE KEY UPDATE email = email;
 
 -- Seed a couple of smoke-test items so the dashboard shows data on first load.
-INSERT INTO items (label) VALUES ('HeritOS pipe online'), ('Ajuwon Market, Lagos');
+-- Guarded so a re-import doesn't pile up duplicate rows.
+INSERT INTO items (label)
+SELECT * FROM (SELECT 'HeritOS pipe online' UNION SELECT 'Ajuwon Market, Lagos') x
+WHERE NOT EXISTS (SELECT 1 FROM items);
 
 -- ===========================================================================
 -- TAILORING & PRODUCTION — the core of the business (bespoke menswear).
@@ -156,15 +159,23 @@ INSERT INTO customers (name, phone, measurements) VALUES
   ('Emeka Bello',   '+2348030000002', '{"chest":40,"waist":34,"shoulder":17.5,"sleeve":24,"length":56}')
 ON DUPLICATE KEY UPDATE name = name;
 
+-- Guarded with NOT EXISTS on the unique code so a re-import doesn't abort on a
+-- duplicate-key error (which would stop every CREATE TABLE that follows).
 INSERT INTO tailoring_orders (code, customer_id, garment_type, fabric, stage, price, deposit, due_date, assigned_tailor_id)
 SELECT 'HC-0001', c.id, 'agbada', 'Aso-oke (royal blue)', 'cut', 85000, 40000, DATE_ADD(CURDATE(), INTERVAL 10 DAY),
        (SELECT id FROM users WHERE email='tunde@heritclothing.com')
-FROM customers c WHERE c.name='Chukwu Okafor' LIMIT 1;
+FROM customers c
+WHERE c.name='Chukwu Okafor'
+  AND NOT EXISTS (SELECT 1 FROM tailoring_orders t WHERE t.code='HC-0001')
+LIMIT 1;
 
 INSERT INTO tailoring_orders (code, customer_id, garment_type, fabric, stage, price, deposit, due_date, assigned_tailor_id)
 SELECT 'HC-0002', c.id, 'senator', 'Plain cotton (cream)', 'sew', 45000, 20000, DATE_ADD(CURDATE(), INTERVAL 5 DAY),
        (SELECT id FROM users WHERE email='bola@heritclothing.com')
-FROM customers c WHERE c.name='Emeka Bello' LIMIT 1;
+FROM customers c
+WHERE c.name='Emeka Bello'
+  AND NOT EXISTS (SELECT 1 FROM tailoring_orders t WHERE t.code='HC-0002')
+LIMIT 1;
 
 -- ===========================================================================
 -- PRODUCTS & VARIANTS — ready-to-wear catalogue (style × colour × size matrix).
