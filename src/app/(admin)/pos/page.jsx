@@ -4,6 +4,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
 import AiPanel from '@/components/AiPanel';
+import { cacheCatalogue, readCatalogue, readQueue, writeQueue, enqueueSale, isNetworkError } from './offline';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const PAY = ['cash', 'transfer', 'card'];
@@ -47,12 +48,58 @@ const PosPage = () => {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [err, setErr] = useState('');
+  const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [queued, setQueued] = useState(readQueue().length);
+  const [syncing, setSyncing] = useState(false);
 
   const load = useCallback(async () => {
-    try { const r = await heritApi.inventory.list(); setVariants(r.variants || []); setState('ready'); }
-    catch { setState('offline'); }
+    try {
+      const r = await heritApi.inventory.list();
+      const vs = r.variants || [];
+      setVariants(vs);
+      cacheCatalogue(vs);          // keep a local copy for offline trading
+      setState('ready');
+    } catch {
+      // No signal — fall back to the last cached catalogue so the till still works.
+      const cached = readCatalogue();
+      if (cached.length) { setVariants(cached); setState('ready'); }
+      else setState('offline');
+    }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  // Push any sales taken offline up to the server, oldest first. Stops on the
+  // first network failure so the queue order is preserved.
+  const flushQueue = useCallback(async () => {
+    const q = readQueue();
+    if (!q.length || syncing) return;
+    setSyncing(true);
+    const remaining = [...q];
+    try {
+      while (remaining.length) {
+        await heritApi.orders.create(remaining[0]);
+        remaining.shift();
+        writeQueue(remaining);
+        setQueued(remaining.length);
+      }
+      await load();               // refresh live stock after syncing
+    } catch {
+      writeQueue(remaining);      // keep what's left for the next attempt
+      setQueued(remaining.length);
+    } finally {
+      setSyncing(false);
+    }
+  }, [load, syncing]);
+
+  // Track connectivity; flush automatically when the signal returns.
+  useEffect(() => {
+    const goOnline = () => { setOnline(true); flushQueue(); };
+    const goOffline = () => setOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    if (navigator.onLine && readQueue().length) flushQueue();
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, [flushQueue]);
 
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -71,30 +118,68 @@ const PosPage = () => {
 
   const total = cart.reduce((s, x) => s + x.qty * x.variant.price, 0);
 
+  // Optimistically draw down the local catalogue so the grid + stock badges
+  // stay honest while offline (the server reconciles on sync).
+  const decrementLocal = (items) => setVariants((vs) => vs.map((v) => {
+    const sold = items.find((i) => i.variant_id === v.id);
+    return sold ? { ...v, stock: Math.max(0, v.stock - sold.qty) } : v;
+  }));
+
   const checkout = async () => {
     if (!cart.length) { setErr('Cart is empty.'); return; }
     if (!customer.trim()) { setErr('Enter a customer name (walk-in is fine).'); return; }
     setBusy(true); setErr('');
+    const items = cart.map((x) => ({ variant_id: x.variant.id, label: `${x.variant.product_name} — ${x.variant.size || 'OS'} / ${x.variant.color || 'Default'}`, sku: x.variant.sku, qty: x.qty, unit_price: x.variant.price }));
+    const sale = { customer: customer.trim(), phone, channel: 'market', payment_method: method, items };
+    const saleTotal = total;
+
+    const queueIt = () => {
+      const n = enqueueSale(sale);
+      setQueued(n);
+      decrementLocal(items);
+      cacheCatalogue(variants.map((v) => { const s = items.find((i) => i.variant_id === v.id); return s ? { ...v, stock: Math.max(0, v.stock - s.qty) } : v; }));
+      setDone({ code: 'OFFLINE', total: saleTotal, offline: true });
+      setCart([]); setCustomer(''); setPhone('');
+    };
+
+    // Offline up front → don't even try the network, just queue.
+    if (!online) { queueIt(); setBusy(false); return; }
     try {
-      const items = cart.map((x) => ({ variant_id: x.variant.id, label: `${x.variant.product_name} — ${x.variant.size || 'OS'} / ${x.variant.color || 'Default'}`, sku: x.variant.sku, qty: x.qty, unit_price: x.variant.price }));
-      const res = await heritApi.orders.create({ customer: customer.trim(), phone, channel: 'market', payment_method: method, items });
+      const res = await heritApi.orders.create(sale);
       setDone(res); setCart([]); setCustomer(''); setPhone('');
       load();
-    } catch (e) { setErr(e.message || 'Could not complete sale.'); }
-    finally { setBusy(false); }
+    } catch (e) {
+      if (isNetworkError(e)) { queueIt(); }       // lost signal mid-sale → queue it
+      else setErr(e.message || 'Could not complete sale.');
+    } finally { setBusy(false); }
   };
 
   return (
     <>
       <PageTItle title="Market Sales (POS)" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 className="mb-1">Market &amp; In-Person Sales</h4><p className="text-muted mb-0">Ring up a sale on the market floor. Stock updates live.</p></div>
+        <div className="d-flex align-items-center gap-2">
+          <h4 className="mb-1">Market &amp; In-Person Sales</h4>
+          <Badge bg={online ? 'success' : 'secondary'} className="bg-opacity-75">
+            <IconifyIcon icon={online ? 'solar:wifi-router-bold' : 'solar:wifi-router-minimalistic-bold'} className="me-1" />{online ? 'Online' : 'Offline'}
+          </Badge>
+        </div>
         <Button variant="light" onClick={load} disabled={state === 'loading'}><IconifyIcon icon="solar:refresh-bold" className="me-1" /> Refresh</Button>
       </div>
 
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
-      {state === 'offline' && <Alert variant="warning"><strong>POS offline.</strong> Needs <code>stock.php</code> + <code>orders.php</code> live.</Alert>}
-      {done && <Alert variant="success" onClose={() => setDone(null)} dismissible><strong>Sale {done.code} rung up — {naira(done.total)}.</strong> Stock updated.</Alert>}
+      {state === 'offline' && <Alert variant="warning"><strong>POS offline.</strong> No signal and no cached catalogue yet — open this page once online so it can save a copy for the stall.</Alert>}
+      {queued > 0 && (
+        <Alert variant="info" className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><IconifyIcon icon="solar:clock-circle-bold" className="me-1" /><strong>{queued} sale{queued === 1 ? '' : 's'} waiting to sync.</strong> Held safely on this device until the signal returns.</span>
+          <Button size="sm" variant="info" disabled={!online || syncing} onClick={flushQueue}>{syncing ? <><Spinner size="sm" className="me-1" /> Syncing…</> : 'Sync now'}</Button>
+        </Alert>
+      )}
+      {done && <Alert variant="success" onClose={() => setDone(null)} dismissible>
+        {done.offline
+          ? <><strong>Sale saved offline — {naira(done.total)}.</strong> It will sync when the stall is back online.</>
+          : <><strong>Sale {done.code} rung up — {naira(done.total)}.</strong> Stock updated.</>}
+      </Alert>}
 
       {state === 'ready' && <AiPanel {...POS_AI} />}
 
