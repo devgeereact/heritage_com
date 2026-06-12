@@ -45,6 +45,9 @@ const SiteNav = () => {
           <Link to="/contact" className="hc-btn hc-btn--primary hc-nav-cta">
             <IconifyIcon icon="solar:bag-4-bold" /> Shop the drop
           </Link>
+          <Link to="/auth/sign-in" className="hc-nav-login" aria-label="Staff login">
+            <IconifyIcon icon="solar:lock-keyhole-minimalistic-linear" /> Staff login
+          </Link>
         </nav>
       </div>
     </header>
@@ -146,13 +149,22 @@ const SiteLayout = ({ title, children }) => {
     const sections = Array.from(document.querySelectorAll('.hc main > section'))
       .filter((s) => s.getBoundingClientRect().top > window.innerHeight * 0.85);
     sections.forEach((s) => s.classList.add('hc-reveal'));
+    const reveal = (el) => { el.classList.add('hc-in'); io.unobserve(el); };
+    // threshold 0 + no negative margin: a section reveals the moment any part
+    // enters the viewport, so short sections at the very bottom can never get
+    // stranded invisible.
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('hc-in'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+      entries.forEach((e) => { if (e.isIntersecting) reveal(e.target); });
+    }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
     sections.forEach((s) => io.observe(s));
-    return () => io.disconnect();
+    // Safety net: unconditionally reveal anything still hidden after a few
+    // seconds. Sections the user has reached already animated in via the
+    // observer; this guarantees content is NEVER left permanently invisible if
+    // the observer misses (e.g. a non-window scroll container).
+    const safety = setTimeout(() => {
+      document.querySelectorAll('.hc main > section.hc-reveal:not(.hc-in)').forEach(reveal);
+    }, 3000);
+    return () => { io.disconnect(); clearTimeout(safety); };
   }, [pathname]);
 
   return (
