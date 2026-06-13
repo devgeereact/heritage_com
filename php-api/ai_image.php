@@ -40,26 +40,38 @@ if (($provider === 'openrouter' || ($provider === '' && $openrouter && !$openai 
     'modalities' => ['image', 'text'],
     'messages' => [['role' => 'user', 'content' => $prompt]],
   ]);
-  $resp = img_post('https://openrouter.ai/api/v1/chat/completions', $payload, [
+  [$resp, $httpCode] = img_post('https://openrouter.ai/api/v1/chat/completions', $payload, [
     'Authorization: Bearer ' . $openrouter,
     'Content-Type: application/json',
     'HTTP-Referer: https://heritclothing.com',
     'X-Title: HeritOS',
   ]);
   $d = $resp ? json_decode($resp, true) : null;
-  // Image-capable models return choices[0].message.images[] = [{image_url:{url}}].
-  $url = $d['choices'][0]['message']['images'][0]['image_url']['url']
-       ?? ($d['choices'][0]['message']['images'][0]['url'] ?? null);
+  $msg = $d['choices'][0]['message'] ?? [];
+  // Image-capable models return the image in message.images[]; some return a
+  // data: URL inside message.content. Check both.
+  $url = $msg['images'][0]['image_url']['url']
+       ?? ($msg['images'][0]['url'] ?? null);
+  if (!$url && !empty($msg['content']) && preg_match('#(data:image/[^\s"\)]+)#', is_string($msg['content']) ? $msg['content'] : json_encode($msg['content']), $m)) {
+    $url = $m[1];
+  }
   if ($url) {
     audit($user['id'], 'ai_image', 'ai', null, ['task' => $task, 'provider' => 'openrouter', 'model' => $orImageModel]);
     json(['image_url' => $url]);
   }
-  fail($d['error']['message'] ?? 'OpenRouter returned no image (is the model image-capable?)', 502);
+  // No image. Return 200 with diagnostics (5xx gets masked by the host's error
+  // page, so we can't see the real provider error otherwise).
+  json([
+    'error' => $d['error']['message'] ?? 'OpenRouter returned no image',
+    'provider_http' => $httpCode,
+    'model' => $orImageModel,
+    'detail' => is_string($resp) ? substr($resp, 0, 600) : null,
+  ], 200);
 }
 
 if (($provider === 'openai' || ($provider === '' && $openai)) && $openai) {
   $payload = json_encode(['model' => 'gpt-image-1', 'prompt' => $prompt, 'size' => $size, 'n' => 1]);
-  $resp = img_post('https://api.openai.com/v1/images/generations', $payload, ['Authorization: Bearer ' . $openai, 'Content-Type: application/json']);
+  [$resp] = img_post('https://api.openai.com/v1/images/generations', $payload, ['Authorization: Bearer ' . $openai, 'Content-Type: application/json']);
   $d = $resp ? json_decode($resp, true) : null;
   $b64 = $d['data'][0]['b64_json'] ?? null;
   $url = $d['data'][0]['url'] ?? null;
@@ -101,6 +113,8 @@ function img_post($url, $payload, $headers) {
     CURLOPT_TIMEOUT => 120,
   ]);
   $raw = curl_exec($ch);
+  $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  if ($raw === false) $raw = 'curl error: ' . curl_error($ch);
   curl_close($ch);
-  return $raw;
+  return [$raw, $code];
 }
