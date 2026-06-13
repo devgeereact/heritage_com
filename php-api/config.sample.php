@@ -62,11 +62,17 @@ define('FLW_SECRET',       '');            // FLWSECK-...  (server only)
 define('FLW_PUBLIC',       '');            // FLWPUBK-...
 
 // ---- Image AI (text-to-image — ai_image.php) ---------------------------------
-// Read by ai_image.php via cfg(). Leave blank to keep the visual-AI features in
-// "not configured" mode (the Studio shows a clean notice). Drop in a key to turn
-// image generation on — no code change. IMAGE_PROVIDER '' auto-picks whichever
-// key is set; force one with 'openai' or 'stability'.
-define('IMAGE_PROVIDER',   '');            // '' | 'openai' | 'stability'
+// Read by ai_image.php via cfg(). Leave IMAGE_PROVIDER blank to keep visual AI
+// in "not configured" mode (Studio shows a clean notice).
+//
+// Easiest: set IMAGE_PROVIDER = 'openrouter' to reuse the OPENROUTER_KEY already
+// configured above — NO extra key needed. Point OR_IMAGE_MODEL at an
+// image-capable model (default below). The plain OR_MODEL used for text is NOT
+// image-capable, so this is a separate model id.
+//   '' auto-picks: OpenRouter (if its key is set and no dedicated image key is),
+//   else OpenAI, else Stability. Force one with the provider name.
+define('IMAGE_PROVIDER',   '');            // '' | 'openrouter' | 'openai' | 'stability'
+define('OR_IMAGE_MODEL',   'google/gemini-2.5-flash-image-preview');  // any image-capable OpenRouter model
 define('OPENAI_IMAGE_KEY', '');            // sk-...  (OpenAI Images / gpt-image-1)
 define('STABILITY_KEY',    '');            // sk-...  (Stability AI)
 

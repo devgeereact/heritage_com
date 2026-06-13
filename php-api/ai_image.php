@@ -25,9 +25,37 @@ $size = preg_match('/^\d{3,4}x\d{3,4}$/', $b['size'] ?? '') ? $b['size'] : '1024
 $task = trim($b['task'] ?? 'image');
 if ($prompt === '') fail('prompt is required');
 
-$provider = cfg('IMAGE_PROVIDER');      // '' | 'openai' | 'stability'
+$provider = cfg('IMAGE_PROVIDER');      // '' | 'openrouter' | 'openai' | 'stability'
 $openai = cfg('OPENAI_IMAGE_KEY');
 $stability = cfg('STABILITY_KEY');
+$openrouter = cfg('OPENROUTER_KEY');     // shared with ai.php — no extra key needed
+$orImageModel = cfg('OR_IMAGE_MODEL', 'google/gemini-2.5-flash-image-preview');
+
+/* OpenRouter — image-capable chat model returns the image inline. Reuses the
+ * OpenRouter key already configured for ai.php; pick the provider explicitly or
+ * let auto-mode use it when no dedicated image key is set. */
+if (($provider === 'openrouter' || ($provider === '' && $openrouter && !$openai && !$stability)) && $openrouter) {
+  $payload = json_encode([
+    'model' => $orImageModel,
+    'modalities' => ['image', 'text'],
+    'messages' => [['role' => 'user', 'content' => $prompt]],
+  ]);
+  $resp = img_post('https://openrouter.ai/api/v1/chat/completions', $payload, [
+    'Authorization: Bearer ' . $openrouter,
+    'Content-Type: application/json',
+    'HTTP-Referer: https://heritclothing.com',
+    'X-Title: HeritOS',
+  ]);
+  $d = $resp ? json_decode($resp, true) : null;
+  // Image-capable models return choices[0].message.images[] = [{image_url:{url}}].
+  $url = $d['choices'][0]['message']['images'][0]['image_url']['url']
+       ?? ($d['choices'][0]['message']['images'][0]['url'] ?? null);
+  if ($url) {
+    audit($user['id'], 'ai_image', 'ai', null, ['task' => $task, 'provider' => 'openrouter', 'model' => $orImageModel]);
+    json(['image_url' => $url]);
+  }
+  fail($d['error']['message'] ?? 'OpenRouter returned no image (is the model image-capable?)', 502);
+}
 
 if (($provider === 'openai' || ($provider === '' && $openai)) && $openai) {
   $payload = json_encode(['model' => 'gpt-image-1', 'prompt' => $prompt, 'size' => $size, 'n' => 1]);
