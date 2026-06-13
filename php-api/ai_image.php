@@ -29,7 +29,7 @@ $provider = cfg('IMAGE_PROVIDER');      // '' | 'openrouter' | 'openai' | 'stabi
 $openai = cfg('OPENAI_IMAGE_KEY');
 $stability = cfg('STABILITY_KEY');
 $openrouter = cfg('OPENROUTER_KEY');     // shared with ai.php — no extra key needed
-$orImageModel = cfg('OR_IMAGE_MODEL', 'google/gemini-2.5-flash-image-preview');
+$orImageModel = cfg('OR_IMAGE_MODEL', 'google/gemini-2.5-flash-image');
 
 /* OpenRouter — image-capable chat model returns the image inline. Reuses the
  * OpenRouter key already configured for ai.php; pick the provider explicitly or

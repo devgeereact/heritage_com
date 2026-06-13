@@ -72,7 +72,7 @@ define('FLW_PUBLIC',       '');            // FLWPUBK-...
 //   '' auto-picks: OpenRouter (if its key is set and no dedicated image key is),
 //   else OpenAI, else Stability. Force one with the provider name.
 define('IMAGE_PROVIDER',   '');            // '' | 'openrouter' | 'openai' | 'stability'
-define('OR_IMAGE_MODEL',   'google/gemini-2.5-flash-image-preview');  // any image-capable OpenRouter model
+define('OR_IMAGE_MODEL',   'google/gemini-2.5-flash-image');  // image-capable OpenRouter model (e.g. google/gemini-3.1-flash-image-preview, openai/gpt-5-image)
 define('OPENAI_IMAGE_KEY', '');            // sk-...  (OpenAI Images / gpt-image-1)
 define('STABILITY_KEY',    '');            // sk-...  (Stability AI)
 
