@@ -28,6 +28,10 @@ const AnalyticsPage = () => {
   const k = d?.kpis;
   const maxRev = Math.max(1, ...(d?.sales_by_day || []).map((x) => x.revenue));
   const maxChan = Math.max(1, ...(d?.by_channel || []).map((x) => x.revenue));
+  const split = d?.customer_split;
+  const splitTotal = Math.max(1, (split?.new?.revenue || 0) + (split?.returning?.revenue || 0));
+  const maxRegion = Math.max(1, ...(d?.by_region || []).map((x) => x.revenue));
+  const regionTone = { Lagos: 'primary', 'Other Nigeria': 'info', Diaspora: 'success' };
 
   return (
     <>
@@ -83,6 +87,47 @@ const AnalyticsPage = () => {
                     <div className="progress" style={{ height: 6 }}><div className="progress-bar" style={{ width: `${(c.revenue / maxChan) * 100}%` }} /></div>
                   </div>
                 ))}
+              </CardBody></Card>
+            </Col>
+
+            <Col xl={6}>
+              <Card><CardBody>
+                <h5 className="mb-1">Revenue by region</h5>
+                <p className="text-muted small mb-3">Lagos to the world.</p>
+                {(d.by_region || []).every((r) => r.revenue === 0) ? <p className="text-muted mb-0">No sales yet.</p> : (d.by_region || []).map((r) => (
+                  <div key={r.region} className="mb-2">
+                    <div className="d-flex justify-content-between small"><span>{r.region} <span className="text-muted">· {r.orders} order{r.orders === 1 ? '' : 's'}</span></span><span className="fw-semibold">{naira(r.revenue)}</span></div>
+                    <div className="progress" style={{ height: 6 }}><div className={`progress-bar bg-${regionTone[r.region] || 'secondary'}`} style={{ width: `${(r.revenue / maxRegion) * 100}%` }} /></div>
+                  </div>
+                ))}
+              </CardBody></Card>
+            </Col>
+            <Col xl={6}>
+              <Card><CardBody>
+                <h5 className="mb-1">New vs returning</h5>
+                <p className="text-muted small mb-3">Turning buyers into repeat family.</p>
+                {!split ? <p className="text-muted mb-0">No sales yet.</p> : (
+                  <>
+                    <div className="progress mb-3" style={{ height: 14 }}>
+                      <div className="progress-bar bg-warning" style={{ width: `${((split.new?.revenue || 0) / splitTotal) * 100}%` }} title="New" />
+                      <div className="progress-bar bg-success" style={{ width: `${((split.returning?.revenue || 0) / splitTotal) * 100}%` }} title="Returning" />
+                    </div>
+                    <Row className="text-center g-2">
+                      <Col xs={6}>
+                        <div className="border rounded py-2">
+                          <div className="text-muted small">New <Badge bg="warning" className="bg-opacity-75">{split.new?.orders || 0}</Badge></div>
+                          <div className="fw-bold">{naira(split.new?.revenue)}</div>
+                        </div>
+                      </Col>
+                      <Col xs={6}>
+                        <div className="border rounded py-2">
+                          <div className="text-muted small">Returning <Badge bg="success" className="bg-opacity-75">{split.returning?.orders || 0}</Badge></div>
+                          <div className="fw-bold">{naira(split.returning?.revenue)}</div>
+                        </div>
+                      </Col>
+                    </Row>
+                  </>
+                )}
               </CardBody></Card>
             </Col>
 

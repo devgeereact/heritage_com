@@ -6,7 +6,7 @@ import { useNotificationContext } from '@/context/useNotificationContext';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-const empty = { name: '', category: '', fabric: '', base_price: '', description: '' };
+const empty = { name: '', category: '', fabric: '', base_price: '', cost_price: '', description: '', story: '', care: '', one_of_a_kind: false };
 
 const NewProductModal = ({ show, onHide, onCreated }) => {
   const [form, setForm] = useState(empty);
@@ -66,6 +66,8 @@ const NewProductModal = ({ show, onHide, onCreated }) => {
       const res = await heritApi.products.create({
         ...form,
         base_price: Number(form.base_price) || 0,
+        cost_price: Number(form.cost_price) || 0,
+        one_of_a_kind: form.one_of_a_kind ? 1 : 0,
         sizes,
         colors,
       });
@@ -87,13 +89,17 @@ const NewProductModal = ({ show, onHide, onCreated }) => {
         </Modal.Header>
         <Modal.Body>
           <Row className="g-3">
-            <Col md={8}>
+            <Col md={6}>
               <Form.Label>Name *</Form.Label>
               <Form.Control value={form.name} onChange={set('name')} placeholder="e.g. Heritage Ankara Shirt" />
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Label>Base price (₦)</Form.Label>
               <Form.Control type="number" min="0" value={form.base_price} onChange={set('base_price')} />
+            </Col>
+            <Col md={3}>
+              <Form.Label>Cost price (₦)</Form.Label>
+              <Form.Control type="number" min="0" value={form.cost_price} onChange={set('cost_price')} />
             </Col>
             <Col md={6}>
               <Form.Label>Category</Form.Label>
@@ -112,6 +118,20 @@ const NewProductModal = ({ show, onHide, onCreated }) => {
               </div>
               <Form.Control as="textarea" rows={3} className="mt-1" value={form.description} onChange={set('description')}
                 placeholder="A short description, or let AI draft one from the name and fabric." />
+            </Col>
+            <Col md={6}>
+              <Form.Label>The story in the cloth</Form.Label>
+              <Form.Control as="textarea" rows={2} value={form.story} onChange={set('story')} placeholder="Origin, meaning, who made it…" />
+            </Col>
+            <Col md={6}>
+              <Form.Label>Care instructions</Form.Label>
+              <Form.Control as="textarea" rows={2} value={form.care} onChange={set('care')} placeholder="Hand-wash cold, dry in shade…" />
+            </Col>
+            <Col xs={12}>
+              <Form.Check type="switch" id="new-ooak"
+                label="One of a kind — hand-dyed single piece, auto-retires when it sells out"
+                checked={form.one_of_a_kind}
+                onChange={(e) => setForm((f) => ({ ...f, one_of_a_kind: e.target.checked }))} />
             </Col>
 
             <Col xs={12}><hr className="my-1" /></Col>

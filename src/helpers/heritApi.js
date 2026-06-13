@@ -63,6 +63,18 @@ export const heritApi = {
     create: (data) => request('/tailoring.php?action=create', { method: 'POST', body: data }),
     setStage: (id, stage, note) =>
       request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: { stage, note } }),
+    assign: (id, data) =>
+      request(`/tailoring.php?action=assign&id=${id}`, { method: 'POST', body: data }),
+    setMeasurements: (id, measurements, sync_customer = false) =>
+      request(`/tailoring.php?action=measure&id=${id}`, { method: 'POST', body: { measurements, sync_customer } }),
+    pay: (id, amount) =>
+      request(`/tailoring.php?action=pay&id=${id}`, { method: 'POST', body: { amount } }),
+    setCosts: (id, fabric_cost, labour_cost) =>
+      request(`/tailoring.php?action=costs&id=${id}`, { method: 'POST', body: { fabric_cost, labour_cost } }),
+    setFitting: (id, fitting_date) =>
+      request(`/tailoring.php?action=fitting&id=${id}`, { method: 'POST', body: { fitting_date } }),
+    remind: (id, data) =>
+      request(`/tailoring.php?action=remind&id=${id}`, { method: 'POST', body: data }),
   },
 
   // Products & variants (catalogue)
@@ -70,6 +82,7 @@ export const heritApi = {
     list: () => request('/products.php?action=list'),
     get: (id) => request(`/products.php?action=get&id=${id}`),
     create: (data) => request('/products.php?action=create', { method: 'POST', body: data }),
+    update: (id, data) => request(`/products.php?action=update&id=${id}`, { method: 'POST', body: data }),
     setStock: (variantId, stock) =>
       request(`/products.php?action=stock&id=${variantId}`, { method: 'POST', body: { stock } }),
     setStatus: (id, status) =>
@@ -180,6 +193,17 @@ export const heritApi = {
     send: (data) => request('/mail.php?action=send', { method: 'POST', body: data }),
   },
 
+  // WhatsApp — inbox + broadcast (Meta Cloud API, wa.me fallback)
+  whatsapp: {
+    threads: () => request('/whatsapp.php?action=threads'),
+    thread: (phone) => request(`/whatsapp.php?action=thread&phone=${encodeURIComponent(phone)}`),
+    send: (data) => request('/whatsapp.php?action=send', { method: 'POST', body: data }),
+    broadcast: (data) => request('/whatsapp.php?action=broadcast', { method: 'POST', body: data }),
+    templates: () => request('/whatsapp.php?action=templates'),
+    saveTemplate: (data) => request('/whatsapp.php?action=template_save', { method: 'POST', body: data }),
+    deleteTemplate: (id) => request('/whatsapp.php?action=template_delete', { method: 'POST', body: { id } }),
+  },
+
   // Own account (any authenticated role)
   account: {
     me: () => request('/users.php?action=me'),
@@ -193,6 +217,8 @@ export const heritApi = {
     checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
     payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
+    track: (code, phone) =>
+      request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
   },
 
   // Generic escape hatches for feature modules

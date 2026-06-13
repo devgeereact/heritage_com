@@ -132,6 +132,17 @@ if ($action === 'checkout' && method() === 'POST') {
   // email travels in the confirmation only. Audit as a system (null-user) event.
   audit(null, 'web_order', 'order', $orderId, ['code' => $code, 'total' => $total, 'email' => $email]);
 
+  // WhatsApp order confirmation (the brand's #1 channel). Non-fatal: a failure
+  // here never blocks the order. Cloud API when configured, else logged as a
+  // wa.me link staff can click from the inbox.
+  $payNote = $paymentMethod === 'cod'
+    ? 'Pay on delivery.'
+    : 'We will share payment details shortly.';
+  $waMsg = "Hi {$name}, thank you for your order with Herit Clothing! 🌿\n"
+    . "Order {$code} · Total ₦" . number_format($total)
+    . ".\n{$payNote}\nTrack it anytime: https://heritclothing.com/track (code {$code}).";
+  wa_dispatch($phone, $waMsg, $customerId, 'order_confirmation');
+
   json([
     'ok' => true,
     'code' => $code,
@@ -228,6 +239,50 @@ if ($action === 'pay_verify' && method() === 'GET') {
     json(['ok' => true, 'code' => $code, 'status' => 'paid']);
   }
   json(['ok' => false, 'code' => $code, 'status' => 'unpaid']);
+}
+
+/* ---- TRACK (public order status) ----------------------------------------- */
+/* A customer looks up their own order with code + phone. Phone must match (last
+ * 9 digits, so +234/0 prefixes don't matter) so one can't browse others' orders. */
+if ($action === 'track' && method() === 'GET') {
+  $code = trim($_GET['code'] ?? '');
+  $phone = trim($_GET['phone'] ?? '');
+  if ($code === '' || $phone === '') fail('Order code and phone are required');
+
+  $stmt = $conn->prepare(
+    'SELECT id, code, customer_name, customer_phone, status, total, paid,
+            courier, tracking_ref, tracking_url, return_status, created_at
+       FROM orders WHERE code = ? AND deleted_at IS NULL LIMIT 1'
+  );
+  $stmt->bind_param('s', $code);
+  $stmt->execute();
+  $order = $stmt->get_result()->fetch_assoc();
+
+  $tail = fn($s) => substr(preg_replace('/\D/', '', (string)$s), -9);
+  if (!$order || $tail($order['customer_phone']) === '' || $tail($order['customer_phone']) !== $tail($phone)) {
+    fail('No order found for that code and phone.', 404);
+  }
+
+  $items = [];
+  $istmt = $conn->prepare("SELECT label, qty FROM order_items WHERE order_id = ? AND sku <> 'shipping'");
+  $istmt->bind_param('i', $order['id']);
+  $istmt->execute();
+  $ir = $istmt->get_result();
+  while ($row = $ir->fetch_assoc()) $items[] = ['label' => $row['label'], 'qty' => (int)$row['qty']];
+
+  json([
+    'code' => $order['code'],
+    'customer_name' => $order['customer_name'],
+    'status' => $order['status'],
+    'total' => (float)$order['total'],
+    'paid' => (float)$order['paid'],
+    'courier' => $order['courier'],
+    'tracking_ref' => $order['tracking_ref'],
+    'tracking_url' => $order['tracking_url'],
+    'return_status' => $order['return_status'],
+    'placed_at' => $order['created_at'],
+    'items' => $items,
+  ]);
 }
 
 fail('Unknown action', 404);

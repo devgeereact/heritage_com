@@ -117,6 +117,7 @@ if ($action === 'create' && method() === 'POST') {
   $stockStmt = $conn->prepare(
     'UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?'
   );
+  $soldVariantIds = [];
   foreach ($items as $it) {
     $variantId = isset($it['variant_id']) && $it['variant_id'] !== '' ? (int)$it['variant_id'] : null;
     $label = trim($it['label'] ?? 'Item');
@@ -128,6 +129,37 @@ if ($action === 'create' && method() === 'POST') {
     if ($variantId) {
       $stockStmt->bind_param('ii', $qty, $variantId);
       $stockStmt->execute();
+      $soldVariantIds[] = $variantId;
+    }
+  }
+
+  // One-of-a-kind auto-retire + care-attach. For every product touched by this
+  // order's variant lines: (a) if it's a hand-dyed one-off now at zero stock,
+  // archive it so it can never be sold twice; (b) collect its care notes so the
+  // care instructions travel onto the order.
+  if (!empty($soldVariantIds)) {
+    $in = implode(',', array_map('intval', array_unique($soldVariantIds)));
+    // Archive sold-out one-of-a-kind pieces.
+    $conn->query(
+      "UPDATE products p
+          SET p.status = 'archived'
+        WHERE p.one_of_a_kind = 1 AND p.deleted_at IS NULL
+          AND p.id IN (SELECT v.product_id FROM product_variants v WHERE v.id IN ($in))
+          AND (SELECT COALESCE(SUM(v2.stock),0) FROM product_variants v2 WHERE v2.product_id = p.id) = 0"
+    );
+    // Gather care instructions for the pieces on this order.
+    $careRes = $conn->query(
+      "SELECT DISTINCT p.name, p.care FROM products p
+         JOIN product_variants v ON v.product_id = p.id
+        WHERE v.id IN ($in) AND p.care IS NOT NULL AND p.care <> ''"
+    );
+    $careLines = [];
+    while ($careRes && $row = $careRes->fetch_assoc()) $careLines[] = $row['name'] . ': ' . $row['care'];
+    if ($careLines) {
+      $careBlock = "\nCare: " . implode(' | ', $careLines);
+      $upd = $conn->prepare('UPDATE orders SET notes = CONCAT(COALESCE(notes,""), ?) WHERE id = ?');
+      $upd->bind_param('si', $careBlock, $orderId);
+      $upd->execute();
     }
   }
 
@@ -168,6 +200,18 @@ if ($action === 'track' && method() === 'POST') {
     $stmt->bind_param('sssi', $courier, $ref, $url, $id);
   }
   $stmt->execute();
+
+  // WhatsApp dispatch notification to the customer (non-fatal).
+  $o = $conn->query('SELECT code, customer_name, customer_phone, customer_id FROM orders WHERE id = ' . (int)$id)->fetch_assoc();
+  if ($o && trim((string)$o['customer_phone']) !== '') {
+    $first = explode(' ', trim($o['customer_name']))[0] ?: 'there';
+    $line = "Hi {$first}, your Herit Clothing order {$o['code']} is on its way! 📦"
+      . ($courier !== '' ? "\nCourier: {$courier}" : '')
+      . ($ref !== '' ? "\nTracking: {$ref}" : '')
+      . ($url !== '' ? "\n{$url}" : '');
+    wa_dispatch($o['customer_phone'], $line, $o['customer_id'] ? (int)$o['customer_id'] : null, 'dispatch', $user['id']);
+  }
+
   audit($user['id'], 'order_track', 'order', $id, ['courier' => $courier, 'ref' => $ref]);
   json(['ok' => true, 'courier' => $courier, 'tracking_ref' => $ref, 'tracking_url' => $url]);
 }

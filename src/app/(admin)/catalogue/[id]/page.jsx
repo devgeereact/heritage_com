@@ -45,10 +45,15 @@ const StockCell = ({ variant, onSaved }) => {
   );
 };
 
+const EMPTY_EDIT = { name: '', category: '', fabric: '', base_price: '', cost_price: '', description: '', story: '', care: '', one_of_a_kind: false };
+
 const ProductDetailPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [state, setState] = useState('loading');
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(EMPTY_EDIT);
+  const [saving, setSaving] = useState(false);
   const { showNotification } = useNotificationContext();
 
   const load = useCallback(async () => {
@@ -62,6 +67,35 @@ const ProductDetailPage = () => {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  const startEdit = () => {
+    setForm({
+      name: product.name || '', category: product.category || '', fabric: product.fabric || '',
+      base_price: product.base_price ?? '', cost_price: product.cost_price ?? '',
+      description: product.description || '', story: product.story || '', care: product.care || '',
+      one_of_a_kind: !!Number(product.one_of_a_kind),
+    });
+    setEditing(true);
+  };
+  const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const saveEdit = async () => {
+    if (!form.name.trim()) { showNotification({ message: 'Name is required', variant: 'danger' }); return; }
+    setSaving(true);
+    try {
+      await heritApi.products.update(id, {
+        ...form,
+        base_price: Number(form.base_price) || 0,
+        cost_price: Number(form.cost_price) || 0,
+        one_of_a_kind: form.one_of_a_kind ? 1 : 0,
+        image_url: product.image_url || '',
+      });
+      setProduct((p) => ({ ...p, ...form, one_of_a_kind: form.one_of_a_kind ? 1 : 0 }));
+      setEditing(false);
+      showNotification({ message: 'Product saved', variant: 'success' });
+    } catch (e) {
+      showNotification({ message: e.message || 'Could not save', variant: 'danger' });
+    } finally { setSaving(false); }
+  };
 
   const onStockSaved = (variantId, stock) => {
     setProduct((p) => ({
@@ -114,6 +148,18 @@ const ProductDetailPage = () => {
             ))}
           </Dropdown.Menu>
         </Dropdown>
+        {Number(product.one_of_a_kind) === 1 && (
+          <Badge bg="dark" className="d-inline-flex align-items-center gap-1">
+            <IconifyIcon icon="solar:crown-star-bold" /> One of a kind
+          </Badge>
+        )}
+        <div className="ms-auto">
+          {!editing && (
+            <Button size="sm" variant="outline-primary" onClick={startEdit}>
+              <IconifyIcon icon="solar:pen-2-linear" className="me-1" /> Edit
+            </Button>
+          )}
+        </div>
       </div>
 
       <Row className="g-3">
@@ -121,15 +167,38 @@ const ProductDetailPage = () => {
           <Card>
             <CardBody>
               <h5 className="card-title mb-3">Details</h5>
-              <Detail label="Category" value={product.category || '—'} />
-              <Detail label="Fabric / print" value={product.fabric || '—'} />
-              <Detail label="Base price" value={naira(product.base_price)} />
-              <Detail label="Total stock" value={`${totalStock} across ${(product.variants || []).length} variants`} />
-              {product.description && (
+              {!editing ? (
                 <>
-                  <div className="text-muted small mt-2">Description</div>
-                  <p className="mb-0">{product.description}</p>
+                  <Detail label="Category" value={product.category || '—'} />
+                  <Detail label="Fabric / print" value={product.fabric || '—'} />
+                  <Detail label="Base price" value={naira(product.base_price)} />
+                  <Detail label="Cost price" value={naira(product.cost_price)} />
+                  <Detail label="Total stock" value={`${totalStock} across ${(product.variants || []).length} variants`} />
+                  {product.description && (<><div className="text-muted small mt-2">Description</div><p className="mb-0">{product.description}</p></>)}
+                  {product.story && (<><div className="text-muted small mt-2"><IconifyIcon icon="solar:book-bold" className="me-1" />The story in the cloth</div><p className="mb-0 fst-italic">{product.story}</p></>)}
+                  {product.care && (<><div className="text-muted small mt-2"><IconifyIcon icon="solar:hand-heart-bold" className="me-1" />Care</div><p className="mb-0">{product.care}</p></>)}
                 </>
+              ) : (
+                <div className="d-flex flex-column gap-2">
+                  <Form.Group><Form.Label className="small mb-1">Name</Form.Label><Form.Control value={form.name} onChange={setF('name')} /></Form.Group>
+                  <Row className="g-2">
+                    <Col xs={6}><Form.Label className="small mb-1">Category</Form.Label><Form.Control value={form.category} onChange={setF('category')} /></Col>
+                    <Col xs={6}><Form.Label className="small mb-1">Fabric / print</Form.Label><Form.Control value={form.fabric} onChange={setF('fabric')} /></Col>
+                  </Row>
+                  <Row className="g-2">
+                    <Col xs={6}><Form.Label className="small mb-1">Base price (₦)</Form.Label><Form.Control type="number" min="0" value={form.base_price} onChange={setF('base_price')} /></Col>
+                    <Col xs={6}><Form.Label className="small mb-1">Cost price (₦)</Form.Label><Form.Control type="number" min="0" value={form.cost_price} onChange={setF('cost_price')} /></Col>
+                  </Row>
+                  <Form.Check type="switch" id="ooak" label="One of a kind (auto-retires when it sells out)"
+                    checked={form.one_of_a_kind} onChange={(e) => setForm((f) => ({ ...f, one_of_a_kind: e.target.checked }))} />
+                  <Form.Group><Form.Label className="small mb-1">Description</Form.Label><Form.Control as="textarea" rows={2} value={form.description} onChange={setF('description')} /></Form.Group>
+                  <Form.Group><Form.Label className="small mb-1">The story in the cloth</Form.Label><Form.Control as="textarea" rows={2} value={form.story} onChange={setF('story')} placeholder="Origin, meaning, who made it…" /></Form.Group>
+                  <Form.Group><Form.Label className="small mb-1">Care instructions</Form.Label><Form.Control as="textarea" rows={2} value={form.care} onChange={setF('care')} placeholder="Hand-wash cold, dry in shade…" /></Form.Group>
+                  <div className="d-flex gap-2">
+                    <Button size="sm" variant="primary" onClick={saveEdit} disabled={saving}>{saving ? <Spinner size="sm" /> : 'Save'}</Button>
+                    <Button size="sm" variant="light" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
+                  </div>
+                </div>
               )}
             </CardBody>
           </Card>

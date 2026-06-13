@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Spinner, Alert, Dropdown, Badge } from 'react-bootstrap';
+import { Button, Spinner, Alert, Dropdown, Badge, Form, Card as BCard } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
@@ -45,7 +45,7 @@ const STAGES = [
 const STAGE_KEYS = STAGES.map((s) => s.key);
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
-const Card = ({ o, onStage }) => {
+const Card = ({ o, onStage, tailors, onAssign }) => {
   const idx = STAGE_KEYS.indexOf(o.stage);
   const next = idx >= 0 && idx < STAGE_KEYS.length - 1 ? STAGE_KEYS[idx + 1] : null;
   const overdue = o.due_date && o.stage !== 'done' && new Date(o.due_date) < new Date();
@@ -58,15 +58,37 @@ const Card = ({ o, onStage }) => {
       <div className="tl-customer">{o.customer_name}</div>
       {o.fabric && <div className="tl-fabric">{o.fabric}</div>}
       <div className="d-flex flex-wrap gap-2 mt-2">
-        {o.tailor_name && (
-          <span className="tl-meta"><IconifyIcon icon="solar:user-bold" /> {o.tailor_name}</span>
-        )}
-        {o.due_date && (
-          <span className={`tl-meta ${overdue ? 'tl-overdue' : ''}`}>
-            <IconifyIcon icon="solar:calendar-bold" /> {o.due_date}
+        <Dropdown>
+          <Dropdown.Toggle as="span" role="button" className={`tl-meta ${o.tailor_name ? '' : 'text-warning'}`} style={{ cursor: 'pointer' }}>
+            <IconifyIcon icon="solar:user-bold" /> {o.tailor_name || 'Assign tailor'}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item active={!o.assigned_tailor_id} onClick={() => onAssign(o.id, { assigned_tailor_id: '', due_date: o.due_date || '' })}>
+              Unassigned
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            {(tailors || []).map((t) => (
+              <Dropdown.Item key={t.id} active={Number(o.assigned_tailor_id) === Number(t.id)}
+                onClick={() => onAssign(o.id, { assigned_tailor_id: t.id, due_date: o.due_date || '' })}>
+                {t.name}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
+        <span className="tl-meta"><IconifyIcon icon="solar:tag-price-bold" /> {naira(o.price)}</span>
+        {Number(o.price || 0) - Number(o.deposit || 0) > 0 && (
+          <span className="tl-meta tl-overdue" title="balance due">
+            <IconifyIcon icon="solar:wallet-money-bold" /> {naira(Number(o.price || 0) - Number(o.deposit || 0))}
           </span>
         )}
-        <span className="tl-meta"><IconifyIcon icon="solar:tag-price-bold" /> {naira(o.price)}</span>
+      </div>
+      <div className="d-flex align-items-center gap-2 mt-2">
+        <IconifyIcon icon="solar:calendar-bold" className={overdue ? 'text-danger' : 'text-muted'} />
+        <Form.Control
+          type="date" size="sm" value={o.due_date || ''}
+          className={overdue ? 'border-danger text-danger' : ''}
+          onChange={(e) => onAssign(o.id, { assigned_tailor_id: o.assigned_tailor_id || '', due_date: e.target.value })}
+        />
       </div>
       <div className="d-flex gap-2 mt-3">
         {next && (
@@ -127,7 +149,33 @@ const TailoringPage = () => {
     }
   };
 
+  const onAssign = async (id, data) => {
+    setOrders((prev) => prev.map((o) => (o.id === id
+      ? { ...o, assigned_tailor_id: data.assigned_tailor_id || null, due_date: data.due_date || null,
+          tailor_name: data.assigned_tailor_id ? (tailors.find((t) => Number(t.id) === Number(data.assigned_tailor_id))?.name || o.tailor_name) : null }
+      : o)));
+    try {
+      await heritApi.tailoring.assign(id, data);
+    } catch (e) {
+      showNotification({ message: e.message || 'Could not update assignment', variant: 'danger' });
+      load();
+    }
+  };
+
   const active = orders.filter((o) => o.stage !== 'cancelled');
+  const onFloor = active.filter((o) => o.stage !== 'done');
+  const isOverdue = (o) => o.due_date && o.stage !== 'done' && new Date(o.due_date) < new Date();
+  const workload = [
+    ...tailors.map((t) => {
+      const jobs = onFloor.filter((o) => Number(o.assigned_tailor_id) === Number(t.id));
+      return { id: t.id, name: t.name, count: jobs.length, overdue: jobs.filter(isOverdue).length };
+    }),
+    {
+      id: 'none', name: 'Unassigned',
+      count: onFloor.filter((o) => !o.assigned_tailor_id).length,
+      overdue: onFloor.filter((o) => !o.assigned_tailor_id && isOverdue(o)).length,
+    },
+  ].filter((w) => w.count > 0 || w.id !== 'none');
 
   return (
     <>
@@ -159,6 +207,25 @@ const TailoringPage = () => {
         </Alert>
       )}
 
+      {state === 'ready' && workload.length > 0 && (
+        <BCard className="mb-3">
+          <BCard.Body className="py-2">
+            <div className="d-flex align-items-center flex-wrap gap-3">
+              <span className="text-muted small text-uppercase fw-semibold me-1">
+                <IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" />Bench workload
+              </span>
+              {workload.map((w) => (
+                <div key={w.id} className="d-flex align-items-center gap-1">
+                  <span className={w.id === 'none' ? 'text-warning' : ''}>{w.name}</span>
+                  <Badge bg={w.count === 0 ? 'light' : 'primary'} text={w.count === 0 ? 'dark' : undefined}>{w.count}</Badge>
+                  {w.overdue > 0 && <Badge bg="danger" title="overdue">{w.overdue} late</Badge>}
+                </div>
+              ))}
+            </div>
+          </BCard.Body>
+        </BCard>
+      )}
+
       {state === 'ready' && active.length > 0 && <AiPanel {...PRODUCTION_AI} />}
 
       {state === 'ready' && (
@@ -173,7 +240,7 @@ const TailoringPage = () => {
                 </div>
                 <div className="tl-col-body">
                   {col.length === 0 && <div className="tl-empty">—</div>}
-                  {col.map((o) => <Card key={o.id} o={o} onStage={onStage} />)}
+                  {col.map((o) => <Card key={o.id} o={o} onStage={onStage} tailors={tailors} onAssign={onAssign} />)}
                 </div>
               </div>
             );

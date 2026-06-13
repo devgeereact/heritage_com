@@ -164,6 +164,7 @@ const Cart = lazy(() => import('@/app/(public)/site/CartPage'));
 const Checkout = lazy(() => import('@/app/(public)/site/CheckoutPage'));
 const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
 const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
+const Track = lazy(() => import('@/app/(public)/site/TrackPage'));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
@@ -187,6 +188,7 @@ const Channels = lazy(() => import('@/app/(admin)/channels/page'));
 const Weather = lazy(() => import('@/app/(admin)/weather/page'));
 const Team = lazy(() => import('@/app/(admin)/team/page'));
 const Inbox = lazy(() => import('@/app/(admin)/inbox/page'));
+const WhatsApp = lazy(() => import('@/app/(admin)/whatsapp/page'));
 
 // Enquiries (public contact form inbox)
 const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
@@ -238,6 +240,10 @@ export const publicRoutes = [{
   path: '/contact',
   name: 'Contact',
   element: <Contact />
+}, {
+  path: '/track',
+  name: 'Track order',
+  element: <Track />
 }];
 const generalRoutes = [{
   path: '/dashboard',
@@ -299,6 +305,10 @@ const generalRoutes = [{
   path: '/inbox',
   name: 'Inbox',
   element: <Inbox />
+}, {
+  path: '/whatsapp',
+  name: 'WhatsApp',
+  element: <WhatsApp />
 }, {
   path: '/weather',
   name: 'Weather & Ops',

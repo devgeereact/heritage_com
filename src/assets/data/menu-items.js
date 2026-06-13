@@ -65,6 +65,15 @@ export const MENU_ITEMS = [{
   icon: 'solar:letter-bold-duotone',
   url: '/inbox'
 }, {
+  key: 'whatsapp',
+  label: 'WhatsApp',
+  icon: 'mdi:whatsapp',
+  url: '/whatsapp',
+  badge: {
+    text: 'New',
+    variant: 'success'
+  }
+}, {
   key: 'marketing',
   label: 'Marketing',
   icon: 'solar:megaphone-bold-duotone',

@@ -97,4 +97,46 @@ $out['kpis']['cogs'] = $cogs;
 $out['kpis']['profit'] = $rev - $cogs;
 $out['kpis']['margin'] = $rev > 0 ? ($rev - $cogs) / $rev : 0;
 
+/* New vs returning customers ----------------------------------------------*/
+/* An order is "returning" if the same customer placed an earlier (lower-id)
+ * non-cancelled order; first-ever orders and guest (unlinked) orders are new.
+ * Tracks the "turn buyers into repeat family" goal in money, not just counts. */
+$out['customer_split'] = ['new' => ['orders' => 0, 'revenue' => 0], 'returning' => ['orders' => 0, 'revenue' => 0]];
+$r = $conn->query(
+  "SELECT CASE WHEN o.customer_id IS NOT NULL AND EXISTS (
+              SELECT 1 FROM orders e
+               WHERE e.customer_id = o.customer_id AND e.id < o.id
+                 AND e.deleted_at IS NULL AND e.status <> 'cancelled'
+          ) THEN 'returning' ELSE 'new' END AS kind,
+          COUNT(*) AS orders, COALESCE(SUM(o.total),0) AS revenue
+     FROM orders o
+    WHERE o.deleted_at IS NULL AND o.status <> 'cancelled'
+    GROUP BY kind"
+);
+while ($r && $row = $r->fetch_assoc()) {
+  $k = $row['kind'] === 'returning' ? 'returning' : 'new';
+  $out['customer_split'][$k] = ['orders' => (int)$row['orders'], 'revenue' => (float)$row['revenue']];
+}
+
+/* Revenue by region — "Lagos to the world" --------------------------------*/
+/* Classified in PHP (no region column yet): a +<non-234> phone OR a foreign
+ * place-name in the ship address ⇒ Diaspora; "Lagos" in the address ⇒ Lagos;
+ * everything else ⇒ Other Nigeria. A heuristic, but it reads live data and
+ * needs no new capture step. */
+$region = ['Lagos' => ['orders' => 0, 'revenue' => 0], 'Other Nigeria' => ['orders' => 0, 'revenue' => 0], 'Diaspora' => ['orders' => 0, 'revenue' => 0]];
+$foreign = '/\b(uk|u\.k|united kingdom|london|england|usa|u\.s|united states|america|canada|germany|france|ireland|dubai|uae|netherlands|sweden|italy|spain|australia)\b/i';
+$r = $conn->query("SELECT total, customer_phone, ship_address FROM orders WHERE deleted_at IS NULL AND status <> 'cancelled'");
+while ($r && $row = $r->fetch_assoc()) {
+  $phone = trim((string)($row['customer_phone'] ?? ''));
+  $addr = (string)($row['ship_address'] ?? '');
+  $intlPhone = $phone !== '' && $phone[0] === '+' && strpos($phone, '+234') !== 0;
+  if ($intlPhone || preg_match($foreign, $addr)) $bucket = 'Diaspora';
+  elseif (stripos($addr, 'lagos') !== false)     $bucket = 'Lagos';
+  else                                            $bucket = 'Other Nigeria';
+  $region[$bucket]['orders']++;
+  $region[$bucket]['revenue'] += (float)$row['total'];
+}
+$out['by_region'] = [];
+foreach ($region as $name => $v) $out['by_region'][] = ['region' => $name, 'orders' => $v['orders'], 'revenue' => $v['revenue']];
+
 json($out);

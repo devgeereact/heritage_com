@@ -5,6 +5,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
+import OrderPrint from './components/OrderPrint';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const STATUSES = ['pending', 'paid', 'making', 'packing', 'shipped', 'delivered', 'cancelled'];
@@ -37,6 +38,7 @@ const SalesDetailPage = () => {
     }
   };
 
+  const [printMode, setPrintMode] = useState(null); // 'invoice' | 'packing' | null
   const [track, setTrack] = useState({ courier: '', tracking_ref: '', tracking_url: '' });
   const saveTracking = async () => {
     try {
@@ -73,7 +75,17 @@ const SalesDetailPage = () => {
         <Link to="/sales" className="btn btn-sm btn-light"><IconifyIcon icon="solar:arrow-left-linear" /> Orders</Link>
         <h4 className="mb-0">{o.code}</h4>
         <Badge bg={statusVariant(o.status)} className="text-capitalize">{o.status}</Badge>
+        <div className="ms-auto d-flex gap-2">
+          <Button size="sm" variant="outline-secondary" onClick={() => setPrintMode('packing')}>
+            <IconifyIcon icon="solar:box-bold" className="me-1" /> Packing slip
+          </Button>
+          <Button size="sm" variant="outline-primary" onClick={() => setPrintMode('invoice')}>
+            <IconifyIcon icon="solar:bill-list-bold" className="me-1" /> Invoice
+          </Button>
+        </div>
       </div>
+
+      <OrderPrint show={!!printMode} mode={printMode || 'invoice'} order={o} onHide={() => setPrintMode(null)} />
 
       <Row className="g-3">
         <Col lg={8}>

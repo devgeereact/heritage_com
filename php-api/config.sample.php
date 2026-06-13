@@ -96,6 +96,17 @@ $IMAP_PORT = 993;                          // 993 = IMAP over SSL
 $IMAP_USER = 'hello@heritclothing.com';
 $IMAP_PASS = 'CHANGE_ME';
 
+// ---- WhatsApp (Meta Cloud API) ----------------------------------------------
+// Read by whatsapp.php + _lib.php's wa_dispatch(). Leave WHATSAPP_TOKEN blank to
+// run in fallback mode: every "send" is logged and surfaced as a wa.me click-to-
+// send link instead of going out automatically (nothing breaks, nothing is lost).
+// To go live: create a Meta WhatsApp Business app, get a permanent token + the
+// phone-number id, and point the webhook at /whatsapp.php?action=webhook using
+// WHATSAPP_VERIFY_TOKEN as the verify string.
+define('WHATSAPP_TOKEN',        '');       // permanent access token (server only)
+define('WHATSAPP_PHONE_ID',     '');       // phone number ID from the Meta dashboard
+define('WHATSAPP_VERIFY_TOKEN', '');       // any random string; must match the webhook config
+
 // ---- CORS --------------------------------------------------------------------
 // Production is same-origin. In dev, _lib.php reflects ANY localhost port, so
 // this is only a fallback — no need to chase Vite's auto-port here.

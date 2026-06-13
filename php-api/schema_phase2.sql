@@ -18,6 +18,14 @@ ALTER TABLE orders
 ALTER TABLE products
   ADD COLUMN IF NOT EXISTS cost_price DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER base_price;
 
+-- ── Products: storytelling + craft fields ("the story is in the cloth") ──────
+-- one_of_a_kind: hand-dyed single pieces. Auto-archive when stock hits 0 so a
+-- one-off can never oversell. story/care travel with the piece onto the order.
+ALTER TABLE products
+  ADD COLUMN IF NOT EXISTS one_of_a_kind TINYINT(1) NOT NULL DEFAULT 0 AFTER status,
+  ADD COLUMN IF NOT EXISTS story         TEXT NULL AFTER description,
+  ADD COLUMN IF NOT EXISTS care          TEXT NULL AFTER story;
+
 -- ── Customers: tags, segment, loyalty ───────────────────────────────────────
 ALTER TABLE customers
   ADD COLUMN IF NOT EXISTS tags           VARCHAR(255) NULL AFTER notes,

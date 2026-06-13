@@ -177,7 +177,7 @@ const SiteFooter = () => {
           <Link to="/contact">Shipping</Link>
           <Link to="/contact">Returns</Link>
           <Link to="/contact">Size &amp; fit</Link>
-          <Link to="/contact">Track order</Link>
+          <Link to="/track">Track order</Link>
         </div>
 
         <div>

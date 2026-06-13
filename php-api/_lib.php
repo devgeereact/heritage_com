@@ -121,6 +121,73 @@ function require_auth($roles = null) {
   return $user;
 }
 
+/* ---- WhatsApp (shared so any endpoint can fire a notification) ------------ */
+
+/** Normalise a phone to digits in international form. NG local 0XXXXXXXXXX and
+ * bare 10-digit numbers are assumed Nigerian (+234). */
+function wa_normalize_phone($p) {
+  $d = preg_replace('/\D/', '', (string)$p);
+  if ($d === '') return '';
+  if (strlen($d) === 11 && $d[0] === '0') $d = '234' . substr($d, 1);
+  elseif (strlen($d) === 10)             $d = '234' . $d;
+  return $d;
+}
+
+/** POST a plain-text message via the Meta WhatsApp Cloud API. Returns decoded JSON or null. */
+function wa_cloud_send($phoneId, $token, $to, $body) {
+  $url = 'https://graph.facebook.com/v21.0/' . $phoneId . '/messages';
+  $payload = json_encode([
+    'messaging_product' => 'whatsapp', 'to' => $to, 'type' => 'text',
+    'text' => ['preview_url' => true, 'body' => $body],
+  ]);
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload,
+    CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token, 'Content-Type: application/json'],
+    CURLOPT_TIMEOUT => 20,
+  ]);
+  $raw = curl_exec($ch);
+  curl_close($ch);
+  return $raw ? json_decode($raw, true) : null;
+}
+
+/**
+ * Send (or queue) a WhatsApp message and log it. Cloud API when configured,
+ * otherwise a 'manual' log row + a wa.me click-to-send link. Best-effort and
+ * non-fatal: a missing token, dead network or absent table never breaks the
+ * caller (so order/checkout flows stay safe to notify from).
+ */
+function wa_dispatch($phone, $body, $customerId = null, $template = null, $createdBy = null) {
+  global $conn;
+  $to = wa_normalize_phone($phone);
+  if ($to === '' || trim((string)$body) === '') return ['ok' => false, 'error' => 'no phone or body'];
+
+  $token = cfg('WHATSAPP_TOKEN');
+  $phoneId = cfg('WHATSAPP_PHONE_ID');
+  $status = 'manual'; $waId = null; $error = null; $ok = false;
+
+  if ($token && $phoneId) {
+    try {
+      $resp = wa_cloud_send($phoneId, $token, $to, $body);
+      if ($resp && !empty($resp['messages'][0]['id'])) { $status = 'sent'; $waId = $resp['messages'][0]['id']; $ok = true; }
+      else { $status = 'failed'; $error = substr(is_array($resp) ? json_encode($resp['error'] ?? $resp) : 'send failed', 0, 240); }
+    } catch (\Throwable $e) { $status = 'failed'; $error = substr($e->getMessage(), 0, 240); }
+  }
+
+  try {
+    $dir = 'out';
+    $stmt = $conn->prepare(
+      'INSERT INTO whatsapp_messages (customer_id, phone, direction, body, template, status, wa_message_id, error, created_by)
+       VALUES (?,?,?,?,?,?,?,?,?)'
+    );
+    $stmt->bind_param('isssssssi', $customerId, $to, $dir, $body, $template, $status, $waId, $error, $createdBy);
+    $stmt->execute();
+  } catch (\Throwable $e) { /* table may not exist yet — logging is best-effort */ }
+
+  return ['ok' => $ok, 'status' => $status, 'wa_message_id' => $waId, 'phone' => $to,
+          'wa_link' => 'https://wa.me/' . $to . '?text=' . rawurlencode($body)];
+}
+
 /** Write a row to the audit log. */
 function audit($userId, $action, $entity = null, $entityId = null, $meta = null) {
   global $conn;

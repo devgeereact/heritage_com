@@ -66,6 +66,9 @@ if ($action === 'create' && method() === 'POST') {
   $description = trim($b['description'] ?? '');
   $basePrice = (float)($b['base_price'] ?? 0);
   $costPrice = (float)($b['cost_price'] ?? 0);
+  $story = trim($b['story'] ?? '');
+  $care = trim($b['care'] ?? '');
+  $oneOfAKind = !empty($b['one_of_a_kind']) ? 1 : 0;
   $sizes = array_values(array_filter(array_map('trim', (array)($b['sizes'] ?? []))));
   $colors = array_values(array_filter(array_map('trim', (array)($b['colors'] ?? []))));
   if ($name === '') fail('Product name is required');
@@ -76,10 +79,12 @@ if ($action === 'create' && method() === 'POST') {
   $code = 'PRD-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
 
   $stmt = $conn->prepare(
-    'INSERT INTO products (code, name, category, fabric, description, base_price, cost_price, created_by)
-     VALUES (?,?,?,?,?,?,?,?)'
+    'INSERT INTO products (code, name, category, fabric, description, story, care,
+                           base_price, cost_price, one_of_a_kind, created_by)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?)'
   );
-  $stmt->bind_param('sssssddi', $code, $name, $category, $fabric, $description, $basePrice, $costPrice, $user['id']);
+  $stmt->bind_param('sssssssddii', $code, $name, $category, $fabric, $description,
+    $story, $care, $basePrice, $costPrice, $oneOfAKind, $user['id']);
   $stmt->execute();
   $productId = $conn->insert_id;
 
@@ -99,6 +104,43 @@ if ($action === 'create' && method() === 'POST') {
 
   audit($user['id'], 'product_create', 'product', $productId, ['code' => $code, 'variants' => $made]);
   json(['id' => $productId, 'code' => $code, 'variants' => $made], 201);
+}
+
+/* ---- UPDATE -------------------------------------------------------------- */
+/* Edit the product's own fields (not variants). Storytelling + craft fields
+ * live here so "the story is in the cloth" is editable, not just at create.  */
+if ($action === 'update' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $name = trim($b['name'] ?? '');
+  if ($name === '') fail('Product name is required');
+  $category = trim($b['category'] ?? '');
+  $fabric = trim($b['fabric'] ?? '');
+  $description = trim($b['description'] ?? '');
+  $story = trim($b['story'] ?? '');
+  $care = trim($b['care'] ?? '');
+  $basePrice = (float)($b['base_price'] ?? 0);
+  $costPrice = (float)($b['cost_price'] ?? 0);
+  $oneOfAKind = !empty($b['one_of_a_kind']) ? 1 : 0;
+  $imageUrl = trim($b['image_url'] ?? '');
+
+  $stmt = $conn->prepare(
+    'UPDATE products SET name=?, category=?, fabric=?, description=?, story=?, care=?,
+                         base_price=?, cost_price=?, one_of_a_kind=?, image_url=?
+       WHERE id=? AND deleted_at IS NULL'
+  );
+  $stmt->bind_param('ssssssddisi', $name, $category, $fabric, $description, $story, $care,
+    $basePrice, $costPrice, $oneOfAKind, $imageUrl, $id);
+  $stmt->execute();
+  if ($stmt->affected_rows === 0) {
+    $chk = $conn->prepare('SELECT id FROM products WHERE id=? AND deleted_at IS NULL');
+    $chk->bind_param('i', $id);
+    $chk->execute();
+    if (!$chk->get_result()->fetch_assoc()) fail('Product not found', 404);
+  }
+
+  audit($user['id'], 'product_update', 'product', $id, ['name' => $name, 'one_of_a_kind' => $oneOfAKind]);
+  json(['ok' => true, 'id' => $id]);
 }
 
 /* ---- VARIANT STOCK ------------------------------------------------------- */

@@ -25,7 +25,7 @@ $action = $_GET['action'] ?? 'list';
 if ($action === 'list' && method() === 'GET') {
   $rows = [];
   $sql = "SELECT o.id, o.code, o.garment_type, o.fabric, o.stage, o.price, o.deposit,
-                 o.due_date, o.notes, o.assigned_tailor_id,
+                 o.fabric_cost, o.labour_cost, o.due_date, o.fitting_date, o.notes, o.assigned_tailor_id,
                  c.name AS customer_name, c.phone AS customer_phone,
                  t.name AS tailor_name
             FROM tailoring_orders o
@@ -144,6 +144,29 @@ if ($action === 'create' && method() === 'POST') {
   json(['id' => $orderId, 'code' => $code], 201);
 }
 
+/* ---- ASSIGN / RESCHEDULE -------------------------------------------------- */
+/* Reassign the tailor and/or change the due date after creation.             */
+if ($action === 'assign' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $tailorId = isset($b['assigned_tailor_id']) && $b['assigned_tailor_id'] !== '' ? (int)$b['assigned_tailor_id'] : null;
+  $dueDate = $b['due_date'] ?? null;
+  if ($dueDate === '') $dueDate = null;
+
+  $stmt = $conn->prepare('UPDATE tailoring_orders SET assigned_tailor_id = ?, due_date = ? WHERE id = ? AND deleted_at IS NULL');
+  $stmt->bind_param('isi', $tailorId, $dueDate, $id);
+  $stmt->execute();
+  if ($stmt->affected_rows === 0) {
+    $chk = $conn->prepare('SELECT id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL');
+    $chk->bind_param('i', $id);
+    $chk->execute();
+    if (!$chk->get_result()->fetch_assoc()) fail('Order not found', 404);
+  }
+
+  audit($user['id'], 'tailoring_assign', 'tailoring_order', $id, ['tailor' => $tailorId, 'due' => $dueDate]);
+  json(['ok' => true, 'assigned_tailor_id' => $tailorId, 'due_date' => $dueDate]);
+}
+
 /* ---- ADVANCE / SET STAGE ------------------------------------------------- */
 if ($action === 'stage' && method() === 'POST') {
   $id = (int)($_GET['id'] ?? 0);
@@ -169,6 +192,120 @@ if ($action === 'stage' && method() === 'POST') {
 
   audit($user['id'], 'tailoring_stage', 'tailoring_order', $id, ['stage' => $stage]);
   json(['ok' => true, 'stage' => $stage]);
+}
+
+/* ---- MEASUREMENTS -------------------------------------------------------- */
+/* Save this order's measurement snapshot. Optionally write it back to the
+ * customer's reusable profile so the next bespoke order pre-fills.            */
+if ($action === 'measure' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $measurements = isset($b['measurements']) ? json_encode($b['measurements']) : null;
+  $syncCustomer = !empty($b['sync_customer']);
+
+  $stmt = $conn->prepare('UPDATE tailoring_orders SET measurements = ? WHERE id = ? AND deleted_at IS NULL');
+  $stmt->bind_param('si', $measurements, $id);
+  $stmt->execute();
+
+  if ($syncCustomer) {
+    $row = $conn->query('SELECT customer_id FROM tailoring_orders WHERE id = ' . (int)$id)->fetch_assoc();
+    if ($row && $row['customer_id']) {
+      $cu = $conn->prepare('UPDATE customers SET measurements = ? WHERE id = ?');
+      $cu->bind_param('si', $measurements, $row['customer_id']);
+      $cu->execute();
+    }
+  }
+
+  audit($user['id'], 'tailoring_measure', 'tailoring_order', $id, ['sync' => $syncCustomer]);
+  json(['ok' => true]);
+}
+
+/* ---- RECORD PAYMENT (deposit / balance) ---------------------------------- */
+/* Add a payment to the order; deposit accrues toward price. Logged on the
+ * timeline so the money trail is visible. 50% deposit is the house rule.      */
+if ($action === 'pay' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $amount = (float)($b['amount'] ?? 0);
+  if ($amount <= 0) fail('Amount must be positive');
+
+  $row = $conn->query('SELECT price, deposit FROM tailoring_orders WHERE id = ' . (int)$id . ' AND deleted_at IS NULL')->fetch_assoc();
+  if (!$row) fail('Order not found', 404);
+  $price = (float)$row['price'];
+  $newDeposit = min((float)$row['deposit'] + $amount, $price > 0 ? $price : (float)$row['deposit'] + $amount);
+
+  $stmt = $conn->prepare('UPDATE tailoring_orders SET deposit = ? WHERE id = ?');
+  $stmt->bind_param('di', $newDeposit, $id);
+  $stmt->execute();
+
+  $ev = $conn->prepare('INSERT INTO tailoring_events (order_id, stage, note, user_id) SELECT id, stage, ?, ? FROM tailoring_orders WHERE id = ?');
+  $payNote = 'Payment ₦' . number_format($amount) . ' recorded';
+  $ev->bind_param('sii', $payNote, $user['id'], $id);
+  $ev->execute();
+
+  audit($user['id'], 'tailoring_pay', 'tailoring_order', $id, ['amount' => $amount, 'deposit' => $newDeposit]);
+  json(['ok' => true, 'deposit' => $newDeposit, 'balance' => max(0, $price - $newDeposit)]);
+}
+
+/* ---- COSTS (per-project profitability) ----------------------------------- */
+if ($action === 'costs' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $fabricCost = (float)($b['fabric_cost'] ?? 0);
+  $labourCost = (float)($b['labour_cost'] ?? 0);
+
+  $stmt = $conn->prepare('UPDATE tailoring_orders SET fabric_cost = ?, labour_cost = ? WHERE id = ? AND deleted_at IS NULL');
+  $stmt->bind_param('ddi', $fabricCost, $labourCost, $id);
+  $stmt->execute();
+
+  audit($user['id'], 'tailoring_costs', 'tailoring_order', $id, ['fabric' => $fabricCost, 'labour' => $labourCost]);
+  json(['ok' => true, 'fabric_cost' => $fabricCost, 'labour_cost' => $labourCost]);
+}
+
+/* ---- FITTING DATE -------------------------------------------------------- */
+if ($action === 'fitting' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $date = $b['fitting_date'] ?? null;
+  if ($date === '') $date = null;
+
+  $stmt = $conn->prepare('UPDATE tailoring_orders SET fitting_date = ? WHERE id = ? AND deleted_at IS NULL');
+  $stmt->bind_param('si', $date, $id);
+  $stmt->execute();
+
+  audit($user['id'], 'tailoring_fitting', 'tailoring_order', $id, ['fitting_date' => $date]);
+  json(['ok' => true, 'fitting_date' => $date]);
+}
+
+/* ---- REMIND (WhatsApp fitting / balance nudge) --------------------------- */
+if ($action === 'remind' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $kind = $b['kind'] ?? 'fitting';            // 'fitting' | 'balance' | 'custom'
+  $custom = trim($b['message'] ?? '');
+
+  $o = $conn->query(
+    'SELECT o.code, o.price, o.deposit, o.fitting_date, o.customer_id, c.name AS customer_name, c.phone AS customer_phone
+       FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id
+      WHERE o.id = ' . (int)$id . ' AND o.deleted_at IS NULL'
+  )->fetch_assoc();
+  if (!$o) fail('Order not found', 404);
+  if (trim((string)$o['customer_phone']) === '') fail('No phone on file for this customer');
+
+  $first = explode(' ', trim($o['customer_name']))[0] ?: 'there';
+  $balance = max(0, (float)$o['price'] - (float)$o['deposit']);
+  if ($custom !== '') {
+    $msg = $custom;
+  } elseif ($kind === 'balance') {
+    $msg = "Hi {$first}, a quick note on your Herit Clothing order {$o['code']}: a balance of ₦" . number_format($balance) . " remains. Reply here to settle it. Thank you!";
+  } else {
+    $when = $o['fitting_date'] ? (' on ' . $o['fitting_date']) : ' soon';
+    $msg = "Hi {$first}, your fitting for order {$o['code']} is scheduled{$when}. Please let us know if that still works for you. — Herit Clothing";
+  }
+
+  $res = wa_dispatch($o['customer_phone'], $msg, $o['customer_id'] ? (int)$o['customer_id'] : null, 'tailoring_reminder', $user['id']);
+  audit($user['id'], 'tailoring_remind', 'tailoring_order', $id, ['kind' => $kind, 'status' => $res['status']]);
+  json($res);
 }
 
 fail('Unknown action', 404);
