@@ -1,10 +1,8 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Suspense } from 'react';
-import ActivityStreamToggle from './components/ActivityStreamToggle';
 import LeftSideBarToggle from './components/LeftSideBarToggle';
 import Notifications from './components/Notifications';
 import ProfileDropdown from './components/ProfileDropdown';
-import ThemeCustomizerToggle from './components/ThemeCustomizerToggle';
 import ThemeModeToggle from './components/ThemeModeToggle';
 import TopBarTitle from './components/TopBarTitle';
 const page = () => {
@@ -21,10 +19,6 @@ const page = () => {
             <Suspense>
               <Notifications />
             </Suspense>
-
-            <ThemeCustomizerToggle />
-
-            <ActivityStreamToggle />
 
             <ProfileDropdown />
             <form className="app-search d-none d-md-block ms-2">

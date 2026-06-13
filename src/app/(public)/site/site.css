@@ -195,6 +195,14 @@
   border-radius: var(--radius); transition: color 0.15s, background 0.15s;
 }
 .hc-nav-login:hover { color: var(--primary); background: var(--secondary); }
+.hc-nav-login--in { color: var(--primary); border: 1.5px solid var(--primary); }
+.hc-nav-login--in:hover { color: #fff; background: var(--primary); }
+.hc-foot-staff {
+  margin-top: 0.6rem; display: inline-flex; align-items: center; gap: 0.35rem;
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.62); transition: color 0.15s;
+}
+.hc-foot-staff:hover { color: #f5d18a; }
 .hc-nav-toggle {
   display: none; margin-left: auto; background: none; border: 1.5px solid var(--border);
   border-radius: var(--radius);

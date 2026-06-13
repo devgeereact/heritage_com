@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { DEFAULT_PAGE_TITLE } from '@/context/constants';
-import { useCart } from './cart';
+import { useAuthContext } from '@/context/useAuthContext';
+import { roleHome } from '@/helpers/roles';
 import { heritApi } from '@/helpers/heritApi';
+import { useCart } from './cart';
 import './site.css';
 
 const NAV = [
@@ -18,6 +20,8 @@ const SiteNav = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const { count } = useCart();
+  const { isAuthenticated, user } = useAuthContext();
+  const dash = roleHome(user?.role);
   useEffect(() => { setOpen(false); }, [pathname]);
 
   const isActive = (to) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
@@ -53,9 +57,15 @@ const SiteNav = () => {
           <Link to="/shop" className="hc-btn hc-btn--primary hc-nav-cta">
             <IconifyIcon icon="solar:bag-4-bold" /> Shop the drop
           </Link>
-          <Link to="/auth/sign-in" className="hc-nav-login" aria-label="Staff login">
-            <IconifyIcon icon="solar:lock-keyhole-minimalistic-linear" /> Staff login
-          </Link>
+          {isAuthenticated ? (
+            <Link to={dash} className="hc-nav-login hc-nav-login--in" aria-label="Go to dashboard">
+              <IconifyIcon icon="solar:widget-5-bold" /> Dashboard
+            </Link>
+          ) : (
+            <Link to="/auth/sign-in" className="hc-nav-login" aria-label="Staff login">
+              <IconifyIcon icon="solar:lock-keyhole-minimalistic-linear" /> Staff login
+            </Link>
+          )}
         </nav>
       </div>
     </header>
@@ -119,7 +129,9 @@ const NewsletterForm = () => {
   );
 };
 
-const SiteFooter = () => (
+const SiteFooter = () => {
+  const { isAuthenticated, user } = useAuthContext();
+  return (
   <footer className="hc-footer">
     <div className="hc-container">
       <div className="hc-foot-grid">
@@ -174,7 +186,10 @@ const SiteFooter = () => (
             Ajuwon Market<br />Lagos, Nigeria
           </p>
           <p className="hc-mt-2" style={{ fontSize: '0.92rem' }}>hello@heritclothing.com</p>
-          <Link to="/auth/sign-in" style={{ marginTop: '0.5rem', display: 'inline-block', color: '#777' }}>Staff login →</Link>
+          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'} className="hc-foot-staff">
+            <IconifyIcon icon={isAuthenticated ? 'solar:widget-5-bold' : 'solar:lock-keyhole-minimalistic-linear'} />
+            {isAuthenticated ? ' Staff dashboard' : ' Staff login'} →
+          </Link>
         </div>
       </div>
 
@@ -184,7 +199,8 @@ const SiteFooter = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 /**
  * Shared shell for every public page: sticky nav + footer.
