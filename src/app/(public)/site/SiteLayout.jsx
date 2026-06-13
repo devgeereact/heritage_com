@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { DEFAULT_PAGE_TITLE } from '@/context/constants';
 import { useCart } from './cart';
+import { heritApi } from '@/helpers/heritApi';
 import './site.css';
 
 const NAV = [
@@ -61,6 +62,63 @@ const SiteNav = () => {
   );
 };
 
+// Footer email capture — writes to the same enquiries table as the contact form
+// (contact.php), tagged interest=newsletter so staff can see signups in CRM.
+const NewsletterForm = () => {
+  const [email, setEmail] = useState('');
+  const [state, setState] = useState('idle'); // idle | sending | done | error
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || state === 'sending') return;
+    setState('sending');
+    try {
+      await heritApi.contact.submit({
+        name: 'Newsletter signup',
+        email: email.trim(),
+        type: 'general',
+        interest: 'newsletter',
+        message: 'Joined the family from the site footer — wants launch news + HERIT10.',
+      });
+      setState('done');
+    } catch {
+      setState('error');
+    }
+  };
+
+  if (state === 'done') {
+    return (
+      <p className="hc-mt-1" style={{ color: 'var(--secondary)', fontSize: '0.9rem' }}>
+        ✓ You&apos;re in — watch your inbox for code HERIT10.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <form className="hc-foot-news" onSubmit={submit}>
+        <input
+          type="email"
+          required
+          placeholder="your@email.com"
+          aria-label="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={state === 'sending'}
+        />
+        <button type="submit" disabled={state === 'sending'}>
+          {state === 'sending' ? '…' : 'Join'}
+        </button>
+      </form>
+      {state === 'error' && (
+        <p className="hc-mt-1" style={{ color: '#f5d18a', fontSize: '0.82rem' }}>
+          Couldn&apos;t sign you up just now — please try again.
+        </p>
+      )}
+    </>
+  );
+};
+
 const SiteFooter = () => (
   <footer className="hc-footer">
     <div className="hc-container">
@@ -75,10 +133,7 @@ const SiteFooter = () => (
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', marginBottom: '0.5rem' }}>
               Join the family — 10% off your first piece
             </div>
-            <form className="hc-foot-news" onSubmit={(e) => e.preventDefault()}>
-              <input type="email" placeholder="your@email.com" aria-label="Email" />
-              <button type="submit">Join</button>
-            </form>
+            <NewsletterForm />
           </div>
           <div className="hc-flex hc-gap hc-mt-3" style={{ gap: '0.5rem' }}>
             <a href="https://instagram.com" className="hc-social" aria-label="Instagram"><IconifyIcon icon="solar:instagram-bold" /></a>
@@ -91,9 +146,9 @@ const SiteFooter = () => (
         <div>
           <h6>Shop</h6>
           <Link to="/shop">All pieces</Link>
-          <Link to="/shop">Ankara</Link>
-          <Link to="/shop">Adire</Link>
-          <Link to="/shop">Aso-Oke</Link>
+          <Link to="/shop?fabric=Ankara">Ankara</Link>
+          <Link to="/shop?fabric=Adire">Adire</Link>
+          <Link to="/shop?fabric=Aso-Oke">Aso-Oke</Link>
           <Link to="/gifting">Gifting</Link>
         </div>
 

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
 import { PRODUCTS, formatNgn } from './products';
@@ -32,9 +32,18 @@ const Chips = ({ label, options, value, onChange }) => (
 );
 
 const ShopPage = () => {
+  const { search } = useLocation();
   const [fabric, setFabric] = useState('All');
   const [type, setType] = useState('All');
   const [occasion, setOccasion] = useState('All');
+
+  // Honor ?fabric= deep links (footer "Shop by fabric" links land pre-filtered).
+  useEffect(() => {
+    const f = new URLSearchParams(search).get('fabric');
+    if (!f) return;
+    const match = FABRICS.find((x) => x.toLowerCase() === f.toLowerCase());
+    if (match) setFabric(match);
+  }, [search]);
 
   const filtered = useMemo(
     () => PRODUCTS.filter((p) =>
