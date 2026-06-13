@@ -151,10 +151,10 @@ const SiteLayout = ({ title, children }) => {
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return;
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    // Only animate sections that start below the fold — above-fold content shows
-    // immediately so the hero never flashes in.
-    const sections = Array.from(document.querySelectorAll('.hc main > section'))
-      .filter((s) => s.getBoundingClientRect().top > window.innerHeight * 0.85);
+    // Never animate the first section — the hero shows immediately so it can't
+    // flash in. Geometry-based above-fold detection was unreliable before
+    // web-fonts settled layout, which let the hero get tagged and fade from 0.
+    const sections = Array.from(document.querySelectorAll('.hc main > section')).slice(1);
     sections.forEach((s) => s.classList.add('hc-reveal'));
     const reveal = (el) => { el.classList.add('hc-in'); io.unobserve(el); };
     // threshold 0 + no negative margin: a section reveals the moment any part

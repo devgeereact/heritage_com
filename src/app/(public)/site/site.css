@@ -353,6 +353,13 @@
   animation: hc-float 6s ease-in-out infinite; animation-delay: calc(var(--i) * 0.9s);
   display: flex; flex-direction: column; justify-content: flex-end; padding: 1rem;
 }
+/* cloth fill — fabric cards aren't .hc-tile, so they need their own pattern base
+   to size the hc-tile-*::before motif (which only sets a background). */
+.hc-fabric-card::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  transition: transform 0.5s ease;
+}
+.hc-fabric-card:hover::before { transform: scale(1.07); }
 .hc-fabric-card:nth-child(1) { top: 2%; left: 0; transform: rotate(-8deg); z-index: 1; }
 .hc-fabric-card:nth-child(2) { top: 0; right: 0; transform: rotate(6deg); z-index: 2; }
 .hc-fabric-card:nth-child(3) { bottom: 0; left: 22%; transform: rotate(-2deg); z-index: 3; width: 56%; }
