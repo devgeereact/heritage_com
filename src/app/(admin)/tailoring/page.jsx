@@ -190,9 +190,14 @@ const TailoringPage = () => {
               : 'Bespoke menswear, cut to measure'}
           </p>
         </div>
-        <Button variant="primary" onClick={() => setShowNew(true)}>
-          <IconifyIcon icon="solar:add-circle-bold" className="me-1" /> New order
-        </Button>
+        <div className="d-flex gap-2">
+          <Link to="/tailoring/groups" className="btn btn-light">
+            <IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" /> Aso-ebi groups
+          </Link>
+          <Button variant="primary" onClick={() => setShowNew(true)}>
+            <IconifyIcon icon="solar:add-circle-bold" className="me-1" /> New order
+          </Button>
+        </div>
       </div>
 
       {state === 'loading' && (

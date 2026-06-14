@@ -95,6 +95,9 @@ export const heritApi = {
       request(`/tailoring.php?action=fitting&id=${id}`, { method: 'POST', body: { fitting_date } }),
     remind: (id, data) =>
       request(`/tailoring.php?action=remind&id=${id}`, { method: 'POST', body: data }),
+    groupList: () => request('/tailoring.php?action=group_list'),
+    groupGet: (id) => request(`/tailoring.php?action=group_get&id=${id}`),
+    groupCreate: (data) => request('/tailoring.php?action=group_create', { method: 'POST', body: data }),
   },
 
   // Products & variants (catalogue)

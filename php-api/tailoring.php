@@ -308,4 +308,107 @@ if ($action === 'remind' && method() === 'POST') {
   json($res);
 }
 
+/* ---- ASO-EBI / GROUP ORDERS ---------------------------------------------- */
+if ($action === 'group_list' && method() === 'GET') {
+  $rows = [];
+  $res = $conn->query(
+    "SELECT g.id, g.code, g.organiser_name, g.event, g.due_date, g.discount_pct,
+            COUNT(o.id) AS members, COALESCE(SUM(o.price),0) AS total
+       FROM tailoring_groups g
+  LEFT JOIN tailoring_orders o ON o.group_id = g.id AND o.deleted_at IS NULL
+      WHERE g.deleted_at IS NULL
+   GROUP BY g.id ORDER BY g.id DESC"
+  );
+  while ($res && $row = $res->fetch_assoc()) $rows[] = $row;
+  json($rows);
+}
+
+if ($action === 'group_get' && method() === 'GET') {
+  $id = (int)($_GET['id'] ?? 0);
+  $g = $conn->query("SELECT * FROM tailoring_groups WHERE id = $id AND deleted_at IS NULL")->fetch_assoc();
+  if (!$g) fail('Group not found', 404);
+  $members = [];
+  $stmt = $conn->prepare(
+    "SELECT o.id, o.code, o.garment_type, o.fabric, o.stage, o.price, o.deposit, o.due_date,
+            c.name AS customer_name, c.phone AS customer_phone, t.name AS tailor_name
+       FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id
+  LEFT JOIN users t ON t.id = o.assigned_tailor_id
+      WHERE o.group_id = ? AND o.deleted_at IS NULL ORDER BY o.id ASC"
+  );
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+  $r = $stmt->get_result();
+  while ($row = $r->fetch_assoc()) $members[] = $row;
+  $g['members'] = $members;
+  json($g);
+}
+
+if ($action === 'group_create' && method() === 'POST') {
+  $b = body();
+  $organiser = trim($b['organiser'] ?? '');
+  $orgPhone = trim($b['phone'] ?? '');
+  $event = trim($b['event'] ?? '');
+  $dueDate = !empty($b['due_date']) ? $b['due_date'] : null;
+  $discount = max(0, min(100, (float)($b['discount_pct'] ?? 0)));
+  $notes = trim($b['notes'] ?? '');
+  $members = is_array($b['members'] ?? null) ? $b['members'] : [];
+  if ($organiser === '') fail('Organiser name is required');
+  if (!$members) fail('Add at least one member');
+
+  // Group code HCG-####.
+  $next = (int)($conn->query('SELECT MAX(id) AS m FROM tailoring_groups')->fetch_assoc()['m'] ?? 0) + 1;
+  $gcode = 'HCG-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
+  $stmt = $conn->prepare('INSERT INTO tailoring_groups (code, organiser_name, organiser_phone, event, due_date, discount_pct, notes, created_by) VALUES (?,?,?,?,?,?,?,?)');
+  $stmt->bind_param('sssssdsi', $gcode, $organiser, $orgPhone, $event, $dueDate, $discount, $notes, $user['id']);
+  $stmt->execute();
+  $groupId = $conn->insert_id;
+
+  // Create a tailoring order per member, group discount applied to each price.
+  $made = 0;
+  foreach ($members as $m) {
+    $mname = trim($m['name'] ?? '');
+    if ($mname === '') continue;
+    $mphone = trim($m['phone'] ?? '');
+    $garment = in_array($m['garment_type'] ?? '', $GARMENTS, true) ? $m['garment_type'] : 'other';
+    $fabric = trim($m['fabric'] ?? '');
+    $price = round((float)($m['price'] ?? 0) * (1 - $discount / 100), 2);
+    $measurements = isset($m['measurements']) ? json_encode($m['measurements']) : null;
+
+    // Resolve/create the member's customer by phone.
+    $customerId = null;
+    if ($mphone !== '') {
+      $cs = $conn->prepare('SELECT id FROM customers WHERE phone = ? AND deleted_at IS NULL LIMIT 1');
+      $cs->bind_param('s', $mphone);
+      $cs->execute();
+      if ($row = $cs->get_result()->fetch_assoc()) $customerId = (int)$row['id'];
+    }
+    if (!$customerId) {
+      $ci = $conn->prepare('INSERT INTO customers (name, phone, measurements) VALUES (?,?,?)');
+      $ci->bind_param('sss', $mname, $mphone, $measurements);
+      $ci->execute();
+      $customerId = $conn->insert_id;
+    }
+
+    $hcNext = (int)($conn->query('SELECT MAX(id) AS m FROM tailoring_orders')->fetch_assoc()['m'] ?? 0) + 1;
+    $hcCode = 'HC-' . str_pad((string)$hcNext, 4, '0', STR_PAD_LEFT);
+    $stage = 'measure'; $deposit = 0;
+    $oi = $conn->prepare(
+      'INSERT INTO tailoring_orders (code, customer_id, group_id, garment_type, fabric, measurements, notes, stage, price, deposit, due_date, created_by)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+    );
+    $mnote = 'Aso-ebi ' . $gcode . ($event !== '' ? ' · ' . $event : '');
+    $oi->bind_param('siisssssddsi', $hcCode, $customerId, $groupId, $garment, $fabric, $measurements, $mnote, $stage, $price, $deposit, $dueDate, $user['id']);
+    $oi->execute();
+    $oid = $conn->insert_id;
+    $ev = $conn->prepare('INSERT INTO tailoring_events (order_id, stage, note, user_id) VALUES (?,?,?,?)');
+    $en = 'Added to group ' . $gcode;
+    $ev->bind_param('issi', $oid, $stage, $en, $user['id']);
+    $ev->execute();
+    $made++;
+  }
+
+  audit($user['id'], 'tailoring_group_create', 'tailoring_group', $groupId, ['code' => $gcode, 'members' => $made]);
+  json(['id' => $groupId, 'code' => $gcode, 'members' => $made], 201);
+}
+
 fail('Unknown action', 404);

@@ -169,6 +169,7 @@ const Account = lazy(() => import('@/app/(public)/site/AccountPage'));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
+const TailoringGroups = lazy(() => import('@/app/(admin)/tailoring/groups/page'));
 const TailoringDetail = lazy(() => import('@/app/(admin)/tailoring/[id]/page'));
 
 // Products & Variants (catalogue, real PHP)
@@ -262,6 +263,10 @@ const generalRoutes = [{
   path: '/tailoring',
   name: 'Tailoring',
   element: <Tailoring />
+}, {
+  path: '/tailoring/groups',
+  name: 'Aso-ebi groups',
+  element: <TailoringGroups />
 }, {
   path: '/tailoring/:id',
   name: 'Tailoring Detail',
