@@ -22,9 +22,9 @@ const giftFrom = (notes) => {
 };
 
 const Brand = ({ docLabel }) => (
-  <div className="d-flex justify-content-between align-items-start" style={{ borderBottom: '2px solid #9b2c2c', paddingBottom: 12 }}>
+  <div className="d-flex justify-content-between align-items-start" style={{ borderBottom: '2px solid #26215C', paddingBottom: 12 }}>
     <div>
-      <div style={{ fontFamily: 'Libre Baskerville, Georgia, serif', fontSize: 22, fontWeight: 700, color: '#9b2c2c' }}>Herit Clothing</div>
+      <div style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 22, fontWeight: 700, color: '#26215C' }}>Herit Clothing</div>
       <div className="text-muted small">Ajuwon Market, Lagos · heritclothing.com · hello@heritclothing.com</div>
     </div>
     <div className="text-end">
@@ -102,14 +102,14 @@ const OrderPrint = ({ show, onHide, order, mode = 'invoice' }) => {
                 </tr>
                 <tr>
                   <td colSpan={4} className="text-end fw-bold">Balance due</td>
-                  <td className="text-end fw-bold" style={{ color: balance > 0 ? '#9b2c2c' : 'inherit' }}>{naira(balance)}</td>
+                  <td className="text-end fw-bold" style={{ color: balance > 0 ? '#991b1b' : 'inherit' }}>{naira(balance)}</td>
                 </tr>
               </tfoot>
             )}
           </table>
 
           {gift && (
-            <div className="mt-2 p-2" style={{ background: '#faf5f0', borderLeft: '3px solid #9b2c2c' }}>
+            <div className="mt-2 p-2" style={{ background: '#F1EFE8', borderLeft: '3px solid #26215C' }}>
               <div className="text-muted small text-uppercase">Gift message</div>
               <div className="fst-italic">{gift}</div>
             </div>

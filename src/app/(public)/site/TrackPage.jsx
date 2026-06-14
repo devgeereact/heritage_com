@@ -73,7 +73,7 @@ const TrackPage = () => {
             <button type="submit" className="hc-btn hc-btn--primary" disabled={busy}>
               {busy ? 'Looking…' : 'Track order'}
             </button>
-            {error && <p style={{ color: '#9b2c2c', margin: 0 }}><IconifyIcon icon="solar:danger-circle-bold" /> {error}</p>}
+            {error && <p style={{ color: '#991b1b', margin: 0 }}><IconifyIcon icon="solar:danger-circle-bold" /> {error}</p>}
           </form>
 
           {order && (
@@ -87,7 +87,7 @@ const TrackPage = () => {
               </div>
 
               {cancelled ? (
-                <p className="mt-3" style={{ color: '#9b2c2c' }}><IconifyIcon icon="solar:close-circle-bold" /> This order was cancelled. Contact us if that&apos;s unexpected.</p>
+                <p className="mt-3" style={{ color: '#991b1b' }}><IconifyIcon icon="solar:close-circle-bold" /> This order was cancelled. Contact us if that&apos;s unexpected.</p>
               ) : (
                 <ol style={{ listStyle: 'none', padding: 0, margin: '1.5rem 0 0' }}>
                   {PIPELINE.map((s, i) => {
@@ -97,8 +97,8 @@ const TrackPage = () => {
                       <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '.75rem', padding: '.4rem 0', opacity: done ? 1 : 0.4 }}>
                         <span style={{
                           width: 30, height: 30, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          background: done ? '#9b2c2c' : '#e9e1d8', color: done ? '#fff' : '#9b8e83',
-                          boxShadow: current ? '0 0 0 4px rgba(155,44,44,.15)' : 'none',
+                          background: done ? '#26215C' : '#e9e1d8', color: done ? '#fff' : '#9b8e83',
+                          boxShadow: current ? '0 0 0 4px rgba(38,33,92,.18)' : 'none',
                         }}><IconifyIcon icon={s.icon} /></span>
                         <span style={{ fontWeight: current ? 700 : 500 }}>{s.label}</span>
                       </li>

@@ -7,10 +7,10 @@
 $prefix:                        'bs-';
 
 
-// Font Family — Herit premium brand: Inter (UI/body), Fraunces (serif display)
+// Font Family — Herit premium brand: Inter (UI/body), Playfair Display (serif display)
 $font-family-primary:                             "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 $font-family-secondary:                           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-serif:                               "Fraunces", Georgia, serif;
+$font-family-serif:                               "Playfair Display", Georgia, serif;
 
 
 //
@@ -18,10 +18,10 @@ $font-family-serif:                               "Fraunces", Georgia, serif;
 //
 
 // scss-docs-start gray-color-variables
-// Warm bone neutral scale — premium heritage foundation (bone paper, warm ink)
+// Warm neutral scale — premium heritage foundation (bone surface, warm ink)
 $white:    #ffffff;
-$gray-100: #faf8f4;  // bone paper — primary surface
-$gray-200: #f1ece4;
+$gray-100: #F1EFE8;  // warm off-white — primary surface
+$gray-200: #E9E5DC;
 $gray-300: #e8e3db;  // warm hairline border
 $gray-400: #c4bcb0;
 $gray-500: #8a8178;
@@ -35,13 +35,13 @@ $black:    #000000;
 
 // scss-docs-start color-variables
 $blue:    #1c84ee;
-$indigo:  #53389f;
+$indigo:  #26215C;  // Herit Clothing brand primary — deep indigo
 $purple:  #7f56da;
 $pink:    #ff86c8;
 $red:     #ef4444;  // brand template destructive
 $orange:  #f59e0b;  // amber (utility "orange" only)
-$maroon:  #7a1f1f;  // Herit Clothing brand maroon — deepened for premium
-$gold:    #c9a24b;  // premium micro-accent (tags, active states)
+$maroon:  #26215C;  // legacy alias → now primary indigo
+$gold:    #FAC775;  // premium micro-accent (tags, active states)
 $yellow:  #f9b931;
 $green:   #22c55e;
 $teal:    #040505;
@@ -49,7 +49,7 @@ $cyan:    #4ecac2;
 // scss-docs-end color-variables
 
 // scss-docs-start theme-color-variables
-$primary:       $maroon;
+$primary:       $indigo;
 $secondary:     $gray-600;
 $blue:          $blue;
 $indigo:        $indigo;

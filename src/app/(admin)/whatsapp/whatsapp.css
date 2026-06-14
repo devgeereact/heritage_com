@@ -1,4 +1,4 @@
-/* WhatsApp inbox — two-pane shell tuned to the HeritOS maroon brand. */
+/* WhatsApp inbox — two-pane shell tuned to the HeritOS indigo brand. */
 .wa-shell {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -27,7 +27,7 @@
   cursor: pointer;
 }
 .wa-thread:hover { background: var(--bs-tertiary-bg); }
-.wa-thread.active { background: rgba(155, 44, 44, 0.08); }
+.wa-thread.active { background: rgba(38, 33, 92, 0.10); }
 .wa-name { font-weight: 600; font-size: 0.9rem; }
 .wa-time { font-size: 0.7rem; color: var(--bs-secondary-color); white-space: nowrap; }
 .wa-preview { font-size: 0.8rem; color: var(--bs-secondary-color); max-width: 200px; }
@@ -36,7 +36,7 @@
 .wa-avatar {
   width: 40px; height: 40px; flex: 0 0 40px;
   border-radius: 50%;
-  background: #9b2c2c; color: #fff;
+  background: #26215C; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-weight: 700;
 }

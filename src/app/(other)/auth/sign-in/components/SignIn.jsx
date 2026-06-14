@@ -6,16 +6,16 @@ import { Link } from 'react-router-dom';
 import LoginFrom from './LoginFrom';
 import PinLogin from './PinLogin';
 
-// Branded heritage panel — Ankara-style wax-print woven from gradients, so the
+// Branded heritage panel — Adire-style indigo resist woven from gradients, so the
 // sign-in is on-brand with no stock photo and nothing to load.
 const fabricPanel = {
-  backgroundColor: '#7f1d1d',
+  backgroundColor: '#1B1742',
   backgroundImage: [
-    'radial-gradient(circle at 50% 50%, rgba(254,243,199,0.9) 3%, transparent 4%)',
-    'radial-gradient(circle at 50% 50%, transparent 11%, rgba(180,83,9,0.85) 12%, rgba(180,83,9,0.85) 16%, transparent 17%)',
-    'radial-gradient(circle at 50% 50%, transparent 21%, rgba(253,242,214,0.7) 22%, rgba(253,242,214,0.7) 25%, transparent 26%)',
-    'radial-gradient(circle at 0% 0%, transparent 21%, rgba(180,83,9,0.7) 22%, transparent 26%)',
-    'radial-gradient(circle at 100% 100%, transparent 21%, rgba(180,83,9,0.7) 22%, transparent 26%)',
+    'radial-gradient(circle at 50% 50%, rgba(250,199,117,0.85) 3%, transparent 4%)',
+    'radial-gradient(circle at 50% 50%, transparent 11%, rgba(250,199,117,0.55) 12%, rgba(250,199,117,0.55) 16%, transparent 17%)',
+    'radial-gradient(circle at 50% 50%, transparent 21%, rgba(241,239,232,0.55) 22%, rgba(241,239,232,0.55) 25%, transparent 26%)',
+    'radial-gradient(circle at 0% 0%, transparent 21%, rgba(250,199,117,0.5) 22%, transparent 26%)',
+    'radial-gradient(circle at 100% 100%, transparent 21%, rgba(250,199,117,0.5) 22%, transparent 26%)',
   ].join(','),
   backgroundSize: '64px 64px',
 };
@@ -64,7 +64,7 @@ const SignIn = () => {
                   </div>
                 </div>
                 <div style={{ position: 'relative' }}>
-                  <h1 style={{ fontFamily: '"Libre Baskerville", Georgia, serif', fontWeight: 700, fontStyle: 'italic', fontSize: '2.4rem', lineHeight: 1.15, color: '#fff' }}>
+                  <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 700, fontStyle: 'italic', fontSize: '2.4rem', lineHeight: 1.15, color: '#fff' }}>
                     Wear your heritage.
                   </h1>
                   <p style={{ marginTop: '1rem', maxWidth: '24rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)' }}>

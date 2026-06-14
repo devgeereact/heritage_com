@@ -1,42 +1,44 @@
 /* ============================================================
    Herit Clothing — public site theme
-   Premium editorial heritage palette: bone paper, deep maroon, gold thread.
-   Fraunces display + Inter body + IBM Plex Mono labels.
+   Premium editorial palette: warm bone surface, deep indigo, warm gold thread.
+   Playfair Display display + Inter body + IBM Plex Mono labels.
    Soft layered shadows, radius 0.625rem. Scoped under `.hc` so it never
    touches the Bootstrap-driven admin app.
    ============================================================ */
 
 .hc {
-  --card: #ffffff;
-  --ring: #7a1f1f;
-  --input: #f1ece4;
-  --muted: #f1ece4;
-  --accent: #f6efe0;
-  --border: #e8e3db;
+  --card: #FFFFFF;
+  --ring: #26215C;
+  --input: #E9E5DC;
+  --muted: #E9E5DC;
+  --accent: #FAC775;
+  --accent-soft: #FDEAC2;
+  --border: #E8E3DB;
   --radius: 0.625rem;
 
-  --chart-1: #7a1f1f;
-  --chart-2: #5e1717;
-  --chart-3: #c9a24b;
+  --chart-1: #26215C;
+  --chart-2: #1B1742;
+  --chart-3: #FAC775;
   --chart-4: #8a8178;
   --chart-5: #443f3a;
 
-  --primary: #7a1f1f;
-  --primary-dark: #5e1717;
-  --secondary: #f6efe0;
-  --gold: #c9a24b;
-  --background: #faf8f4;
+  --primary: #26215C;
+  --primary-dark: #1B1742;
+  --secondary: #FDEAC2;
+  --gold: #FAC775;
+  --background: #F1EFE8;
+  --bg: #FFFFFF;
   --foreground: #1a1714;
   --espresso: #1a1714;
   --destructive: #991b1b;
   --muted-foreground: #6b655e;
-  --accent-foreground: #7a1f1f;
+  --accent-foreground: #26215C;
   --primary-foreground: #ffffff;
   --secondary-foreground: #6b655e;
 
   --font-mono: "IBM Plex Mono", monospace;
   --font-sans: "Inter", sans-serif;
-  --font-serif: "Fraunces", Georgia, serif;
+  --font-serif: "Playfair Display", Georgia, serif;
 
   --shadow-sm: 0 1px 2px hsl(30 20% 12% / 0.04), 0 2px 6px hsl(30 20% 12% / 0.05);
   --shadow-md: 0 2px 4px hsl(30 20% 12% / 0.05), 0 6px 16px hsl(30 20% 12% / 0.07);
@@ -330,7 +332,7 @@
 }
 .hc-hero-em {
   display: block; font-style: italic;
-  background: linear-gradient(100deg, #e0c486 0%, #c9a24b 100%);
+  background: linear-gradient(100deg, #FDEAC2 0%, #FAC775 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hc-hero-sub {
@@ -338,8 +340,8 @@
   max-width: 34rem; margin-top: 1.5rem;
 }
 .hc-hero--bold .hc-hero-actions { margin-top: 2.25rem; }
-.hc-btn--gold { background: linear-gradient(100deg, #d9bd7d, #c9a24b); color: #2a1414; border: none; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.32); }
-.hc-btn--gold:hover { filter: brightness(1.05); transform: translateY(-1px); color: #2a1414; }
+.hc-btn--gold { background: linear-gradient(100deg, #FDEAC2, #FAC775); color: #1B1742; border: none; font-weight: 600; box-shadow: 0 8px 24px rgba(38,33,92,0.32); }
+.hc-btn--gold:hover { filter: brightness(1.05); transform: translateY(-1px); color: #1B1742; }
 .hc-btn--glass { background: rgba(255,255,255,0.10); color: #fff; border: 1.5px solid rgba(255,255,255,0.4); backdrop-filter: blur(6px); }
 .hc-btn--glass:hover { background: rgba(255,255,255,0.2); color: #fff; }
 .hc-hero-cta { position: relative; }
@@ -606,9 +608,9 @@ a.hc-tile:hover::before { transform: scale(1.07); }
   font-family: var(--font-sans); padding: 0.65rem 0.8rem; color: var(--foreground);
 }
 .hc-form .form-control:focus,
-.hc-form .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(155,44,44,0.12); background: #fff; }
+.hc-form .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(38,33,92,0.14); background: #fff; }
 .hc-form-error {
-  background: #fdecec; border: 1px solid var(--primary); color: var(--primary-dark);
+  background: #fdecec; border: 1px solid var(--destructive); color: var(--destructive);
   border-radius: var(--radius);
   font-size: 0.88rem; padding: 0.7rem 0.9rem; margin-bottom: 1rem; font-family: var(--font-mono);
 }

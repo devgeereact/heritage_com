@@ -92,7 +92,7 @@ const ProductReviews = ({ slug, productName }) => {
           <label style={lbl}>Headline<input style={field} value={form.title} onChange={set('title')} placeholder="Beautiful piece" /></label>
           <label style={lbl}>Your review<textarea rows={3} style={field} value={form.body} onChange={set('body')} /></label>
           <label style={lbl}>Photo URL (optional)<input style={field} value={form.photo_url} onChange={set('photo_url')} placeholder="https://…" /></label>
-          {err && <p style={{ color: '#9b2c2c', margin: 0, fontSize: '0.85rem' }}>{err}</p>}
+          {err && <p style={{ color: '#991b1b', margin: 0, fontSize: '0.85rem' }}>{err}</p>}
           <div className="hc-flex" style={{ gap: '0.5rem' }}>
             <button type="submit" className="hc-btn hc-btn--primary" disabled={busy} style={{ border: 'none' }}>{busy ? 'Sending…' : 'Submit review'}</button>
             <button type="button" className="hc-btn hc-btn--ghost" onClick={() => setOpen(false)}>Cancel</button>

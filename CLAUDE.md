@@ -190,8 +190,10 @@ server-side via `require_auth($roles)` — never trust the client.
 **AI:** every AI feature calls `ai.php` (OpenRouter proxy, staff-only). Key + `OR_MODEL`
 live in `config.php`, never in the browser.
 
-**Status:** foundation done — kit transplanted, **warm maroon brand** (`#9b2c2c`,
-Poppins/Libre Baskerville/IBM Plex Mono) across app + public site, real login.
+**Status:** foundation done — kit transplanted, **indigo + warm-gold brand**
+(`#26215C` primary, `#FAC775` accent, `#F1EFE8` surface · Playfair Display + Inter
++ IBM Plex Mono) across app + public site, real login. Dark mode flips primary to
+gold for legibility on deep-indigo surfaces. See DESIGN-SYSTEM.md for tokens.
 Public storefront live (multi-page: Home/About/Shop/Product/Gifting/Contact).
 Live PHP modules (all 14 §8 modules now built): Dashboard, Products & Variants
 (catalogue), Orders (sales), Customers (CRM), Production & Tailoring, Enquiries,

@@ -144,7 +144,7 @@ const ProductPage = () => {
                   <IconifyIcon icon={added ? 'solar:check-circle-bold' : 'solar:cart-plus-bold'} /> {added ? 'Added' : 'Keep shopping'}
                 </button>
                 <button onClick={toggleSave} className="hc-btn hc-btn--ghost" style={{ cursor: 'pointer' }} title="Save to wishlist">
-                  <IconifyIcon icon={saved ? 'solar:heart-bold' : 'solar:heart-linear'} style={{ color: saved ? '#9b2c2c' : 'inherit' }} /> {saved ? 'Saved' : 'Save'}
+                  <IconifyIcon icon={saved ? 'solar:heart-bold' : 'solar:heart-linear'} style={{ color: saved ? 'var(--primary)' : 'inherit' }} /> {saved ? 'Saved' : 'Save'}
                 </button>
               </div>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.6rem' }}>

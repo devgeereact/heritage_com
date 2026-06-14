@@ -2,20 +2,19 @@
 
 > **Status: locked direction (CEO decision, 2026-06-14).** Source of truth for the premium
 > rebrand of HeritOS — storefront + admin app. Build against these tokens, not against ad-hoc values.
-> Supersedes the old warm-maroon-default brand (#9b2c2c, Poppins/Libre Baskerville/IBM Plex Mono).
+> Supersedes the prior warm-maroon brand (#7A1F1F, Fraunces).
 
 ---
 
 ## 0. The bet
 
-Pivot from generic/loud to **premium heritage**: warm-neutral foundation, deep maroon as a
-restrained accent, a thread of gold as the one "expensive" sparkle. Heritage made modern.
+Pivot to **modern editorial heritage**: deep indigo primary, warm gold/peach accent, soft
+bone surface. Quiet luxury — confident, not loud. Heritage made modern.
 
-**Rejected:** yellow/black/coral brutalism (#FFD84D surface, #FF5B3E accent, Montserrat). Yellow
-reads cheap/loud, Montserrat reads template/AI-default — neither sells premium clothing.
+**Rejected:** loud yellow/black brutalism, candy palettes, Montserrat. None sell premium clothing.
 
-**Pitch line:** *"Warm, editorial, restrained. Heritage made modern — bone paper, deep maroon,
-a thread of gold. Feels hand-made, not template."*
+**Pitch line:** *"Editorial, restrained, modern. Deep indigo, soft bone paper, a warm thread
+of gold. Feels considered, not template."*
 
 One token set, two flavors:
 - **Storefront** = editorial premium (big imagery, serif display, generous space, slow scroll). Sells clothes.
@@ -25,18 +24,19 @@ One token set, two flavors:
 
 ## 1. Color
 
-No yellow surface. No coral. Gold is the only sparkle, used tiny (~5% of page).
+Gold is the only sparkle, used tiny (~5% of page). Indigo carries the brand weight.
 
 | Token | Hex | Use |
 |---|---|---|
-| `--surface-paper` | `#FAF8F4` | Primary surface (bone — **not** white) |
-| `--surface-card` | `#FFFFFF` | Elevated cards only |
+| `--primary` | `#26215C` | Deep indigo — brand primary, CTAs, headings rail, focus ring |
+| `--primary-hover` | `#1B1742` | Primary hover/active |
+| `--accent` | `#FAC775` | Warm gold — micro-accent, tags, active states, wordmark sparkle |
+| `--accent-hover` | `#E8AC4D` | Accent hover |
+| `--surface` | `#F1EFE8` | Primary surface (warm off-white — **not** pure white) |
+| `--bg` | `#FFFFFF` | Elevated cards, modals, inputs |
 | `--ink` | `#1A1714` | Text (warm near-black, not pure #000) |
 | `--ink-muted` | `#6B655E` | Secondary text |
 | `--border-hairline` | `#E8E3DB` | Warm-grey hairline (not cold #DEDEDE) |
-| `--maroon` | `#7A1F1F` | Heritage accent — deeper than old #9b2c2c. ~5% of page |
-| `--maroon-hover` | `#5E1717` | Maroon hover/active |
-| `--gold` | `#C9A24B` | Micro-accent: tags, active states, the premium "tell" |
 
 Status colors: muted, desaturated — never candy/neon.
 
@@ -44,16 +44,16 @@ Status colors: muted, desaturated — never candy/neon.
 
 ## 2. Typography
 
-Drop Montserrat + default Baskerville.
+Drop Fraunces. Drop Montserrat. Drop Libre Baskerville.
 
 | Role | Font | Notes |
 |---|---|---|
-| Display / headline | **Fraunces** (serif) | Storefront hero + section heads. Fashion-grade character |
+| Display / headline | **Playfair Display** (serif) | Storefront hero + section heads. Editorial fashion-grade |
 | UI + body | **Inter** | Everywhere in admin; body on storefront. Dense-friendly |
 | Mono (data/SKU) | **IBM Plex Mono** | Kept |
 
 This pairing does ~70% of the "premium" feeling. Tight letter-spacing on display headers.
-Wordmark: Fraunces, tight tracking, gold OR maroon — never both at once.
+Wordmark: Playfair Display, tight tracking, accent OR primary — never both at once.
 
 ---
 
@@ -102,8 +102,8 @@ Nothing snaps. Slow = expensive.
 2. Then sweep module by module.
 
 **Parked (phase 2):** gold foil/texture treatments · admin dark mode (after light locks) ·
-custom display-font licensing if Fraunces feels too common.
+custom display-font licensing if Playfair Display feels too common.
 
-**Riskiest assumption to validate:** that warm-neutral/restraint reads "premium" to *Lagos fashion
+**Riskiest assumption to validate:** that indigo + warm gold reads "premium" to *Lagos fashion
 buyers* specifically — some markets read maximalism as premium. Gut-check 2–3 real customers
 before full rollout.

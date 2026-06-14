@@ -8,7 +8,7 @@ import { useCart } from './cart';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const MEASURE_FIELDS = ['neck', 'shoulder', 'chest', 'waist', 'hip', 'sleeve', 'length', 'thigh', 'trouser_length', 'ankle'];
-const statusColor = (s) => ({ delivered: '#16794a', shipped: '#9b2c2c', cancelled: '#9b8e83' }[s] || '#b45309');
+const statusColor = (s) => ({ delivered: '#16794a', shipped: '#26215C', cancelled: '#9b8e83' }[s] || '#b45309');
 
 const field = {
   width: '100%', padding: '0.7rem 0.85rem', border: '1.5px solid var(--border)',
@@ -45,7 +45,7 @@ const LoginCard = ({ onIn }) => {
         <label style={lbl}>Phone<input style={field} placeholder="080…" value={phone} onChange={(e) => setPhone(e.target.value)} required /></label>
         <label style={lbl}>Order code<input style={{ ...field, textTransform: 'uppercase' }} placeholder="ORD-0042" value={code} onChange={(e) => setCode(e.target.value)} required /></label>
         <button type="submit" className="hc-btn hc-btn--primary" disabled={busy} style={{ border: 'none' }}>{busy ? 'Signing in…' : 'Sign in'}</button>
-        {error && <p style={{ color: '#9b2c2c', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
+        {error && <p style={{ color: '#991b1b', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
       </form>
       <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
         Just want to track one order? <Link to="/track" style={{ color: 'var(--primary)' }}>Track an order</Link>.
