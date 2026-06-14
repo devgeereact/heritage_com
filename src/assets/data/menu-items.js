@@ -94,6 +94,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:hearts-bold-duotone',
   url: '/engage'
 }, {
+  key: 'reviews',
+  label: 'Reviews',
+  icon: 'solar:star-bold-duotone',
+  url: '/reviews'
+}, {
   key: 'studio',
   label: 'Brand Studio',
   icon: 'solar:magic-stick-3-bold-duotone',

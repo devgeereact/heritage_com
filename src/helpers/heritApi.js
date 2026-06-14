@@ -197,6 +197,16 @@ export const heritApi = {
     abandonedNudge: (id, message) => request(`/engage.php?action=abandoned_nudge&id=${id}`, { method: 'POST', body: { message } }),
   },
 
+  // Reviews + UGC
+  reviews: {
+    list: (slug) => request(`/reviews.php?action=list&slug=${encodeURIComponent(slug)}`, { auth: false }),
+    submit: (data) => request('/reviews.php?action=submit', { method: 'POST', body: data, auth: false }),
+    gallery: () => request('/reviews.php?action=gallery', { auth: false }),
+    moderate: (status = 'pending') => request(`/reviews.php?action=moderate&status=${status}`),
+    setStatus: (id, status) => request(`/reviews.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+    respond: (id, response) => request(`/reviews.php?action=respond&id=${id}`, { method: 'POST', body: { response } }),
+  },
+
   // Referrals
   referrals: {
     leaderboard: () => request('/referrals.php?action=leaderboard'),

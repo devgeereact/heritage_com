@@ -5,6 +5,7 @@ import SiteLayout from './SiteLayout';
 import { PRODUCTS, getProduct, formatNgn } from './products';
 import { useCart } from './cart';
 import heritApi from '@/helpers/heritApi';
+import ProductReviews from './ProductReviews';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
 
@@ -192,6 +193,13 @@ const ProductPage = () => {
               <Link to="/gifting" className="hc-card-link">Gift this piece <IconifyIcon icon="solar:arrow-right-linear" /></Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* reviews */}
+      <section className="hc-section" style={{ paddingTop: 0 }}>
+        <div className="hc-container" style={{ maxWidth: 820 }}>
+          <ProductReviews slug={product.slug} productName={product.name} />
         </div>
       </section>
 
