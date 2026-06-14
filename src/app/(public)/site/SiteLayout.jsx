@@ -49,6 +49,10 @@ const SiteNav = () => {
               {n.label}
             </Link>
           ))}
+          <Link to="/account" className="hc-nav-cart" aria-label="Your account">
+            <IconifyIcon icon="solar:user-circle-bold" />
+            <span className="hc-nav-cart-label">Account</span>
+          </Link>
           <Link to="/cart" className="hc-nav-cart" aria-label={`Bag (${count})`}>
             <IconifyIcon icon="solar:bag-4-bold" />
             {count > 0 && <span className="hc-nav-cart-badge">{count}</span>}

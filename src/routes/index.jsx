@@ -165,6 +165,7 @@ const Checkout = lazy(() => import('@/app/(public)/site/CheckoutPage'));
 const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
 const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
 const Track = lazy(() => import('@/app/(public)/site/TrackPage'));
+const Account = lazy(() => import('@/app/(public)/site/AccountPage'));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
@@ -247,6 +248,10 @@ export const publicRoutes = [{
   path: '/track',
   name: 'Track order',
   element: <Track />
+}, {
+  path: '/account',
+  name: 'Account',
+  element: <Account />
 }];
 const generalRoutes = [{
   path: '/dashboard',

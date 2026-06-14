@@ -36,6 +36,22 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
   return data;
 }
 
+/** Customer-portal token (separate from staff auth) lives in localStorage. */
+function customerToken() {
+  try { return localStorage.getItem('herit_customer_token'); } catch { return null; }
+}
+
+/** Request variant that carries the customer-portal Bearer token. */
+async function crequest(path, { method = 'GET', body } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  const t = customerToken();
+  if (t) headers.Authorization = `Bearer ${t}`;
+  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
 export const heritApi = {
   // Smoke test — proves React → api.php → MySQL → JSON.
   listItems: () => request('/api.php', { auth: false }),
@@ -260,6 +276,22 @@ export const heritApi = {
       request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
     waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),
     saveCart: (data) => request('/store.php?action=save_cart', { method: 'POST', body: data, auth: false }),
+  },
+
+  // Customer self-service portal (separate customer token in localStorage)
+  portal: {
+    login: (phone, order_code) =>
+      request('/account.php?action=login', { method: 'POST', body: { phone, order_code }, auth: false }),
+    me: () => crequest('/account.php?action=me'),
+    orders: () => crequest('/account.php?action=orders'),
+    order: (code) => crequest(`/account.php?action=order&code=${encodeURIComponent(code)}`),
+    reorder: (code) => crequest(`/account.php?action=reorder&code=${encodeURIComponent(code)}`, { method: 'POST' }),
+    saveMeasurements: (measurements) => crequest('/account.php?action=measurements', { method: 'POST', body: { measurements } }),
+    requestReturn: (order_code, reason) => crequest('/account.php?action=return', { method: 'POST', body: { order_code, reason } }),
+    referral: () => crequest('/account.php?action=referral'),
+    setToken: (t) => { try { localStorage.setItem('herit_customer_token', t); } catch { /* ignore */ } },
+    logout: () => { try { localStorage.removeItem('herit_customer_token'); } catch { /* ignore */ } },
+    token: () => customerToken(),
   },
 
   // Generic escape hatches for feature modules
