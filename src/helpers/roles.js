@@ -33,7 +33,8 @@ const SECTIONS = {
 
   // Larkon operational sections — managers and admins.
   products: MANAGE, category: MANAGE, inventory: MANAGE, orders: MANAGE,
-  purchases: MANAGE, attributes: MANAGE, invoice: MANAGE, coupons: MANAGE,
+  purchases: MANAGE, attributes: MANAGE, invoice: MANAGE,
+  coupons: ['super_admin', 'admin', 'manager', 'editor'],
   seller: MANAGE, customer: MANAGE, review: MANAGE, apps: MANAGE, support: MANAGE,
 
   // Platform administration — admins only.
@@ -66,6 +67,7 @@ export const ACCESS_MATRIX = [
   { key: 'enquiries', label: 'Enquiries' },
   { key: 'whatsapp', label: 'WhatsApp' },
   { key: 'marketing', label: 'Marketing' },
+  { key: 'coupons', label: 'Coupons' },
   { key: 'studio', label: 'Brand Studio' },
   { key: 'finance', label: 'Finance' },
   { key: 'analytics', label: 'Analytics' },

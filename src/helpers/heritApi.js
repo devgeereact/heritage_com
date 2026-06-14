@@ -163,6 +163,15 @@ export const heritApi = {
     save: (data) => request('/settings.php', { method: 'POST', body: data }),
   },
 
+  // Coupons & promotions
+  coupons: {
+    list: () => request('/coupons.php?action=list'),
+    create: (data) => request('/coupons.php?action=create', { method: 'POST', body: data }),
+    update: (id, data) => request(`/coupons.php?action=update&id=${id}`, { method: 'POST', body: data }),
+    toggle: (id, active) => request(`/coupons.php?action=toggle&id=${id}`, { method: 'POST', body: { active } }),
+    remove: (id) => request(`/coupons.php?action=delete&id=${id}`, { method: 'POST' }),
+  },
+
   // Dashboard stats
   stats: () => request('/stats.php'),
 
@@ -217,6 +226,8 @@ export const heritApi = {
     checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
     payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
+    validateCoupon: (code, subtotal, shipping = 0) =>
+      request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
     track: (code, phone) =>
       request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
   },

@@ -36,11 +36,32 @@ const CheckoutPage = () => {
   const [error, setError] = useState(null);
   const [done, setDone] = useState(null);     // {code, total, payment_method, provider}
   const [verifying, setVerifying] = useState(!!verifyRef);
+  const [coupon, setCoupon] = useState('');
+  const [applied, setApplied] = useState(null); // {code, type, value, discount, free_ship, description}
+  const [couponErr, setCouponErr] = useState('');
+  const [couponBusy, setCouponBusy] = useState(false);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const shipping = delivery === 'lagos' ? (subtotal >= 25000 ? 0 : 2500) : delivery === 'nigeria' ? 4500 : 0;
-  const total = subtotal + shipping;
+  const baseShipping = delivery === 'lagos' ? (subtotal >= 25000 ? 0 : 2500) : delivery === 'nigeria' ? 4500 : 0;
+  const freeShip = !!applied?.free_ship;
+  const shipping = freeShip ? 0 : baseShipping;
+  const discount = applied && !applied.free_ship ? Number(applied.discount || 0) : 0;
+  const total = Math.max(0, subtotal + shipping - discount);
+
+  const applyCoupon = async () => {
+    const code = coupon.trim();
+    if (!code) return;
+    setCouponBusy(true); setCouponErr('');
+    try {
+      const r = await heritApi.store.validateCoupon(code, subtotal, baseShipping);
+      if (r.ok) { setApplied(r); setCouponErr(''); }
+      else { setApplied(null); setCouponErr(r.error || 'That code is not valid'); }
+    } catch (e) {
+      setCouponErr(e.message || 'Could not check that code');
+    } finally { setCouponBusy(false); }
+  };
+  const removeCoupon = () => { setApplied(null); setCoupon(''); setCouponErr(''); };
 
   // Returning from a Flutterwave redirect (?verify=REF) — confirm and show result.
   useEffect(() => {
@@ -62,6 +83,7 @@ const CheckoutPage = () => {
     try {
       const res = await heritApi.store.checkout({
         ...form, delivery, payment_method: payment,
+        coupon: applied ? applied.code : '',
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.
@@ -225,7 +247,29 @@ const CheckoutPage = () => {
               ))}
             </div>
             <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
+
+            {/* Promo code */}
+            {!applied ? (
+              <div style={{ marginBottom: '0.8rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Promo code" value={coupon}
+                    onChange={(e) => setCoupon(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }} />
+                  <button type="button" className="hc-btn hc-btn--ghost" onClick={applyCoupon} disabled={couponBusy || !coupon.trim()} style={{ whiteSpace: 'nowrap' }}>
+                    {couponBusy ? '…' : 'Apply'}
+                  </button>
+                </div>
+                {couponErr && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{couponErr}</p>}
+              </div>
+            ) : (
+              <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', padding: '0.5rem 0.7rem', background: 'var(--secondary)', borderRadius: 8 }}>
+                <span style={{ fontSize: '0.85rem' }}><IconifyIcon icon="solar:ticket-bold" /> <strong>{applied.code}</strong> applied{applied.free_ship ? ' · free delivery' : ''}</span>
+                <button type="button" onClick={removeCoupon} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}><IconifyIcon icon="solar:close-circle-bold" /></button>
+              </div>
+            )}
+
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Subtotal</span><span>{formatNgn(subtotal)}</span></div>
+            {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Delivery</span><span>{shipping === 0 ? 'Free' : formatNgn(shipping)}</span></div>
             <div className="hc-flex" style={{ justifyContent: 'space-between', marginTop: '0.8rem', fontWeight: 700, fontSize: '1.1rem' }}><span>Total</span><span style={{ color: 'var(--primary)' }}>{formatNgn(total)}</span></div>
 

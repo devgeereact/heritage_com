@@ -189,6 +189,7 @@ const Weather = lazy(() => import('@/app/(admin)/weather/page'));
 const Team = lazy(() => import('@/app/(admin)/team/page'));
 const Inbox = lazy(() => import('@/app/(admin)/inbox/page'));
 const WhatsApp = lazy(() => import('@/app/(admin)/whatsapp/page'));
+const Coupons = lazy(() => import('@/app/(admin)/coupons/page'));
 
 // Enquiries (public contact form inbox)
 const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
@@ -309,6 +310,10 @@ const generalRoutes = [{
   path: '/whatsapp',
   name: 'WhatsApp',
   element: <WhatsApp />
+}, {
+  path: '/coupons',
+  name: 'Coupons',
+  element: <Coupons />
 }, {
   path: '/weather',
   name: 'Weather & Ops',

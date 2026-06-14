@@ -79,6 +79,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:megaphone-bold-duotone',
   url: '/marketing'
 }, {
+  key: 'coupons',
+  label: 'Coupons',
+  icon: 'solar:ticket-sale-bold-duotone',
+  url: '/coupons'
+}, {
   key: 'studio',
   label: 'Brand Studio',
   icon: 'solar:magic-stick-3-bold-duotone',

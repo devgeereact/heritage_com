@@ -83,8 +83,25 @@ if ($action === 'checkout' && method() === 'POST') {
   $ship = 0;
   if ($delivery === 'lagos')   $ship = $goods >= $FREE_SHIP_OVER ? 0 : $LAGOS_SHIP;
   if ($delivery === 'nigeria') $ship = $NG_SHIP;
+
+  // Coupon — evaluated server-side against OUR numbers (never trust a browser
+  // discount). free_ship zeroes delivery; percent/fixed take ₦ off the goods.
+  $couponCode = strtoupper(trim($b['coupon'] ?? ''));
+  $coupon = null; $discount = 0;
+  if ($couponCode !== '') {
+    $ev = coupon_eval($couponCode, $goods, $ship);
+    if (!empty($ev['ok'])) {
+      $coupon = $ev;
+      if (!empty($ev['free_ship'])) $ship = 0;
+      else $discount = (float)$ev['discount'];
+    } else {
+      fail($ev['error'] ?? 'That code is not valid');
+    }
+  }
+
   if ($ship > 0) $items[] = ['label' => 'Delivery (' . $delivery . ')', 'sku' => 'shipping', 'qty' => 1, 'unit_price' => $ship];
-  $total = $goods + $ship;
+  if ($discount > 0) $items[] = ['label' => 'Discount (' . $coupon['code'] . ')', 'sku' => 'discount', 'qty' => 1, 'unit_price' => -$discount];
+  $total = max(0, $goods + $ship - $discount);
 
   // Link to an existing customer by phone (so web orders enrich the CRM).
   $customerId = null;
@@ -128,9 +145,18 @@ if ($action === 'checkout' && method() === 'POST') {
     $itemStmt->execute();
   }
 
+  // Record the coupon redemption + bump its usage counter (for caps + attribution).
+  if ($coupon) {
+    $effective = $discount > 0 ? $discount : (float)($coupon['shipping_saved'] ?? 0);
+    $rstmt = $conn->prepare('INSERT INTO coupon_redemptions (coupon_id, order_id, code, discount) VALUES (?,?,?,?)');
+    $rstmt->bind_param('iisd', $coupon['coupon_id'], $orderId, $coupon['code'], $effective);
+    $rstmt->execute();
+    $conn->query('UPDATE coupons SET used = used + 1 WHERE id = ' . (int)$coupon['coupon_id']);
+  }
+
   // Stash email on the order notes-less side via a lightweight log row is overkill;
   // email travels in the confirmation only. Audit as a system (null-user) event.
-  audit(null, 'web_order', 'order', $orderId, ['code' => $code, 'total' => $total, 'email' => $email]);
+  audit(null, 'web_order', 'order', $orderId, ['code' => $code, 'total' => $total, 'email' => $email, 'coupon' => $coupon['code'] ?? null]);
 
   // WhatsApp order confirmation (the brand's #1 channel). Non-fatal: a failure
   // here never blocks the order. Cloud API when configured, else logged as a
@@ -150,6 +176,8 @@ if ($action === 'checkout' && method() === 'POST') {
     'total' => $total,
     'goods' => $goods,
     'shipping' => $ship,
+    'discount' => $discount,
+    'coupon' => $coupon['code'] ?? null,
     'payment_method' => $paymentMethod,
   ], 201);
 }

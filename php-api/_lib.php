@@ -188,6 +188,50 @@ function wa_dispatch($phone, $body, $customerId = null, $template = null, $creat
           'wa_link' => 'https://wa.me/' . $to . '?text=' . rawurlencode($body)];
 }
 
+/* ---- Coupons (shared by coupons.php validate + store.php checkout) -------- */
+
+/**
+ * Evaluate a coupon code against a goods subtotal + shipping. Single source of
+ * truth so the storefront's live quote and the server's authoritative checkout
+ * price can never disagree. Returns:
+ *   ['ok'=>true, 'coupon_id', 'code', 'type', 'value', 'discount', 'free_ship', 'description']
+ *   ['ok'=>false, 'error'=>'…']
+ * discount is the ₦ taken off goods (free_ship returns discount=0, free_ship=true).
+ */
+function coupon_eval($code, $subtotal, $shipping = 0) {
+  global $conn;
+  $code = strtoupper(trim((string)$code));
+  if ($code === '') return ['ok' => false, 'error' => 'Enter a code'];
+
+  $stmt = $conn->prepare('SELECT * FROM coupons WHERE UPPER(code) = ? LIMIT 1');
+  $stmt->bind_param('s', $code);
+  $stmt->execute();
+  $c = $stmt->get_result()->fetch_assoc();
+  if (!$c) return ['ok' => false, 'error' => 'That code is not valid'];
+  if (!(int)$c['active']) return ['ok' => false, 'error' => 'That code is no longer active'];
+
+  $today = date('Y-m-d');
+  if (!empty($c['starts_at']) && $today < $c['starts_at']) return ['ok' => false, 'error' => 'That code is not active yet'];
+  if (!empty($c['expires_at']) && $today > $c['expires_at']) return ['ok' => false, 'error' => 'That code has expired'];
+  if ((int)$c['usage_limit'] > 0 && (int)$c['used'] >= (int)$c['usage_limit']) return ['ok' => false, 'error' => 'That code has been fully used'];
+
+  $subtotal = (float)$subtotal;
+  if ($subtotal < (float)$c['min_spend']) {
+    return ['ok' => false, 'error' => 'Spend ₦' . number_format((float)$c['min_spend']) . ' to use this code'];
+  }
+
+  $discount = 0; $freeShip = false;
+  if ($c['type'] === 'percent')        $discount = round($subtotal * ((float)$c['value']) / 100, 2);
+  elseif ($c['type'] === 'fixed')      $discount = min((float)$c['value'], $subtotal);
+  elseif ($c['type'] === 'free_ship') { $freeShip = true; $discount = 0; }
+
+  return [
+    'ok' => true, 'coupon_id' => (int)$c['id'], 'code' => $c['code'], 'type' => $c['type'],
+    'value' => (float)$c['value'], 'discount' => $discount, 'free_ship' => $freeShip,
+    'description' => $c['description'], 'shipping_saved' => $freeShip ? (float)$shipping : 0,
+  ];
+}
+
 /** Write a row to the audit log. */
 function audit($userId, $action, $entity = null, $entityId = null, $meta = null) {
   global $conn;
