@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
@@ -34,6 +34,15 @@ const ProductPage = () => {
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notify, setNotify] = useState({ name: '', phone: '' });
   const [notifyDone, setNotifyDone] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Reflect whether this piece is already wishlisted (signed-in customers only).
+  useEffect(() => {
+    if (!heritApi.portal.token() || !slug) return;
+    let live = true;
+    heritApi.portal.wishlist().then((w) => { if (live) setSaved((w || []).some((x) => x.product_slug === slug)); }).catch(() => {});
+    return () => { live = false; };
+  }, [slug]);
 
   if (!product) {
     // Still loading the live catalogue? wait before deciding it's a 404.
@@ -48,6 +57,10 @@ const ProductPage = () => {
     setTimeout(() => setAdded(false), 1800);
   };
   const buyNow = () => { addToCart(); navigate('/cart'); };
+  const toggleSave = async () => {
+    if (!heritApi.portal.token()) { navigate('/account'); return; }
+    try { const r = await heritApi.portal.wishlistToggle(product.slug, product.name); setSaved(r.saved); } catch { /* ignore */ }
+  };
   const joinWaitlist = async () => {
     if (!notify.phone.trim()) return;
     try {
@@ -129,6 +142,9 @@ const ProductPage = () => {
                 </button>
                 <button onClick={addToCart} className="hc-btn hc-btn--ghost" style={{ cursor: 'pointer' }}>
                   <IconifyIcon icon={added ? 'solar:check-circle-bold' : 'solar:cart-plus-bold'} /> {added ? 'Added' : 'Keep shopping'}
+                </button>
+                <button onClick={toggleSave} className="hc-btn hc-btn--ghost" style={{ cursor: 'pointer' }} title="Save to wishlist">
+                  <IconifyIcon icon={saved ? 'solar:heart-bold' : 'solar:heart-linear'} style={{ color: saved ? '#9b2c2c' : 'inherit' }} /> {saved ? 'Saved' : 'Save'}
                 </button>
               </div>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.6rem' }}>

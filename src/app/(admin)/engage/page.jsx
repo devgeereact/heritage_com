@@ -131,6 +131,34 @@ const Abandoned = () => {
   );
 };
 
+/* ---- Upcoming birthdays (gifting prompts) ---------------------------------*/
+const Birthdays = () => {
+  const [rows, setRows] = useState([]);
+  const [state, setState] = useState('loading');
+  useEffect(() => {
+    heritApi.customers.birthdays().then((r) => { setRows(Array.isArray(r) ? r : []); setState('ready'); }).catch(() => setState('offline'));
+  }, []);
+  if (state === 'loading') return <div className="text-center py-4"><Spinner /></div>;
+  if (state === 'offline') return <Alert variant="warning" className="mb-0"><strong>Offline.</strong> Upload <code>customers.php</code> + import <code>schema_phase14.sql</code>.</Alert>;
+  return (
+    <Card><CardBody className="p-0">
+      <Table responsive hover className="mb-0 align-middle">
+        <thead className="table-light"><tr><th>Customer</th><th>Phone</th><th>Birthday</th></tr></thead>
+        <tbody>
+          {rows.length === 0 && <tr><td colSpan={3} className="text-center text-muted py-4">No birthdays in the next 30 days.</td></tr>}
+          {rows.map((c) => (
+            <tr key={c.id}>
+              <td className="fw-semibold">{c.name}</td>
+              <td className="text-muted small">{c.phone || '—'}</td>
+              <td><IconifyIcon icon="solar:gift-bold" className="text-primary me-1" />{String(c.birthday).slice(5)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </CardBody></Card>
+  );
+};
+
 const EngagePage = () => (
   <>
     <PageTItle title="Re-engagement" />
@@ -141,6 +169,7 @@ const EngagePage = () => (
     <Tabs defaultActiveKey="abandoned" className="mb-3">
       <Tab eventKey="abandoned" title="Abandoned carts"><Abandoned /></Tab>
       <Tab eventKey="waitlist" title="Restock waitlist"><Waitlist /></Tab>
+      <Tab eventKey="birthdays" title="Birthdays"><Birthdays /></Tab>
     </Tabs>
   </>
 );

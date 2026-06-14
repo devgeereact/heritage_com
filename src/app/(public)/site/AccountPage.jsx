@@ -60,17 +60,24 @@ const Dashboard = ({ onOut }) => {
   const { add } = useCart();
   const [me, setMe] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const [referral, setReferral] = useState(null);
   const [meas, setMeas] = useState({});
   const [editMeas, setEditMeas] = useState(false);
+  const [bd, setBd] = useState('');
   const [msg, setMsg] = useState('');
 
   const load = useCallback(async () => {
     try {
-      const [m, o] = await Promise.all([heritApi.portal.me(), heritApi.portal.orders()]);
-      setMe(m); setOrders(Array.isArray(o) ? o : []); setMeas(m.measurements || {});
+      const [m, o, w] = await Promise.all([heritApi.portal.me(), heritApi.portal.orders(), heritApi.portal.wishlist().catch(() => [])]);
+      setMe(m); setOrders(Array.isArray(o) ? o : []); setWishlist(Array.isArray(w) ? w : []); setMeas(m.measurements || {}); setBd(m.birthday || '');
     } catch { onOut(); }
   }, [onOut]);
+
+  const removeWish = async (slug) => {
+    try { await heritApi.portal.wishlistToggle(slug); setWishlist((w) => w.filter((x) => x.product_slug !== slug)); }
+    catch { /* ignore */ }
+  };
   useEffect(() => { load(); }, [load]);
 
   const flash = (t) => { setMsg(t); setTimeout(() => setMsg(''), 2500); };
@@ -101,6 +108,10 @@ const Dashboard = ({ onOut }) => {
     catch (e) { flash(e.message || 'Could not save'); }
   };
 
+  const saveBirthday = async () => {
+    try { await heritApi.portal.setBirthday(bd); flash('Birthday saved — we’ll remember it.'); }
+    catch (e) { flash(e.message || 'Could not save'); }
+  };
   const loadReferral = async () => { try { setReferral(await heritApi.portal.referral()); } catch { /* ignore */ } };
   useEffect(() => { loadReferral(); }, []);
 
@@ -150,6 +161,32 @@ const Dashboard = ({ onOut }) => {
           ))}
         </div>
       </div>
+
+      {/* Birthday */}
+      <div className="hc-card" style={{ padding: '1.25rem' }}>
+        <h3 className="hc-h4" style={{ marginTop: 0 }}>Your birthday</h3>
+        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginTop: '0.2rem' }}>Add it for a little something on your day.</p>
+        <div className="hc-flex" style={{ gap: '0.5rem', maxWidth: 320 }}>
+          <input type="date" value={bd ? String(bd).slice(0, 10) : ''} onChange={(e) => setBd(e.target.value)}
+            style={{ flex: 1, padding: '0.6rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
+          <button onClick={saveBirthday} className="hc-btn hc-btn--primary" style={{ border: 'none' }}>Save</button>
+        </div>
+      </div>
+
+      {/* Wishlist */}
+      {wishlist.length > 0 && (
+        <div className="hc-card" style={{ padding: '1.25rem' }}>
+          <h3 className="hc-h4" style={{ marginTop: 0 }}>Saved items</h3>
+          <div style={{ display: 'grid', gap: '0.5rem' }}>
+            {wishlist.map((w) => (
+              <div key={w.product_slug} className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <Link to={`/shop/${w.product_slug}`}>{w.product_name || w.product_slug}</Link>
+                <button onClick={() => removeWish(w.product_slug)} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}><IconifyIcon icon="solar:trash-bin-trash-linear" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Measurements */}
       <div className="hc-card" style={{ padding: '1.25rem' }}>

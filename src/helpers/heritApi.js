@@ -120,6 +120,7 @@ export const heritApi = {
     update: (id, data) => request(`/customers.php?action=update&id=${id}`, { method: 'POST', body: data }),
     setMeasurements: (id, measurements) =>
       request(`/customers.php?action=measure&id=${id}`, { method: 'POST', body: { measurements } }),
+    birthdays: () => request('/customers.php?action=birthdays'),
   },
 
   // Inventory & stock
@@ -320,6 +321,9 @@ export const heritApi = {
     saveMeasurements: (measurements) => crequest('/account.php?action=measurements', { method: 'POST', body: { measurements } }),
     requestReturn: (order_code, reason) => crequest('/account.php?action=return', { method: 'POST', body: { order_code, reason } }),
     referral: () => crequest('/account.php?action=referral'),
+    wishlist: () => crequest('/account.php?action=wishlist'),
+    wishlistToggle: (slug, name) => crequest('/account.php?action=wishlist_toggle', { method: 'POST', body: { slug, name } }),
+    setBirthday: (birthday) => crequest('/account.php?action=set_birthday', { method: 'POST', body: { birthday } }),
     setToken: (t) => { try { localStorage.setItem('herit_customer_token', t); } catch { /* ignore */ } },
     logout: () => { try { localStorage.removeItem('herit_customer_token'); } catch { /* ignore */ } },
     token: () => customerToken(),

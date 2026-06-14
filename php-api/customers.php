@@ -89,12 +89,32 @@ if ($action === 'update' && method() === 'POST') {
   $notes = trim($b['notes'] ?? '');
   $tags = trim($b['tags'] ?? '');
   $segment = trim($b['segment'] ?? '');
+  $birthday = !empty($b['birthday']) ? $b['birthday'] : null;
 
-  $stmt = $conn->prepare('UPDATE customers SET name=?, phone=?, email=?, notes=?, tags=?, segment=? WHERE id=? AND deleted_at IS NULL');
-  $stmt->bind_param('ssssssi', $name, $phone, $email, $notes, $tags, $segment, $id);
+  $stmt = $conn->prepare('UPDATE customers SET name=?, phone=?, email=?, notes=?, tags=?, segment=?, birthday=? WHERE id=? AND deleted_at IS NULL');
+  $stmt->bind_param('sssssssi', $name, $phone, $email, $notes, $tags, $segment, $birthday, $id);
   $stmt->execute();
   audit($user['id'], 'customer_update', 'customer', $id);
   json(['ok' => true]);
+}
+
+/* ---- UPCOMING BIRTHDAYS (gifting prompts) -------------------------------- */
+if ($action === 'birthdays' && method() === 'GET') {
+  $rows = [];
+  // Next 30 days, ignoring year (month/day window).
+  $res = $conn->query(
+    "SELECT id, name, phone, birthday,
+            DATE_FORMAT(birthday, '%m-%d') AS md
+       FROM customers
+      WHERE deleted_at IS NULL AND birthday IS NOT NULL
+        AND (
+          (DAYOFYEAR(birthday) - DAYOFYEAR(CURDATE()) + 366) % 366 <= 30
+        )
+   ORDER BY (DAYOFYEAR(birthday) - DAYOFYEAR(CURDATE()) + 366) % 366 ASC
+      LIMIT 20"
+  );
+  while ($res && $row = $res->fetch_assoc()) $rows[] = $row;
+  json($rows);
 }
 
 /* ---- MEASUREMENTS -------------------------------------------------------- */

@@ -81,6 +81,7 @@ if ($action === 'me' && method() === 'GET') {
     'email' => $me['email'],
     'credit' => credit_balance($cid),
     'measurements' => $measurements,
+    'birthday' => $me['birthday'] ?? null,
     'referral_code' => $me['referral_code'] ?? null,
   ]);
 }
@@ -176,6 +177,49 @@ if ($action === 'return' && method() === 'POST') {
   $up->bind_param('si', $reason, $o['id']);
   $up->execute();
   json(['ok' => true, 'return_status' => 'requested']);
+}
+
+/* ---- SET BIRTHDAY (own, for gifting prompts) ----------------------------- */
+if ($action === 'set_birthday' && method() === 'POST') {
+  $b = body();
+  $bd = !empty($b['birthday']) ? $b['birthday'] : null;
+  $stmt = $conn->prepare('UPDATE customers SET birthday = ? WHERE id = ?');
+  $stmt->bind_param('si', $bd, $cid);
+  $stmt->execute();
+  json(['ok' => true, 'birthday' => $bd]);
+}
+
+/* ---- WISHLIST ------------------------------------------------------------ */
+if ($action === 'wishlist' && method() === 'GET') {
+  $rows = [];
+  $stmt = $conn->prepare('SELECT product_slug, product_name, created_at FROM wishlist_items WHERE customer_id = ? ORDER BY id DESC');
+  $stmt->bind_param('i', $cid);
+  $stmt->execute();
+  $r = $stmt->get_result();
+  while ($row = $r->fetch_assoc()) $rows[] = $row;
+  json($rows);
+}
+
+if ($action === 'wishlist_toggle' && method() === 'POST') {
+  $b = body();
+  $slug = trim($b['slug'] ?? '');
+  $name = trim($b['name'] ?? '');
+  if ($slug === '') fail('Which piece?');
+
+  // Toggle: remove if present, else add.
+  $chk = $conn->prepare('SELECT id FROM wishlist_items WHERE customer_id = ? AND product_slug = ? LIMIT 1');
+  $chk->bind_param('is', $cid, $slug);
+  $chk->execute();
+  if ($row = $chk->get_result()->fetch_assoc()) {
+    $del = $conn->prepare('DELETE FROM wishlist_items WHERE id = ?');
+    $del->bind_param('i', $row['id']);
+    $del->execute();
+    json(['ok' => true, 'saved' => false]);
+  }
+  $ins = $conn->prepare('INSERT INTO wishlist_items (customer_id, product_slug, product_name) VALUES (?,?,?)');
+  $ins->bind_param('iss', $cid, $slug, $name);
+  $ins->execute();
+  json(['ok' => true, 'saved' => true]);
 }
 
 /* ---- REFERRAL ------------------------------------------------------------ */
