@@ -62,6 +62,10 @@ export const heritApi = {
     request('/auth.php?action=login', { method: 'POST', body: { email, password }, auth: false }),
   logout: () => request('/auth.php?action=logout', { method: 'POST' }),
   me: () => request('/auth.php?action=me'),
+  pinLogin: (pin) => request('/auth.php?action=pin_login', { method: 'POST', body: { pin }, auth: false }),
+  setPin: (pin) => request('/auth.php?action=set_pin', { method: 'POST', body: { pin } }),
+  sessions: () => request('/auth.php?action=sessions'),
+  revokeSession: (id) => request('/auth.php?action=revoke', { method: 'POST', body: { id } }),
 
   // AI proxy (OpenRouter, server-side)
   ai: (task, prompt, opts = {}) =>
@@ -135,6 +139,8 @@ export const heritApi = {
     track: (id, data) => request(`/orders.php?action=track&id=${id}`, { method: 'POST', body: data }),
     setReturn: (id, return_status, return_reason) =>
       request(`/orders.php?action=return&id=${id}`, { method: 'POST', body: { return_status, return_reason } }),
+    pay: (id, data) => request(`/orders.php?action=pay&id=${id}`, { method: 'POST', body: data }),
+    refund: (id, data) => request(`/orders.php?action=refund&id=${id}`, { method: 'POST', body: data }),
   },
 
   // Suppliers & purchasing

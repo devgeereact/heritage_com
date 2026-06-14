@@ -12,7 +12,7 @@ require __DIR__ . '/_lib.php';
 cors();
 
 $STAFF = ['super_admin', 'admin', 'manager'];
-$KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels'];
+$KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate'];
 
 $user = require_auth($STAFF);
 

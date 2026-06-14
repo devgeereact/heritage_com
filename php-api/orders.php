@@ -236,4 +236,68 @@ if ($action === 'return' && method() === 'POST') {
   json(['ok' => true, 'return_status' => $rs, 'return_reason' => $reason]);
 }
 
+/* ---- RECORD PAYMENT (installment / "pay small small" / transfer confirm) -- */
+if ($action === 'pay' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $amount = (float)($b['amount'] ?? 0);
+  $pmethod = in_array($b['method'] ?? '', $PAYMENTS, true) ? $b['method'] : 'transfer';
+  $reference = trim($b['reference'] ?? '');
+  if ($amount <= 0) fail('Amount must be positive');
+
+  $o = $conn->query('SELECT code, customer_name, total, paid FROM orders WHERE id = ' . (int)$id . ' AND deleted_at IS NULL')->fetch_assoc();
+  if (!$o) fail('Order not found', 404);
+
+  // Log the money-in + bump the order's paid figure (capped at total).
+  $pstmt = $conn->prepare('INSERT INTO payments (order_id, customer_name, amount, method, reference, note, created_by) VALUES (?,?,?,?,?,?,?)');
+  $note = 'Part payment';
+  $pstmt->bind_param('isdsssi', $id, $o['customer_name'], $amount, $pmethod, $reference, $note, $user['id']);
+  $pstmt->execute();
+
+  $newPaid = min((float)$o['total'], (float)$o['paid'] + $amount);
+  $balance = max(0, (float)$o['total'] - $newPaid);
+  // Fully paid → advance an unpaid/pending order to 'paid'.
+  if ($balance <= 0) {
+    $conn->query("UPDATE orders SET paid = $newPaid, status = IF(status='pending','paid',status) WHERE id = " . (int)$id);
+  } else {
+    $upd = $conn->prepare('UPDATE orders SET paid = ? WHERE id = ?');
+    $upd->bind_param('di', $newPaid, $id);
+    $upd->execute();
+  }
+  audit($user['id'], 'order_pay', 'order', $id, ['amount' => $amount, 'method' => $pmethod]);
+  json(['ok' => true, 'paid' => $newPaid, 'balance' => $balance]);
+}
+
+/* ---- REFUND (cash or to store credit) ------------------------------------ */
+if ($action === 'refund' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $amount = (float)($b['amount'] ?? 0);
+  $to = ($b['to'] ?? 'credit') === 'cash' ? 'cash' : 'credit';
+  $reason = trim($b['reason'] ?? '');
+  if ($amount <= 0) fail('Amount must be positive');
+
+  $o = $conn->query('SELECT code, customer_id, paid FROM orders WHERE id = ' . (int)$id . ' AND deleted_at IS NULL')->fetch_assoc();
+  if (!$o) fail('Order not found', 404);
+  if ($amount > (float)$o['paid']) fail('Refund exceeds what was paid');
+
+  // Reverse the money on the order; mark the return refunded.
+  $newPaid = max(0, (float)$o['paid'] - $amount);
+  $conn->query("UPDATE orders SET paid = $newPaid, return_status = 'refunded' WHERE id = " . (int)$id);
+
+  if ($to === 'credit') {
+    if (!$o['customer_id']) fail('No customer on this order to credit');
+    credit_add((int)$o['customer_id'], $amount, 'refund', $o['code'], $reason ?: 'Refund to store credit', $user['id']);
+  } else {
+    // Cash/transfer refund — book it as money out.
+    $ex = $conn->prepare("INSERT INTO expenses (category, amount, vendor, note, spent_on, created_by) VALUES ('refund', ?, ?, ?, CURDATE(), ?)");
+    $vend = 'Refund ' . $o['code'];
+    $rnote = $reason ?: 'Cash refund';
+    $ex->bind_param('dssi', $amount, $vend, $rnote, $user['id']);
+    $ex->execute();
+  }
+  audit($user['id'], 'order_refund', 'order', $id, ['amount' => $amount, 'to' => $to]);
+  json(['ok' => true, 'refunded' => $amount, 'to' => $to]);
+}
+
 fail('Unknown action', 404);

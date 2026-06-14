@@ -14,11 +14,38 @@ const ProfilePage = () => {
   const [pwMsg, setPwMsg] = useState(null); // { variant, text }
   const setField = (k) => (e) => setPw((p) => ({ ...p, [k]: e.target.value }));
 
+  const [pin, setPin] = useState('');
+  const [pinMsg, setPinMsg] = useState(null);
+  const [sessions, setSessions] = useState([]);
+
+  const loadSessions = () => { heritApi.sessions().then(setSessions).catch(() => setSessions([])); };
+
   useEffect(() => {
     heritApi.account.me()
       .then((u) => { setMe(u); setState('ready'); })
       .catch(() => setState('offline'));
+    loadSessions();
   }, []);
+
+  const savePin = async () => {
+    setPinMsg(null);
+    try {
+      const r = await heritApi.setPin(pin);
+      setPin('');
+      setPinMsg({ variant: 'success', text: r.pin_set ? 'PIN set — you can now unlock with it on the stall device.' : 'PIN cleared.' });
+    } catch (e) { setPinMsg({ variant: 'danger', text: e.message || 'Could not set PIN.' }); }
+  };
+  const revoke = async (id) => {
+    try { await heritApi.revokeSession(id); setSessions((s) => s.filter((x) => x.id !== id)); }
+    catch { loadSessions(); }
+  };
+  const shortDevice = (d) => {
+    if (!d) return 'Unknown device';
+    if (/iphone|android|mobile/i.test(d)) return 'Mobile';
+    if (/mac/i.test(d)) return 'Mac';
+    if (/windows/i.test(d)) return 'Windows';
+    return d.slice(0, 40);
+  };
 
   const changePassword = async (e) => {
     e.preventDefault();
@@ -81,6 +108,38 @@ const ProfilePage = () => {
                     {pwBusy ? <><Spinner size="sm" /> Updating…</> : 'Update password'}
                   </Button>
                 </Form>
+              </CardBody>
+            </Card>
+
+            <Card className="mt-3">
+              <CardBody>
+                <h5 className="mb-1">Stall PIN</h5>
+                <p className="text-muted small">A 4–6 digit PIN to unlock quickly on a shared market-stall device. Leave blank + save to remove it.</p>
+                {pinMsg && <Alert variant={pinMsg.variant} className="py-2">{pinMsg.text}</Alert>}
+                <div className="d-flex gap-2" style={{ maxWidth: 320 }}>
+                  <Form.Control type="password" inputMode="numeric" maxLength={6} placeholder="PIN" value={pin}
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} style={{ letterSpacing: '0.3em', textAlign: 'center' }} />
+                  <Button variant="dark" onClick={savePin} disabled={pin !== '' && pin.length < 4}>Save PIN</Button>
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card className="mt-3">
+              <CardBody>
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h5 className="mb-0">Active sessions</h5>
+                  <Button size="sm" variant="light" onClick={loadSessions}><IconifyIcon icon="solar:refresh-linear" /></Button>
+                </div>
+                {sessions.length === 0 && <p className="text-muted mb-0">No other sessions.</p>}
+                {sessions.map((s) => (
+                  <div key={s.id} className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                      <div className="fw-semibold">{shortDevice(s.device)} {s.current && <Badge bg="success" className="bg-opacity-75">This device</Badge>}</div>
+                      <div className="text-muted small">{s.ip || '—'} · last seen {s.last_seen || s.created_at}</div>
+                    </div>
+                    {!s.current && <Button size="sm" variant="outline-danger" onClick={() => revoke(s.id)}>Revoke</Button>}
+                  </div>
+                ))}
               </CardBody>
             </Card>
           </Col>

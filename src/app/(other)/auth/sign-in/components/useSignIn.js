@@ -27,8 +27,8 @@ const useSignIn = () => {
   } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
-      email: 'dev@heritclothing.com',
-      password: 'Testing123!'
+      email: '',
+      password: ''
     }
   });
   const redirectUser = (role) => {
@@ -37,24 +37,26 @@ const useSignIn = () => {
     if (redirectLink && canAccessPath(role, redirectLink)) navigate(redirectLink);
     else navigate(roleHome(role));
   };
+  const finishLogin = (res, okMsg) => {
+    if (!res.token) return;
+    // Flatten user fields to the top level so existing Larkon UI that reads
+    // session.email / session.role keeps working, alongside session.user.
+    saveSession({
+      ...(res.user ?? {}),
+      user: res.user,
+      token: res.token
+    });
+    redirectUser(res.user?.role);
+    showNotification({
+      message: okMsg,
+      variant: 'success'
+    });
+  };
   const login = handleSubmit(async values => {
     setLoading(true);
     try {
       const res = await heritApi.login(values.email, values.password);
-      if (res.token) {
-        // Flatten user fields to the top level so existing Larkon UI that reads
-        // session.email / session.role keeps working, alongside session.user.
-        saveSession({
-          ...(res.user ?? {}),
-          user: res.user,
-          token: res.token
-        });
-        redirectUser(res.user?.role);
-        showNotification({
-          message: 'Signed in to HeritOS. Redirecting...',
-          variant: 'success'
-        });
-      }
+      finishLogin(res, 'Signed in to HeritOS. Redirecting...');
     } catch (e) {
       showNotification({
         message: e.message || 'Sign in failed',
@@ -64,10 +66,29 @@ const useSignIn = () => {
       setLoading(false);
     }
   });
+  const [pin, setPin] = useState('');
+  const pinLogin = async () => {
+    setLoading(true);
+    try {
+      const res = await heritApi.pinLogin(pin);
+      finishLogin(res, 'Signed in. Redirecting...');
+    } catch (e) {
+      showNotification({
+        message: e.message || 'PIN sign in failed',
+        variant: 'danger'
+      });
+    } finally {
+      setLoading(false);
+      setPin('');
+    }
+  };
   return {
     loading,
     login,
-    control
+    control,
+    pin,
+    setPin,
+    pinLogin
   };
 };
 export default useSignIn;

@@ -4,6 +4,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import LoginFrom from './LoginFrom';
+import PinLogin from './PinLogin';
 
 // Branded heritage panel — Ankara-style wax-print woven from gradients, so the
 // sign-in is on-brand with no stock photo and nothing to load.
@@ -38,8 +39,11 @@ const SignIn = () => {
                   </div>
                   <h2 className="fw-bold fs-24">Welcome back</h2>
                   <p className="text-muted mt-1 mb-4">Sign in to HeritOS — the operating system behind Herit Clothing.</p>
-                  <div className="mb-4">
+                  <div className="mb-3">
                     <LoginFrom />
+                  </div>
+                  <div className="mb-4">
+                    <PinLogin />
                   </div>
                   <p className="text-muted text-center mb-0" style={{ fontSize: '0.85rem' }}>
                     <IconifyIcon icon="solar:lock-keyhole-minimalistic-bold" className="me-1" />

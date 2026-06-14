@@ -47,6 +47,29 @@ const SalesDetailPage = () => {
       load();
     } catch (e) { showNotification({ message: e.message || 'Could not save tracking', variant: 'danger' }); }
   };
+  const [pay, setPay] = useState({ amount: '', method: 'transfer', reference: '' });
+  const recordPayment = async () => {
+    const amount = Number(pay.amount);
+    if (!amount || amount <= 0) return;
+    try {
+      const r = await heritApi.orders.pay(id, { amount, method: pay.method, reference: pay.reference });
+      setO((p) => ({ ...p, paid: r.paid, status: r.balance <= 0 && p.status === 'pending' ? 'paid' : p.status }));
+      setPay({ amount: '', method: 'transfer', reference: '' });
+      showNotification({ message: `Payment recorded · balance ${naira(r.balance)}`, variant: 'success' });
+    } catch (e) { showNotification({ message: e.message || 'Could not record payment', variant: 'danger' }); load(); }
+  };
+  const [refund, setRefund] = useState({ amount: '', to: 'credit', reason: '' });
+  const doRefund = async () => {
+    const amount = Number(refund.amount);
+    if (!amount || amount <= 0) return;
+    if (!window.confirm(`Refund ${naira(amount)} ${refund.to === 'credit' ? 'to store credit' : 'as cash'}?`)) return;
+    try {
+      await heritApi.orders.refund(id, refund);
+      setRefund({ amount: '', to: 'credit', reason: '' });
+      showNotification({ message: 'Refund processed', variant: 'success' });
+      load();
+    } catch (e) { showNotification({ message: e.message || 'Could not refund', variant: 'danger' }); }
+  };
   const setReturn = async (return_status) => {
     setO((p) => ({ ...p, return_status }));
     try {
@@ -139,6 +162,45 @@ const SalesDetailPage = () => {
               <Form.Select value={o.status} onChange={(e) => setStatus(e.target.value)} className="text-capitalize">
                 {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </Form.Select>
+            </CardBody>
+          </Card>
+
+          <Card className="mt-3">
+            <CardBody>
+              <h5 className="card-title mb-2">Payments</h5>
+              <Line label="Total" value={naira(o.total)} />
+              <Line label="Paid" value={naira(o.paid)} />
+              <Line label="Balance" value={naira(balance)} strong />
+              {balance > 0 && (
+                <div className="mt-2">
+                  <div className="text-muted small mb-1">Record a payment (installment / transfer)</div>
+                  <div className="d-flex gap-1 mb-2">
+                    <Form.Control size="sm" type="number" min="0" placeholder="Amount" value={pay.amount} onChange={(e) => setPay((p) => ({ ...p, amount: e.target.value }))} />
+                    <Form.Select size="sm" style={{ maxWidth: 110 }} value={pay.method} onChange={(e) => setPay((p) => ({ ...p, method: e.target.value }))}>
+                      {['transfer', 'cash', 'card', 'cod'].map((m) => <option key={m} value={m}>{m}</option>)}
+                    </Form.Select>
+                  </div>
+                  <Form.Control size="sm" className="mb-2" placeholder="Reference (optional)" value={pay.reference} onChange={(e) => setPay((p) => ({ ...p, reference: e.target.value }))} />
+                  <Button size="sm" variant="success" className="w-100" onClick={recordPayment} disabled={!pay.amount}>
+                    <IconifyIcon icon="solar:wallet-money-bold" className="me-1" /> Record payment
+                  </Button>
+                </div>
+              )}
+              {Number(o.paid) > 0 && (
+                <div className="mt-3 pt-2 border-top">
+                  <div className="text-muted small mb-1">Refund</div>
+                  <div className="d-flex gap-1 mb-2">
+                    <Form.Control size="sm" type="number" min="0" placeholder="Amount" value={refund.amount} onChange={(e) => setRefund((r) => ({ ...r, amount: e.target.value }))} />
+                    <Form.Select size="sm" style={{ maxWidth: 130 }} value={refund.to} onChange={(e) => setRefund((r) => ({ ...r, to: e.target.value }))}>
+                      <option value="credit">to credit</option>
+                      <option value="cash">as cash</option>
+                    </Form.Select>
+                  </div>
+                  <Button size="sm" variant="outline-danger" className="w-100" onClick={doRefund} disabled={!refund.amount}>
+                    <IconifyIcon icon="solar:rewind-back-bold" className="me-1" /> Refund
+                  </Button>
+                </div>
+              )}
             </CardBody>
           </Card>
 

@@ -13,7 +13,7 @@ const CHANNELS = [
 ];
 
 const ChannelsPage = () => {
-  const [s, setS] = useState({ store_name: '', currency: 'NGN', free_ship_threshold: '', channels: {} });
+  const [s, setS] = useState({ store_name: '', currency: 'NGN', free_ship_threshold: '', vat_rate: '', channels: {} });
   const [state, setState] = useState('loading');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -22,7 +22,7 @@ const ChannelsPage = () => {
   const load = useCallback(async () => {
     try {
       const r = await heritApi.settings.get();
-      setS({ store_name: r.store_name || '', currency: r.currency || 'NGN', free_ship_threshold: r.free_ship_threshold || '', channels: r.channels || {} });
+      setS({ store_name: r.store_name || '', currency: r.currency || 'NGN', free_ship_threshold: r.free_ship_threshold || '', vat_rate: r.vat_rate || '', channels: r.channels || {} });
       setState('ready');
     } catch { setState('offline'); }
   }, []);
@@ -68,6 +68,7 @@ const ChannelsPage = () => {
               <Row className="g-2">
                 <Col xs={6}><Form.Group className="mb-3"><Form.Label>Currency</Form.Label><Form.Control value={s.currency} onChange={(e) => setS((o) => ({ ...o, currency: e.target.value }))} /></Form.Group></Col>
                 <Col xs={6}><Form.Group className="mb-3"><Form.Label>Free ship over</Form.Label><Form.Control type="number" value={s.free_ship_threshold} onChange={(e) => setS((o) => ({ ...o, free_ship_threshold: e.target.value }))} /></Form.Group></Col>
+                <Col xs={6}><Form.Group className="mb-3"><Form.Label>VAT rate (%)</Form.Label><Form.Control type="number" step="0.1" min="0" placeholder="0 = off" value={s.vat_rate} onChange={(e) => setS((o) => ({ ...o, vat_rate: e.target.value }))} /></Form.Group></Col>
               </Row>
               {err && <Alert variant="danger" className="py-2">{err}</Alert>}
               <Button variant="primary" className="w-100" onClick={save} disabled={busy}>

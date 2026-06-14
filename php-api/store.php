@@ -173,7 +173,15 @@ if ($action === 'checkout' && method() === 'POST') {
 
   if ($ship > 0) $items[] = ['label' => 'Delivery (' . $delivery . ')', 'sku' => 'shipping', 'qty' => 1, 'unit_price' => $ship];
   if ($discount > 0) $items[] = ['label' => 'Discount (' . $coupon['code'] . ')', 'sku' => 'discount', 'qty' => 1, 'unit_price' => -$discount];
-  $total = max(0, $goods + $ship - $discount);
+
+  // VAT — configurable rate (settings.vat_rate, a percent). Applied to the
+  // taxable goods after any discount; 0/unset = no VAT line.
+  $vatRow = $conn->query("SELECT svalue FROM settings WHERE skey = 'vat_rate' LIMIT 1")->fetch_assoc();
+  $vatRate = $vatRow ? (float)$vatRow['svalue'] : 0;
+  $vat = $vatRate > 0 ? round(max(0, $goods - $discount) * ($vatRate / 100), 2) : 0;
+  if ($vat > 0) $items[] = ['label' => 'VAT (' . rtrim(rtrim(number_format($vatRate, 2), '0'), '.') . '%)', 'sku' => 'vat', 'qty' => 1, 'unit_price' => $vat];
+
+  $total = max(0, $goods + $ship - $discount + $vat);
 
   // Gift card — redeem against the running total (after coupon). Decremented
   // for real after the order is created.
@@ -387,6 +395,32 @@ if ($action === 'pay_init' && method() === 'POST') {
     fail('Could not start Flutterwave payment', 502);
   }
 
+  // Stripe (international / diaspora). Charges in STRIPE_CURRENCY, converting the
+  // NGN total via STRIPE_USD_RATE (NGN per 1 unit, e.g. 1600). Config-gated.
+  $stripe = cfg('STRIPE_SECRET');
+  if (($provider === 'stripe' || ($provider === '' && $stripe && !$paystack && !$flw)) && $stripe) {
+    $cur = strtolower(cfg('STRIPE_CURRENCY', 'usd'));
+    $rate = (float)cfg('STRIPE_USD_RATE', 0);
+    $amountMajor = $rate > 0 ? ((float)$order['total'] / $rate) : (float)$order['total'];
+    $fields = [
+      'mode' => 'payment',
+      'success_url' => 'https://heritclothing.com/checkout?verify={CHECKOUT_SESSION_ID}',
+      'cancel_url' => 'https://heritclothing.com/checkout',
+      'client_reference_id' => $code,
+      'metadata[order_code]' => $code,
+      'line_items[0][quantity]' => 1,
+      'line_items[0][price_data][currency]' => $cur,
+      'line_items[0][price_data][unit_amount]' => (int) round($amountMajor * 100),
+      'line_items[0][price_data][product_data][name]' => 'Herit Clothing ' . $code,
+    ];
+    if ($email) $fields['customer_email'] = $email;
+    $resp = stripe_post('https://api.stripe.com/v1/checkout/sessions', $fields, $stripe);
+    if ($resp && !empty($resp['url'])) {
+      json(['provider' => 'stripe', 'authorization_url' => $resp['url'], 'reference' => $resp['id']]);
+    }
+    fail('Could not start Stripe payment', 502);
+  }
+
   // No gateway configured — manual settlement.
   json(['provider' => 'manual', 'total' => (float)$order['total']]);
 }
@@ -399,9 +433,15 @@ if ($action === 'pay_verify' && method() === 'GET') {
 
   $paystack = cfg('PAYSTACK_SECRET');
   $flw = cfg('FLW_SECRET');
+  $stripe = cfg('STRIPE_SECRET');
   $ok = false;
 
-  if ($paystack) {
+  if (strpos($reference, 'cs_') === 0 && $stripe) {
+    // Stripe Checkout session id → confirm + recover the order code from metadata.
+    $resp = gateway_get('https://api.stripe.com/v1/checkout/sessions/' . rawurlencode($reference), $stripe);
+    $ok = $resp && ($resp['payment_status'] ?? '') === 'paid';
+    $code = $resp['metadata']['order_code'] ?? ($resp['client_reference_id'] ?? $code);
+  } elseif ($paystack) {
     $resp = gateway_get('https://api.paystack.co/transaction/verify/' . rawurlencode($reference), $paystack);
     $ok = $resp && ($resp['data']['status'] ?? '') === 'success';
   } elseif ($flw) {
@@ -547,6 +587,20 @@ function gateway_get($url, $secret) {
   curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $secret],
+    CURLOPT_TIMEOUT => 30,
+  ]);
+  $raw = curl_exec($ch);
+  curl_close($ch);
+  return $raw ? json_decode($raw, true) : null;
+}
+// Stripe wants application/x-www-form-urlencoded, not JSON.
+function stripe_post($url, $fields, $secret) {
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => http_build_query($fields),
+    CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $secret, 'Content-Type: application/x-www-form-urlencoded'],
     CURLOPT_TIMEOUT => 30,
   ]);
   $raw = curl_exec($ch);

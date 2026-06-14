@@ -60,6 +60,12 @@ define('PAYSTACK_SECRET',  '');            // sk_live_... / sk_test_...  (server
 define('PAYSTACK_PUBLIC',  '');            // pk_live_... (safe for the browser, if needed)
 define('FLW_SECRET',       '');            // FLWSECK-...  (server only)
 define('FLW_PUBLIC',       '');            // FLWPUBK-...
+// International card payments (diaspora) via Stripe Checkout. Charges in
+// STRIPE_CURRENCY, converting the NGN order total via STRIPE_USD_RATE (NGN per 1
+// unit of that currency, e.g. 1600). Leave STRIPE_SECRET blank to keep it off.
+define('STRIPE_SECRET',    '');            // sk_live_... / sk_test_...  (server only)
+define('STRIPE_CURRENCY',  'usd');         // usd | gbp | eur …
+define('STRIPE_USD_RATE',  0);             // NGN per 1 unit (0 = charge the NGN number as-is)
 
 // ---- Image AI (text-to-image — ai_image.php) ---------------------------------
 // Read by ai_image.php via cfg(). Leave IMAGE_PROVIDER blank to keep visual AI
