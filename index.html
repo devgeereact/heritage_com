@@ -7,6 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HeritOS — Herit Clothing Operations</title>
 
+  <!-- PWA: installable + offline-capable -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#7a1f1f" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="HeritOS" />
+
   <!-- Herit premium brand fonts: Inter (UI/body), Fraunces (serif display), IBM Plex Mono (data/labels) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -87,6 +94,14 @@
     new MutationObserver(() => {
       document.querySelector('#splash-screen')?.classList.add('remove');
     }).observe(rootEl, { childList: true });
+  </script>
+  <script>
+    // Register the PWA service worker (production only; ignore on localhost dev).
+    if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 
