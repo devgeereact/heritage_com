@@ -40,6 +40,11 @@ const CheckoutPage = () => {
   const [applied, setApplied] = useState(null); // {code, type, value, discount, free_ship, description}
   const [couponErr, setCouponErr] = useState('');
   const [couponBusy, setCouponBusy] = useState(false);
+  const [gift, setGift] = useState('');
+  const [giftCard, setGiftCard] = useState(null);   // {code, balance}
+  const [giftErr, setGiftErr] = useState('');
+  const [creditBalance, setCreditBalance] = useState(0);
+  const [useCredit, setUseCredit] = useState(false);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -47,7 +52,33 @@ const CheckoutPage = () => {
   const freeShip = !!applied?.free_ship;
   const shipping = freeShip ? 0 : baseShipping;
   const discount = applied && !applied.free_ship ? Number(applied.discount || 0) : 0;
-  const total = Math.max(0, subtotal + shipping - discount);
+  const afterCoupon = Math.max(0, subtotal + shipping - discount);
+  const giftApplied = giftCard ? Math.min(Number(giftCard.balance || 0), afterCoupon) : 0;
+  const afterGift = afterCoupon - giftApplied;
+  const creditApplied = useCredit ? Math.min(creditBalance, afterGift) : 0;
+  const total = Math.max(0, afterGift - creditApplied);
+
+  // Look up store credit for the entered phone (privacy: returns a number only).
+  useEffect(() => {
+    const digits = (form.phone || '').replace(/\D/g, '');
+    if (digits.length < 10) { setCreditBalance(0); setUseCredit(false); return; }
+    let live = true;
+    heritApi.store.creditBalance(form.phone)
+      .then((r) => { if (live) setCreditBalance(Number(r.balance || 0)); })
+      .catch(() => { if (live) setCreditBalance(0); });
+    return () => { live = false; };
+  }, [form.phone]);
+
+  const applyGift = async () => {
+    const code = gift.trim();
+    if (!code) return;
+    setGiftErr('');
+    try {
+      const r = await heritApi.store.giftCheck(code);
+      if (r.ok) { setGiftCard(r); setGiftErr(''); }
+      else { setGiftCard(null); setGiftErr(r.error || 'That gift card is not valid'); }
+    } catch (e) { setGiftErr(e.message || 'Could not check that card'); }
+  };
 
   const applyCoupon = async () => {
     const code = coupon.trim();
@@ -84,6 +115,8 @@ const CheckoutPage = () => {
       const res = await heritApi.store.checkout({
         ...form, delivery, payment_method: payment,
         coupon: applied ? applied.code : '',
+        gift_card: giftCard ? giftCard.code : '',
+        use_credit: useCredit ? -1 : 0,
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.
@@ -268,9 +301,37 @@ const CheckoutPage = () => {
               </div>
             )}
 
+            {/* Gift card */}
+            {!giftCard ? (
+              <div style={{ marginBottom: '0.8rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Gift card code" value={gift}
+                    onChange={(e) => setGift(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyGift(); } }} />
+                  <button type="button" className="hc-btn hc-btn--ghost" onClick={applyGift} disabled={!gift.trim()} style={{ whiteSpace: 'nowrap' }}>Apply</button>
+                </div>
+                {giftErr && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{giftErr}</p>}
+              </div>
+            ) : (
+              <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', padding: '0.5rem 0.7rem', background: 'var(--secondary)', borderRadius: 8 }}>
+                <span style={{ fontSize: '0.85rem' }}><IconifyIcon icon="solar:gift-bold" /> <strong>{giftCard.code}</strong> · {formatNgn(giftCard.balance)} available</span>
+                <button type="button" onClick={() => { setGiftCard(null); setGift(''); }} style={{ border: 0, background: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}><IconifyIcon icon="solar:close-circle-bold" /></button>
+              </div>
+            )}
+
+            {/* Store credit */}
+            {creditBalance > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.8rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
+                <span><IconifyIcon icon="solar:wallet-money-bold" /> Use my store credit ({formatNgn(creditBalance)})</span>
+              </label>
+            )}
+
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Subtotal</span><span>{formatNgn(subtotal)}</span></div>
             {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Delivery</span><span>{shipping === 0 ? 'Free' : formatNgn(shipping)}</span></div>
+            {giftApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Gift card</span><span>−{formatNgn(giftApplied)}</span></div>}
+            {creditApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Store credit</span><span>−{formatNgn(creditApplied)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', marginTop: '0.8rem', fontWeight: 700, fontSize: '1.1rem' }}><span>Total</span><span style={{ color: 'var(--primary)' }}>{formatNgn(total)}</span></div>
 
             {error && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.85rem', marginTop: '1rem' }}>{error}</p>}

@@ -107,6 +107,11 @@ define('WHATSAPP_TOKEN',        '');       // permanent access token (server onl
 define('WHATSAPP_PHONE_ID',     '');       // phone number ID from the Meta dashboard
 define('WHATSAPP_VERIFY_TOKEN', '');       // any random string; must match the webhook config
 
+// ---- Loyalty / store credit -------------------------------------------------
+// Read by store.php pay_verify. Fraction of the goods value awarded back as
+// store credit when a web order is confirmed paid. 0 = loyalty off; 0.02 = 2%.
+define('LOYALTY_RATE', 0);
+
 // ---- CORS --------------------------------------------------------------------
 // Production is same-origin. In dev, _lib.php reflects ANY localhost port, so
 // this is only a fallback — no need to chase Vite's auto-port here.

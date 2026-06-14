@@ -163,6 +163,16 @@ export const heritApi = {
     save: (data) => request('/settings.php', { method: 'POST', body: data }),
   },
 
+  // Loyalty — store credit + gift cards
+  loyalty: {
+    balances: () => request('/loyalty.php?action=balances'),
+    history: (customerId) => request(`/loyalty.php?action=history&customer_id=${customerId}`),
+    adjust: (data) => request('/loyalty.php?action=adjust', { method: 'POST', body: data }),
+    giftList: () => request('/loyalty.php?action=gift_list'),
+    giftIssue: (data) => request('/loyalty.php?action=gift_issue', { method: 'POST', body: data }),
+    giftToggle: (id, active) => request(`/loyalty.php?action=gift_toggle&id=${id}`, { method: 'POST', body: { active } }),
+  },
+
   // Coupons & promotions
   coupons: {
     list: () => request('/coupons.php?action=list'),
@@ -228,6 +238,10 @@ export const heritApi = {
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
     validateCoupon: (code, subtotal, shipping = 0) =>
       request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
+    creditBalance: (phone) =>
+      request(`/loyalty.php?action=credit_balance&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    giftCheck: (code) =>
+      request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
     track: (code, phone) =>
       request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
   },

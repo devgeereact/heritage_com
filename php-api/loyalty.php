@@ -1,0 +1,136 @@
+<?php
+/**
+ * HeritOS — Store credit + gift cards (loyalty / goodwill / gifting).
+ *
+ *  PUBLIC (storefront checkout):
+ *   GET  /loyalty.php?action=credit_balance&phone=…   → {balance, customer_id}
+ *   GET  /loyalty.php?action=gift_check&code=…        → {ok, balance, code}
+ *
+ *  STAFF:
+ *   GET  /loyalty.php?action=balances                 → customers with credit
+ *   GET  /loyalty.php?action=history&customer_id=N    → ledger + balance
+ *   POST /loyalty.php?action=adjust {customer_id, delta, reason?, note?}
+ *   GET  /loyalty.php?action=gift_list
+ *   POST /loyalty.php?action=gift_issue {amount, recipient_name?, message?}
+ *   POST /loyalty.php?action=gift_toggle&id=N {active}
+ *
+ * Credit balance = SUM(store_credit.delta). Gift cards carry their own balance.
+ */
+require __DIR__ . '/_lib.php';
+cors();
+
+$action = $_GET['action'] ?? 'balances';
+
+/* ---- PUBLIC: credit balance by phone ------------------------------------- */
+if ($action === 'credit_balance' && method() === 'GET') {
+  $cid = customer_id_by_phone($_GET['phone'] ?? '');
+  json(['customer_id' => $cid, 'balance' => $cid ? credit_balance($cid) : 0]);
+}
+
+/* ---- PUBLIC: gift-card balance check ------------------------------------- */
+if ($action === 'gift_check' && method() === 'GET') {
+  $code = strtoupper(trim($_GET['code'] ?? ''));
+  if ($code === '') fail('Enter a gift card code');
+  $stmt = $conn->prepare('SELECT code, balance, active FROM gift_cards WHERE UPPER(code) = ? LIMIT 1');
+  $stmt->bind_param('s', $code);
+  $stmt->execute();
+  $g = $stmt->get_result()->fetch_assoc();
+  if (!$g || !(int)$g['active']) json(['ok' => false, 'error' => 'That gift card is not valid']);
+  json(['ok' => true, 'code' => $g['code'], 'balance' => (float)$g['balance']]);
+}
+
+/* ---- Everything below is staff-only -------------------------------------- */
+$STAFF = ['super_admin', 'admin', 'manager'];
+$user = require_auth($STAFF);
+
+/* ---- BALANCES ------------------------------------------------------------ */
+if ($action === 'balances' && method() === 'GET') {
+  $rows = [];
+  $sql = "SELECT s.customer_id, c.name, c.phone, SUM(s.delta) AS balance, MAX(s.created_at) AS last_at
+            FROM store_credit s JOIN customers c ON c.id = s.customer_id
+        GROUP BY s.customer_id
+          HAVING balance <> 0
+        ORDER BY balance DESC";
+  $res = $conn->query($sql);
+  while ($res && $row = $res->fetch_assoc()) {
+    $rows[] = ['customer_id' => (int)$row['customer_id'], 'name' => $row['name'], 'phone' => $row['phone'],
+               'balance' => (float)$row['balance'], 'last_at' => $row['last_at']];
+  }
+  json($rows);
+}
+
+/* ---- HISTORY ------------------------------------------------------------- */
+if ($action === 'history' && method() === 'GET') {
+  $cid = (int)($_GET['customer_id'] ?? 0);
+  $rows = [];
+  $stmt = $conn->prepare('SELECT delta, reason, ref, note, created_at FROM store_credit WHERE customer_id = ? ORDER BY id DESC');
+  $stmt->bind_param('i', $cid);
+  $stmt->execute();
+  $r = $stmt->get_result();
+  while ($row = $r->fetch_assoc()) $rows[] = $row;
+  json(['customer_id' => $cid, 'balance' => credit_balance($cid), 'entries' => $rows]);
+}
+
+/* ---- ADJUST (issue / deduct credit) -------------------------------------- */
+if ($action === 'adjust' && method() === 'POST') {
+  $b = body();
+  $cid = (int)($b['customer_id'] ?? 0);
+  $delta = (float)($b['delta'] ?? 0);
+  $reason = trim($b['reason'] ?? 'adjust');
+  $note = trim($b['note'] ?? '');
+  if (!$cid) fail('customer_id is required');
+  if ($delta === 0.0) fail('Amount cannot be zero');
+
+  // Never let a manual deduction push the balance negative.
+  if ($delta < 0 && credit_balance($cid) + $delta < 0) fail('That exceeds the available balance');
+
+  credit_add($cid, $delta, $reason ?: 'adjust', null, $note, $user['id']);
+  audit($user['id'], 'credit_adjust', 'customer', $cid, ['delta' => $delta, 'reason' => $reason]);
+  json(['ok' => true, 'balance' => credit_balance($cid)]);
+}
+
+/* ---- GIFT CARDS ---------------------------------------------------------- */
+if ($action === 'gift_list' && method() === 'GET') {
+  $rows = [];
+  $res = $conn->query('SELECT id, code, initial_amount, balance, recipient_name, message, active, created_at FROM gift_cards ORDER BY id DESC');
+  while ($res && $row = $res->fetch_assoc()) $rows[] = $row;
+  json($rows);
+}
+
+if ($action === 'gift_issue' && method() === 'POST') {
+  $b = body();
+  $amount = (float)($b['amount'] ?? 0);
+  if ($amount <= 0) fail('Amount must be positive');
+  $recipient = trim($b['recipient_name'] ?? '');
+  $message = trim($b['message'] ?? '');
+
+  // Unique HG-XXXXXXXX code.
+  $code = '';
+  for ($i = 0; $i < 5; $i++) {
+    $try = 'HG-' . strtoupper(bin2hex(random_bytes(4)));
+    $chk = $conn->prepare('SELECT id FROM gift_cards WHERE code = ?');
+    $chk->bind_param('s', $try);
+    $chk->execute();
+    if (!$chk->get_result()->fetch_assoc()) { $code = $try; break; }
+  }
+  if ($code === '') fail('Could not generate a code, try again', 500);
+
+  $stmt = $conn->prepare('INSERT INTO gift_cards (code, initial_amount, balance, recipient_name, message, created_by) VALUES (?,?,?,?,?,?)');
+  $stmt->bind_param('sddssi', $code, $amount, $amount, $recipient, $message, $user['id']);
+  $stmt->execute();
+  audit($user['id'], 'gift_issue', 'gift_card', $conn->insert_id, ['code' => $code, 'amount' => $amount]);
+  json(['ok' => true, 'code' => $code, 'balance' => $amount], 201);
+}
+
+if ($action === 'gift_toggle' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $active = !empty($b['active']) ? 1 : 0;
+  $stmt = $conn->prepare('UPDATE gift_cards SET active = ? WHERE id = ?');
+  $stmt->bind_param('ii', $active, $id);
+  $stmt->execute();
+  audit($user['id'], 'gift_toggle', 'gift_card', $id, ['active' => $active]);
+  json(['ok' => true, 'active' => $active]);
+}
+
+fail('Unknown action', 404);

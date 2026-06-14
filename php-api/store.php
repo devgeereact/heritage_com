@@ -103,6 +103,38 @@ if ($action === 'checkout' && method() === 'POST') {
   if ($discount > 0) $items[] = ['label' => 'Discount (' . $coupon['code'] . ')', 'sku' => 'discount', 'qty' => 1, 'unit_price' => -$discount];
   $total = max(0, $goods + $ship - $discount);
 
+  // Gift card — redeem against the running total (after coupon). Decremented
+  // for real after the order is created.
+  $giftRow = null; $giftApplied = 0;
+  $giftCode = strtoupper(trim($b['gift_card'] ?? ''));
+  if ($giftCode !== '' && $total > 0) {
+    $gs = $conn->prepare('SELECT id, code, balance FROM gift_cards WHERE UPPER(code) = ? AND active = 1 LIMIT 1');
+    $gs->bind_param('s', $giftCode);
+    $gs->execute();
+    $giftRow = $gs->get_result()->fetch_assoc();
+    if (!$giftRow) fail('That gift card is not valid');
+    $giftApplied = min((float)$giftRow['balance'], $total);
+    if ($giftApplied > 0) {
+      $items[] = ['label' => 'Gift card (' . $giftRow['code'] . ')', 'sku' => 'giftcard', 'qty' => 1, 'unit_price' => -$giftApplied];
+      $total -= $giftApplied;
+    }
+  }
+
+  // Store credit — redeem the customer's balance (resolved by phone).
+  $creditCustomerId = customer_id_by_phone($phone);
+  $creditApplied = 0;
+  $wantCredit = isset($b['use_credit']) ? (float)$b['use_credit'] : 0;   // 0/absent = none; -1 = all
+  if ($creditCustomerId && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
+    $bal = credit_balance($creditCustomerId);
+    $cap = $wantCredit == -1 ? $bal : min($wantCredit, $bal);
+    $creditApplied = min($cap, $total);
+    if ($creditApplied > 0) {
+      $items[] = ['label' => 'Store credit', 'sku' => 'credit', 'qty' => 1, 'unit_price' => -$creditApplied];
+      $total -= $creditApplied;
+    }
+  }
+  $total = max(0, $total);
+
   // Link to an existing customer by phone (so web orders enrich the CRM).
   $customerId = null;
   if ($phone !== '') {
@@ -152,6 +184,18 @@ if ($action === 'checkout' && method() === 'POST') {
     $rstmt->bind_param('iisd', $coupon['coupon_id'], $orderId, $coupon['code'], $effective);
     $rstmt->execute();
     $conn->query('UPDATE coupons SET used = used + 1 WHERE id = ' . (int)$coupon['coupon_id']);
+  }
+
+  // Decrement the gift card balance now the order is real.
+  if ($giftRow && $giftApplied > 0) {
+    $gu = $conn->prepare('UPDATE gift_cards SET balance = GREATEST(0, balance - ?) WHERE id = ?');
+    $gu->bind_param('di', $giftApplied, $giftRow['id']);
+    $gu->execute();
+  }
+
+  // Debit the redeemed store credit against the ledger.
+  if ($creditCustomerId && $creditApplied > 0) {
+    credit_add($creditCustomerId, -$creditApplied, 'redeem', $code, 'Redeemed at checkout');
   }
 
   // Stash email on the order notes-less side via a lightweight log row is overkill;
@@ -263,6 +307,18 @@ if ($action === 'pay_verify' && method() === 'GET') {
     $stmt = $conn->prepare("UPDATE orders SET paid = total, status = 'paid' WHERE code = ? AND deleted_at IS NULL");
     $stmt->bind_param('s', $code);
     $stmt->execute();
+
+    // Loyalty: award store credit on the goods value (a % back, config-set).
+    $rate = (float)cfg('LOYALTY_RATE', 0);
+    if ($rate > 0) {
+      $o = $conn->query("SELECT id, customer_id FROM orders WHERE code = '" . $conn->real_escape_string($code) . "' LIMIT 1")->fetch_assoc();
+      if ($o && $o['customer_id']) {
+        $goodsRow = $conn->query("SELECT COALESCE(SUM(qty*unit_price),0) AS g FROM order_items WHERE order_id = " . (int)$o['id'] . " AND unit_price > 0 AND sku NOT IN ('shipping')")->fetch_assoc();
+        $earn = round(((float)$goodsRow['g']) * $rate);
+        if ($earn > 0) credit_add((int)$o['customer_id'], $earn, 'loyalty', $code, 'Earned on order ' . $code);
+      }
+    }
+
     audit(null, 'web_order_paid', 'order', null, ['code' => $code, 'reference' => $reference]);
     json(['ok' => true, 'code' => $code, 'status' => 'paid']);
   }

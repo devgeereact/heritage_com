@@ -232,6 +232,43 @@ function coupon_eval($code, $subtotal, $shipping = 0) {
   ];
 }
 
+/* ---- Store credit (loyalty / refunds-as-credit / goodwill) ---------------- */
+
+/** A customer's store-credit balance = SUM of their ledger deltas. */
+function credit_balance($customerId) {
+  global $conn;
+  $customerId = (int)$customerId;
+  if (!$customerId) return 0.0;
+  $row = $conn->query('SELECT COALESCE(SUM(delta),0) AS bal FROM store_credit WHERE customer_id = ' . $customerId)->fetch_assoc();
+  return (float)($row['bal'] ?? 0);
+}
+
+/** Append a ledger row (positive = earn, negative = redeem). Best-effort. */
+function credit_add($customerId, $delta, $reason = 'adjust', $ref = null, $note = null, $createdBy = null) {
+  global $conn;
+  $customerId = (int)$customerId;
+  if (!$customerId || (float)$delta === 0.0) return false;
+  try {
+    $stmt = $conn->prepare('INSERT INTO store_credit (customer_id, delta, reason, ref, note, created_by) VALUES (?,?,?,?,?,?)');
+    $d = (float)$delta;
+    $stmt->bind_param('idsssi', $customerId, $d, $reason, $ref, $note, $createdBy);
+    $stmt->execute();
+    return true;
+  } catch (\Throwable $e) { return false; }
+}
+
+/** Find a customer id by phone (last-9-digit match). 0 if none. */
+function customer_id_by_phone($phone) {
+  global $conn;
+  $norm = preg_replace('/\D/', '', (string)$phone);
+  if ($norm === '') return 0;
+  $stmt = $conn->prepare("SELECT id FROM customers WHERE deleted_at IS NULL AND RIGHT(REGEXP_REPLACE(phone,'[^0-9]',''),9) = RIGHT(?,9) LIMIT 1");
+  $stmt->bind_param('s', $norm);
+  $stmt->execute();
+  $row = $stmt->get_result()->fetch_assoc();
+  return $row ? (int)$row['id'] : 0;
+}
+
 /** Write a row to the audit log. */
 function audit($userId, $action, $entity = null, $entityId = null, $meta = null) {
   global $conn;

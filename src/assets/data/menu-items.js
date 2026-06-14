@@ -84,6 +84,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:ticket-sale-bold-duotone',
   url: '/coupons'
 }, {
+  key: 'loyalty',
+  label: 'Loyalty & Gifts',
+  icon: 'solar:gift-bold-duotone',
+  url: '/loyalty'
+}, {
   key: 'studio',
   label: 'Brand Studio',
   icon: 'solar:magic-stick-3-bold-duotone',
