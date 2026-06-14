@@ -30,7 +30,7 @@ if ($action === 'list' && method() === 'GET') {
   $rows = [];
   $stmt = $conn->prepare(
     "SELECT id, author_name, rating, title, body, photo_url, verified, response, created_at
-       FROM reviews WHERE product_slug = ? AND status = 'approved'
+       FROM reviews WHERE product_slug = ? AND status = 'approved' AND kind = 'review'
       ORDER BY verified DESC, id DESC LIMIT 100"
   );
   $stmt->bind_param('s', $slug);
@@ -38,7 +38,7 @@ if ($action === 'list' && method() === 'GET') {
   $r = $stmt->get_result();
   while ($row = $r->fetch_assoc()) $rows[] = $row;
 
-  $sum = $conn->query("SELECT COUNT(*) AS c, COALESCE(AVG(rating),0) AS avg FROM reviews WHERE product_slug = '" . $conn->real_escape_string($slug) . "' AND status='approved'")->fetch_assoc();
+  $sum = $conn->query("SELECT COUNT(*) AS c, COALESCE(AVG(rating),0) AS avg FROM reviews WHERE product_slug = '" . $conn->real_escape_string($slug) . "' AND status='approved' AND kind='review'")->fetch_assoc();
   json(['summary' => ['count' => (int)$sum['c'], 'average' => round((float)$sum['avg'], 1)], 'reviews' => $rows]);
 }
 
@@ -52,6 +52,20 @@ if ($action === 'gallery' && method() === 'GET') {
   json($rows);
 }
 
+/* ---- PUBLIC: Q&A for a product ------------------------------------------- */
+if ($action === 'qa_list' && method() === 'GET') {
+  $slug = trim($_GET['slug'] ?? '');
+  if ($slug === '') fail('slug is required');
+  $rows = [];
+  $stmt = $conn->prepare("SELECT id, author_name, body AS question, answer, created_at FROM reviews
+                           WHERE product_slug = ? AND kind = 'question' AND status = 'approved' ORDER BY id DESC LIMIT 50");
+  $stmt->bind_param('s', $slug);
+  $stmt->execute();
+  $r = $stmt->get_result();
+  while ($row = $r->fetch_assoc()) $rows[] = $row;
+  json($rows);
+}
+
 /* ---- PUBLIC: submit a review --------------------------------------------- */
 if ($action === 'submit' && method() === 'POST') {
   $b = body();
@@ -59,12 +73,18 @@ if ($action === 'submit' && method() === 'POST') {
   $pname = trim($b['product_name'] ?? '');
   $name = trim($b['name'] ?? '');
   $phone = trim($b['phone'] ?? '');
+  $kind = ($b['kind'] ?? 'review') === 'question' ? 'question' : 'review';
   $rating = max(1, min(5, (int)($b['rating'] ?? 0)));
   $title = trim($b['title'] ?? '');
   $bodyText = trim($b['body'] ?? '');
   $photo = trim($b['photo_url'] ?? '');
-  if ($slug === '' || $name === '' || !$rating) fail('Name, rating and the piece are required');
-  if ($bodyText === '' && $title === '') fail('Add a few words about the piece');
+  if ($kind === 'question') {
+    if ($slug === '' || $name === '' || $bodyText === '') fail('Name, the piece and your question are required');
+    $rating = 0;
+  } else {
+    if ($slug === '' || $name === '' || !$rating) fail('Name, rating and the piece are required');
+    if ($bodyText === '' && $title === '') fail('Add a few words about the piece');
+  }
 
   // Verified-purchase: this phone's customer has an order line for this slug.
   $verified = 0; $customerId = null;
@@ -85,13 +105,13 @@ if ($action === 'submit' && method() === 'POST') {
   }
 
   $stmt = $conn->prepare(
-    'INSERT INTO reviews (product_slug, product_name, customer_id, author_name, rating, title, body, photo_url, verified)
-     VALUES (?,?,?,?,?,?,?,?,?)'
+    'INSERT INTO reviews (product_slug, product_name, kind, customer_id, author_name, rating, title, body, photo_url, verified)
+     VALUES (?,?,?,?,?,?,?,?,?,?)'
   );
   $photoVal = $photo !== '' ? $photo : null;
   $titleVal = $title !== '' ? $title : null;
   $bodyVal = $bodyText !== '' ? $bodyText : null;
-  $stmt->bind_param('ssisisssi', $slug, $pname, $customerId, $name, $rating, $titleVal, $bodyVal, $photoVal, $verified);
+  $stmt->bind_param('sssisisssi', $slug, $pname, $kind, $customerId, $name, $rating, $titleVal, $bodyVal, $photoVal, $verified);
   $stmt->execute();
   json(['ok' => true, 'verified' => (bool)$verified, 'status' => 'pending'], 201);
 }
@@ -143,6 +163,20 @@ if ($action === 'respond' && method() === 'POST') {
   $stmt->bind_param('si', $rv, $id);
   $stmt->execute();
   audit($user['id'], 'review_respond', 'review', $id);
+  json(['ok' => true]);
+}
+
+/* ---- ANSWER (a question) ------------------------------------------------- */
+if ($action === 'answer' && method() === 'POST') {
+  $id = (int)($_GET['id'] ?? 0);
+  $b = body();
+  $answer = trim($b['answer'] ?? '');
+  $av = $answer !== '' ? $answer : null;
+  // Answering publishes the question.
+  $stmt = $conn->prepare("UPDATE reviews SET answer = ?, status = 'approved' WHERE id = ? AND kind = 'question'");
+  $stmt->bind_param('si', $av, $id);
+  $stmt->execute();
+  audit($user['id'], 'review_answer', 'review', $id);
   json(['ok' => true]);
 }
 

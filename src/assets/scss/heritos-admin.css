@@ -6,12 +6,12 @@
    so it propagates everywhere; no per-page edits.
    ============================================================ */
 :root {
-  --herit-maroon: #9b2c2c;
-  --herit-maroon-dark: #7f1d1d;
-  --herit-gold: #b45309;
-  --herit-border: #ece3da;
-  --herit-paper: #faf7f5;
-  --herit-ink: #1c1917;
+  --herit-maroon: #7a1f1f;
+  --herit-maroon-dark: #5e1717;
+  --herit-gold: #c9a24b;
+  --herit-border: #e8e3db;
+  --herit-paper: #faf8f4;
+  --herit-ink: #1a1714;
 }
 
 /* ---- surfaces ------------------------------------------------------------ */
@@ -35,7 +35,8 @@ a .card:hover,
 /* ---- page heading (the HeritOS module pages use h4 + muted lead) --------- */
 main .container-fluid > .d-flex h4,
 main .container-fluid > h4.mb-1 {
-  font-family: "Libre Baskerville", Georgia, serif;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
@@ -56,7 +57,7 @@ main .container-fluid > h4.mb-1 {
 .form-select:focus,
 .form-check-input:focus {
   border-color: var(--herit-maroon);
-  box-shadow: 0 0 0 0.2rem rgba(155, 44, 44, 0.13);
+  box-shadow: 0 0 0 0.2rem rgba(122, 31, 31, 0.15);
 }
 .form-check-input:checked {
   background-color: var(--herit-maroon);
@@ -83,7 +84,83 @@ main .container-fluid > h4.mb-1 {
 }
 
 /* ---- scrollbars: quiet, on-brand ---------------------------------------- */
-* { scrollbar-color: #d8cabb transparent; }
+* { scrollbar-color: #d3c7b8 transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #d8cabb; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
-::-webkit-scrollbar-thumb:hover { background: #c4a98c; background-clip: content-box; }
+::-webkit-scrollbar-thumb { background: #d3c7b8; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: #c0a888; background-clip: content-box; }
+
+/* ============================================================
+   Dashboard polish + global a11y / motion (added in rebrand).
+   Equal cards, classic motion, readable text, keyboard focus.
+   ============================================================ */
+
+/* ---- equal-height cards: any card in a grid row fills its column --------- */
+.row > [class*="col"] > .card { height: 100%; }
+/* cards that hold a header + body still distribute naturally */
+.card { display: flex; flex-direction: column; }
+.card > .card-body { flex: 1 1 auto; }
+
+/* ---- classic, smooth motion: gentle lift on every card ------------------- */
+.card {
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  will-change: transform;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(26, 23, 20, 0.06), 0 16px 36px -14px rgba(122, 31, 31, 0.20);
+}
+/* one-time settle-in so the grid feels composed, not snapped */
+@keyframes herit-card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.card { animation: herit-card-in 0.4s cubic-bezier(.2,.8,.2,1) both; }
+
+/* ---- readable text: warm, higher-contrast muted (was cool grey) ---------- */
+.text-muted { color: #6b655e !important; }
+small, .small { font-size: 0.82rem; }
+.card-title, h5.card-title { letter-spacing: -0.005em; }
+
+/* ---- KPI tiles: numbers carry weight, labels stay quiet ----------------- */
+.card h4 { letter-spacing: -0.01em; }
+
+/* ---- progress / meter bars (workshop snapshot etc.) --------------------- */
+.bg-light { background-color: #f1ece4 !important; }
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+/* keyboard focus: a clear maroon ring on everything interactive.
+   :focus-visible only — mouse users don't see it, keyboard users always do. */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.side-nav-link:focus-visible,
+.page-link:focus-visible,
+.dropdown-item:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--herit-maroon);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* never strip focus silently */
+:focus-visible { outline-color: var(--herit-maroon); }
+
+/* skip-link target support + visible skip link if present */
+.visually-hidden-focusable:focus,
+.visually-hidden-focusable:focus-within {
+  position: fixed; top: 0.5rem; left: 0.5rem; z-index: 1080;
+  width: auto; height: auto; padding: 0.5rem 1rem;
+  background: var(--herit-maroon); color: #fff; border-radius: 0.5rem;
+}
+
+/* respect reduced-motion: kill entrance + lift animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card:hover { transform: none; }
+}

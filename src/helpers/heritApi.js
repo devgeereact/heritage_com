@@ -215,6 +215,8 @@ export const heritApi = {
     moderate: (status = 'pending') => request(`/reviews.php?action=moderate&status=${status}`),
     setStatus: (id, status) => request(`/reviews.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
     respond: (id, response) => request(`/reviews.php?action=respond&id=${id}`, { method: 'POST', body: { response } }),
+    qaList: (slug) => request(`/reviews.php?action=qa_list&slug=${encodeURIComponent(slug)}`, { auth: false }),
+    answer: (id, answer) => request(`/reviews.php?action=answer&id=${id}`, { method: 'POST', body: { answer } }),
   },
 
   // Referrals
@@ -324,6 +326,7 @@ export const heritApi = {
     wishlist: () => crequest('/account.php?action=wishlist'),
     wishlistToggle: (slug, name) => crequest('/account.php?action=wishlist_toggle', { method: 'POST', body: { slug, name } }),
     setBirthday: (birthday) => crequest('/account.php?action=set_birthday', { method: 'POST', body: { birthday } }),
+    npsSubmit: (score, comment) => crequest('/account.php?action=nps_submit', { method: 'POST', body: { score, comment } }),
     setToken: (t) => { try { localStorage.setItem('herit_customer_token', t); } catch { /* ignore */ } },
     logout: () => { try { localStorage.removeItem('herit_customer_token'); } catch { /* ignore */ } },
     token: () => customerToken(),

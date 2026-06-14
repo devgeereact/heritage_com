@@ -9,15 +9,16 @@ const Stars = ({ n }) => (
   <span>{[1, 2, 3, 4, 5].map((i) => <IconifyIcon key={i} icon={i <= n ? 'solar:star-bold' : 'solar:star-linear'} style={{ color: '#e0a200' }} />)}</span>
 );
 
-const ReviewCard = ({ r, onStatus, onRespond }) => {
-  const [resp, setResp] = useState(r.response || '');
+const ReviewCard = ({ r, onStatus, onRespond, onAnswer }) => {
+  const isQ = r.kind === 'question';
+  const [resp, setResp] = useState((isQ ? r.answer : r.response) || '');
   return (
     <Card className="mb-3">
       <CardBody>
         <div className="d-flex justify-content-between flex-wrap gap-2">
           <div>
             <div className="d-flex align-items-center gap-2">
-              <Stars n={Number(r.rating)} />
+              {isQ ? <Badge bg="info" className="bg-opacity-75"><IconifyIcon icon="solar:question-circle-bold" /> Question</Badge> : <Stars n={Number(r.rating)} />}
               <strong>{r.author_name}</strong>
               {Number(r.verified) === 1 && <Badge bg="success" className="bg-opacity-75"><IconifyIcon icon="solar:verified-check-bold" /> Verified</Badge>}
               <Badge bg={r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'danger' : 'warning'} className="bg-opacity-75 text-capitalize">{r.status}</Badge>
@@ -33,8 +34,8 @@ const ReviewCard = ({ r, onStatus, onRespond }) => {
         {r.body && <p className="mb-1">{r.body}</p>}
         {r.photo_url && <img src={r.photo_url} alt="" style={{ maxWidth: 140, borderRadius: 8 }} />}
         <div className="d-flex gap-2 mt-2">
-          <Form.Control size="sm" placeholder="Public reply (optional)" value={resp} onChange={(e) => setResp(e.target.value)} />
-          <Button size="sm" variant="light" onClick={() => onRespond(r.id, resp)}>Reply</Button>
+          <Form.Control size="sm" placeholder={isQ ? 'Answer this question' : 'Public reply (optional)'} value={resp} onChange={(e) => setResp(e.target.value)} />
+          <Button size="sm" variant={isQ ? 'primary' : 'light'} onClick={() => (isQ ? onAnswer(r.id, resp) : onRespond(r.id, resp))}>{isQ ? 'Answer' : 'Reply'}</Button>
         </div>
       </CardBody>
     </Card>
@@ -62,6 +63,10 @@ const ReviewsPage = () => {
     try { await heritApi.reviews.respond(id, response); showNotification({ message: 'Reply saved', variant: 'success' }); }
     catch (e) { showNotification({ message: e.message || 'Could not save', variant: 'danger' }); }
   };
+  const onAnswer = async (id, answer) => {
+    try { await heritApi.reviews.answer(id, answer); showNotification({ message: 'Answer published', variant: 'success' }); load(); }
+    catch (e) { showNotification({ message: e.message || 'Could not save', variant: 'danger' }); }
+  };
 
   const counts = data?.counts || {};
 
@@ -86,7 +91,7 @@ const ReviewsPage = () => {
       {state === 'ready' && (
         (data.reviews || []).length === 0
           ? <p className="text-muted">Nothing {tab}.</p>
-          : data.reviews.map((r) => <ReviewCard key={r.id} r={r} onStatus={onStatus} onRespond={onRespond} />)
+          : data.reviews.map((r) => <ReviewCard key={r.id} r={r} onStatus={onStatus} onRespond={onRespond} onAnswer={onAnswer} />)
       )}
     </>
   );

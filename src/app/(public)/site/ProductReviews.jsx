@@ -27,10 +27,22 @@ const ProductReviews = ({ slug, productName }) => {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
+  const [qa, setQa] = useState([]);
+  const [qForm, setQForm] = useState({ name: '', body: '' });
+  const [qDone, setQDone] = useState(false);
+
   const load = useCallback(async () => {
     try { setData(await heritApi.reviews.list(slug)); } catch { setData({ summary: { count: 0, average: 0 }, reviews: [] }); }
+    try { setQa(await heritApi.reviews.qaList(slug)); } catch { setQa([]); }
   }, [slug]);
   useEffect(() => { load(); }, [load]);
+
+  const askQuestion = async (e) => {
+    e.preventDefault();
+    if (!qForm.name.trim() || !qForm.body.trim()) return;
+    try { await heritApi.reviews.submit({ product_slug: slug, product_name: productName, kind: 'question', name: qForm.name, body: qForm.body }); setQDone(true); setQForm({ name: '', body: '' }); }
+    catch { setQDone(true); }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -111,6 +123,29 @@ const ProductReviews = ({ slug, productName }) => {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Q&A */}
+      <div style={{ marginTop: '2rem' }}>
+        <h3 className="hc-h4" style={{ marginBottom: '0.75rem' }}>Questions &amp; answers</h3>
+        {qa.length === 0 && <p style={{ color: 'var(--muted-foreground)' }}>No questions yet — ask the first.</p>}
+        <div style={{ display: 'grid', gap: '0.85rem' }}>
+          {qa.map((q) => (
+            <div key={q.id} style={{ borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
+              <div><IconifyIcon icon="solar:question-circle-bold" style={{ color: 'var(--primary)' }} /> <strong>{q.question}</strong> <span style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>— {q.author_name}</span></div>
+              {q.answer && <div style={{ marginTop: '0.3rem', paddingLeft: '1.2rem' }}><span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)' }}>HERIT</span> {q.answer}</div>}
+            </div>
+          ))}
+        </div>
+        {qDone ? (
+          <p style={{ color: '#16794a', marginTop: '0.75rem' }}><IconifyIcon icon="solar:check-circle-bold" /> Thanks — we&apos;ll answer shortly.</p>
+        ) : (
+          <form onSubmit={askQuestion} className="hc-card" style={{ padding: '1rem', marginTop: '1rem', display: 'grid', gap: '0.6rem' }}>
+            <input style={field} placeholder="Your name" value={qForm.name} onChange={(e) => setQForm((f) => ({ ...f, name: e.target.value }))} />
+            <textarea rows={2} style={field} placeholder="Ask about fit, fabric, sizing…" value={qForm.body} onChange={(e) => setQForm((f) => ({ ...f, body: e.target.value }))} />
+            <div><button type="submit" className="hc-btn hc-btn--ghost">Ask a question</button></div>
+          </form>
+        )}
       </div>
     </div>
   );

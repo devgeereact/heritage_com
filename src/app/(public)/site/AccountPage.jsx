@@ -112,6 +112,11 @@ const Dashboard = ({ onOut }) => {
     try { await heritApi.portal.setBirthday(bd); flash('Birthday saved — we’ll remember it.'); }
     catch (e) { flash(e.message || 'Could not save'); }
   };
+  const [npsDone, setNpsDone] = useState(false);
+  const sendNps = async (score) => {
+    try { await heritApi.portal.npsSubmit(score, ''); setNpsDone(true); flash('Thank you for the feedback!'); }
+    catch (e) { flash(e.message || 'Could not send'); }
+  };
   const loadReferral = async () => { try { setReferral(await heritApi.portal.referral()); } catch { /* ignore */ } };
   useEffect(() => { loadReferral(); }, []);
 
@@ -161,6 +166,20 @@ const Dashboard = ({ onOut }) => {
           ))}
         </div>
       </div>
+
+      {/* NPS */}
+      {!npsDone && (
+        <div className="hc-card" style={{ padding: '1.25rem' }}>
+          <h3 className="hc-h4" style={{ marginTop: 0 }}>How likely are you to recommend Herit?</h3>
+          <div className="hc-flex hc-wrap" style={{ gap: '0.3rem', marginTop: '0.5rem' }}>
+            {Array.from({ length: 11 }, (_, n) => (
+              <button key={n} onClick={() => sendNps(n)}
+                style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', cursor: 'pointer', fontWeight: 600 }}>{n}</button>
+            ))}
+          </div>
+          <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.3rem' }}><span>Not likely</span><span>Very likely</span></div>
+        </div>
+      )}
 
       {/* Birthday */}
       <div className="hc-card" style={{ padding: '1.25rem' }}>

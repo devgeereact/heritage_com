@@ -26,9 +26,17 @@ const WorkshopSnapshot = ({ byStage = {} }) => {
             return (
               <div key={s.key} className="d-flex align-items-center gap-2 py-1">
                 <span className="text-muted d-inline-flex align-items-center gap-1" style={{ width: 90 }}>
-                  <IconifyIcon icon={s.icon} /> {s.label}
+                  <IconifyIcon icon={s.icon} aria-hidden="true" /> {s.label}
                 </span>
-                <div className="flex-grow-1 bg-light rounded" style={{ height: 8 }}>
+                <div
+                  className="flex-grow-1 bg-light rounded"
+                  style={{ height: 8 }}
+                  role="progressbar"
+                  aria-label={`${s.label} stage`}
+                  aria-valuenow={n}
+                  aria-valuemin={0}
+                  aria-valuemax={max}
+                >
                   <div className="bg-primary rounded" style={{ height: 8, width: `${(n / max) * 100}%`, minWidth: n ? 8 : 0 }} />
                 </div>
                 <span className="fw-semibold" style={{ width: 24, textAlign: 'right' }}>{n}</span>

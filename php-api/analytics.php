@@ -176,4 +176,18 @@ $r = $conn->query("SELECT return_reason AS reason, COUNT(*) AS n FROM orders
                  GROUP BY return_reason ORDER BY n DESC LIMIT 6");
 while ($r && $row = $r->fetch_assoc()) $out['returns']['top_reasons'][] = ['reason' => $row['reason'], 'count' => (int)$row['n']];
 
+/* NPS — promoters (9–10) minus detractors (0–6), as a % --------------------*/
+$out['nps'] = ['score' => null, 'responses' => 0];
+try {
+  $n = $conn->query("SELECT COUNT(*) total,
+                            SUM(score >= 9) promoters, SUM(score <= 6) detractors
+                       FROM nps_responses")->fetch_assoc();
+  $total = (int)($n['total'] ?? 0);
+  if ($total > 0) {
+    $nps = round((((int)$n['promoters'] - (int)$n['detractors']) / $total) * 100);
+    $out['nps'] = ['score' => (int)$nps, 'responses' => $total,
+                   'promoters' => (int)$n['promoters'], 'detractors' => (int)$n['detractors']];
+  }
+} catch (\Throwable $e) { /* table may not exist yet */ }
+
 json($out);

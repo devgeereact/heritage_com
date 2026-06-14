@@ -69,7 +69,8 @@
 .hc-section { padding: 5.5rem 0; }
 .hc-section--tight { padding: 3.5rem 0; }
 .hc-section--dark { background: var(--espresso); color: #ece7e2; }
-.hc-section--olive { background: var(--gold); color: #fff; }       /* warm gold accent band */
+.hc-section--olive { background: var(--espresso); color: #ece7e2; }  /* deep stat band — readable (was white-on-gold, failed contrast) */
+.hc-section--olive .hc-stat-n { color: var(--gold) !important; }     /* gold numerals on the deep band */
 .hc-section--crimson { background: var(--primary); color: #fff; }
 .hc-section--steel { background: var(--primary-dark); color: #fff; }
 .hc-section--paper { background: var(--muted); }

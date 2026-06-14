@@ -260,7 +260,7 @@ const HomePage = () => (
             { n: 'Resurgent', l: 'Demand for Ankara & Adire at home and abroad' },
           ].map((s) => (
             <div key={s.l}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontWeight: 700, fontSize: '2.2rem', color: '#fff' }}>{s.n}</div>
+              <div className="hc-stat-n" style={{ fontFamily: 'var(--font-serif)', fontWeight: 700, fontSize: '2.2rem', color: '#fff' }}>{s.n}</div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.85)', marginTop: '0.3rem' }}>{s.l}</div>
             </div>
           ))}

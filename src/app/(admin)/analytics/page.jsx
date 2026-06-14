@@ -75,6 +75,7 @@ const AnalyticsPage = () => {
             <Kpi label="Stock value" value={naira(k?.stock_value)} tone="danger" icon="solar:bag-smile-bold-duotone" />
             <Kpi label="Gross profit" value={naira(k?.profit)} tone="success" icon="solar:money-bag-bold-duotone" />
             <Kpi label="Margin" value={`${Math.round((k?.margin ?? 0) * 100)}%`} tone="primary" icon="solar:pie-chart-2-bold-duotone" />
+            {d.nps?.score != null && <Kpi label={`NPS (${d.nps.responses})`} value={d.nps.score} tone={d.nps.score >= 50 ? 'success' : d.nps.score >= 0 ? 'warning' : 'danger'} icon="solar:like-bold-duotone" />}
           </Row>
           {(k?.cogs ?? 0) === 0 && (
             <p className="text-muted small mb-3"><IconifyIcon icon="solar:info-circle-linear" className="me-1" />Profit is a floor — set each product&apos;s cost price (COGS) in the catalogue to sharpen it.</p>

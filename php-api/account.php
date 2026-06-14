@@ -189,6 +189,19 @@ if ($action === 'set_birthday' && method() === 'POST') {
   json(['ok' => true, 'birthday' => $bd]);
 }
 
+/* ---- NPS (satisfaction survey) ------------------------------------------- */
+if ($action === 'nps_submit' && method() === 'POST') {
+  $b = body();
+  $score = max(0, min(10, (int)($b['score'] ?? -1)));
+  if (!isset($b['score'])) fail('A score is required');
+  $comment = substr(trim($b['comment'] ?? ''), 0, 500);
+  $orderCode = trim($b['order_code'] ?? '') ?: null;
+  $stmt = $conn->prepare('INSERT INTO nps_responses (customer_id, order_code, score, comment) VALUES (?,?,?,?)');
+  $stmt->bind_param('isis', $cid, $orderCode, $score, $comment);
+  $stmt->execute();
+  json(['ok' => true]);
+}
+
 /* ---- WISHLIST ------------------------------------------------------------ */
 if ($action === 'wishlist' && method() === 'GET') {
   $rows = [];
