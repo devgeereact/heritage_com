@@ -284,32 +284,30 @@
    ============================================================ */
 .hc-hero--bold {
   background:
-    radial-gradient(120% 120% at 85% -10%, #b8442f 0%, transparent 45%),
-    radial-gradient(120% 120% at 0% 110%, #5c1414 0%, transparent 50%),
-    linear-gradient(135deg, #7f1d1d 0%, #9b2c2c 45%, #6b1717 100%);
+    radial-gradient(130% 120% at 82% -20%, #3a1717 0%, transparent 52%),
+    linear-gradient(160deg, #1f1512 0%, #271815 55%, #17100e 100%);
   border-bottom: none;
   color: #fff;
   isolation: isolate;
 }
-/* Woven heritage motif: crossing gold threads, slowly drifting. */
+/* Woven heritage motif: crossing gold threads, slowly drifting — restrained. */
 .hc-hero-weave {
-  position: absolute; inset: 0; z-index: -1; opacity: 0.5; mix-blend-mode: screen;
+  position: absolute; inset: 0; z-index: -1; opacity: 0.22; mix-blend-mode: screen;
   background-image:
-    repeating-linear-gradient(45deg, rgba(245,209,138,0.16) 0 2px, transparent 2px 16px),
-    repeating-linear-gradient(-45deg, rgba(245,209,138,0.10) 0 2px, transparent 2px 16px),
-    radial-gradient(circle at 50% 50%, rgba(180,83,9,0.28) 0 6px, transparent 7px);
-  background-size: 32px 32px, 32px 32px, 30px 30px;
-  animation: hc-weave-drift 24s linear infinite;
+    repeating-linear-gradient(45deg, rgba(201,162,75,0.14) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, rgba(201,162,75,0.08) 0 1px, transparent 1px 22px);
+  background-size: 44px 44px, 44px 44px;
+  animation: hc-weave-drift 40s linear infinite;
 }
-@keyframes hc-weave-drift { to { background-position: 320px 320px, -320px 320px, 300px 0; } }
+@keyframes hc-weave-drift { to { background-position: 440px 440px, -440px 440px; } }
 .hc-hero-glow {
-  position: absolute; z-index: -1; top: -18%; right: -8%;
-  width: 46vw; height: 46vw; max-width: 640px; max-height: 640px;
-  background: radial-gradient(circle, rgba(245,209,138,0.34) 0%, transparent 68%);
-  filter: blur(8px); pointer-events: none;
-  animation: hc-glow-pulse 7s ease-in-out infinite;
+  position: absolute; z-index: -1; top: -16%; right: -6%;
+  width: 42vw; height: 42vw; max-width: 580px; max-height: 580px;
+  background: radial-gradient(circle, rgba(201,162,75,0.16) 0%, transparent 70%);
+  filter: blur(10px); pointer-events: none;
+  animation: hc-glow-pulse 11s ease-in-out infinite;
 }
-@keyframes hc-glow-pulse { 0%,100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes hc-glow-pulse { 0%,100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.08); opacity: 0.9; } }
 
 .hc-hero--bold .hc-hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: center; }
 .hc-hero--bold .hc-hero-left { padding: 5.5rem 3rem 5.5rem 0; }
@@ -331,7 +329,7 @@
 }
 .hc-hero-em {
   display: block; font-style: italic;
-  background: linear-gradient(100deg, #f5d18a 0%, #f0b75a 50%, #e89a3c 100%);
+  background: linear-gradient(100deg, #e0c486 0%, #c9a24b 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hc-hero-sub {
@@ -339,8 +337,8 @@
   max-width: 34rem; margin-top: 1.5rem;
 }
 .hc-hero--bold .hc-hero-actions { margin-top: 2.25rem; }
-.hc-btn--gold { background: linear-gradient(100deg, #f5d18a, #e89a3c); color: #5c1414; border: none; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.28); }
-.hc-btn--gold:hover { filter: brightness(1.06); transform: translateY(-1px); color: #5c1414; }
+.hc-btn--gold { background: linear-gradient(100deg, #d9bd7d, #c9a24b); color: #2a1414; border: none; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.32); }
+.hc-btn--gold:hover { filter: brightness(1.05); transform: translateY(-1px); color: #2a1414; }
 .hc-btn--glass { background: rgba(255,255,255,0.10); color: #fff; border: 1.5px solid rgba(255,255,255,0.4); backdrop-filter: blur(6px); }
 .hc-btn--glass:hover { background: rgba(255,255,255,0.2); color: #fff; }
 .hc-hero-cta { position: relative; }
