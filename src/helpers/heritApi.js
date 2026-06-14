@@ -228,6 +228,18 @@ export const heritApi = {
     remove: (id) => request(`/coupons.php?action=delete&id=${id}`, { method: 'POST' }),
   },
 
+  // Data / accounting export — fetch CSV (with auth) and trigger a download.
+  downloadCsv: async (type) => {
+    const data = await request(`/export.php?type=${type}`);
+    const blob = new Blob([data.csv || ''], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = data.filename || `${type}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    return data.rows ?? 0;
+  },
+
   // Dashboard stats
   stats: () => request('/stats.php'),
 

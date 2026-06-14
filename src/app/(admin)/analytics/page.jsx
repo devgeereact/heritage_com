@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card, CardBody, Table, Spinner, Alert, Row, Col, Button, Badge } from 'react-bootstrap';
+import { Card, CardBody, Table, Spinner, Alert, Row, Col, Button, Badge, Dropdown } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTItle from '@/components/PageTItle';
 import heritApi from '@/helpers/heritApi';
+import { useNotificationContext } from '@/context/useNotificationContext';
 import AiInsights from './AiInsights';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
@@ -16,14 +17,22 @@ const Kpi = ({ label, value, tone, icon }) => (
   </Col>
 );
 
+const EXPORTS = [['orders', 'Orders'], ['payments', 'Payments'], ['expenses', 'Expenses'], ['customers', 'Customers'], ['products', 'Products']];
+
 const AnalyticsPage = () => {
   const [d, setD] = useState(null);
   const [state, setState] = useState('loading');
+  const { showNotification } = useNotificationContext();
 
   const load = useCallback(async () => {
     try { setD(await heritApi.analytics()); setState('ready'); } catch { setState('offline'); }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  const exportCsv = async (type) => {
+    try { const n = await heritApi.downloadCsv(type); showNotification({ message: `Exported ${n} ${type} rows`, variant: 'success' }); }
+    catch (e) { showNotification({ message: e.message || 'Export failed', variant: 'danger' }); }
+  };
 
   const k = d?.kpis;
   const maxRev = Math.max(1, ...(d?.sales_by_day || []).map((x) => x.revenue));
@@ -39,7 +48,15 @@ const AnalyticsPage = () => {
       <PageTItle title="Analytics & Reports" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div><h4 className="mb-1">Analytics &amp; Reports</h4><p className="text-muted mb-0">The numbers behind every decision.</p></div>
-        <Button variant="light" onClick={load} disabled={state === 'loading'}><IconifyIcon icon="solar:refresh-bold" className="me-1" /> Refresh</Button>
+        <div className="d-flex gap-2">
+          <Dropdown>
+            <Dropdown.Toggle variant="light"><IconifyIcon icon="solar:download-minimalistic-bold" className="me-1" /> Export</Dropdown.Toggle>
+            <Dropdown.Menu>
+              {EXPORTS.map(([t, l]) => <Dropdown.Item key={t} onClick={() => exportCsv(t)}>{l} (CSV)</Dropdown.Item>)}
+            </Dropdown.Menu>
+          </Dropdown>
+          <Button variant="light" onClick={load} disabled={state === 'loading'}><IconifyIcon icon="solar:refresh-bold" className="me-1" /> Refresh</Button>
+        </div>
       </div>
 
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
@@ -169,6 +186,42 @@ const AnalyticsPage = () => {
                   </Table>
                 </CardBody>
               </Card>
+            </Col>
+
+            <Col xl={6}>
+              <Card><CardBody className="pb-0"><h5 className="mb-3">Worst sellers</h5></CardBody>
+                <CardBody className="p-0">
+                  <Table responsive hover className="mb-0 align-middle">
+                    <thead className="table-light"><tr><th>Product</th><th className="text-end">Units</th><th className="text-end">Revenue</th></tr></thead>
+                    <tbody>
+                      {(d.worst_sellers || []).length === 0 && <tr><td colSpan={3} className="text-center text-muted py-3">No active products.</td></tr>}
+                      {(d.worst_sellers || []).map((p, i) => <tr key={i}><td>{p.name}</td><td className="text-end">{p.units}</td><td className="text-end">{naira(p.revenue)}</td></tr>)}
+                    </tbody>
+                  </Table>
+                </CardBody>
+              </Card>
+            </Col>
+            <Col xl={3}>
+              <Card className="h-100"><CardBody>
+                <h5 className="mb-3">By payment</h5>
+                {(d.by_payment || []).length === 0 ? <p className="text-muted mb-0">—</p> : (d.by_payment || []).map((p) => (
+                  <div key={p.method} className="d-flex justify-content-between small mb-2"><span className="text-capitalize">{p.method} <span className="text-muted">· {p.orders}</span></span><span className="fw-semibold">{naira(p.revenue)}</span></div>
+                ))}
+              </CardBody></Card>
+            </Col>
+            <Col xl={3}>
+              <Card className="h-100"><CardBody>
+                <h5 className="mb-3">Returns</h5>
+                {(d.returns?.by_status || []).length === 0 ? <p className="text-muted mb-0">None yet. 👍</p> : (
+                  <>
+                    {(d.returns.by_status || []).map((s) => (
+                      <div key={s.status} className="d-flex justify-content-between small mb-1"><span className="text-capitalize">{s.status}</span><Badge bg="secondary" className="bg-opacity-75">{s.count}</Badge></div>
+                    ))}
+                    {(d.returns.top_reasons || []).length > 0 && <div className="text-muted small mt-2">Top reasons</div>}
+                    {(d.returns.top_reasons || []).map((r, i) => <div key={i} className="small text-muted text-truncate">· {r.reason} ({r.count})</div>)}
+                  </>
+                )}
+              </CardBody></Card>
             </Col>
           </Row>
         </>

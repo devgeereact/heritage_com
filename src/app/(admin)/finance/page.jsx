@@ -124,6 +124,8 @@ const FinancePage = () => {
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div><h4 className="mb-1">Payments &amp; Finance</h4><p className="text-muted mb-0">Money in, money out, and where the month stands.</p></div>
         <div className="d-flex gap-2">
+          <Button variant="light" onClick={() => heritApi.downloadCsv('payments').catch(() => {})}><IconifyIcon icon="solar:download-minimalistic-bold" className="me-1" /> Payments CSV</Button>
+          <Button variant="light" onClick={() => heritApi.downloadCsv('expenses').catch(() => {})}><IconifyIcon icon="solar:download-minimalistic-bold" className="me-1" /> Expenses CSV</Button>
           <Button variant="light" onClick={() => setShowExp(true)}><IconifyIcon icon="solar:cart-cross-bold" className="me-1" /> Expense</Button>
           <Button variant="primary" onClick={() => setShowPay(true)}><IconifyIcon icon="solar:wallet-money-bold" className="me-1" /> Payment</Button>
         </div>

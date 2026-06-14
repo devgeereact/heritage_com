@@ -146,4 +146,34 @@ $r = $conn->query("SELECT COALESCE(NULLIF(source,''),'direct') AS source, COUNT(
                     GROUP BY source ORDER BY revenue DESC LIMIT 12");
 while ($r && $row = $r->fetch_assoc()) $out['by_source'][] = ['source' => $row['source'], 'orders' => (int)$row['orders'], 'revenue' => (float)$row['revenue']];
 
+/* By payment method --------------------------------------------------------*/
+$out['by_payment'] = [];
+$r = $conn->query("SELECT payment_method AS method, COUNT(*) AS orders, COALESCE(SUM(total),0) AS revenue
+                     FROM orders WHERE deleted_at IS NULL AND status <> 'cancelled'
+                    GROUP BY payment_method ORDER BY revenue DESC");
+while ($r && $row = $r->fetch_assoc()) $out['by_payment'][] = ['method' => $row['method'], 'orders' => (int)$row['orders'], 'revenue' => (float)$row['revenue']];
+
+/* Worst sellers — active published pieces with the least (or no) sales -------*/
+$out['worst_sellers'] = [];
+$r = $conn->query(
+  "SELECT p.name, COALESCE(SUM(i.qty),0) AS units, COALESCE(SUM(i.qty*i.unit_price),0) AS revenue
+     FROM products p
+LEFT JOIN product_variants v ON v.product_id = p.id
+LEFT JOIN order_items i ON i.variant_id = v.id
+LEFT JOIN orders o ON o.id = i.order_id AND o.deleted_at IS NULL AND o.status <> 'cancelled'
+    WHERE p.deleted_at IS NULL AND p.status = 'active'
+ GROUP BY p.id ORDER BY units ASC, revenue ASC LIMIT 8"
+);
+while ($r && $row = $r->fetch_assoc()) $out['worst_sellers'][] = ['name' => $row['name'], 'units' => (int)$row['units'], 'revenue' => (float)$row['revenue']];
+
+/* Returns — pipeline counts + top reasons ----------------------------------*/
+$out['returns'] = ['by_status' => [], 'top_reasons' => []];
+$r = $conn->query("SELECT return_status AS status, COUNT(*) AS n FROM orders
+                    WHERE deleted_at IS NULL AND return_status <> 'none' GROUP BY return_status");
+while ($r && $row = $r->fetch_assoc()) $out['returns']['by_status'][] = ['status' => $row['status'], 'count' => (int)$row['n']];
+$r = $conn->query("SELECT return_reason AS reason, COUNT(*) AS n FROM orders
+                    WHERE deleted_at IS NULL AND return_status <> 'none' AND return_reason IS NOT NULL AND return_reason <> ''
+                 GROUP BY return_reason ORDER BY n DESC LIMIT 6");
+while ($r && $row = $r->fetch_assoc()) $out['returns']['top_reasons'][] = ['reason' => $row['reason'], 'count' => (int)$row['n']];
+
 json($out);
