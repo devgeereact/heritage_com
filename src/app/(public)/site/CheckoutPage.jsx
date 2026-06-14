@@ -45,6 +45,12 @@ const CheckoutPage = () => {
   const [giftErr, setGiftErr] = useState('');
   const [creditBalance, setCreditBalance] = useState(0);
   const [useCredit, setUseCredit] = useState(false);
+  const [referral, setReferral] = useState('');
+
+  // Prefill a referral code captured from a share link (?ref=) by SiteLayout.
+  useEffect(() => {
+    try { const r = localStorage.getItem('herit_ref'); if (r) setReferral(r); } catch { /* ignore */ }
+  }, []);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -117,6 +123,7 @@ const CheckoutPage = () => {
         coupon: applied ? applied.code : '',
         gift_card: giftCard ? giftCard.code : '',
         use_credit: useCredit ? -1 : 0,
+        referral_code: referral.trim(),
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.
@@ -326,6 +333,12 @@ const CheckoutPage = () => {
                 <span><IconifyIcon icon="solar:wallet-money-bold" /> Use my store credit ({formatNgn(creditBalance)})</span>
               </label>
             )}
+
+            {/* Referral — first-time buyers only; both you and your friend earn credit */}
+            <div style={{ marginBottom: '0.8rem' }}>
+              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
+              {referral.trim() && <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', margin: '0.3rem 0 0' }}>New here? You and your friend each earn store credit once this order is paid.</p>}
+            </div>
 
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Subtotal</span><span>{formatNgn(subtotal)}</span></div>
             {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}

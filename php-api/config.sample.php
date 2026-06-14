@@ -112,6 +112,12 @@ define('WHATSAPP_VERIFY_TOKEN', '');       // any random string; must match the 
 // store credit when a web order is confirmed paid. 0 = loyalty off; 0.02 = 2%.
 define('LOYALTY_RATE', 0);
 
+// ---- Referral reward --------------------------------------------------------
+// Read by referral_settle() (_lib.php). Store credit (₦) given to BOTH the
+// referrer and the new customer when a referred friend's first order is paid.
+// 0 = referrals off. e.g. 2000 = "give ₦2,000, get ₦2,000".
+define('REFERRAL_REWARD', 0);
+
 // ---- CORS --------------------------------------------------------------------
 // Production is same-origin. In dev, _lib.php reflects ANY localhost port, so
 // this is only a fallback — no need to chase Vite's auto-port here.

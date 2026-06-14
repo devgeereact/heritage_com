@@ -173,6 +173,12 @@ export const heritApi = {
     giftToggle: (id, active) => request(`/loyalty.php?action=gift_toggle&id=${id}`, { method: 'POST', body: { active } }),
   },
 
+  // Referrals
+  referrals: {
+    leaderboard: () => request('/referrals.php?action=leaderboard'),
+    code: (customerId) => request(`/referrals.php?action=code&customer_id=${customerId}`),
+  },
+
   // Coupons & promotions
   coupons: {
     list: () => request('/coupons.php?action=list'),

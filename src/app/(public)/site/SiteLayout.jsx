@@ -217,6 +217,13 @@ const SiteLayout = ({ title, children }) => {
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
+  // Capture a referral code from a share link (?ref=CODE) so it survives the
+  // browse → checkout journey. Read back in CheckoutPage.
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('ref');
+    if (ref) { try { localStorage.setItem('herit_ref', ref.toUpperCase()); } catch { /* ignore */ } }
+  }, [pathname]);
+
   // Reveal each section as it scrolls into view. Skipped when the user prefers
   // reduced motion; degrades to fully-visible if IntersectionObserver is absent.
   useEffect(() => {

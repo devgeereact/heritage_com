@@ -84,6 +84,25 @@ if ($action === 'checkout' && method() === 'POST') {
   if ($delivery === 'lagos')   $ship = $goods >= $FREE_SHIP_OVER ? 0 : $LAGOS_SHIP;
   if ($delivery === 'nigeria') $ship = $NG_SHIP;
 
+  // Resolve the customer up front — link by phone, or create a CRM record for a
+  // new web buyer. Doing this here (not after the order) means store credit,
+  // loyalty and referrals can all attach to a real customer id.
+  $customerId = null; $isNewCustomer = false;
+  if ($phone !== '') {
+    $stmt = $conn->prepare('SELECT id FROM customers WHERE phone = ? AND deleted_at IS NULL LIMIT 1');
+    $stmt->bind_param('s', $phone);
+    $stmt->execute();
+    if ($row = $stmt->get_result()->fetch_assoc()) $customerId = (int)$row['id'];
+  }
+  if (!$customerId) {
+    $ins = $conn->prepare('INSERT INTO customers (name, phone, email) VALUES (?,?,?)');
+    $emailVal = $email !== '' ? $email : null;
+    $ins->bind_param('sss', $name, $phone, $emailVal);
+    $ins->execute();
+    $customerId = $conn->insert_id;
+    $isNewCustomer = true;
+  }
+
   // Coupon — evaluated server-side against OUR numbers (never trust a browser
   // discount). free_ship zeroes delivery; percent/fixed take ₦ off the goods.
   $couponCode = strtoupper(trim($b['coupon'] ?? ''));
@@ -120,12 +139,11 @@ if ($action === 'checkout' && method() === 'POST') {
     }
   }
 
-  // Store credit — redeem the customer's balance (resolved by phone).
-  $creditCustomerId = customer_id_by_phone($phone);
+  // Store credit — redeem this customer's balance (a returning buyer's pot).
   $creditApplied = 0;
   $wantCredit = isset($b['use_credit']) ? (float)$b['use_credit'] : 0;   // 0/absent = none; -1 = all
-  if ($creditCustomerId && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
-    $bal = credit_balance($creditCustomerId);
+  if ($customerId && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
+    $bal = credit_balance($customerId);
     $cap = $wantCredit == -1 ? $bal : min($wantCredit, $bal);
     $creditApplied = min($cap, $total);
     if ($creditApplied > 0) {
@@ -135,13 +153,16 @@ if ($action === 'checkout' && method() === 'POST') {
   }
   $total = max(0, $total);
 
-  // Link to an existing customer by phone (so web orders enrich the CRM).
-  $customerId = null;
-  if ($phone !== '') {
-    $stmt = $conn->prepare('SELECT id FROM customers WHERE phone = ? AND deleted_at IS NULL LIMIT 1');
-    $stmt->bind_param('s', $phone);
-    $stmt->execute();
-    if ($row = $stmt->get_result()->fetch_assoc()) $customerId = (int)$row['id'];
+  // Referral — only a brand-new customer can be referred, and never by themself.
+  // Captured on the order now; the reward is paid to BOTH only when it's paid.
+  $referralCode = strtoupper(trim($b['referral_code'] ?? ''));
+  $referrerId = null;
+  if ($referralCode !== '' && $isNewCustomer) {
+    $rid = referrer_by_code($referralCode);
+    if ($rid && $rid !== $customerId) { $referrerId = $rid; }
+    else { $referralCode = ''; }   // invalid / self — silently drop, don't block the sale
+  } else {
+    $referralCode = '';
   }
 
   // Next ORD-#### code.
@@ -157,14 +178,17 @@ if ($action === 'checkout' && method() === 'POST') {
 
   $stmt = $conn->prepare(
     'INSERT INTO orders (code, customer_id, customer_name, customer_phone, channel,
-                         payment_method, total, paid, ship_address, notes, created_by)
-     VALUES (?,?,?,?,?,?,?,?,?,?,NULL)'
+                         payment_method, total, paid, ship_address, notes,
+                         referral_code, referrer_id, created_by)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NULL)'
   );
   $channel = 'web';
+  $refCodeVal = $referralCode !== '' ? $referralCode : null;
   $stmt->bind_param(
-    'sissssddss',
+    'sissssddsssi',
     $code, $customerId, $name, $phone, $channel,
-    $paymentMethod, $total, $paid, $shipFull, $fullNotes
+    $paymentMethod, $total, $paid, $shipFull, $fullNotes,
+    $refCodeVal, $referrerId
   );
   $stmt->execute();
   $orderId = $conn->insert_id;
@@ -194,9 +218,13 @@ if ($action === 'checkout' && method() === 'POST') {
   }
 
   // Debit the redeemed store credit against the ledger.
-  if ($creditCustomerId && $creditApplied > 0) {
-    credit_add($creditCustomerId, -$creditApplied, 'redeem', $code, 'Redeemed at checkout');
+  if ($customerId && $creditApplied > 0) {
+    credit_add($customerId, -$creditApplied, 'redeem', $code, 'Redeemed at checkout');
   }
+
+  // COD orders count as a sale on placement — settle any referral now. Card and
+  // transfer settle later, when the payment is actually confirmed.
+  if ($paymentMethod === 'cod' && $referrerId) referral_settle($orderId);
 
   // Stash email on the order notes-less side via a lightweight log row is overkill;
   // email travels in the confirmation only. Audit as a system (null-user) event.
@@ -318,6 +346,10 @@ if ($action === 'pay_verify' && method() === 'GET') {
         if ($earn > 0) credit_add((int)$o['customer_id'], $earn, 'loyalty', $code, 'Earned on order ' . $code);
       }
     }
+
+    // Settle any referral now the order is genuinely paid.
+    $oid = $conn->query("SELECT id FROM orders WHERE code = '" . $conn->real_escape_string($code) . "' LIMIT 1")->fetch_assoc();
+    if ($oid) referral_settle((int)$oid['id']);
 
     audit(null, 'web_order_paid', 'order', null, ['code' => $code, 'reference' => $reference]);
     json(['ok' => true, 'code' => $code, 'status' => 'paid']);

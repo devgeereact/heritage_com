@@ -178,6 +178,11 @@ if ($action === 'status' && method() === 'POST') {
   $stmt->bind_param('si', $status, $id);
   $stmt->execute();
 
+  // A referral pays out once its order reaches a paid/fulfilled state.
+  if (in_array($status, ['paid', 'making', 'packing', 'shipped', 'delivered'], true)) {
+    referral_settle($id);
+  }
+
   audit($user['id'], 'order_status', 'order', $id, ['status' => $status]);
   json(['ok' => true, 'status' => $status]);
 }

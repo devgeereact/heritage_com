@@ -157,6 +157,51 @@ const GiftCards = () => {
   );
 };
 
+/* ---- Referrals ------------------------------------------------------------*/
+const Referrals = () => {
+  const [data, setData] = useState(null);
+  const [state, setState] = useState('loading');
+  const { showNotification } = useNotificationContext();
+
+  const load = useCallback(async () => {
+    try { setData(await heritApi.referrals.leaderboard()); setState('ready'); } catch { setState('offline'); }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const copy = (code) => { navigator.clipboard?.writeText(code); showNotification({ message: `Copied ${code}`, variant: 'success' }); };
+
+  if (state === 'loading') return <div className="text-center py-4"><Spinner /></div>;
+  if (state === 'offline') return <Alert variant="warning" className="mb-0"><strong>Offline.</strong> Upload <code>referrals.php</code> + import <code>schema_phase7.sql</code>.</Alert>;
+
+  const off = !data.reward;
+  return (
+    <>
+      {off && <Alert variant="info">Referrals are configured but <strong>off</strong> — set <code>REFERRAL_REWARD</code> in <code>config.php</code> (e.g. 2000) to start paying out.</Alert>}
+      <Row className="g-3 mb-3">
+        <Col sm={4}><Card className="h-100"><CardBody><div className="text-muted small">Reward each side</div><h4 className="mb-0">{naira(data.reward)}</h4></CardBody></Card></Col>
+        <Col sm={4}><Card className="h-100"><CardBody><div className="text-muted small">Active referrers</div><h4 className="mb-0">{data.referrers.length}</h4></CardBody></Card></Col>
+        <Col sm={4}><Card className="h-100"><CardBody><div className="text-muted small">Pending (unpaid orders)</div><h4 className="mb-0">{data.pending}</h4></CardBody></Card></Col>
+      </Row>
+      <Card><CardBody className="p-0">
+        <Table responsive hover className="mb-0 align-middle">
+          <thead className="table-light"><tr><th>Referrer</th><th>Code</th><th className="text-center">Friends referred</th><th className="text-end">Credit earned</th></tr></thead>
+          <tbody>
+            {data.referrers.length === 0 && <tr><td colSpan={4} className="text-center text-muted py-4">No paid referrals yet. Share codes from a customer&apos;s profile.</td></tr>}
+            {data.referrers.map((r) => (
+              <tr key={r.customer_id}>
+                <td className="fw-semibold">{r.name}<div className="text-muted small">{r.phone || '—'}</div></td>
+                <td>{r.code ? <span role="button" onClick={() => copy(r.code)} title="Copy">{r.code} <IconifyIcon icon="solar:copy-linear" className="text-muted" /></span> : '—'}</td>
+                <td className="text-center"><Badge bg="primary" className="bg-opacity-75">{r.referred}</Badge></td>
+                <td className="text-end">{naira(r.earned)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </CardBody></Card>
+    </>
+  );
+};
+
 const LoyaltyPage = () => (
   <>
     <PageTItle title="Loyalty & Gift Cards" />
@@ -170,6 +215,9 @@ const LoyaltyPage = () => (
       </Tab>
       <Tab eventKey="gift" title="Gift cards">
         <GiftCards />
+      </Tab>
+      <Tab eventKey="referrals" title="Referrals">
+        <Referrals />
       </Tab>
     </Tabs>
   </>

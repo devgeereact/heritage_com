@@ -269,6 +269,70 @@ function customer_id_by_phone($phone) {
   return $row ? (int)$row['id'] : 0;
 }
 
+/* ---- Referrals ("give ₦, get ₦") ----------------------------------------- */
+
+/** Get a customer's referral code, generating + persisting one if absent. */
+function ensure_referral_code($customerId) {
+  global $conn;
+  $customerId = (int)$customerId;
+  if (!$customerId) return null;
+  $row = $conn->query('SELECT name, referral_code FROM customers WHERE id = ' . $customerId)->fetch_assoc();
+  if (!$row) return null;
+  if (!empty($row['referral_code'])) return $row['referral_code'];
+
+  // Base on the first name + a short random tail; retry on collision.
+  $base = strtoupper(preg_replace('/[^A-Za-z]/', '', explode(' ', trim($row['name']))[0] ?? 'HERIT'));
+  $base = substr($base ?: 'HERIT', 0, 8);
+  for ($i = 0; $i < 6; $i++) {
+    $code = $base . strtoupper(bin2hex(random_bytes(2)));   // e.g. ADAOKAFOR + 4 hex
+    $stmt = $conn->prepare('UPDATE customers SET referral_code = ? WHERE id = ? AND (referral_code IS NULL OR referral_code = "")');
+    $stmt->bind_param('si', $code, $customerId);
+    try { $stmt->execute(); if ($stmt->affected_rows > 0) return $code; }
+    catch (\Throwable $e) { /* unique collision — try another tail */ }
+    // Re-read in case a concurrent call set it.
+    $r2 = $conn->query('SELECT referral_code FROM customers WHERE id = ' . $customerId)->fetch_assoc();
+    if (!empty($r2['referral_code'])) return $r2['referral_code'];
+  }
+  return null;
+}
+
+/** Find the customer who owns a referral code. 0 if none. */
+function referrer_by_code($code) {
+  global $conn;
+  $code = strtoupper(trim((string)$code));
+  if ($code === '') return 0;
+  $stmt = $conn->prepare('SELECT id FROM customers WHERE UPPER(referral_code) = ? AND deleted_at IS NULL LIMIT 1');
+  $stmt->bind_param('s', $code);
+  $stmt->execute();
+  $row = $stmt->get_result()->fetch_assoc();
+  return $row ? (int)$row['id'] : 0;
+}
+
+/**
+ * Settle a referral once its order is genuinely paid: credit both the referrer
+ * and the new customer, then mark it settled so it can never double-pay. Safe to
+ * call repeatedly (idempotent via referral_settled). Returns true if it paid out.
+ */
+function referral_settle($orderId) {
+  global $conn;
+  $orderId = (int)$orderId;
+  $reward = (float)cfg('REFERRAL_REWARD', 0);
+  if (!$orderId || $reward <= 0) return false;
+
+  $o = $conn->query("SELECT id, code, customer_id, referrer_id, referral_settled FROM orders WHERE id = $orderId AND deleted_at IS NULL")->fetch_assoc();
+  if (!$o || (int)$o['referral_settled'] || !$o['referrer_id'] || !$o['customer_id']) return false;
+  if ((int)$o['referrer_id'] === (int)$o['customer_id']) return false;
+
+  // Mark settled FIRST (and only if still unsettled) to avoid a double payout
+  // under concurrent calls; only credit if we actually flipped it.
+  $upd = $conn->query("UPDATE orders SET referral_settled = 1 WHERE id = $orderId AND referral_settled = 0");
+  if ($conn->affected_rows < 1) return false;
+
+  credit_add((int)$o['referrer_id'], $reward, 'referral', $o['code'], 'Referral reward — friend ordered');
+  credit_add((int)$o['customer_id'], $reward, 'referral', $o['code'], 'Welcome referral credit');
+  return true;
+}
+
 /** Write a row to the audit log. */
 function audit($userId, $action, $entity = null, $entityId = null, $meta = null) {
   global $conn;
