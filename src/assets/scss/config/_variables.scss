@@ -7,10 +7,10 @@
 $prefix:                        'bs-';
 
 
-// Font Family — Herit brand: Poppins (sans), Libre Baskerville (serif)
-$font-family-primary:                             "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-secondary:                           "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-serif:                               "Libre Baskerville", Georgia, serif;
+// Font Family — Herit premium brand: Inter (UI/body), Fraunces (serif display)
+$font-family-primary:                             "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-secondary:                           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-serif:                               "Fraunces", Georgia, serif;
 
 
 //
@@ -18,17 +18,17 @@ $font-family-serif:                               "Libre Baskerville", Georgia, 
 //
 
 // scss-docs-start gray-color-variables
-// Warm stone neutral scale — keeps text/borders on-brand with maroon
+// Warm bone neutral scale — premium heritage foundation (bone paper, warm ink)
 $white:    #ffffff;
-$gray-100: #faf7f5;
-$gray-200: #f0ebe8;
-$gray-300: #e3dbd3;
-$gray-400: #c4baae;
-$gray-500: #8c827a;
-$gray-600: #57534e;
-$gray-700: #44403c;
+$gray-100: #faf8f4;  // bone paper — primary surface
+$gray-200: #f1ece4;
+$gray-300: #e8e3db;  // warm hairline border
+$gray-400: #c4bcb0;
+$gray-500: #8a8178;
+$gray-600: #6b655e;  // muted text
+$gray-700: #443f3a;
 $gray-800: #2a2622;
-$gray-900: #1c1917;
+$gray-900: #1a1714;  // warm near-black ink
 $black:    #000000;
 // scss-docs-end gray-color-variables
 
@@ -40,7 +40,8 @@ $purple:  #7f56da;
 $pink:    #ff86c8;
 $red:     #ef4444;  // brand template destructive
 $orange:  #f59e0b;  // amber (utility "orange" only)
-$maroon:  #9b2c2c;  // Herit Clothing brand maroon
+$maroon:  #7a1f1f;  // Herit Clothing brand maroon — deepened for premium
+$gold:    #c9a24b;  // premium micro-accent (tags, active states)
 $yellow:  #f9b931;
 $green:   #22c55e;
 $teal:    #040505;

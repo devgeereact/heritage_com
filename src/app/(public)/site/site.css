@@ -1,46 +1,46 @@
 /* ============================================================
    Herit Clothing — public site theme
-   Warm editorial heritage palette: cream paper, maroon, gold.
-   Libre Baskerville display + Poppins body + IBM Plex Mono labels.
-   Soft shadows, rounded 0.375rem. Scoped under `.hc` so it never
+   Premium editorial heritage palette: bone paper, deep maroon, gold thread.
+   Fraunces display + Inter body + IBM Plex Mono labels.
+   Soft layered shadows, radius 0.625rem. Scoped under `.hc` so it never
    touches the Bootstrap-driven admin app.
    ============================================================ */
 
 .hc {
   --card: #ffffff;
-  --ring: #9b2c2c;
-  --input: #f5e8d2;
-  --muted: #f0ebe8;
-  --accent: #fef3c7;
-  --border: #ecdfca;
-  --radius: 0.375rem;
+  --ring: #7a1f1f;
+  --input: #f1ece4;
+  --muted: #f1ece4;
+  --accent: #f6efe0;
+  --border: #e8e3db;
+  --radius: 0.625rem;
 
-  --chart-1: #b91c1c;
-  --chart-2: #9b2c2c;
-  --chart-3: #7f1d1d;
-  --chart-4: #b45309;
-  --chart-5: #92400e;
+  --chart-1: #7a1f1f;
+  --chart-2: #5e1717;
+  --chart-3: #c9a24b;
+  --chart-4: #8a8178;
+  --chart-5: #443f3a;
 
-  --primary: #9b2c2c;
-  --primary-dark: #7f1d1d;
-  --secondary: #fdf2d6;
-  --gold: #b45309;
-  --background: #faf7f5;
-  --foreground: #1a1a1a;
-  --espresso: #1c1917;
+  --primary: #7a1f1f;
+  --primary-dark: #5e1717;
+  --secondary: #f6efe0;
+  --gold: #c9a24b;
+  --background: #faf8f4;
+  --foreground: #1a1714;
+  --espresso: #1a1714;
   --destructive: #991b1b;
-  --muted-foreground: #57534e;
-  --accent-foreground: #7f1d1d;
+  --muted-foreground: #6b655e;
+  --accent-foreground: #7a1f1f;
   --primary-foreground: #ffffff;
-  --secondary-foreground: #805500;
+  --secondary-foreground: #6b655e;
 
   --font-mono: "IBM Plex Mono", monospace;
-  --font-sans: "Poppins", sans-serif;
-  --font-serif: "Libre Baskerville", Georgia, serif;
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Fraunces", Georgia, serif;
 
-  --shadow-sm: 1px 1px 8px -2px hsl(0 63% 18% / 0.10);
-  --shadow-md: 1px 2px 16px -2px hsl(0 63% 18% / 0.12);
-  --shadow-lg: 2px 8px 28px -4px hsl(0 63% 18% / 0.16);
+  --shadow-sm: 0 1px 2px hsl(30 20% 12% / 0.04), 0 2px 6px hsl(30 20% 12% / 0.05);
+  --shadow-md: 0 2px 4px hsl(30 20% 12% / 0.05), 0 6px 16px hsl(30 20% 12% / 0.07);
+  --shadow-lg: 0 4px 8px hsl(30 20% 12% / 0.06), 0 16px 36px hsl(30 20% 12% / 0.10);
 
   font-family: var(--font-sans);
   color: var(--foreground);

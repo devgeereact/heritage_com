@@ -18,11 +18,11 @@
     --#{$prefix}topbar-height:                 100px;
     --#{$prefix}footer-height:                 60px;
     
-    // Heading Variable — brand foreground
-    --#{$prefix}headings-color:                            #1a1a1a;
+    // Heading Variable — brand foreground (warm ink)
+    --#{$prefix}headings-color:                            #1a1714;
 
-    --#{$prefix}input-border-color:             #e7e0d9;   // --input (warm)
-    --#{$prefix}input-focus-border-color:       #9b2c2c;   // --ring
+    --#{$prefix}input-border-color:             #e8e3db;   // --input (warm hairline)
+    --#{$prefix}input-focus-border-color:       #7a1f1f;   // --ring
 }
 
 
@@ -41,13 +41,13 @@ html[data-bs-theme="dark"], [data-bs-theme="dark"] {
     --#{$prefix}headings-color:            #e5e5e5;
 
     --#{$prefix}input-border-color:             #404040;   // dark --input
-    --#{$prefix}input-focus-border-color:       #9b2c2c;   // --ring
+    --#{$prefix}input-focus-border-color:       #7a1f1f;   // --ring
 }
 
 
 /* Main Menu Light — sidebar tokens */
 html[data-menu-color="light"]{
-    --#{$prefix}main-nav-bg:                               #faf7f5;   // --sidebar (warm paper)
+    --#{$prefix}main-nav-bg:                               #faf8f4;   // --sidebar (bone paper)
     --#{$prefix}main-nav-item-color:                       #57534e;   // --muted-foreground
     --#{$prefix}main-nav-item-hover-bg:                    #fdf2d6;   // --sidebar-accent (gold)
     --#{$prefix}main-nav-item-hover-color:                 #7f1d1d;   // --sidebar-accent-foreground (maroon)
