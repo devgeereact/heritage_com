@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
-import { PRODUCTS, formatNgn } from './products';
+import { useCatalogue, formatNgn } from './products';
 
 const FABRICS = ['All', 'Ankara', 'Adire', 'Aso-Oke', 'Mixed'];
 const TYPES = ['All', 'Shirts', 'Dresses', 'Sets', 'Accessories'];
@@ -33,6 +33,7 @@ const Chips = ({ label, options, value, onChange }) => (
 
 const ShopPage = () => {
   const { search } = useLocation();
+  const { products } = useCatalogue();
   const [fabric, setFabric] = useState('All');
   const [type, setType] = useState('All');
   const [occasion, setOccasion] = useState('All');
@@ -46,12 +47,12 @@ const ShopPage = () => {
   }, [search]);
 
   const filtered = useMemo(
-    () => PRODUCTS.filter((p) =>
+    () => products.filter((p) =>
       matchFabric(p, fabric) &&
       (type === 'All' || p.type === type) &&
       (occasion === 'All' || p.occasion === occasion)
     ),
-    [fabric, type, occasion]
+    [products, fabric, type, occasion]
   );
 
   return (

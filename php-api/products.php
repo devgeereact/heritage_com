@@ -124,14 +124,23 @@ if ($action === 'update' && method() === 'POST') {
   $oneOfAKind = !empty($b['one_of_a_kind']) ? 1 : 0;
   $imageUrl = trim($b['image_url'] ?? '');
 
+  // Storefront publishing fields (optional).
+  $slug = trim($b['slug'] ?? '');
+  $slug = $slug !== '' ? strtolower(preg_replace('/[^a-z0-9-]+/i', '-', $slug)) : null;
+  $slug = $slug ? trim($slug, '-') : null;
+  $published = !empty($b['published']) ? 1 : 0;
+  $storefront = isset($b['storefront']) && is_array($b['storefront']) ? json_encode($b['storefront']) : null;
+
   $stmt = $conn->prepare(
     'UPDATE products SET name=?, category=?, fabric=?, description=?, story=?, care=?,
-                         base_price=?, cost_price=?, one_of_a_kind=?, image_url=?
+                         base_price=?, cost_price=?, one_of_a_kind=?, image_url=?,
+                         slug=?, published=?, storefront=COALESCE(?, storefront)
        WHERE id=? AND deleted_at IS NULL'
   );
-  $stmt->bind_param('ssssssddisi', $name, $category, $fabric, $description, $story, $care,
-    $basePrice, $costPrice, $oneOfAKind, $imageUrl, $id);
-  $stmt->execute();
+  $stmt->bind_param('ssssssddissisi', $name, $category, $fabric, $description, $story, $care,
+    $basePrice, $costPrice, $oneOfAKind, $imageUrl, $slug, $published, $storefront, $id);
+  try { $stmt->execute(); }
+  catch (\Throwable $e) { fail('That storefront slug is already taken', 409); }
   if ($stmt->affected_rows === 0) {
     $chk = $conn->prepare('SELECT id FROM products WHERE id=? AND deleted_at IS NULL');
     $chk->bind_param('i', $id);
@@ -139,7 +148,7 @@ if ($action === 'update' && method() === 'POST') {
     if (!$chk->get_result()->fetch_assoc()) fail('Product not found', 404);
   }
 
-  audit($user['id'], 'product_update', 'product', $id, ['name' => $name, 'one_of_a_kind' => $oneOfAKind]);
+  audit($user['id'], 'product_update', 'product', $id, ['name' => $name, 'published' => $published]);
   json(['ok' => true, 'id' => $id]);
 }
 

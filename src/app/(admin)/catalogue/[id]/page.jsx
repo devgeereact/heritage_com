@@ -45,7 +45,13 @@ const StockCell = ({ variant, onSaved }) => {
   );
 };
 
-const EMPTY_EDIT = { name: '', category: '', fabric: '', base_price: '', cost_price: '', description: '', story: '', care: '', one_of_a_kind: false };
+const EMPTY_EDIT = {
+  name: '', category: '', fabric: '', base_price: '', cost_price: '', description: '', story: '', care: '', one_of_a_kind: false,
+  slug: '', published: false, sf_priceUsd: '', sf_short: '', sf_tile: 'hc-tile-mixed', sf_type: '', sf_occasion: '',
+};
+const TILES = [['hc-tile-ankara', 'Ankara'], ['hc-tile-adire', 'Adire'], ['hc-tile-asooke', 'Aso-Oke'], ['hc-tile-mixed', 'Mixed']];
+const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+const safeJson = (s) => { try { return JSON.parse(s); } catch { return {}; } };
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -69,11 +75,16 @@ const ProductDetailPage = () => {
   useEffect(() => { load(); }, [load]);
 
   const startEdit = () => {
+    let sf = {};
+    try { sf = product.storefront ? (typeof product.storefront === 'string' ? JSON.parse(product.storefront) : product.storefront) : {}; } catch { sf = {}; }
     setForm({
       name: product.name || '', category: product.category || '', fabric: product.fabric || '',
       base_price: product.base_price ?? '', cost_price: product.cost_price ?? '',
       description: product.description || '', story: product.story || '', care: product.care || '',
       one_of_a_kind: !!Number(product.one_of_a_kind),
+      slug: product.slug || slugify(product.name || ''), published: !!Number(product.published),
+      sf_priceUsd: sf.priceUsd ?? '', sf_short: sf.short ?? '', sf_tile: sf.tile || 'hc-tile-mixed',
+      sf_type: sf.type || product.category || '', sf_occasion: sf.occasion || '',
     });
     setEditing(true);
   };
@@ -82,14 +93,22 @@ const ProductDetailPage = () => {
     if (!form.name.trim()) { showNotification({ message: 'Name is required', variant: 'danger' }); return; }
     setSaving(true);
     try {
+      const storefront = {
+        ...(typeof product.storefront === 'string' ? safeJson(product.storefront) : (product.storefront || {})),
+        priceUsd: Number(form.sf_priceUsd) || 0, short: form.sf_short, tile: form.sf_tile,
+        type: form.sf_type, occasion: form.sf_occasion,
+      };
       await heritApi.products.update(id, {
         ...form,
         base_price: Number(form.base_price) || 0,
         cost_price: Number(form.cost_price) || 0,
         one_of_a_kind: form.one_of_a_kind ? 1 : 0,
         image_url: product.image_url || '',
+        slug: form.slug ? slugify(form.slug) : '',
+        published: form.published ? 1 : 0,
+        storefront,
       });
-      setProduct((p) => ({ ...p, ...form, one_of_a_kind: form.one_of_a_kind ? 1 : 0 }));
+      setProduct((p) => ({ ...p, ...form, slug: form.slug ? slugify(form.slug) : p.slug, published: form.published ? 1 : 0, storefront, one_of_a_kind: form.one_of_a_kind ? 1 : 0 }));
       setEditing(false);
       showNotification({ message: 'Product saved', variant: 'success' });
     } catch (e) {
@@ -153,6 +172,11 @@ const ProductDetailPage = () => {
             <IconifyIcon icon="solar:crown-star-bold" /> One of a kind
           </Badge>
         )}
+        {Number(product.published) === 1 && (
+          <Badge bg="success" className="d-inline-flex align-items-center gap-1">
+            <IconifyIcon icon="solar:shop-bold" /> On storefront
+          </Badge>
+        )}
         <div className="ms-auto">
           {!editing && (
             <Button size="sm" variant="outline-primary" onClick={startEdit}>
@@ -194,6 +218,27 @@ const ProductDetailPage = () => {
                   <Form.Group><Form.Label className="small mb-1">Description</Form.Label><Form.Control as="textarea" rows={2} value={form.description} onChange={setF('description')} /></Form.Group>
                   <Form.Group><Form.Label className="small mb-1">The story in the cloth</Form.Label><Form.Control as="textarea" rows={2} value={form.story} onChange={setF('story')} placeholder="Origin, meaning, who made it…" /></Form.Group>
                   <Form.Group><Form.Label className="small mb-1">Care instructions</Form.Label><Form.Control as="textarea" rows={2} value={form.care} onChange={setF('care')} placeholder="Hand-wash cold, dry in shade…" /></Form.Group>
+
+                  <div className="border rounded p-2 mt-1" style={{ background: 'var(--bs-tertiary-bg)' }}>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <span className="small fw-semibold text-uppercase text-muted"><IconifyIcon icon="solar:shop-bold" className="me-1" />Storefront</span>
+                      <Form.Check type="switch" id="pub" label="Published" checked={form.published} onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))} />
+                    </div>
+                    <Form.Label className="small mb-1">Shop URL slug</Form.Label>
+                    <Form.Control size="sm" className="mb-2" value={form.slug} onChange={setF('slug')} onBlur={() => setForm((f) => ({ ...f, slug: slugify(f.slug) }))} placeholder="heritage-ankara-shirt" />
+                    <Row className="g-2">
+                      <Col xs={6}><Form.Label className="small mb-1">USD price</Form.Label><Form.Control size="sm" type="number" min="0" value={form.sf_priceUsd} onChange={setF('sf_priceUsd')} /></Col>
+                      <Col xs={6}>
+                        <Form.Label className="small mb-1">Tile</Form.Label>
+                        <Form.Select size="sm" value={form.sf_tile} onChange={setF('sf_tile')}>{TILES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Form.Select>
+                      </Col>
+                      <Col xs={6}><Form.Label className="small mb-1">Type</Form.Label><Form.Control size="sm" value={form.sf_type} onChange={setF('sf_type')} placeholder="Shirts / Sets…" /></Col>
+                      <Col xs={6}><Form.Label className="small mb-1">Occasion</Form.Label><Form.Control size="sm" value={form.sf_occasion} onChange={setF('sf_occasion')} placeholder="Everyday / Owambe…" /></Col>
+                    </Row>
+                    <Form.Label className="small mb-1 mt-2">Short tagline</Form.Label>
+                    <Form.Control size="sm" as="textarea" rows={2} value={form.sf_short} onChange={setF('sf_short')} placeholder="One line shown on the shop card" />
+                  </div>
+
                   <div className="d-flex gap-2">
                     <Button size="sm" variant="primary" onClick={saveEdit} disabled={saving}>{saving ? <Spinner size="sm" /> : 'Save'}</Button>
                     <Button size="sm" variant="light" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>

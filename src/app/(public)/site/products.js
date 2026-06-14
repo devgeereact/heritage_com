@@ -1,9 +1,13 @@
 /**
- * Catalogue data for the public shop, mirrored from the Herit Price & Rate
- * Card. Indicative retail prices in NGN with approx USD. When the PHP
- * catalogue endpoint is wired to the storefront, swap this for a fetch.
+ * Storefront catalogue. The live source is the products table via
+ * store.php?action=catalogue (published pieces). This static set is the
+ * guaranteed FALLBACK — used until the API resolves, or if it's unreachable /
+ * empty — so the shop is never bare. `useCatalogue()` is the React entry point.
  */
-export const PRODUCTS = [
+import { useEffect, useState } from 'react';
+import heritApi from '@/helpers/heritApi';
+
+export const STATIC_PRODUCTS = [
   {
     slug: 'everyday-shirt-ankara',
     name: 'Everyday Shirt',
@@ -103,6 +107,46 @@ export const PRODUCTS = [
   },
 ];
 
-export const formatNgn = (n) => `₦${n.toLocaleString('en-NG')}`;
+export const formatNgn = (n) => `₦${Number(n || 0).toLocaleString('en-NG')}`;
 
-export const getProduct = (slug) => PRODUCTS.find((p) => p.slug === slug);
+// Module-level cache of the live catalogue (null until first load).
+let CACHE = null;
+let inflight = null;
+
+/** Fetch the live catalogue once; fall back to the static set on empty/error. */
+export function loadCatalogue() {
+  if (CACHE) return Promise.resolve(CACHE);
+  if (inflight) return inflight;
+  inflight = heritApi.store.catalogue()
+    .then((res) => {
+      const list = Array.isArray(res?.products) ? res.products : [];
+      const mapped = list.map((p) => ({ ...p, priceNgn: Number(p.priceNgn ?? p.price_ngn ?? 0) }));
+      // Only trust the API once it returns the RICH storefront shape (tile etc).
+      // An older/minimal store.php (pre-phase-11) → keep the curated static set so
+      // the live shop never degrades before the backend is deployed.
+      const rich = mapped.length > 0 && mapped.every((p) => p.tile);
+      CACHE = rich ? mapped : STATIC_PRODUCTS;
+      return CACHE;
+    })
+    .catch(() => { CACHE = STATIC_PRODUCTS; return CACHE; })
+    .finally(() => { inflight = null; });
+  return inflight;
+}
+
+/** Synchronous lookup against whatever's loaded (static until the API resolves). */
+export const getProduct = (slug) => (CACHE || STATIC_PRODUCTS).find((p) => p.slug === slug);
+
+/** React hook: live catalogue with the static set as the initial value. */
+export function useCatalogue() {
+  const [products, setProducts] = useState(CACHE || STATIC_PRODUCTS);
+  const [ready, setReady] = useState(!!CACHE);
+  useEffect(() => {
+    let live = true;
+    loadCatalogue().then((l) => { if (live) { setProducts(l); setReady(true); } });
+    return () => { live = false; };
+  }, []);
+  return { products, ready, getProduct: (s) => products.find((p) => p.slug === s) };
+}
+
+// Back-compat alias for any synchronous importer.
+export const PRODUCTS = STATIC_PRODUCTS;

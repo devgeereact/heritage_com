@@ -37,10 +37,39 @@ $NG_SHIP        = 4500;           // rest of Nigeria
 $action = $_GET['action'] ?? 'catalogue';
 
 /* ---- CATALOGUE ----------------------------------------------------------- */
+/* Serves the live products table (published pieces), shaped for the storefront.
+ * Falls back to the curated $CATALOGUE only if nothing is published yet. */
 if ($action === 'catalogue' && method() === 'GET') {
   $out = [];
-  foreach ($CATALOGUE as $slug => [$name, $fabric, $price]) {
-    $out[] = ['slug' => $slug, 'name' => $name, 'fabric' => $fabric, 'price_ngn' => $price];
+  $res = $conn->query(
+    "SELECT p.id, p.slug, p.name, p.category, p.fabric, p.description, p.story, p.care,
+            p.base_price, p.one_of_a_kind, p.image_url, p.storefront,
+            COALESCE(SUM(v.stock),0) AS stock,
+            GROUP_CONCAT(DISTINCT v.size ORDER BY FIELD(v.size,'XS','S','M','L','XL','XXL','One size') SEPARATOR ',') AS sizes
+       FROM products p LEFT JOIN product_variants v ON v.product_id = p.id
+      WHERE p.deleted_at IS NULL AND p.published = 1 AND p.status = 'active' AND p.slug IS NOT NULL AND p.slug <> ''
+   GROUP BY p.id ORDER BY p.id ASC"
+  );
+  while ($res && $row = $res->fetch_assoc()) {
+    $sf = $row['storefront'] ? json_decode($row['storefront'], true) : [];
+    if (!is_array($sf)) $sf = [];
+    $out[] = [
+      'slug' => $row['slug'], 'name' => $row['name'], 'fabric' => $row['fabric'],
+      'fabricKey' => $sf['fabricKey'] ?? null, 'tile' => $sf['tile'] ?? 'hc-tile-mixed',
+      'type' => $sf['type'] ?? ($row['category'] ?: 'Pieces'), 'occasion' => $sf['occasion'] ?? null,
+      'priceNgn' => (float)$row['base_price'], 'price_ngn' => (float)$row['base_price'],
+      'priceUsd' => $sf['priceUsd'] ?? null, 'premium' => !empty($sf['premium']),
+      'short' => $sf['short'] ?? $row['description'], 'story' => $row['story'],
+      'fit' => $sf['fit'] ?? null, 'material' => $sf['material'] ?? null, 'model' => $sf['model'] ?? null,
+      'care' => $row['care'], 'oneOfAKind' => (bool)$row['one_of_a_kind'], 'image' => $row['image_url'],
+      'sizes' => $row['sizes'] ? explode(',', $row['sizes']) : [], 'stock' => (int)$row['stock'],
+    ];
+  }
+  // Nothing published — hand back the curated fallback so the shop is never bare.
+  if (!$out) {
+    foreach ($CATALOGUE as $slug => [$name, $fabric, $price]) {
+      $out[] = ['slug' => $slug, 'name' => $name, 'fabric' => $fabric, 'price_ngn' => $price, 'priceNgn' => $price];
+    }
   }
   json(['products' => $out, 'free_ship_over' => $FREE_SHIP_OVER]);
 }
@@ -64,19 +93,43 @@ if ($action === 'checkout' && method() === 'POST') {
   if ($delivery !== 'pickup' && $address === '') fail('Please enter a delivery address');
   if (!$reqItems) fail('Your basket is empty');
 
-  // Resolve every line against the server catalogue; reject unknown slugs and
-  // price the order from OUR numbers, not the client's.
+  // Resolve every line against the LIVE products table (authoritative pricing +
+  // real variant stock). Unknown-in-DB slugs fall back to the curated list so
+  // legacy links keep working. Never trust the client's price.
   $items = [];
   $goods = 0;
+  $prodStmt = $conn->prepare("SELECT id, name, fabric, base_price, one_of_a_kind, care FROM products WHERE slug = ? AND deleted_at IS NULL AND published = 1 LIMIT 1");
   foreach ($reqItems as $it) {
     $slug = trim($it['slug'] ?? '');
-    if (!isset($CATALOGUE[$slug])) fail('Unknown item: ' . $slug);
-    [$pname, $fabric, $price] = $CATALOGUE[$slug];
     $size = trim($it['size'] ?? 'One size') ?: 'One size';
     $qty = max(1, min(20, (int)($it['qty'] ?? 1)));
-    $label = $pname . ' · ' . $fabric . ' · ' . $size;
-    $items[] = ['label' => $label, 'sku' => $slug . '-' . strtolower($size), 'qty' => $qty, 'unit_price' => $price];
-    $goods += $qty * $price;
+
+    $prodStmt->bind_param('s', $slug);
+    $prodStmt->execute();
+    $p = $prodStmt->get_result()->fetch_assoc();
+
+    if ($p) {
+      // Match the requested size to a variant; else take any variant of the piece.
+      $vstmt = $conn->prepare("SELECT id, sku, stock, price_override FROM product_variants WHERE product_id = ? AND size = ? LIMIT 1");
+      $vstmt->bind_param('is', $p['id'], $size);
+      $vstmt->execute();
+      $v = $vstmt->get_result()->fetch_assoc();
+      if (!$v) {
+        $v = $conn->query("SELECT id, sku, stock, price_override FROM product_variants WHERE product_id = " . (int)$p['id'] . " LIMIT 1")->fetch_assoc();
+      }
+      $price = ($v && $v['price_override'] !== null) ? (float)$v['price_override'] : (float)$p['base_price'];
+      $label = $p['name'] . ' · ' . $p['fabric'] . ' · ' . $size;
+      $sku = $v ? $v['sku'] : $slug . '-' . strtolower($size);
+      $items[] = ['label' => $label, 'sku' => $sku, 'qty' => $qty, 'unit_price' => $price, 'variant_id' => $v ? (int)$v['id'] : null];
+      $goods += $qty * $price;
+    } elseif (isset($CATALOGUE[$slug])) {
+      [$pname, $fabric, $price] = $CATALOGUE[$slug];
+      $label = $pname . ' · ' . $fabric . ' · ' . $size;
+      $items[] = ['label' => $label, 'sku' => $slug . '-' . strtolower($size), 'qty' => $qty, 'unit_price' => $price, 'variant_id' => null];
+      $goods += $qty * $price;
+    } else {
+      fail('Unknown item: ' . $slug);
+    }
   }
 
   // Shipping.
@@ -203,11 +256,30 @@ if ($action === 'checkout' && method() === 'POST') {
   } catch (\Throwable $e) { /* table may not exist yet */ }
 
   $itemStmt = $conn->prepare(
-    'INSERT INTO order_items (order_id, variant_id, label, sku, qty, unit_price) VALUES (?,NULL,?,?,?,?)'
+    'INSERT INTO order_items (order_id, variant_id, label, sku, qty, unit_price) VALUES (?,?,?,?,?,?)'
   );
+  $stockStmt = $conn->prepare('UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?');
+  $soldVariantIds = [];
   foreach ($items as $it) {
-    $itemStmt->bind_param('issid', $orderId, $it['label'], $it['sku'], $it['qty'], $it['unit_price']);
+    $vid = $it['variant_id'] ?? null;
+    $itemStmt->bind_param('iissid', $orderId, $vid, $it['label'], $it['sku'], $it['qty'], $it['unit_price']);
     $itemStmt->execute();
+    if ($vid) {
+      $stockStmt->bind_param('ii', $it['qty'], $vid);
+      $stockStmt->execute();
+      $soldVariantIds[] = (int)$vid;
+    }
+  }
+
+  // Auto-retire any sold-out one-of-a-kind piece sold on this web order.
+  if ($soldVariantIds) {
+    $in = implode(',', array_unique($soldVariantIds));
+    $conn->query(
+      "UPDATE products p SET p.status = 'archived', p.published = 0
+        WHERE p.one_of_a_kind = 1 AND p.deleted_at IS NULL
+          AND p.id IN (SELECT v.product_id FROM product_variants v WHERE v.id IN ($in))
+          AND (SELECT COALESCE(SUM(v2.stock),0) FROM product_variants v2 WHERE v2.product_id = p.id) = 0"
+    );
   }
 
   // Record the coupon redemption + bump its usage counter (for caps + attribution).

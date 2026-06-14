@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
 import SiteLayout from './SiteLayout';
-import { getProduct } from './products';
+import { getProduct, loadCatalogue } from './products';
 import { useCart } from './cart';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
@@ -78,6 +78,7 @@ const Dashboard = ({ onOut }) => {
   const reorder = async (code) => {
     try {
       const r = await heritApi.portal.reorder(code);
+      await loadCatalogue();
       let n = 0;
       (r.items || []).forEach((it) => {
         const p = getProduct(it.slug);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
-import { PRODUCTS, getProduct, formatNgn } from './products';
+import { useCatalogue, formatNgn } from './products';
 import { useCart } from './cart';
 import heritApi from '@/helpers/heritApi';
 import ProductReviews from './ProductReviews';
@@ -26,6 +26,7 @@ const ProductPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { add } = useCart();
+  const { products, getProduct, ready } = useCatalogue();
   const product = getProduct(slug);
   const [size, setSize] = useState('M');
   const [storyOpen, setStoryOpen] = useState(true);
@@ -34,7 +35,11 @@ const ProductPage = () => {
   const [notify, setNotify] = useState({ name: '', phone: '' });
   const [notifyDone, setNotifyDone] = useState(false);
 
-  if (!product) return <NotFoundPiece />;
+  if (!product) {
+    // Still loading the live catalogue? wait before deciding it's a 404.
+    if (!ready) return <SiteLayout title="Loading…"><section className="hc-section hc-text-center"><div className="hc-container">Loading…</div></section></SiteLayout>;
+    return <NotFoundPiece />;
+  }
 
   const chosenSize = product.type === 'Accessories' ? 'One size' : size;
   const addToCart = () => {
@@ -54,7 +59,7 @@ const ProductPage = () => {
     } catch { setNotifyDone(true); /* fail soft — don't block the customer */ }
   };
 
-  const related = PRODUCTS.filter((p) => p.slug !== product.slug).slice(0, 4);
+  const related = products.filter((p) => p.slug !== product.slug).slice(0, 4);
 
   return (
     <SiteLayout title={`${product.name} — ${product.fabric}`}>
