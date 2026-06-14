@@ -175,23 +175,32 @@ if ($action === 'checkout' && method() === 'POST') {
   $paid = 0;
   $fullNotes = trim(($notes !== '' ? $notes : '') . ($gift !== '' ? "\nGift message: " . $gift : ''));
   $shipFull = trim($address . ($city !== '' ? ', ' . $city : ''));
+  $sourceVal = substr(trim($b['source'] ?? ''), 0, 60) ?: null;          // utm_source / referrer host
+  $utmVal = substr(trim($b['utm_campaign'] ?? ''), 0, 120) ?: null;
 
   $stmt = $conn->prepare(
-    'INSERT INTO orders (code, customer_id, customer_name, customer_phone, channel,
+    'INSERT INTO orders (code, customer_id, customer_name, customer_phone, channel, source, utm_campaign,
                          payment_method, total, paid, ship_address, notes,
                          referral_code, referrer_id, created_by)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NULL)'
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)'
   );
   $channel = 'web';
   $refCodeVal = $referralCode !== '' ? $referralCode : null;
   $stmt->bind_param(
-    'sissssddsssi',
-    $code, $customerId, $name, $phone, $channel,
+    'sissssssddsssi',
+    $code, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
     $paymentMethod, $total, $paid, $shipFull, $fullNotes,
     $refCodeVal, $referrerId
   );
   $stmt->execute();
   $orderId = $conn->insert_id;
+
+  // A completed order recovers any abandoned cart for this phone (best-effort).
+  try {
+    $rec = $conn->prepare('UPDATE abandoned_carts SET recovered = 1 WHERE phone = ?');
+    $rec->bind_param('s', $phone);
+    $rec->execute();
+  } catch (\Throwable $e) { /* table may not exist yet */ }
 
   $itemStmt = $conn->prepare(
     'INSERT INTO order_items (order_id, variant_id, label, sku, qty, unit_price) VALUES (?,NULL,?,?,?,?)'
@@ -355,6 +364,50 @@ if ($action === 'pay_verify' && method() === 'GET') {
     json(['ok' => true, 'code' => $code, 'status' => 'paid']);
   }
   json(['ok' => false, 'code' => $code, 'status' => 'unpaid']);
+}
+
+/* ---- WAITLIST JOIN (public "notify me") ---------------------------------- */
+if ($action === 'waitlist_join' && method() === 'POST') {
+  $b = body();
+  $product = trim($b['product'] ?? '');
+  $slug = trim($b['slug'] ?? '');
+  $size = trim($b['size'] ?? '');
+  $cname = trim($b['name'] ?? '');
+  $phone = trim($b['phone'] ?? '');
+  $email = trim($b['email'] ?? '');
+  if ($product === '' && $slug === '') fail('Which piece?');
+  if ($phone === '' && $email === '') fail('Leave a phone or email so we can reach you');
+
+  $cid = customer_id_by_phone($phone);
+  $cidVal = $cid ?: null;
+  $stmt = $conn->prepare('INSERT INTO waitlist (product, slug, size, customer_name, phone, email, customer_id) VALUES (?,?,?,?,?,?,?)');
+  $stmt->bind_param('ssssssi', $product, $slug, $size, $cname, $phone, $email, $cidVal);
+  $stmt->execute();
+  json(['ok' => true], 201);
+}
+
+/* ---- SAVE CART (abandoned-cart capture) ---------------------------------- */
+/* Called from checkout once a contact phone is entered, before the order is
+ * placed. Upserts one row per phone; a completed order flips recovered=1.    */
+if ($action === 'save_cart' && method() === 'POST') {
+  $b = body();
+  $phone = trim($b['phone'] ?? '');
+  if ($phone === '') fail('phone is required');
+  $cname = trim($b['name'] ?? '');
+  $email = trim($b['email'] ?? '');
+  $items = isset($b['items']) ? json_encode($b['items']) : null;
+  $subtotal = (float)($b['subtotal'] ?? 0);
+
+  $stmt = $conn->prepare(
+    'INSERT INTO abandoned_carts (phone, customer_name, email, items, subtotal, recovered, nudged)
+     VALUES (?,?,?,?,?,0,0)
+     ON DUPLICATE KEY UPDATE customer_name = VALUES(customer_name), email = VALUES(email),
+                             items = VALUES(items), subtotal = VALUES(subtotal),
+                             recovered = 0, updated_at = CURRENT_TIMESTAMP'
+  );
+  $stmt->bind_param('ssssd', $phone, $cname, $email, $items, $subtotal);
+  $stmt->execute();
+  json(['ok' => true]);
 }
 
 /* ---- TRACK (public order status) ----------------------------------------- */

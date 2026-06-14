@@ -217,11 +217,18 @@ const SiteLayout = ({ title, children }) => {
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  // Capture a referral code from a share link (?ref=CODE) so it survives the
-  // browse → checkout journey. Read back in CheckoutPage.
+  // Capture a referral code (?ref=CODE) and campaign attribution (?utm_source /
+  // ?utm_campaign) from the landing URL so they survive browse → checkout.
   useEffect(() => {
-    const ref = new URLSearchParams(window.location.search).get('ref');
-    if (ref) { try { localStorage.setItem('herit_ref', ref.toUpperCase()); } catch { /* ignore */ } }
+    const q = new URLSearchParams(window.location.search);
+    try {
+      const ref = q.get('ref');
+      if (ref) localStorage.setItem('herit_ref', ref.toUpperCase());
+      const src = q.get('utm_source') || q.get('source');
+      if (src) localStorage.setItem('herit_src', src.slice(0, 60));
+      const camp = q.get('utm_campaign');
+      if (camp) localStorage.setItem('herit_camp', camp.slice(0, 120));
+    } catch { /* ignore */ }
   }, [pathname]);
 
   // Reveal each section as it scrolls into view. Skipped when the user prefers

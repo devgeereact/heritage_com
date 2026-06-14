@@ -52,6 +52,20 @@ const CheckoutPage = () => {
     try { const r = localStorage.getItem('herit_ref'); if (r) setReferral(r); } catch { /* ignore */ }
   }, []);
 
+  // Abandoned-cart capture: once a usable phone is entered, save the basket so
+  // staff can follow up if the order isn't completed. Debounced; best-effort.
+  useEffect(() => {
+    const digits = (form.phone || '').replace(/\D/g, '');
+    if (digits.length < 10 || items.length === 0) return;
+    const t = setTimeout(() => {
+      heritApi.store.saveCart({
+        phone: form.phone, name: form.customer, email: form.email, subtotal,
+        items: items.map((l) => ({ name: l.name, size: l.size, qty: l.qty })),
+      }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [form.phone, form.customer, form.email, items, subtotal]);
+
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const baseShipping = delivery === 'lagos' ? (subtotal >= 25000 ? 0 : 2500) : delivery === 'nigeria' ? 4500 : 0;
@@ -124,6 +138,8 @@ const CheckoutPage = () => {
         gift_card: giftCard ? giftCard.code : '',
         use_credit: useCredit ? -1 : 0,
         referral_code: referral.trim(),
+        source: (() => { try { return localStorage.getItem('herit_src') || ''; } catch { return ''; } })(),
+        utm_campaign: (() => { try { return localStorage.getItem('herit_camp') || ''; } catch { return ''; } })(),
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.

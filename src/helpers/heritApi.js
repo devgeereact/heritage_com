@@ -173,6 +173,14 @@ export const heritApi = {
     giftToggle: (id, active) => request(`/loyalty.php?action=gift_toggle&id=${id}`, { method: 'POST', body: { active } }),
   },
 
+  // Re-engagement — restock waitlist + abandoned carts
+  engage: {
+    waitlist: () => request('/engage.php?action=waitlist'),
+    waitlistNotify: (data) => request('/engage.php?action=waitlist_notify', { method: 'POST', body: data }),
+    abandoned: () => request('/engage.php?action=abandoned'),
+    abandonedNudge: (id, message) => request(`/engage.php?action=abandoned_nudge&id=${id}`, { method: 'POST', body: { message } }),
+  },
+
   // Referrals
   referrals: {
     leaderboard: () => request('/referrals.php?action=leaderboard'),
@@ -250,6 +258,8 @@ export const heritApi = {
       request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
     track: (code, phone) =>
       request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),
+    saveCart: (data) => request('/store.php?action=save_cart', { method: 'POST', body: data, auth: false }),
   },
 
   // Generic escape hatches for feature modules

@@ -89,6 +89,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:gift-bold-duotone',
   url: '/loyalty'
 }, {
+  key: 'engage',
+  label: 'Re-engagement',
+  icon: 'solar:hearts-bold-duotone',
+  url: '/engage'
+}, {
   key: 'studio',
   label: 'Brand Studio',
   icon: 'solar:magic-stick-3-bold-duotone',

@@ -139,4 +139,11 @@ while ($r && $row = $r->fetch_assoc()) {
 $out['by_region'] = [];
 foreach ($region as $name => $v) $out['by_region'][] = ['region' => $name, 'orders' => $v['orders'], 'revenue' => $v['revenue']];
 
+/* Campaign attribution (UTM source) ---------------------------------------*/
+$out['by_source'] = [];
+$r = $conn->query("SELECT COALESCE(NULLIF(source,''),'direct') AS source, COUNT(*) AS orders, COALESCE(SUM(total),0) AS revenue
+                     FROM orders WHERE deleted_at IS NULL AND status <> 'cancelled'
+                    GROUP BY source ORDER BY revenue DESC LIMIT 12");
+while ($r && $row = $r->fetch_assoc()) $out['by_source'][] = ['source' => $row['source'], 'orders' => (int)$row['orders'], 'revenue' => (float)$row['revenue']];
+
 json($out);

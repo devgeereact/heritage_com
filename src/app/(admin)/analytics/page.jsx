@@ -32,6 +32,7 @@ const AnalyticsPage = () => {
   const splitTotal = Math.max(1, (split?.new?.revenue || 0) + (split?.returning?.revenue || 0));
   const maxRegion = Math.max(1, ...(d?.by_region || []).map((x) => x.revenue));
   const regionTone = { Lagos: 'primary', 'Other Nigeria': 'info', Diaspora: 'success' };
+  const maxSource = Math.max(1, ...(d?.by_source || []).map((x) => x.revenue));
 
   return (
     <>
@@ -131,6 +132,18 @@ const AnalyticsPage = () => {
               </CardBody></Card>
             </Col>
 
+            <Col xl={6}>
+              <Card><CardBody>
+                <h5 className="mb-1">By source</h5>
+                <p className="text-muted small mb-3">Where orders come from (UTM / referrer).</p>
+                {(d.by_source || []).length === 0 ? <p className="text-muted mb-0">No orders yet.</p> : (d.by_source || []).map((s) => (
+                  <div key={s.source} className="mb-2">
+                    <div className="d-flex justify-content-between small"><span className="text-capitalize">{s.source} <span className="text-muted">· {s.orders}</span></span><span className="fw-semibold">{naira(s.revenue)}</span></div>
+                    <div className="progress" style={{ height: 6 }}><div className="progress-bar bg-dark bg-opacity-50" style={{ width: `${(s.revenue / maxSource) * 100}%` }} /></div>
+                  </div>
+                ))}
+              </CardBody></Card>
+            </Col>
             <Col xl={6}>
               <Card><CardBody className="pb-0"><h5 className="mb-3">Top products</h5></CardBody>
                 <CardBody className="p-0">

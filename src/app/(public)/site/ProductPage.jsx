@@ -4,6 +4,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
 import { PRODUCTS, getProduct, formatNgn } from './products';
 import { useCart } from './cart';
+import heritApi from '@/helpers/heritApi';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
 
@@ -28,6 +29,9 @@ const ProductPage = () => {
   const [size, setSize] = useState('M');
   const [storyOpen, setStoryOpen] = useState(true);
   const [added, setAdded] = useState(false);
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [notify, setNotify] = useState({ name: '', phone: '' });
+  const [notifyDone, setNotifyDone] = useState(false);
 
   if (!product) return <NotFoundPiece />;
 
@@ -38,6 +42,16 @@ const ProductPage = () => {
     setTimeout(() => setAdded(false), 1800);
   };
   const buyNow = () => { addToCart(); navigate('/cart'); };
+  const joinWaitlist = async () => {
+    if (!notify.phone.trim()) return;
+    try {
+      await heritApi.store.waitlistJoin({
+        product: product.name, slug: product.slug, size: chosenSize,
+        name: notify.name, phone: notify.phone,
+      });
+      setNotifyDone(true);
+    } catch { setNotifyDone(true); /* fail soft — don't block the customer */ }
+  };
 
   const related = PRODUCTS.filter((p) => p.slug !== product.slug).slice(0, 4);
 
@@ -113,7 +127,23 @@ const ProductPage = () => {
               </div>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted-foreground)', marginTop: '0.6rem' }}>
                 Or <Link to="/contact" style={{ color: 'var(--primary)' }}>ask about this piece on WhatsApp</Link> — bespoke sizing welcome.
+                {!notifyOpen && !notifyDone && <> · <button onClick={() => setNotifyOpen(true)} style={{ border: 0, background: 'none', padding: 0, color: 'var(--primary)', cursor: 'pointer', font: 'inherit' }}>Notify me on restock</button></>}
               </p>
+
+              {notifyOpen && !notifyDone && (
+                <div className="hc-flex hc-wrap" style={{ gap: '0.5rem', marginTop: '0.4rem', maxWidth: 420 }}>
+                  <input placeholder="Your name" value={notify.name} onChange={(e) => setNotify((n) => ({ ...n, name: e.target.value }))}
+                    style={{ flex: '1 1 140px', padding: '0.55rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
+                  <input placeholder="Phone / WhatsApp" value={notify.phone} onChange={(e) => setNotify((n) => ({ ...n, phone: e.target.value }))}
+                    style={{ flex: '1 1 140px', padding: '0.55rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
+                  <button onClick={joinWaitlist} className="hc-btn hc-btn--primary" style={{ cursor: 'pointer', border: 'none' }} disabled={!notify.phone.trim()}>Notify me</button>
+                </div>
+              )}
+              {notifyDone && (
+                <p style={{ fontSize: '0.8rem', color: '#16794a', marginTop: '0.4rem' }}>
+                  <IconifyIcon icon="solar:check-circle-bold" /> You&apos;re on the list — we&apos;ll message you when it&apos;s back.
+                </p>
+              )}
 
               {/* reassurance */}
               <ul className="hc-check hc-mt-4">
