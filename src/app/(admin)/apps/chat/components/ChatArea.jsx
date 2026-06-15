@@ -299,7 +299,9 @@ const ChatArea = ({
   const {
     reset,
     handleSubmit,
-    control
+    control,
+    getValues,
+    setValue
   } = useForm({
     resolver: yupResolver(messageSchema)
   });
@@ -450,7 +452,7 @@ const ChatArea = ({
                       <IconifyIcon icon="bx:smile" className="fs-18" />
                     </DropdownToggle>
                     <DropdownMenu className="p-0 rounded-4">
-                      <EmojiPicker onEmojiClick={emojiObject => console.info(emojiObject.emoji)} autoFocusSearch={false} />{' '}
+                      <EmojiPicker onEmojiClick={emojiObject => setValue('newMessage', (getValues('newMessage') || '') + emojiObject.emoji, { shouldValidate: true })} autoFocusSearch={false} />{' '}
                     </DropdownMenu>
                   </Dropdown>
                   <TextFormInput noValidate control={control} name="newMessage" containerClassName="w-100" className="border-0" placeholder="Enter your message" />

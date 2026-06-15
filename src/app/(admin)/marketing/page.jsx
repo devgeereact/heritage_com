@@ -71,6 +71,7 @@ const MarketingPage = () => {
   const [summary, setSummary] = useState(null);
   const [state, setState] = useState('loading');
   const [showNew, setShowNew] = useState(false);
+  const [errMsg, setErrMsg] = useState('');
 
   const load = useCallback(async () => {
     try { const r = await heritApi.marketing.list(); setCampaigns(r.campaigns || []); setSummary(r.summary || null); setState('ready'); }
@@ -78,7 +79,11 @@ const MarketingPage = () => {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const setStatus = async (id, status) => { try { await heritApi.marketing.setStatus(id, status); load(); } catch (e) { alert(e.message); } };
+  const setStatus = async (id, status) => {
+    setErrMsg('');
+    try { await heritApi.marketing.setStatus(id, status); load(); }
+    catch (e) { setErrMsg(e.message || 'Could not update status.'); }
+  };
 
   return (
     <>
@@ -90,6 +95,7 @@ const MarketingPage = () => {
 
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
       {state === 'offline' && <Alert variant="warning"><strong>Marketing offline.</strong> Upload <code>php-api/marketing.php</code> and import the campaigns table from <code>schema.sql</code>.</Alert>}
+      {errMsg && <Alert variant="danger" dismissible onClose={() => setErrMsg('')}>{errMsg}</Alert>}
 
       {state === 'ready' && (
         <>

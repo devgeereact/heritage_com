@@ -43,6 +43,7 @@ const SuppliersPage = () => {
   const [showSupplier, setShowSupplier] = useState(false);
   const [showPO, setShowPO] = useState(false);
   const [receiving, setReceiving] = useState(0);
+  const [errMsg, setErrMsg] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -56,9 +57,9 @@ const SuppliersPage = () => {
   useEffect(() => { load(); }, [load]);
 
   const receive = async (id) => {
-    setReceiving(id);
+    setReceiving(id); setErrMsg('');
     try { await heritApi.suppliers.poReceive(id); await load(); }
-    catch (e) { alert(e.message || 'Could not receive.'); }
+    catch (e) { setErrMsg(e.message || 'Could not receive.'); }
     finally { setReceiving(0); }
   };
 
@@ -80,6 +81,7 @@ const SuppliersPage = () => {
       {state === 'offline' && (
         <Alert variant="warning"><strong>Suppliers offline.</strong> Upload <code>php-api/suppliers.php</code> and import the suppliers / purchase-order tables from <code>schema.sql</code>.</Alert>
       )}
+      {errMsg && <Alert variant="danger" dismissible onClose={() => setErrMsg('')}>{errMsg}</Alert>}
 
       {state === 'ready' && (
         <>
