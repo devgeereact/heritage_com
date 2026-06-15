@@ -22,9 +22,9 @@ const giftFrom = (notes) => {
 };
 
 const Brand = ({ docLabel }) => (
-  <div className="d-flex justify-content-between align-items-start" style={{ borderBottom: '2px solid #26215C', paddingBottom: 12 }}>
+  <div className="d-flex justify-content-between align-items-start" style={{ borderBottom: '2px solid #262626', paddingBottom: 12 }}>
     <div>
-      <div style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: 22, fontWeight: 700, color: '#26215C' }}>Herit Clothing</div>
+      <div style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 22, fontWeight: 700, color: '#262626' }}>Herit Clothing</div>
       <div className="text-muted small">Ajuwon Market, Lagos · heritclothing.com · hello@heritclothing.com</div>
     </div>
     <div className="text-end">
@@ -109,7 +109,7 @@ const OrderPrint = ({ show, onHide, order, mode = 'invoice' }) => {
           </table>
 
           {gift && (
-            <div className="mt-2 p-2" style={{ background: '#F1EFE8', borderLeft: '3px solid #26215C' }}>
+            <div className="mt-2 p-2" style={{ background: '#FFFBEB', borderLeft: '3px solid #262626' }}>
               <div className="text-muted small text-uppercase">Gift message</div>
               <div className="fst-italic">{gift}</div>
             </div>

@@ -1,109 +1,76 @@
-# HeritOS Design System — The Contract
+# HeritOS — Design System
 
-> **Status: locked direction (CEO decision, 2026-06-14).** Source of truth for the premium
-> rebrand of HeritOS — storefront + admin app. Build against these tokens, not against ad-hoc values.
-> Supersedes the prior warm-maroon brand (#7A1F1F, Fraunces).
+> The brand contract. Read before touching any UI. Built on Herit Clothing's established identity
+> (amber gold, heritage browns, Source Serif 4 + Inter) and extended into a working app system.
+> Tokens are the single source of truth — never hand-edit colours into components.
+>
+> **Supersedes** the prior indigo + warm-gold direction (`#26215C` / `#FAC775` / Playfair Display)
+> and the older warm-maroon brand (`#7A1F1F`, Fraunces). Rebrand applied 2026-06-15.
 
----
+## North Star
+- **Storefront / landing:** warm, rooted, editorial — heritage worn with pride. Amber used with restraint, a serif headline that tells a small story, fabric or person at the centre. (Expressive.)
+- **App (admin / POS / account / tailor):** quiet precision — calm, fast, legible. Decoration is the enemy; the amber accent does one job per screen.
+- **One brand, two dialects.** Same tokens, different volume.
+- The crop-the-logo test must pass on the main dashboard: crop the wordmark and you should still know it's Herit.
 
-## 0. The bet
+## Signature move — "The Tack Stitch"
+A single hand-stitch motif lifted straight from the needle-and-thread logo: a **2px dashed amber rule** (`dash 6 / gap 4`) riding one edge of every important surface, paired with a **soft heritage-brown shadow**. It reads as a line of stitching on cloth — unmistakably Herit, even with the logo cropped.
 
-Pivot to **modern editorial heritage**: deep indigo primary, warm gold/peach accent, soft
-bone surface. Quiet luxury — confident, not loud. Heritage made modern.
+- **Cards & modals:** the stitch sits on the **top edge** (a tacked seam), warm shadow below. Full borders elsewhere stay hairline and tinted.
+- **Active nav:** the stitch becomes a solid **amber underline / left-rail** (the seam is "sewn down").
+- **Primary buttons:** amber/ink fill, the stitch as a 1px inner top highlight; on hover the warm shadow deepens (~180ms).
+- **Inputs on focus:** the focus ring is the amber stitch, not a flat outline.
 
-**Rejected:** loud yellow/black brutalism, candy palettes, Montserrat. None sell premium clothing.
+> Originality comes from the stitch + the warm elevation ladder, not from a busy palette. Amber stays scarce.
 
-**Pitch line:** *"Editorial, restrained, modern. Deep indigo, soft bone paper, a warm thread
-of gold. Feels considered, not template."*
+## Colour (tokens in `src/assets/scss/config/_variables.scss` + the `--herit-*` vars in `src/assets/scss/heritos-admin.css`)
 
-One token set, two flavors:
-- **Storefront** = editorial premium (big imagery, serif display, generous space, slow scroll). Sells clothes.
-- **Admin app** = tool premium (Linear/Stripe calm — dense but breathing, crisp, fast). Operated 8hrs/day.
+Four roles, two themes, both WCAG AA. Amber is the **one scarce accent** and owns the eye.
 
----
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--herit-surface` | `#FFFBEB` (cream) | `#1C1A17` (espresso) | base / page |
+| `--herit-bg` | `#FFFFFF` (paper) | `#262320` (raised) | mid surfaces / cards / inputs |
+| `--herit-primary` | `#262626` (ink) | `#FFFBEB` (cream) | text / chrome |
+| `--herit-accent` | `#F59E0B` (amber) | `#F59E0B` (amber) | the one scarce highlight |
 
-## 1. Color
+Full brand ladder (also tokenised): Amber `#F59E0B`, Amber-600 `#D97706`, Heritage Brown `#92400E`, Earth `#78350F` (text on amber), Ink `#262626`, Slate `#6B655E`, Cream `#FFFBEB`, Line `#E8E3DB`, Paper `#FFFFFF`. Dark mode: espresso `#1C1A17` base, raised `#262320`, warm border `#3A352E`, cream text `#FFFBEB`, muted `#C9C2B5`.
 
-Gold is the only sparkle, used tiny (~5% of page). Indigo carries the brand weight.
+Rules:
+- Accent is scarce — **one amber thing per screen** (the primary action, or the active state, not both shouting).
+- Amber `#F59E0B` is a *background/emphasis* colour, never small text on white (fails contrast). Text on amber = Earth `#78350F` or Ink.
+- On Heritage Brown or Earth surfaces, text is Cream or white.
+- Borders are tinted warm (`#E8E3DB`), never flat black. Shadows are heritage-brown near-black tints (`rgba(146,64,14,…)` / `rgba(26,23,20,…)`), never `black/50%`.
+- In **dark mode** the accent becomes the active/primary colour on espresso surfaces; button text stays Ink for AA contrast.
 
-| Token | Hex | Use |
-|---|---|---|
-| `--primary` | `#26215C` | Deep indigo — brand primary, CTAs, headings rail, focus ring |
-| `--primary-hover` | `#1B1742` | Primary hover/active |
-| `--accent` | `#FAC775` | Warm gold — micro-accent, tags, active states, wordmark sparkle |
-| `--accent-hover` | `#E8AC4D` | Accent hover |
-| `--surface` | `#F1EFE8` | Primary surface (warm off-white — **not** pure white) |
-| `--bg` | `#FFFFFF` | Elevated cards, modals, inputs |
-| `--ink` | `#1A1714` | Text (warm near-black, not pure #000) |
-| `--ink-muted` | `#6B655E` | Secondary text |
-| `--border-hairline` | `#E8E3DB` | Warm-grey hairline (not cold #DEDEDE) |
+## Typography
+- **Display / headings:** Source Serif 4 — wordmark, hero headlines, section titles, pull quotes, editorial intros. Gives Herit warmth and story. Never set long body copy in the serif.
+- **Functional (body, tables, labels, buttons, UI):** Inter — clean, screen-optimised, legible at any size.
+- **Data / SKU / table headers / kickers:** IBM Plex Mono — small caps, tracked.
+- Pairing rule: *serif for what people feel, sans for what people read.*
+- Type scale (locked):
 
-Status colors: muted, desaturated — never candy/neon.
+| Token | Size / line | Face | Use |
+|---|---|---|---|
+| Display | 40–60px / 1.1 | Source Serif 4 Bold | Hero headlines, covers |
+| H1 | 28–32px / 1.2 | Source Serif 4 Bold | Page / section titles |
+| H2 | 22–25px / 1.3 | Source Serif 4 SemiBold | Sub-sections |
+| H3 / Kicker | 13–16px / 1.4 | IBM Plex Mono / Inter Bold, caps, +0.12–0.14em | Eyebrow labels |
+| Body | 15–17px / 1.6 | Inter Regular | Paragraphs |
+| Caption | 12–13px / 1.4 | Inter Regular | Notes, meta |
 
----
+- Sentence case for headings and buttons; **only the wordmark is all-caps.** British/Nigerian spelling (colour, honour). Capitalise fabric names as proper nouns (Ankara, Adire, Aso-Oke, Kente). Naira as `₦18,500`; `$` / `£` on international surfaces.
 
-## 2. Typography
+## Spacing & elevation
+- **8px base scale**, obeyed everywhere (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64). Three volumes: generous (landing), compact-but-breathing (admin), thumb-first (POS / mobile / forms).
+- **4 surface levels**, each lighter (or in dark, distinct) than the one below, each with a soft warm shadow. No flat-on-flat.
+- Radius: `8px` (inputs), `~10–12px` (default cards), `16px` (large). Pills only where intended.
 
-Drop Fraunces. Drop Montserrat. Drop Libre Baskerville.
+## Motion
+- ~**180–200ms** soft ease (`cubic-bezier(.2,.7,.2,1)`) everywhere. Hover intent on every interactive element. Page transitions fade. Storefront reveals slower (~400ms). Never gratuitous; respects `prefers-reduced-motion`.
 
-| Role | Font | Notes |
-|---|---|---|
-| Display / headline | **Playfair Display** (serif) | Storefront hero + section heads. Editorial fashion-grade |
-| UI + body | **Inter** | Everywhere in admin; body on storefront. Dense-friendly |
-| Mono (data/SKU) | **IBM Plex Mono** | Kept |
+## Accessibility
+- Both themes pass WCAG 2.1 AA (4.5:1 body, 3:1 large). Focus states use the amber ring (`:focus-visible`), always visible. Min touch target 44px on POS/mobile. This is a Definition-of-Done gate.
 
-This pairing does ~70% of the "premium" feeling. Tight letter-spacing on display headers.
-Wordmark: Playfair Display, tight tracking, accent OR primary — never both at once.
-
----
-
-## 3. Spacing — 8pt scale
-
-`4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96`
-
-Admin leans the small end; storefront leans the big end. Whitespace is the budget — spend it.
-Generous space *is* the premium signal.
-
----
-
-## 4. Layout / containers / fluidity
-
-- **Storefront:** ~1280px max content width, full-bleed imagery, fluid `clamp()` type.
-- **Admin:** 1440px work area, 12-col grid, cards padded ≥24px.
-- Mobile-first. Breakpoints **640 / 768 / 1024 / 1280**. No janky reflow.
-
----
-
-## 5. Cards / borders / depth
-
-Kill hard 1px brutalist borders. Soft layered elevation instead.
-
-```
-radius   10px (cards) · 8px (inputs) · 999px (pills)
-shadow   0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.06)
-border   hairline #E8E3DB only where elevation isn't enough
-```
-
----
-
-## 6. Motion
-
-- UI: `200ms ease-out`
-- Storefront reveals: `400ms cubic-bezier(.2,.8,.2,1)`
-
-Nothing snaps. Slow = expensive.
-
----
-
-## 7. Rollout
-
-1. **Proof first:** build ONE storefront product page + ONE admin dashboard fully in these tokens.
-   See it real before touching all 14 modules. Kills debate.
-2. Then sweep module by module.
-
-**Parked (phase 2):** gold foil/texture treatments · admin dark mode (after light locks) ·
-custom display-font licensing if Playfair Display feels too common.
-
-**Riskiest assumption to validate:** that indigo + warm gold reads "premium" to *Lagos fashion
-buyers* specifically — some markets read maximalism as premium. Gut-check 2–3 real customers
-before full rollout.
+## Architecture (the leverage — do this once)
+All tokens live in the **SCSS config layer (`_variables.scss`) + the `--herit-*` CSS-var override layer (`heritos-admin.css`, loaded after `app.scss`)** — one source of truth. Components inherit tokens; never hand-edit a hex into a component. A full rebrand is then a token-file change (this rebrand was exactly that).

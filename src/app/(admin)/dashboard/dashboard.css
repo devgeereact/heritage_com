@@ -5,19 +5,19 @@
   border-radius: 1rem;
   overflow: hidden;
   background:
-    radial-gradient(620px 220px at 100% 0%, rgba(250, 199, 117, 0.18), transparent 60%),
-    radial-gradient(420px 200px at 0% 100%, rgba(38, 33, 92, 0.10), transparent 65%),
+    radial-gradient(620px 220px at 100% 0%, rgba(245, 158, 11, 0.18), transparent 60%),
+    radial-gradient(420px 200px at 0% 100%, rgba(146, 64, 14, 0.10), transparent 65%),
     linear-gradient(160deg, #ffffff 0%, var(--herit-surface) 100%);
   border: 1px solid var(--herit-border);
-  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 18px 50px -28px rgba(38, 33, 92, 0.22);
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 18px 50px -28px rgba(146, 64, 14, 0.22);
   animation: herit-hero-in 0.5s cubic-bezier(.2,.8,.2,1) both;
 }
 html[data-bs-theme="dark"] .herit-hero {
   background:
-    radial-gradient(620px 220px at 100% 0%, rgba(250, 199, 117, 0.18), transparent 60%),
-    radial-gradient(420px 200px at 0% 100%, rgba(38, 33, 92, 0.35), transparent 65%),
-    linear-gradient(160deg, #1A1640 0%, #14112E 100%);
-  border-color: #2D2870;
+    radial-gradient(620px 220px at 100% 0%, rgba(245, 158, 11, 0.18), transparent 60%),
+    radial-gradient(420px 200px at 0% 100%, rgba(146, 64, 14, 0.35), transparent 65%),
+    linear-gradient(160deg, #262320 0%, #1C1A17 100%);
+  border-color: #3A352E;
 }
 .herit-hero-rule {
   position: absolute; left: 1.75rem; top: 1.75rem;
@@ -36,7 +36,7 @@ html[data-bs-theme="dark"] .herit-hero {
 .herit-hero-dot { opacity: 0.55; }
 .herit-hero-title {
   margin: 0.4rem 0 0;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: "Source Serif 4", Georgia, serif;
   font-weight: 600;
   font-size: clamp(1.8rem, 3.2vw, 2.6rem);
   letter-spacing: -0.02em;

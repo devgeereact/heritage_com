@@ -22,14 +22,14 @@
     --#{$prefix}headings-color:                            #1a1714;
 
     --#{$prefix}input-border-color:             #e8e3db;   // --input (warm hairline)
-    --#{$prefix}input-focus-border-color:       #26215C;   // --ring (primary indigo)
+    --#{$prefix}input-focus-border-color:       #262626;   // --ring (primary amber)
 }
 
 
 /* Color system - Dark Mode only */
 html[data-bs-theme="dark"], [data-bs-theme="dark"] {
 
-    --#{$prefix}border-color:                   #2a2545;   // dark --border (indigo-tinted)
+    --#{$prefix}border-color:                   #2E2A24;   // dark --border (warm-tinted)
 
     --#{$prefix}light:                     #{$body-tertiary-bg-dark};
     --#{$prefix}dark:                      #{$body-tertiary-color-dark};
@@ -38,43 +38,43 @@ html[data-bs-theme="dark"], [data-bs-theme="dark"] {
     --#{$prefix}dark-rgb:                  #{to-rgb($body-tertiary-color-dark)};
 
     // Heading Variable — dark --foreground (warm off-white for legibility)
-    --#{$prefix}headings-color:            #F1EFE8;
+    --#{$prefix}headings-color:            #FFFBEB;
 
-    --#{$prefix}input-border-color:             #2a2545;   // dark --input
-    --#{$prefix}input-focus-border-color:       #FAC775;   // --ring (accent peach for visibility on dark)
+    --#{$prefix}input-border-color:             #2E2A24;   // dark --input
+    --#{$prefix}input-focus-border-color:       #F59E0B;   // --ring (accent peach for visibility on dark)
 }
 
 
 /* Main Menu Light — sidebar tokens */
 html[data-menu-color="light"]{
-    --#{$prefix}main-nav-bg:                               #F1EFE8;   // --sidebar (warm off-white)
+    --#{$prefix}main-nav-bg:                               #FFFBEB;   // --sidebar (warm off-white)
     --#{$prefix}main-nav-item-color:                       #443f3a;   // --muted-foreground (warm dark for legibility)
-    --#{$prefix}main-nav-item-hover-bg:                    #E9E2F0;   // --sidebar-accent (indigo tint)
-    --#{$prefix}main-nav-item-hover-color:                 #26215C;   // --sidebar-accent-foreground (primary indigo)
+    --#{$prefix}main-nav-item-hover-bg:                    #F1E9D2;   // --sidebar-accent (warm tint)
+    --#{$prefix}main-nav-item-hover-color:                 #262626;   // --sidebar-accent-foreground (primary amber)
     --#{$prefix}main-nav-border-color:                     #E8E3DB;   // --sidebar-border
 }
 
-/* Main Menu Dark — dark sidebar tokens (indigo-rooted, accent gold for emphasis) */
+/* Main Menu Dark — dark sidebar tokens (espresso-rooted, accent gold for emphasis) */
 html[data-menu-color="dark"],
 html[data-bs-theme="dark"][data-menu-color="light"] {
-    --#{$prefix}main-nav-bg:                               #1A1640;   // dark --sidebar (deep indigo)
-    --#{$prefix}main-nav-item-color:                       #C9C5DF;   // dark --muted-foreground (clear on indigo)
-    --#{$prefix}main-nav-item-hover-bg:                    #2D2870;   // dark --sidebar-accent (raised indigo)
-    --#{$prefix}main-nav-item-hover-color:                 #FAC775;   // dark --sidebar-accent-foreground (accent gold)
-    --#{$prefix}main-nav-border-color:                     #2D2870;   // dark --sidebar-border
+    --#{$prefix}main-nav-bg:                               #262320;   // dark --sidebar (espresso)
+    --#{$prefix}main-nav-item-color:                       #C9C2B5;   // dark --muted-foreground (clear on amber)
+    --#{$prefix}main-nav-item-hover-bg:                    #3A352E;   // dark --sidebar-accent (raised espresso)
+    --#{$prefix}main-nav-item-hover-color:                 #F59E0B;   // dark --sidebar-accent-foreground (accent gold)
+    --#{$prefix}main-nav-border-color:                     #3A352E;   // dark --sidebar-border
 }
 
 /* Topbar Light */
 html[data-topbar-color="light"] {
     --#{$prefix}topbar-bg:                                 #ffffff;   // --background
     --#{$prefix}topbar-item-color:                         #443f3a;   // --muted-foreground (warm dark)
-    --#{$prefix}topbar-search-bg:                          #F1EFE8;   // --muted (surface)
+    --#{$prefix}topbar-search-bg:                          #FFFBEB;   // --muted (surface)
 }
 
 /* Topbar Dark */
 html[data-topbar-color="dark"],
 html[data-bs-theme="dark"][data-topbar-color="light"]{
-    --#{$prefix}topbar-bg:                                 #1A1640;   // dark --background (deep indigo)
-    --#{$prefix}topbar-item-color:                         #F1EFE8;   // dark --foreground (surface for legibility)
-    --#{$prefix}topbar-search-bg:                          #2D2870;   // dark --card/muted (raised indigo)
+    --#{$prefix}topbar-bg:                                 #262320;   // dark --background (espresso)
+    --#{$prefix}topbar-item-color:                         #FFFBEB;   // dark --foreground (surface for legibility)
+    --#{$prefix}topbar-search-bg:                          #3A352E;   // dark --card/muted (raised espresso)
 }

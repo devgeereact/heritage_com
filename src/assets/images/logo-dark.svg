@@ -1,5 +1,5 @@
 <svg width="150" height="32" viewBox="0 0 150 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="4" width="24" height="24" rx="6" fill="#26215C"/>
+  <rect x="2" y="4" width="24" height="24" rx="6" fill="#262626"/>
   <path d="M9 10v12M9 16h7M16 10v12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-  <text x="34" y="22" font-family="'Inter',-apple-system,sans-serif" font-size="19" font-weight="700" fill="#1A1714">Herit<tspan fill="#26215C">OS</tspan></text>
+  <text x="34" y="22" font-family="'Inter',-apple-system,sans-serif" font-size="19" font-weight="700" fill="#1A1714">Herit<tspan fill="#262626">OS</tspan></text>
 </svg>

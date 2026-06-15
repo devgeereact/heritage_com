@@ -125,7 +125,7 @@ const NewsletterForm = () => {
         </button>
       </form>
       {state === 'error' && (
-        <p className="hc-mt-1" style={{ color: '#f5d18a', fontSize: '0.82rem' }}>
+        <p className="hc-mt-1" style={{ color: '#FCD34D', fontSize: '0.82rem' }}>
           Couldn&apos;t sign you up just now — please try again.
         </p>
       )}

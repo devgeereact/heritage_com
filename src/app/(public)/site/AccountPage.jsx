@@ -8,7 +8,7 @@ import { useCart } from './cart';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const MEASURE_FIELDS = ['neck', 'shoulder', 'chest', 'waist', 'hip', 'sleeve', 'length', 'thigh', 'trouser_length', 'ankle'];
-const statusColor = (s) => ({ delivered: '#16794a', shipped: '#26215C', cancelled: '#9b8e83' }[s] || '#b45309');
+const statusColor = (s) => ({ delivered: '#16794a', shipped: '#262626', cancelled: '#9b8e83' }[s] || '#b45309');
 
 const field = {
   width: '100%', padding: '0.7rem 0.85rem', border: '1.5px solid var(--border)',

@@ -97,8 +97,8 @@ const TrackPage = () => {
                       <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '.75rem', padding: '.4rem 0', opacity: done ? 1 : 0.4 }}>
                         <span style={{
                           width: 30, height: 30, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          background: done ? '#26215C' : '#e9e1d8', color: done ? '#fff' : '#9b8e83',
-                          boxShadow: current ? '0 0 0 4px rgba(38,33,92,.18)' : 'none',
+                          background: done ? '#262626' : '#e9e1d8', color: done ? '#fff' : '#9b8e83',
+                          boxShadow: current ? '0 0 0 4px rgba(146, 64, 14,.18)' : 'none',
                         }}><IconifyIcon icon={s.icon} /></span>
                         <span style={{ fontWeight: current ? 700 : 500 }}>{s.label}</span>
                       </li>

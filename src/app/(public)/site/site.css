@@ -1,44 +1,44 @@
 /* ============================================================
    Herit Clothing — public site theme
    Premium editorial palette: warm bone surface, deep indigo, warm gold thread.
-   Playfair Display display + Inter body + IBM Plex Mono labels.
+   Source Serif 4 display + Inter body + IBM Plex Mono labels.
    Soft layered shadows, radius 0.625rem. Scoped under `.hc` so it never
    touches the Bootstrap-driven admin app.
    ============================================================ */
 
 .hc {
   --card: #FFFFFF;
-  --ring: #26215C;
+  --ring: #262626;
   --input: #E9E5DC;
   --muted: #E9E5DC;
-  --accent: #FAC775;
+  --accent: #F59E0B;
   --accent-soft: #FDEAC2;
   --border: #E8E3DB;
   --radius: 0.625rem;
 
-  --chart-1: #26215C;
-  --chart-2: #1B1742;
-  --chart-3: #FAC775;
+  --chart-1: #262626;
+  --chart-2: #171717;
+  --chart-3: #F59E0B;
   --chart-4: #8a8178;
   --chart-5: #443f3a;
 
-  --primary: #26215C;
-  --primary-dark: #1B1742;
+  --primary: #262626;
+  --primary-dark: #171717;
   --secondary: #FDEAC2;
-  --gold: #FAC775;
-  --background: #F1EFE8;
+  --gold: #F59E0B;
+  --background: #FFFBEB;
   --bg: #FFFFFF;
   --foreground: #1a1714;
   --espresso: #1a1714;
   --destructive: #991b1b;
   --muted-foreground: #6b655e;
-  --accent-foreground: #26215C;
+  --accent-foreground: #262626;
   --primary-foreground: #ffffff;
   --secondary-foreground: #6b655e;
 
   --font-mono: "IBM Plex Mono", monospace;
   --font-sans: "Inter", sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
 
   --shadow-sm: 0 1px 2px hsl(30 20% 12% / 0.04), 0 2px 6px hsl(30 20% 12% / 0.05);
   --shadow-md: 0 2px 4px hsl(30 20% 12% / 0.05), 0 6px 16px hsl(30 20% 12% / 0.07);
@@ -93,7 +93,7 @@
   content: "";
   width: 1.5rem;
   height: 2px;
-  background: var(--secondary, var(--gold, #FAC775));
+  background: var(--secondary, var(--gold, #F59E0B));
   border-radius: 2px;
   opacity: 0.95;
 }
@@ -213,7 +213,7 @@
   font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em;
   color: rgba(255,255,255,0.62); transition: color 0.15s;
 }
-.hc-foot-staff:hover { color: #f5d18a; }
+.hc-foot-staff:hover { color: #FCD34D; }
 .hc-nav-toggle {
   display: none; margin-left: auto; background: none; border: 1.5px solid var(--border);
   border-radius: var(--radius);
@@ -330,7 +330,7 @@
   padding: 0.45rem 0.9rem; border-radius: 100px; margin-bottom: 1.5rem;
   backdrop-filter: blur(4px);
 }
-.hc-hero-pulse { width: 8px; height: 8px; border-radius: 50%; background: #f5d18a; box-shadow: 0 0 0 0 rgba(245,209,138,0.7); animation: hc-pulse 1.8s infinite; }
+.hc-hero-pulse { width: 8px; height: 8px; border-radius: 50%; background: #FCD34D; box-shadow: 0 0 0 0 rgba(245,209,138,0.7); animation: hc-pulse 1.8s infinite; }
 @keyframes hc-pulse { 0% { box-shadow: 0 0 0 0 rgba(245,209,138,0.7); } 70% { box-shadow: 0 0 0 9px rgba(245,209,138,0); } 100% { box-shadow: 0 0 0 0 rgba(245,209,138,0); } }
 
 .hc-hero--bold .hc-hero-title {
@@ -340,7 +340,7 @@
 }
 .hc-hero-em {
   display: block; font-style: italic;
-  background: linear-gradient(100deg, #FDEAC2 0%, #FAC775 100%);
+  background: linear-gradient(100deg, #FDEAC2 0%, #F59E0B 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hc-hero-sub {
@@ -348,18 +348,18 @@
   max-width: 34rem; margin-top: 1.5rem;
 }
 .hc-hero--bold .hc-hero-actions { margin-top: 2.25rem; }
-.hc-btn--gold { background: linear-gradient(100deg, #FDEAC2, #FAC775); color: #1B1742; border: none; font-weight: 600; box-shadow: 0 8px 24px rgba(38,33,92,0.32); }
-.hc-btn--gold:hover { filter: brightness(1.05); transform: translateY(-1px); color: #1B1742; }
+.hc-btn--gold { background: linear-gradient(100deg, #FDEAC2, #F59E0B); color: #171717; border: none; font-weight: 600; box-shadow: 0 8px 24px rgba(146, 64, 14,0.32); }
+.hc-btn--gold:hover { filter: brightness(1.05); transform: translateY(-1px); color: #171717; }
 .hc-btn--glass { background: rgba(255,255,255,0.10); color: #fff; border: 1.5px solid rgba(255,255,255,0.4); backdrop-filter: blur(6px); }
 .hc-btn--glass:hover { background: rgba(255,255,255,0.2); color: #fff; }
 .hc-hero-cta { position: relative; }
 
 .hc-hero-trust { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.85rem; }
-.hc-hero-stars { display: flex; align-items: center; gap: 0.3rem; color: #f5d18a; font-size: 1.05rem; }
+.hc-hero-stars { display: flex; align-items: center; gap: 0.3rem; color: #FCD34D; font-size: 1.05rem; }
 .hc-hero-stars span { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.78); margin-left: 0.6rem; }
 .hc-hero-badges { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; }
 .hc-hero-badges span { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: rgba(255,255,255,0.82); }
-.hc-hero-badges span svg { color: #f5d18a; }
+.hc-hero-badges span svg { color: #FCD34D; }
 
 /* Floating fabric showcase */
 .hc-hero--bold .hc-hero-right { background: none; box-shadow: none; padding: 2rem 0; margin: 0; min-height: 0; display: block; }
@@ -396,7 +396,7 @@
   padding: 0.3rem 0.6rem; border-radius: 100px; box-shadow: var(--shadow-md);
 }
 .hc-hero--bold .hc-hero-place { color: rgba(255,255,255,0.7); justify-content: center; margin-top: 2.5rem; }
-.hc-hero--bold .hc-hero-place svg { color: #f5d18a; }
+.hc-hero--bold .hc-hero-place svg { color: #FCD34D; }
 
 @media (max-width: 991px) {
   .hc-hero--bold .hc-hero-grid { grid-template-columns: 1fr; }
@@ -441,8 +441,8 @@
 }
 .hc-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 4px 8px rgba(28, 25, 23, 0.06), 0 22px 50px -20px rgba(38, 33, 92, 0.32);
-  border-color: rgba(250, 199, 117, 0.45);
+  box-shadow: 0 4px 8px rgba(28, 25, 23, 0.06), 0 22px 50px -20px rgba(146, 64, 14, 0.32);
+  border-color: rgba(245, 158, 11, 0.45);
 }
 .hc-card:hover::before { opacity: 0.95; }
 .hc-card--feature { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -518,7 +518,7 @@
 }
 /* Adire — indigo eleko resist, cream concentric rings */
 .hc-tile-adire::before {
-  background-color: #2b2d54;
+  background-color: #262626;
   background-image:
     radial-gradient(circle at 50% 50%, transparent 29%, #e7d6b0 30%, #e7d6b0 33%, transparent 34%),
     radial-gradient(circle at 50% 50%, transparent 17%, #cdb98a 18%, #cdb98a 20%, transparent 21%),
@@ -563,7 +563,7 @@
 a.hc-tile:hover::before { transform: scale(1.08); }
 a.hc-tile:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(28, 25, 23, 0.08), 0 22px 50px -20px rgba(38, 33, 92, 0.42);
+  box-shadow: 0 4px 8px rgba(28, 25, 23, 0.08), 0 22px 50px -20px rgba(146, 64, 14, 0.42);
 }
 .hc-tile span {
   font-family: var(--font-serif); font-weight: 700; font-size: 1.25rem;
@@ -635,7 +635,7 @@ a.hc-tile:hover {
   font-family: var(--font-sans); padding: 0.65rem 0.8rem; color: var(--foreground);
 }
 .hc-form .form-control:focus,
-.hc-form .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(38,33,92,0.14); background: #fff; }
+.hc-form .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(146, 64, 14,0.14); background: #fff; }
 .hc-form-error {
   background: #fdecec; border: 1px solid var(--destructive); color: var(--destructive);
   border-radius: var(--radius);
