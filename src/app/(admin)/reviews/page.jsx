@@ -6,7 +6,7 @@ import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
 const Stars = ({ n }) => (
-  <span>{[1, 2, 3, 4, 5].map((i) => <IconifyIcon key={i} icon={i <= n ? 'solar:star-bold' : 'solar:star-linear'} style={{ color: '#e0a200' }} />)}</span>
+  <span>{[1, 2, 3, 4, 5].map((i) => <IconifyIcon key={i} icon={i <= n ? 'solar:star-bold' : 'solar:star-linear'} style={{ color: 'var(--herit-accent)' }} />)}</span>
 );
 
 const ReviewCard = ({ r, onStatus, onRespond, onAnswer }) => {

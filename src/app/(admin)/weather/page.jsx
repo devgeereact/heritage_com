@@ -32,7 +32,7 @@ const WeatherPage = () => {
         <Row className="g-3">
           {/* current conditions */}
           <Col lg={4}>
-            <Card className="h-100 text-white" style={{ background: 'linear-gradient(135deg, var(--bs-primary), #7f1d1d)' }}>
+            <Card className="h-100 text-white" style={{ background: 'linear-gradient(135deg, var(--herit-primary), var(--herit-accent))' }}>
               <CardBody className="d-flex flex-column">
                 <div className="d-flex justify-content-between align-items-start">
                   <div>

@@ -1,10 +1,12 @@
+import { Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
 import CustomersSettings from './components/CustomersSettings';
 import GeneralSettings from './components/GeneralSettings';
 import LocalizationSettings from './components/LocalizationSettings';
 import SettingsBoxs from './components/SettingsBoxs';
 import StoreSettings from './components/StoreSettings';
-import { Link } from 'react-router-dom';
+
 const SettingsPage = () => {
   return <>
       <PageTitle title="Settings" />
@@ -13,14 +15,9 @@ const SettingsPage = () => {
       <LocalizationSettings />
       <SettingsBoxs />
       <CustomersSettings />
-      <div className="text-end">
-        <Link to="" className="btn btn-danger">
-          Cancel
-        </Link>
-        &nbsp;
-        <Link to="" className="btn btn-success">
-          Save Change
-        </Link>
+      <div className="text-end d-flex gap-2 justify-content-end">
+        <Button as={Link} to="" variant="light">Cancel</Button>
+        <Button as={Link} to="" variant="primary">Save change</Button>
       </div>
     </>;
 };

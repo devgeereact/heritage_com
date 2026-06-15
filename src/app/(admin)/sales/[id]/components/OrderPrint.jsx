@@ -102,7 +102,7 @@ const OrderPrint = ({ show, onHide, order, mode = 'invoice' }) => {
                 </tr>
                 <tr>
                   <td colSpan={4} className="text-end fw-bold">Balance due</td>
-                  <td className="text-end fw-bold" style={{ color: balance > 0 ? '#991b1b' : 'inherit' }}>{naira(balance)}</td>
+                  <td className="text-end fw-bold" style={{ color: balance > 0 ? 'var(--bs-danger)' : 'inherit' }}>{naira(balance)}</td>
                 </tr>
               </tfoot>
             )}
