@@ -6,6 +6,8 @@ import { useAuthContext } from '@/context/useAuthContext';
 import { roleHome } from '@/helpers/roles';
 import { heritApi } from '@/helpers/heritApi';
 import { useCart } from './cart';
+import logoDark from '@/assets/images/logo-dark.svg';
+import logoLight from '@/assets/images/logo-light.svg';
 import './site.css';
 
 const NAV = [
@@ -29,9 +31,8 @@ const SiteNav = () => {
   return (
     <header className="hc-nav">
       <div className="hc-container hc-nav-inner">
-        <Link to="/" className="hc-brand">
-          Herit<span>.</span>Clothing
-          <small>Wear your heritage</small>
+        <Link to="/" className="hc-brand" aria-label="Herit Clothing — home">
+          <img src={logoDark} alt="Herit Clothing" className="hc-brand-logo" />
         </Link>
 
         <button
@@ -140,7 +141,7 @@ const SiteFooter = () => {
     <div className="hc-container">
       <div className="hc-foot-grid">
         <div>
-          <div className="hc-foot-brand">Herit<span>.</span>Clothing</div>
+          <img src={logoLight} alt="Herit Clothing" className="hc-foot-logo" />
           <p className="hc-mt-2" style={{ maxWidth: '20rem', lineHeight: 1.6 }}>
             Contemporary African fashion, rooted in real heritage fabrics. We fuse Ankara,
             Adire and Aso-Oke with modern cuts — made in Ajuwon Market, Lagos, for the world.

@@ -160,6 +160,8 @@
   white-space: nowrap;
 }
 .hc-brand span { color: var(--primary); }
+.hc-brand-logo { height: 42px; width: auto; display: block; }
+.hc-foot-logo { height: 48px; width: auto; display: block; margin-bottom: 0.25rem; }
 .hc-brand small {
   display: block;
   font-family: var(--font-mono);

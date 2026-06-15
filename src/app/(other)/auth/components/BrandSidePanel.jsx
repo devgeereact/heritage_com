@@ -1,4 +1,5 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import logoLight from '@/assets/images/logo-light.svg';
 
 const fabricPanel = {
   backgroundColor: '#171717',
@@ -22,6 +23,7 @@ const BrandSidePanel = ({
        style={{ ...fabricPanel, color: '#fff', position: 'relative' }}>
     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(150deg, rgba(28,25,23,0.55), rgba(28,25,23,0.88))' }} />
     <div style={{ position: 'relative' }}>
+      <img src={logoLight} alt="Herit Clothing" style={{ height: '52px', width: 'auto', display: 'block', marginBottom: '1rem' }} />
       <div style={meta}>Herit Clothing · Est. Lagos</div>
     </div>
     <div style={{ position: 'relative' }}>
