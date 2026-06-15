@@ -1,10 +1,12 @@
 import logoDark from '@/assets/images/logo-dark.svg';
 import logoLight from '@/assets/images/logo-light.svg';
-import smallImg from '@/assets/images/small/img-10.jpg';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, Col, Row } from 'react-bootstrap';
 import SignUpForm from './SignUpForm';
 import { Link } from 'react-router-dom';
+import BrandSidePanel from '../../components/BrandSidePanel';
+import AuthHeading from '../../components/AuthHeading';
+
 const SignUp = () => {
   return <div className="d-flex flex-column vh-100 p-3">
       <div className="d-flex flex-column flex-grow-1">
@@ -21,24 +23,27 @@ const SignUp = () => {
                       <img src={logoLight} height={24} alt="logo light" />
                     </Link>
                   </div>
-                  <h2 className="fw-bold fs-24">Sign Up</h2>
-                  <p className="text-muted mt-1 mb-3">New to our platform? Sign up now! It only takes a minute</p>
+                  <AuthHeading
+                    kicker="HeritOS · sign up"
+                    title="Join the workshop."
+                    sub="Create your HeritOS account. Access is granted by an administrator under Team & Access."
+                  />
                   <div>
                     <SignUpForm />
-                    <p className="mt-3 fw-semibold no-span">OR sign with</p>
+                    <p className="mt-3 fw-semibold no-span">Or continue with</p>
                     <div className="d-grid gap-2 mb-2">
                       <Link to="" className="btn btn-soft-dark">
-                        <IconifyIcon icon="bxl:google" className="fs-20 me-1" /> Sign Up with Google
+                        <IconifyIcon icon="bxl:google" className="fs-20 me-1" /> Sign up with Google
                       </Link>
                       <Link to="" className="btn btn-soft-primary">
-                        <IconifyIcon icon="bxl:facebook" className="fs-20 me-1" /> Sign Up with Facebook
+                        <IconifyIcon icon="bxl:facebook" className="fs-20 me-1" /> Sign up with Facebook
                       </Link>
                     </div>
                   </div>
-                  <p className="mt-auto text-danger text-center">
-                    I already have an account{' '}
-                    <Link to="/auth/sign-in" className="text-dark fw-bold ms-1">
-                      Sign In
+                  <p className="mt-auto text-muted text-center">
+                    Already have an account?
+                    <Link to="/auth/sign-in" className="fw-bold ms-1" style={{ color: 'var(--herit-primary)' }}>
+                      Sign in
                     </Link>
                   </p>
                 </div>
@@ -46,10 +51,8 @@ const SignUp = () => {
             </Row>
           </Col>
           <Col xxl={5} className="d-none d-xxl-flex">
-            <Card className="h-100 mb-0 overflow-hidden">
-              <div className="d-flex flex-column h-100">
-                <img src={smallImg} height={867} width={759} alt="small-img" className="w-100 h-100" />
-              </div>
+            <Card className="h-100 mb-0 overflow-hidden border-0">
+              <BrandSidePanel heading="Cut. Stitch. Ship." body="Run a heritage menswear brand the way it deserves — measurements, fabric, orders and money, all under one roof." />
             </Card>
           </Col>
         </Row>

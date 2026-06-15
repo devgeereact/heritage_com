@@ -5,20 +5,8 @@ import { Card, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import LoginFrom from './LoginFrom';
 import PinLogin from './PinLogin';
-
-// Branded heritage panel — Adire-style indigo resist woven from gradients, so the
-// sign-in is on-brand with no stock photo and nothing to load.
-const fabricPanel = {
-  backgroundColor: '#1B1742',
-  backgroundImage: [
-    'radial-gradient(circle at 50% 50%, rgba(250,199,117,0.85) 3%, transparent 4%)',
-    'radial-gradient(circle at 50% 50%, transparent 11%, rgba(250,199,117,0.55) 12%, rgba(250,199,117,0.55) 16%, transparent 17%)',
-    'radial-gradient(circle at 50% 50%, transparent 21%, rgba(241,239,232,0.55) 22%, rgba(241,239,232,0.55) 25%, transparent 26%)',
-    'radial-gradient(circle at 0% 0%, transparent 21%, rgba(250,199,117,0.5) 22%, transparent 26%)',
-    'radial-gradient(circle at 100% 100%, transparent 21%, rgba(250,199,117,0.5) 22%, transparent 26%)',
-  ].join(','),
-  backgroundSize: '64px 64px',
-};
+import BrandSidePanel from '../../components/BrandSidePanel';
+import AuthHeading from '../../components/AuthHeading';
 
 const SignIn = () => {
   return (
@@ -37,8 +25,11 @@ const SignIn = () => {
                       <img src={logoLight} height={24} alt="logo light" />
                     </Link>
                   </div>
-                  <h2 className="fw-bold fs-24">Welcome back</h2>
-                  <p className="text-muted mt-1 mb-4">Sign in to HeritOS — the operating system behind Herit Clothing.</p>
+                  <AuthHeading
+                    kicker="HeritOS · sign in"
+                    title="Welcome back."
+                    sub="The operating system behind Herit Clothing — tailoring, catalogue, orders, stock and money, in one place."
+                  />
                   <div className="mb-3">
                     <LoginFrom />
                   </div>
@@ -55,27 +46,7 @@ const SignIn = () => {
           </Col>
           <Col xxl={5} className="d-none d-xxl-flex">
             <Card className="h-100 mb-0 overflow-hidden border-0">
-              <div className="d-flex flex-column h-100 justify-content-between p-5"
-                   style={{ ...fabricPanel, color: '#fff', position: 'relative' }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(150deg, rgba(28,25,23,0.55), rgba(28,25,23,0.88))' }} />
-                <div style={{ position: 'relative' }}>
-                  <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: '0.72rem', letterSpacing: '0.28em', textTransform: 'uppercase', opacity: 0.85 }}>
-                    Herit Clothing · Est. Lagos
-                  </div>
-                </div>
-                <div style={{ position: 'relative' }}>
-                  <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 700, fontStyle: 'italic', fontSize: '2.4rem', lineHeight: 1.15, color: '#fff' }}>
-                    Wear your heritage.
-                  </h1>
-                  <p style={{ marginTop: '1rem', maxWidth: '24rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)' }}>
-                    One place to run the brand — tailoring, catalogue, orders, stock, customers,
-                    finance and more. Made in Ajuwon Market, for the world.
-                  </p>
-                </div>
-                <div style={{ position: 'relative', fontFamily: '"IBM Plex Mono", monospace', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <IconifyIcon icon="solar:map-point-bold" /> Lagos, Nigeria
-                </div>
-              </div>
+              <BrandSidePanel />
             </Card>
           </Col>
         </Row>

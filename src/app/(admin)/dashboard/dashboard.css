@@ -1,0 +1,68 @@
+/* Dashboard hero — editorial greeting band */
+.herit-hero {
+  position: relative;
+  padding: 1.75rem 1.75rem 1.5rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  background:
+    radial-gradient(620px 220px at 100% 0%, rgba(250, 199, 117, 0.18), transparent 60%),
+    radial-gradient(420px 200px at 0% 100%, rgba(38, 33, 92, 0.10), transparent 65%),
+    linear-gradient(160deg, #ffffff 0%, var(--herit-surface) 100%);
+  border: 1px solid var(--herit-border);
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 18px 50px -28px rgba(38, 33, 92, 0.22);
+  animation: herit-hero-in 0.5s cubic-bezier(.2,.8,.2,1) both;
+}
+html[data-bs-theme="dark"] .herit-hero {
+  background:
+    radial-gradient(620px 220px at 100% 0%, rgba(250, 199, 117, 0.18), transparent 60%),
+    radial-gradient(420px 200px at 0% 100%, rgba(38, 33, 92, 0.35), transparent 65%),
+    linear-gradient(160deg, #1A1640 0%, #14112E 100%);
+  border-color: #2D2870;
+}
+.herit-hero-rule {
+  position: absolute; left: 1.75rem; top: 1.75rem;
+  width: 2.25rem; height: 3px; border-radius: 2px;
+  background: var(--herit-accent);
+}
+.herit-hero-meta {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+  margin-top: 1.5rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--herit-ink-muted);
+}
+.herit-hero-dot { opacity: 0.55; }
+.herit-hero-title {
+  margin: 0.4rem 0 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--herit-ink);
+}
+.herit-hero-title em {
+  font-style: italic;
+  color: var(--herit-primary);
+}
+html[data-bs-theme="dark"] .herit-hero-title em { color: var(--herit-accent); }
+.herit-hero-sub {
+  margin: 0.6rem 0 0;
+  max-width: 44rem;
+  color: var(--herit-ink-muted);
+  font-size: 1rem;
+}
+
+/* tighten KPI row under hero */
+.herit-hero + .row { margin-top: 0 !important; }
+
+@keyframes herit-hero-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .herit-hero { animation: none; }
+}
