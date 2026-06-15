@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, ProgressBar, Row } from 'react-bootstrap';
 const ProgressBarWorks = () => {
@@ -52,7 +52,7 @@ const HeightProgressBar = () => {
 };
 const Progress = () => {
   return <>
-      <PageTItle title="Progress" />
+      <PageTitle title="Progress" />
       <Container>
         <Row>
           <Col xl={9}>

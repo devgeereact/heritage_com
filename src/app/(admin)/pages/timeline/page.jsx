@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { getAllTimeline } from '@/helpers/data';
 import { Fragment } from 'react';
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
@@ -59,7 +59,7 @@ const CenteredTimeline = ({
 const Timeline = () => {
   const timelineData = useFetchData(getAllTimeline);
   return <>
-      <PageTItle title="TimeLine" />
+      <PageTitle title="TimeLine" />
       <Row>
         <Col lg={12}> {timelineData && <CenteredTimeline timeline={timelineData} />}</Col>
       </Row>

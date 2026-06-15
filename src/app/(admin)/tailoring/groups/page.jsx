@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, Button, Spinner, Alert, Badge, Modal, Form, Row, Col, Table } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -138,7 +138,7 @@ const GroupsPage = () => {
 
   return (
     <>
-      <PageTItle title="Aso-ebi groups" />
+      <PageTitle title="Aso-ebi groups" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
           <Link to="/tailoring" className="btn btn-sm btn-light mb-1"><IconifyIcon icon="solar:arrow-left-linear" /> Board</Link>

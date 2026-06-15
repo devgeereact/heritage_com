@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge, ButtonGroup } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import AiPanel from '@/components/AiPanel';
 import NewOrderModal from './components/NewOrderModal';
@@ -78,7 +78,7 @@ const SalesPage = () => {
 
   return (
     <>
-      <PageTItle title="Orders" />
+      <PageTitle title="Orders" />
 
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>

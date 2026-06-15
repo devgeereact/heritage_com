@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Table, Spinner, Alert, Row, Col, Button, Badge, Dropdown } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 import AiInsights from './AiInsights';
@@ -45,7 +45,7 @@ const AnalyticsPage = () => {
 
   return (
     <>
-      <PageTItle title="Analytics & Reports" />
+      <PageTitle title="Analytics & Reports" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div><h4 className="mb-1">Analytics &amp; Reports</h4><p className="text-muted mb-0">The numbers behind every decision.</p></div>
         <div className="d-flex gap-2">

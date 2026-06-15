@@ -1,8 +1,8 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import AllWizard from './components/AllWizard';
 const Wizard = () => {
   return <>
-      <PageTItle title="Wizard" />
+      <PageTitle title="Wizard" />
       <AllWizard />
     </>;
 };

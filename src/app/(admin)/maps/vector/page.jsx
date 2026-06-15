@@ -1,10 +1,10 @@
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllVectorMaps from './components/AllVectorMaps';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const VectorMaps = () => {
   return <>
-      <PageTItle title="Vector Maps" />
+      <PageTitle title="Vector Maps" />
       <Container>
         <Row>
           <Col xl={9}>

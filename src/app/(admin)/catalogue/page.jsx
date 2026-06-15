@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import NewProductModal from './components/NewProductModal';
 
@@ -28,7 +28,7 @@ const CataloguePage = () => {
 
   return (
     <>
-      <PageTItle title="Products & Variants" />
+      <PageTitle title="Products & Variants" />
 
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>

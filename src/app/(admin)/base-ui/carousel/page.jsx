@@ -11,7 +11,7 @@ import Img6 from '@/assets/images/small/img-6.jpg';
 import Img7 from '@/assets/images/small/img-7.jpg';
 import Img8 from '@/assets/images/small/img-8.jpg';
 import Img9 from '@/assets/images/small/img-9.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const SlidesOnly = () => {
   return <ComponentContainerCard id="slides-only" title="Slides Only" description={<>
           Here’s a carousel with slides only. Note the presence of the <code>.d-block</code> and <code>.img-fluid</code> on carousel images to prevent
@@ -196,7 +196,7 @@ const DarkVariant = () => {
 };
 const Carousel = () => {
   return <>
-      <PageTItle title="Carousel" />
+      <PageTitle title="Carousel" />
       <Container>
         <Row>
           <Col xl={9}>

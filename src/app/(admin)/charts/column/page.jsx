@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllColumnCharts from './components/AllColumnCharts';
 const ColumnCharts = () => {
   return <>
-      <PageTItle title="Column Charts" />
+      <PageTitle title="Column Charts" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getSellersData } from '@/helpers/data';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -125,7 +125,7 @@ const SellersCard = ({
 const SellerListPage = () => {
   const sellersData = useFetchData(getSellersData);
   return <>
-      <PageTItle title="Sellers List" />
+      <PageTitle title="Sellers List" />
       <Row>
         {sellersData?.map((item, idx) => <Col xl={3} md={6} key={idx}>
             <SellersCard {...item} />

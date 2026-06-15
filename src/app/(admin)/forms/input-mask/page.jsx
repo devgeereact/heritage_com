@@ -1,9 +1,9 @@
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import AllInputMasks from './components/AllInputMasks';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const InputMasks = () => {
   return <>
-      <PageTItle title="Input Mask" />
+      <PageTitle title="Input Mask" />
       <Container>
         <Row>
           <Col xl={12}>

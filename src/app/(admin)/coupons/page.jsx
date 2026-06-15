@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Form, Modal, Row, Col, InputGroup } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -142,7 +142,7 @@ const CouponsPage = () => {
 
   return (
     <>
-      <PageTItle title="Coupons" />
+      <PageTitle title="Coupons" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
           <h4 className="mb-1">Coupons &amp; Promotions</h4>

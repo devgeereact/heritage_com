@@ -1,10 +1,10 @@
 import ChoicesFormInput from '@/components/form/ChoicesFormInput';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 const RoleEditPage = () => {
   return <>
-      <PageTItle title="Role Edit" />
+      <PageTitle title="Role Edit" />
       <Row>
         <Col lg={12}>
           <Card>

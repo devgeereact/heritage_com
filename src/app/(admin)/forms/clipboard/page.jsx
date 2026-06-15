@@ -1,10 +1,10 @@
 import { Col, Container, Row } from 'react-bootstrap';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllClipboards from './components/AllClipboards';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Clipboard = () => {
   return <>
-      <PageTItle title="Clipboard" />
+      <PageTitle title="Clipboard" />
       <Container>
         <Row>
           <Col xl={9}>

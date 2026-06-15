@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getAttributeData } from '@/helpers/data';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const AttributesListPage = () => {
   const attributeData = useFetchData(getAttributeData);
   return <>
-      <PageTItle title="Attribute List" />
+      <PageTitle title="Attribute List" />
       <Row>
         <Col xl={12}>
           <Card>

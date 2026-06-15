@@ -1,10 +1,10 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
 import DropzoneFormInput from '@/components/form/DropzoneFormInput';
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const FileUploads = () => {
   return <>
-      <PageTItle title="File Uploads" />
+      <PageTitle title="File Uploads" />
       <Container>
         <Row>
           <Col xl={12}>

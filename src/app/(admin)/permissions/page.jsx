@@ -1,6 +1,6 @@
 import { Card, CardBody, Table, Badge } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { ACCESS_MATRIX, STAFF_ROLES, ROLE_LABELS } from '@/helpers/roles';
 
 // Honest, read-only view of who-can-see-what. The grid is generated straight
@@ -8,7 +8,7 @@ import { ACCESS_MATRIX, STAFF_ROLES, ROLE_LABELS } from '@/helpers/roles';
 // endpoint re-checks server-side — so this can't drift from real access.
 const PermissionsPage = () => (
   <>
-    <PageTItle title="Permissions" />
+    <PageTitle title="Permissions" />
     <div className="mb-3">
       <h4 className="mb-1">Permissions</h4>
       <p className="text-muted mb-0">

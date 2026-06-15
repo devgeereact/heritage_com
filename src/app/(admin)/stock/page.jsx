@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Row, Col } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import AiPanel from '@/components/AiPanel';
 import AdjustStockModal from './components/AdjustStockModal';
@@ -84,7 +84,7 @@ const StockPage = () => {
 
   return (
     <>
-      <PageTItle title="Inventory & Stock" />
+      <PageTitle title="Inventory & Stock" />
 
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>

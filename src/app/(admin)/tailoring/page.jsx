@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Spinner, Alert, Dropdown, Badge, Form, Card as BCard } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import AiPanel from '@/components/AiPanel';
 import { useNotificationContext } from '@/context/useNotificationContext';
@@ -179,7 +179,7 @@ const TailoringPage = () => {
 
   return (
     <>
-      <PageTItle title="Tailoring & Production" />
+      <PageTitle title="Tailoring & Production" />
 
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>

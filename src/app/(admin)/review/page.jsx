@@ -1,7 +1,7 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getAllReviews } from '@/helpers/data';
 import doubleImg from '@/assets/images/double.png';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { getRatingStatus } from '@/utils/other';
 import { Card, CardBody, CardFooter, Col, Row } from 'react-bootstrap';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -49,7 +49,7 @@ const ReviewCard = ({
 const ReviewPage = () => {
   const reviewData = useFetchData(getAllReviews);
   return <>
-      <PageTItle title="Reviews List" />
+      <PageTitle title="Reviews List" />
       <Row>
         {reviewData?.map((item, idx) => <Col xl={3} md={6} key={idx}>
             <ReviewCard {...item} />

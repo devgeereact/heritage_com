@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllRadarCharts from './components/AllRadarCharts';
 const RadarCharts = () => {
   return <>
-      <PageTItle title="Radar Charts" />
+      <PageTitle title="Radar Charts" />
       <Container>
         <Row>
           <Col xl={9}>

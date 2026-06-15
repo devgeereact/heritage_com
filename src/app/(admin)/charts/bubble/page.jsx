@@ -1,10 +1,10 @@
 import { Col, Container, Row } from 'react-bootstrap';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllBubbleCharts from './components/AllBubbleCharts';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const BubbleCharts = () => {
   return <>
-      <PageTItle title="Bubble Charts" />
+      <PageTitle title="Bubble Charts" />
       <Container>
         <Row>
           <Col xl={9}>

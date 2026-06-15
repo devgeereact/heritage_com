@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { ListGroup as BSListGroup, Badge, Col, Container, ListGroupItem, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -318,7 +318,7 @@ const CheckboxesAndRadiosListGroup = () => {
 };
 const ListGroup = () => {
   return <>
-      <PageTItle title="List Group" />
+      <PageTitle title="List Group" />
       <Container>
         <Row>
           <Col xl={9}>

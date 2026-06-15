@@ -1,10 +1,10 @@
 import UIExamplesList from '@/components/UIExamplesList';
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import AllSweetAlerts from './components/AllSweetAlerts';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const SweetAlerts = () => {
   return <>
-      <PageTItle title="Sweet Alert" />
+      <PageTitle title="Sweet Alert" />
       <Container>
         <Row>
           <Col xl={9}>

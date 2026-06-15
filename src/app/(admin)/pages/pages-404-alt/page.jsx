@@ -1,10 +1,10 @@
 import error404Img from '@/assets/images/404-error.png';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 const Pages404AltPage = () => {
   return <>
-      <PageTItle title="Page 404 (ALT)" />
+      <PageTitle title="Page 404 (ALT)" />
       <Row className="align-items-center justify-content-center">
         <Col xl={5}>
           <Card>

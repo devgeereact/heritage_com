@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Col, Row } from 'react-bootstrap';
 import OrderDetails from './components/OrderDetails';
 import OrderTags from './components/OrderTags';
@@ -7,7 +7,7 @@ import ProductDataList from './components/ProductDataList';
 import ProgressCard from './components/ProgressCard';
 const OrderDetailPage = () => {
   return <>
-      <PageTItle title="Order Details" />
+      <PageTitle title="Order Details" />
       <Row>
         <Col xl={9} lg={8}>
           <Row>

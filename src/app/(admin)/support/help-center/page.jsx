@@ -1,8 +1,8 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import HelpCenter from './components/HelpCenter';
 const HelpCenterPage = () => {
   return <>
-      <PageTItle title="Help Center" />
+      <PageTitle title="Help Center" />
       <HelpCenter />
     </>;
 };

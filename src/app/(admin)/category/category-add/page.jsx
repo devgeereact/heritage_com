@@ -1,11 +1,11 @@
 import FileUpload from '@/components/FileUpload';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Col, Row } from 'react-bootstrap';
 import AddCategory from './components/AddCategory';
 import CategoryEditCard from './components/CategoryEditCard';
 const CategoryAddPage = () => {
   return <>
-      <PageTItle title="Create Category" />
+      <PageTitle title="Create Category" />
       <Row>
         <CategoryEditCard />
         <Col xl={9} lg={8}>

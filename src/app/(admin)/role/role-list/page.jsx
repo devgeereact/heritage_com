@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getRoleListData } from '@/helpers/data';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const RoleListPage = () => {
   const roleListData = useFetchData(getRoleListData);
   return <>
-      <PageTItle title="Roles List" />
+      <PageTitle title="Roles List" />
       <Card className="overflow-hiddenCoupons">
         <CardBody className="p-0">
           <div className="table-responsive">

@@ -1,9 +1,9 @@
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import AllEditors from './components/AllEditors';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Editors = () => {
   return <>
-      <PageTItle title="Editors" />
+      <PageTitle title="Editors" />
       <Container>
         <Row>
           <Col xl={12}>

@@ -1,10 +1,10 @@
 import UIExamplesList from '@/components/UIExamplesList';
 import AllCollapse from './components/AllCollapse';
 import { Col, Container, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Collapse = () => {
   return <>
-      <PageTItle title="Collapse" />
+      <PageTitle title="Collapse" />
       <Container>
         <Row>
           <Col xl={9}>

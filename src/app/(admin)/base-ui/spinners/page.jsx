@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import Spinner from '@/components/Spinner';
 import UIExamplesList from '@/components/UIExamplesList';
 import { colorVariants } from '@/context/constants';
@@ -71,7 +71,7 @@ const ButtonSpinners = () => {
 };
 const Spinners = () => {
   return <>
-      <PageTItle title="Spinners" />
+      <PageTitle title="Spinners" />
       <Container>
         <Row>
           <Col xl={9}>

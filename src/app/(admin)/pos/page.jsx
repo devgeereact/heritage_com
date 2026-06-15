@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardBody, Button, Spinner, Alert, Row, Col, Form, Table, Badge } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import AiPanel from '@/components/AiPanel';
 import { cacheCatalogue, readCatalogue, readQueue, writeQueue, enqueueSale, isNetworkError } from './offline';
@@ -156,7 +156,7 @@ const PosPage = () => {
 
   return (
     <>
-      <PageTItle title="Market Sales (POS)" />
+      <PageTitle title="Market Sales (POS)" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div className="d-flex align-items-center gap-2">
           <h4 className="mb-1">Market &amp; In-Person Sales</h4>

@@ -1,6 +1,6 @@
 import checkImg from '@/assets/images/check-2.png';
 import logoDark from '@/assets/images/logo-dark.svg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { currency } from '@/context/constants';
 import { getProductData } from '@/helpers/data';
@@ -53,7 +53,7 @@ const ProductData = () => {
 };
 const page = () => {
   return <>
-      <PageTItle title="Invoice Details" />
+      <PageTitle title="Invoice Details" />
       <Row className="justify-content-center">
         <Col lg={8}>
           <Card>

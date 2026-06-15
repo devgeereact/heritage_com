@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllCandlestickCharts from './components/AllCandlestickCharts';
 const CandlestickCharts = () => {
   return <>
-      <PageTItle title="Candlestick Charts" />
+      <PageTitle title="Candlestick Charts" />
       <Container>
         <Row>
           <Col xl={9}>

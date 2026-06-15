@@ -1,9 +1,9 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import Category from './components/Category';
 import CategoryList from './components/CategoryList';
 const CategoryListPage = () => {
   return <>
-      <PageTItle title="Categories List" />
+      <PageTitle title="Categories List" />
       <Category />
       <CategoryList />
     </>;

@@ -1,10 +1,10 @@
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllPagination from './components/AllPagination';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Pagination = () => {
   return <>
-      <PageTItle title="Pagination" />
+      <PageTitle title="Pagination" />
       <Container>
         <Row>
           <Col xl={9}>

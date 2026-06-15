@@ -1,10 +1,10 @@
 import { Col, Container, Row } from 'react-bootstrap';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllFormValidation from './components/AllFormValidation';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Validation = () => {
   return <>
-      <PageTItle title="Form Validation" />
+      <PageTitle title="Form Validation" />
       <Container>
         <Row>
           <Col xl={9}>

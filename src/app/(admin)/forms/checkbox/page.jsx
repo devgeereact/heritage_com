@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { colorVariants } from '@/context/constants';
 import { toSentenceCase } from '@/utils/change-casing';
@@ -82,7 +82,7 @@ const Switches = () => {
 };
 const CheckboxAndRadio = () => {
   return <>
-      <PageTItle title="Checkbox & Radio" />
+      <PageTitle title="Checkbox & Radio" />
       <Container>
         <Row>
           <Col xl={9}>

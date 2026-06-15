@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Row, Col, Card, CardBody, Badge, Button, Spinner, Alert, Form, InputGroup, Dropdown, ProgressBar } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -117,7 +117,7 @@ const TailoringDetailPage = () => {
 
   return (
     <>
-      <PageTItle title={`Order ${order.code}`} />
+      <PageTitle title={`Order ${order.code}`} />
 
       <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
         <Link to="/tailoring" className="btn btn-sm btn-light"><IconifyIcon icon="solar:arrow-left-linear" /> Board</Link>

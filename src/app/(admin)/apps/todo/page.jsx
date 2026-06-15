@@ -1,13 +1,13 @@
 import { Button, Card, CardBody, Col, Row } from 'react-bootstrap';
 import { getAllTasks } from '@/helpers/data';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Link } from 'react-router-dom';
 import { useFetchData } from '@/hooks/useFetchData';
 const TodoPage = () => {
   const allTasks = useFetchData(getAllTasks);
   return <>
-      <PageTItle title="Todo" />
+      <PageTitle title="Todo" />
       <Row>
         <Col>
           <Card>

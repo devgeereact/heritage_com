@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getAllOrders } from '@/helpers/data';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const PurchaseListPage = () => {
   const PurchaseListPage = useFetchData(getAllOrders);
   return <>
-      <PageTItle title="Purchase List" />
+      <PageTitle title="Purchase List" />
       <Row>
         <Col xl={12}>
           <Card>

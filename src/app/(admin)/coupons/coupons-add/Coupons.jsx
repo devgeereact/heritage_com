@@ -1,7 +1,7 @@
 import CustomFlatpickr from '@/components/CustomFlatpickr';
 import ChoicesFormInput from '@/components/form/ChoicesFormInput';
 import TextFormInput from '@/components/form/TextFormInput';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
@@ -18,7 +18,7 @@ const Coupons = () => {
     resolver: yupResolver(couponSchema)
   });
   return <>
-      <PageTItle title="Coupons Add" />
+      <PageTitle title="Coupons Add" />
       <Row>
         <Col lg={5}>
           <Card>

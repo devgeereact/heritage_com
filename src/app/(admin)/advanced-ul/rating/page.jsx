@@ -1,10 +1,10 @@
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import AllRatings from './components/AllRatings';
 import UIExamplesList from '@/components/UIExamplesList';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Ratings = () => {
   return <>
-      <PageTItle title="Ratings" />
+      <PageTitle title="Ratings" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,9 +1,9 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import PurchaseListPage from '../purchase-list/page';
 import ReturnDataCard from './Components/ReturnDataCard';
 const PurchaseReturnsPage = () => {
   return <>
-      <PageTItle title="Purchase order" />
+      <PageTitle title="Purchase order" />
       <ReturnDataCard />
       <PurchaseListPage />
     </>;

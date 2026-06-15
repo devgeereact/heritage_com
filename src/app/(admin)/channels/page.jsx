@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Button, Spinner, Alert, Row, Col, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 
 const CHANNELS = [
@@ -39,7 +39,7 @@ const ChannelsPage = () => {
 
   return (
     <>
-      <PageTItle title="Store & Channels" />
+      <PageTitle title="Store & Channels" />
       <div className="mb-3"><h4 className="mb-1">Online Store &amp; Channels</h4><p className="text-muted mb-0">Where Herit sells, and the store basics behind it.</p></div>
 
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}

@@ -1,5 +1,5 @@
 import smallImg from '@/assets/images/small/img-2.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
 import { privacyData } from './data';
@@ -19,7 +19,7 @@ const PrivacyCard = ({
 };
 const PrivacyPolicyPage = () => {
   return <>
-      <PageTItle title="Privacy policy" />
+      <PageTitle title="Privacy policy" />
       <Row className="justify-content-center">
         <Col lg={12}>
           <Card className="overflow-hidden" style={{

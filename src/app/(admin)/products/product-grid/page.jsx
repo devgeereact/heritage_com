@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, CardHeader, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -7,7 +7,7 @@ import Product from './components/Product';
 import ProductHead from './components/ProductHead';
 const ProductGridPage = () => {
   return <>
-      <PageTItle title="Product Grid" />
+      <PageTitle title="Product Grid" />
       <Row>
         <Col lg={3}>
           <Card className="bg-light-subtle">

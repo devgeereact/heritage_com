@@ -5,7 +5,7 @@ import cardImg2 from '@/assets/images/small/img-2.jpg';
 import cardImg3 from '@/assets/images/small/img-3.jpg';
 import cardImg4 from '@/assets/images/small/img-4.jpg';
 import cardImg5 from '@/assets/images/small/img-5.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Link } from 'react-router-dom';
 const CardWithImage = () => {
   return <>
@@ -339,7 +339,7 @@ const Cards = () => {
     subtext: 'Last updated 3 mins ago'
   }];
   return <>
-      <PageTItle title="Cards" />
+      <PageTitle title="Cards" />
       <Container>
         <Row>
           <Col xl={3} md={6}>

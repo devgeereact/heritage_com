@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Row } from 'react-bootstrap';
 import AddProduct from './components/AddProduct';
 import ProductDetails from './components/ProductDetails';
 const ProductAddPage = () => {
   return <>
-      <PageTItle title="Create Product" />
+      <PageTitle title="Create Product" />
       <Row>
         <ProductDetails />
         <AddProduct />

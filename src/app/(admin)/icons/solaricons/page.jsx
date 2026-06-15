@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, CardBody, CardHeader, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 const SolarIconsPage = () => {
   return <>
-      <PageTItle title="Solar Icons" />
+      <PageTitle title="Solar Icons" />
       <Container>
         <Card>
           <CardHeader>

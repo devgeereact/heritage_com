@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Button, Col, Container, OverlayTrigger, Popover, PopoverBody, PopoverHeader, Row } from 'react-bootstrap';
 const LiveDemo = () => {
@@ -108,7 +108,7 @@ const DisabledPopover = () => {
 };
 const Popovers = () => {
   return <>
-      <PageTItle title="Popovers" />
+      <PageTitle title="Popovers" />
       <Container>
         <Row>
           <Col xl={9}>

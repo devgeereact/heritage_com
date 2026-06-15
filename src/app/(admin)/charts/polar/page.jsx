@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllPolarAreaCharts from './components/AllPolarAreaCharts';
 const PolarAreaCharts = () => {
   return <>
-      <PageTItle title="Polar Area Charts" />
+      <PageTitle title="Polar Area Charts" />
       <Container>
         <Row>
           <Col xl={9}>

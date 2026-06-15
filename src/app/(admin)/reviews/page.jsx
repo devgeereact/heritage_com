@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Button, Spinner, Alert, Badge, Form, Nav } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -72,7 +72,7 @@ const ReviewsPage = () => {
 
   return (
     <>
-      <PageTItle title="Reviews" />
+      <PageTitle title="Reviews" />
       <div className="mb-3">
         <h4 className="mb-1">Reviews &amp; UGC</h4>
         <p className="text-muted mb-0">Moderate customer reviews and reply in the brand voice.</p>

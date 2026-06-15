@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllRadialBarCharts from './components/AllRadialBarCharts';
 const RadialBarCharts = () => {
   return <>
-      <PageTItle title="RadialBar Charts" />
+      <PageTitle title="RadialBar Charts" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Card, CardBody, Button, Form, Spinner, Alert, Badge, Dropdown, Modal, InputGroup } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 import './whatsapp.css';
@@ -139,7 +139,7 @@ const WhatsAppPage = () => {
 
   return (
     <>
-      <PageTItle title="WhatsApp" />
+      <PageTitle title="WhatsApp" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
           <h4 className="mb-1"><IconifyIcon icon="mdi:whatsapp" className="text-success me-1" /> WhatsApp</h4>

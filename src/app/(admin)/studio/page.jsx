@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardBody, Button, Spinner, Alert, Row, Col, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 
 // Each preset frames the AI prompt in the Herit brand voice (warm, rooted,
@@ -76,7 +76,7 @@ const StudioPage = () => {
 
   return (
     <>
-      <PageTItle title="Content & Brand Studio" />
+      <PageTitle title="Content & Brand Studio" />
       <div className="mb-3"><h4 className="mb-1">Content &amp; Brand Studio</h4><p className="text-muted mb-0">On-brand copy in seconds — captions, descriptions, blasts.</p></div>
 
       <Row className="g-3">

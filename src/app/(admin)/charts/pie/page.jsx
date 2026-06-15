@@ -1,10 +1,10 @@
 import { Col, Container, Row } from 'react-bootstrap';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllPieCharts from './components/AllPieCharts';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const PieCharts = () => {
   return <>
-      <PageTItle title="Pie Charts" />
+      <PageTitle title="Pie Charts" />
       <Container>
         <Row>
           <Col xl={9}>

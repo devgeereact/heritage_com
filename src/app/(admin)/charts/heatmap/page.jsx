@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllHeatmapCharts from './components/AllHeatmapCharts';
 const HeatmapCharts = () => {
   return <>
-      <PageTItle title="Heatmap Charts" />
+      <PageTitle title="Heatmap Charts" />
       <Container>
         <Row>
           <Col xl={9}>

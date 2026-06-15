@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Alert, Col, Container, Row } from 'react-bootstrap';
@@ -167,7 +167,7 @@ const AdditionalContentAlerts = () => {
 };
 const Alerts = () => {
   return <>
-      <PageTItle title="Alerts" />
+      <PageTitle title="Alerts" />
       <Container>
         <Row>
           <Col xl={9}>

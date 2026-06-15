@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Button, Spinner, Alert, Badge, Row, Col } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import ComposeModal from './components/ComposeModal';
 
@@ -59,7 +59,7 @@ const InboxPage = () => {
 
   return (
     <>
-      <PageTItle title="Inbox" />
+      <PageTitle title="Inbox" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
           <h4 className="mb-1">Inbox {unread > 0 && <Badge bg="primary">{unread} new</Badge>}</h4>

@@ -1,13 +1,13 @@
 import logoDark from '@/assets/images/logo-dark.svg';
 import CustomFlatpickr from '@/components/CustomFlatpickr';
 import ChoicesFormInput from '@/components/form/ChoicesFormInput';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Alert, Card, CardBody, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 const InvoiceAddPage = () => {
   return <>
-      <PageTItle title="Invoice Create" />
+      <PageTitle title="Invoice Create" />
       <Row className="justify-content-center">
         <Col lg={10}>
           <Card>

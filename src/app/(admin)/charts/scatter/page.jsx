@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllScatterCharts from './components/AllScatterCharts';
 const ScatterCharts = () => {
   return <>
-      <PageTItle title="Scatter Charts" />
+      <PageTitle title="Scatter Charts" />
       <Container>
         <Row>
           <Col xl={9}>

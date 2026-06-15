@@ -1,8 +1,8 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import EditForm from './components/EditForm';
 const page = () => {
   return <>
-      <PageTItle title="Attribute Edit" />
+      <PageTitle title="Attribute Edit" />
       <EditForm />
     </>;
 };

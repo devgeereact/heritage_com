@@ -1,10 +1,10 @@
 import { Card, CardBody, CardTitle, Col, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllSliders from './components/AllSliders';
 const Slider = () => {
   return <>
-      <PageTItle title="Range Slider" />
+      <PageTitle title="Range Slider" />
       <Row>
         <Col xl={9}>
           <Card>

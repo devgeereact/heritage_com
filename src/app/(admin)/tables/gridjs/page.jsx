@@ -2,12 +2,12 @@ import UIExamplesList from '@/components/UIExamplesList';
 import { getAllDataTableRecords } from '@/helpers/data';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllDataTables from './components/AllDataTables';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { useFetchData } from '@/hooks/useFetchData';
 const GridJS = () => {
   const dataTableRecords = useFetchData(getAllDataTableRecords);
   return <>
-      <PageTItle title="GridJs Table" />
+      <PageTitle title="GridJs Table" />
       <Container>
         <Row>
           {dataTableRecords && <Col xl={10}>

@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Col, Row } from 'react-bootstrap';
 import Conversions from './components/Conversions';
 import FriendsRequest from './components/FriendsRequest';
@@ -12,7 +12,7 @@ import Stats from './components/Stats';
 import Tasks from './components/Tasks';
 const WidgetsPage = () => {
   return <>
-      <PageTItle title="Widget" />
+      <PageTitle title="Widget" />
       <Row>
         <Statistic />
       </Row>

@@ -1,10 +1,10 @@
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllToasts from './components/AllToasts';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Toasts = () => {
   return <>
-      <PageTItle title="Toasts" />
+      <PageTitle title="Toasts" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllBarCharts from './components/AllBarCharts';
 const BarCharts = () => {
   return <>
-      <PageTItle title="Apex Bar Charts" />
+      <PageTitle title="Apex Bar Charts" />
       <Container>
         <Row>
           <Col xl={9}>

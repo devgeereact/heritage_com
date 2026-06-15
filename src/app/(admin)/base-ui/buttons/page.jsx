@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { colorVariants } from '@/context/constants';
@@ -231,7 +231,7 @@ const BlockButtons = () => {
 };
 const Buttons = () => {
   return <>
-      <PageTItle title="Buttons" />
+      <PageTitle title="Buttons" />
       <Container>
         <Row>
           <Col xl={9}>

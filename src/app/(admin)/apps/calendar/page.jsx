@@ -1,10 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const CalendarPage = lazy(() => import('./components/CalendarPage'));
 const Schedule = () => {
   return <>
-      <PageTItle title="Calendar" />
+      <PageTitle title="Calendar" />
       <Row>
         <Col xs={12}>
           <Card>

@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllTreemapCharts from './components/AllTreemapCharts';
 const TreemapCharts = () => {
   return <>
-      <PageTItle title="Treemap Charts" />
+      <PageTitle title="Treemap Charts" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardBody, Row, Col, Form, Button, Spinner, Alert, Badge } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { ROLE_LABELS } from '@/helpers/roles';
 
@@ -64,7 +64,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <PageTItle title="My Profile" />
+      <PageTitle title="My Profile" />
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
       {state === 'offline' && (
         <Alert variant="warning"><strong>Profile offline.</strong> Upload <code>php-api/users.php</code> to the server.</Alert>

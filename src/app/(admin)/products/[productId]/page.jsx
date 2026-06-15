@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { getProductById } from '@/helpers/data';
 import { useEffect, useState } from 'react';
 import { Row } from 'react-bootstrap';
@@ -23,7 +23,7 @@ const ProductDetailsPage = () => {
     })();
   }, []);
   return <>
-      <PageTItle title="Product Details" />
+      <PageTitle title="Product Details" />
       <ProductDetails />
       <Step />
       <Row>

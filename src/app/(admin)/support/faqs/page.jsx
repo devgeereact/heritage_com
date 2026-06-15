@@ -1,5 +1,5 @@
 import smallImg from '@/assets/images/small/img-2.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Accordion, AccordionBody, AccordionHeader, AccordionItem, Card, CardBody, Col, Row } from 'react-bootstrap';
 import { faqData } from './data';
@@ -82,7 +82,7 @@ const SupportFaqs = () => {
 };
 const FaqsPage = () => {
   return <>
-      <PageTItle title="Faqs" />
+      <PageTitle title="Faqs" />
       <FaqsBanner />
       <Row className="mt-4">
         <Col className="col">

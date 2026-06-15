@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Spinner, Alert, Row, Col, Button } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 
 const DAY = (iso) => { const d = new Date(iso + 'T00:00:00'); return d.toLocaleDateString('en-GB', { weekday: 'short' }); };
@@ -19,7 +19,7 @@ const WeatherPage = () => {
 
   return (
     <>
-      <PageTItle title="Weather & Ops" />
+      <PageTitle title="Weather & Ops" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div><h4 className="mb-1">Weather &amp; Ops</h4><p className="text-muted mb-0">Lagos forecast, turned into the day&apos;s trading calls.</p></div>
         <Button variant="light" onClick={load} disabled={state === 'loading'}><IconifyIcon icon="solar:refresh-bold" className="me-1" /> Refresh</Button>

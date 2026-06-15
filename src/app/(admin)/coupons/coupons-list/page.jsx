@@ -1,9 +1,9 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import CouponsBoxs from './components/CouponsBoxs';
 import CouponsDataList from './components/CouponsDataList';
 const CouponsListPage = () => {
   return <>
-      <PageTItle title="Coupons" />
+      <PageTitle title="Coupons" />
       <CouponsBoxs />
       <CouponsDataList />
     </>;

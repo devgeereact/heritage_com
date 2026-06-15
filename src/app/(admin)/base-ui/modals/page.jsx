@@ -1,10 +1,10 @@
 import UIExamplesList from '@/components/UIExamplesList';
 import AllModals from './components/AllModals';
 import { Col, Container, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Modals = () => {
   return <>
-      <PageTItle title="Modal" />
+      <PageTitle title="Modal" />
       <Container>
         <Row>
           <Col xl={9}>

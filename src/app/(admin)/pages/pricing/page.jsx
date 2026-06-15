@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
 import { pricingData } from './data';
@@ -29,7 +29,7 @@ const PricingCard = ({
 };
 const PricingPage = () => {
   return <>
-      <PageTItle title="Pricing" />
+      <PageTitle title="Pricing" />
       <Row>
         <Col xs={12}>
           <div className="text-center my-4">

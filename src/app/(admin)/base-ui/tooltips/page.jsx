@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { colorVariants } from '@/context/constants';
 import { Button, Col, Container, OverlayTrigger, Row, Tooltip } from 'react-bootstrap';
@@ -29,7 +29,7 @@ const ColorTooltip = () => {
 };
 const Tooltips = () => {
   return <>
-      <PageTItle title="Tooltips" />
+      <PageTitle title="Tooltips" />
       <Container>
         <Row>
           <Col xl={9}>

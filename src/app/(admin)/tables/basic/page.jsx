@@ -9,7 +9,7 @@ import { extendedTableData, tableData } from './data';
 import avatar6 from '@/assets/images/users/avatar-6.jpg';
 import avatar7 from '@/assets/images/users/avatar-7.jpg';
 import avatar8 from '@/assets/images/users/avatar-8.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import { Link } from 'react-router-dom';
 const BasicExample = () => {
   return <ComponentContainerCard id="basic" title="Basic Example" description={<>
@@ -1047,7 +1047,7 @@ const NestingTable2 = () => {
 };
 const BasicTables = () => {
   return <>
-      <PageTItle title="Basic Tables" />
+      <PageTitle title="Basic Tables" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,6 +1,6 @@
 import userProfile from '@/assets/images/user-profile.png';
 import avatar2 from '@/assets/images/users/avatar-2.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getAllOrders } from '@/helpers/data';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -138,7 +138,7 @@ const LatestInvoiceCard = ({
 const CustomerDetailPage = () => {
   const transactionHistoryData = useFetchData(getAllOrders);
   return <>
-      <PageTItle title="Customer Details" />
+      <PageTitle title="Customer Details" />
       <Row>
         <Col lg={4}>
           <ProfileCard />

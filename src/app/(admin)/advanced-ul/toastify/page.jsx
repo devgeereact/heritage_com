@@ -1,10 +1,10 @@
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllToastify from './AllToastify';
 const Toastify = () => {
   return <>
-      <PageTItle title="Toastify" />
+      <PageTitle title="Toastify" />
       <Container>
         <Row>
           <Col xl={9}>

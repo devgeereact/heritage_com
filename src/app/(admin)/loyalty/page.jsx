@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Form, Modal, Row, Col, Tabs, Tab, InputGroup } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -204,7 +204,7 @@ const Referrals = () => {
 
 const LoyaltyPage = () => (
   <>
-    <PageTItle title="Loyalty & Gift Cards" />
+    <PageTitle title="Loyalty & Gift Cards" />
     <div className="mb-3">
       <h4 className="mb-1">Loyalty &amp; Gift Cards</h4>
       <p className="text-muted mb-0">Store credit and digital gift cards — redeemable at storefront checkout.</p>

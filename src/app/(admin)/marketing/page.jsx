@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Row, Col, Modal, Form, Dropdown } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import AiPanel from '@/components/AiPanel';
 
@@ -87,7 +87,7 @@ const MarketingPage = () => {
 
   return (
     <>
-      <PageTItle title="Marketing & Social" />
+      <PageTitle title="Marketing & Social" />
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div><h4 className="mb-1">Marketing &amp; Social</h4><p className="text-muted mb-0">Plan drops, posts and campaigns. Grow the brand.</p></div>
         <Button variant="primary" onClick={() => setShowNew(true)}><IconifyIcon icon="solar:megaphone-bold" className="me-1" /> New campaign</Button>

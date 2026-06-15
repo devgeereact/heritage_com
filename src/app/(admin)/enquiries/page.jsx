@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Table, Spinner, Alert, Badge, Dropdown, Button } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 import AiReplyModal from './components/AiReplyModal';
@@ -42,7 +42,7 @@ const EnquiriesPage = () => {
 
   return (
     <>
-      <PageTItle title="Enquiries" />
+      <PageTitle title="Enquiries" />
 
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>

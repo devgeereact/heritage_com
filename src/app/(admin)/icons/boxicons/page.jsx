@@ -1,9 +1,9 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, CardBody, Container } from 'react-bootstrap';
 const BoxIconsPage = () => {
   return <>
-      <PageTItle title="BoxIcons" />
+      <PageTitle title="BoxIcons" />
       <Container>
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
           <Card className="icon-box">

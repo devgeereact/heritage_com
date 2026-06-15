@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { colorVariants } from '@/context/constants';
@@ -376,7 +376,7 @@ const DropdownMenuContent = () => {
 };
 const Dropdowns = () => {
   return <>
-      <PageTItle title="Dropdown" />
+      <PageTitle title="Dropdown" />
       <Container>
         <Row>
           <Col xl={9}>

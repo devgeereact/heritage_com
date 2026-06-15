@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, Table, Button, Spinner, Alert, Badge, Tabs, Tab } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -161,7 +161,7 @@ const Birthdays = () => {
 
 const EngagePage = () => (
   <>
-    <PageTItle title="Re-engagement" />
+    <PageTitle title="Re-engagement" />
     <div className="mb-3">
       <h4 className="mb-1">Re-engagement</h4>
       <p className="text-muted mb-0">Win back baskets and tell waiting customers when a piece is back.</p>

@@ -1,10 +1,10 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
 import AllTimelineCharts from './components/AllTimelineCharts';
 const TimelineCharts = () => {
   return <>
-      <PageTItle title="Timeline Charts" />
+      <PageTitle title="Timeline Charts" />
       <Container>
         <Row>
           <Col xl={9}>

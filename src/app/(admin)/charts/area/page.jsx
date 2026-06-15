@@ -1,10 +1,10 @@
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import UIExamplesList from '@/components/UIExamplesList';
 import AllAreaCharts from './components/AllAreaCharts';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const AreaCharts = () => {
   return <>
-      <PageTItle title="Area Charts" />
+      <PageTitle title="Area Charts" />
       <Container>
         <Row>
           <Col xl={9}>

@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Badge, Button, Col, Container, Row } from 'react-bootstrap';
 const HeadingBadge = () => {
@@ -213,7 +213,7 @@ const ButtonAndPosition = () => {
 };
 const page = () => {
   return <>
-      <PageTItle title="Badge" />
+      <PageTitle title="Badge" />
       <Container>
         <Row>
           <Col xl={9}>

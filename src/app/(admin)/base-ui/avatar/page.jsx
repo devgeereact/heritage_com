@@ -11,7 +11,7 @@ import avatar6 from '@/assets/images/users/avatar-6.jpg';
 import avatar7 from '@/assets/images/users/avatar-7.jpg';
 import avatar8 from '@/assets/images/users/avatar-8.jpg';
 import avatar9 from '@/assets/images/users/avatar-9.jpg';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const BasicExample = () => {
   return <ComponentContainerCard id="basic-example" title="Basic Example" description={<>
           Create and group avatars of different sizes and shapes with the css classes. Using Bootstrap&apos;s naming convention, you can control size
@@ -114,7 +114,7 @@ const ImagesShapes = () => {
 };
 const page = () => {
   return <>
-      <PageTItle title="Avatars" />
+      <PageTitle title="Avatars" />
       <Container>
         <Row>
           <Col xl={9}>

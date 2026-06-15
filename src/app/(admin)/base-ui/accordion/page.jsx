@@ -1,5 +1,5 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Accordion, AccordionBody, AccordionHeader, AccordionItem, Col, Container, Row } from 'react-bootstrap';
 const accordionData = ['first', 'second', 'third'];
@@ -66,7 +66,7 @@ const AlwaysOpenAccordion = () => {
 };
 const Accordions = () => {
   return <>
-      <PageTItle title="Accordion" />
+      <PageTitle title="Accordion" />
       <Container>
         <Row>
           <Col xl={9}>

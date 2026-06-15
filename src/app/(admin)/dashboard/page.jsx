@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Row, Alert } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import HeritKpis from './components/HeritKpis';
 import AiBriefing from './components/AiBriefing';
@@ -19,7 +19,7 @@ const DashboardPage = () => {
 
   return (
     <>
-      <PageTItle title="Dashboard" />
+      <PageTitle title="Dashboard" />
       <div className="mb-3">
         <h4 className="mb-1">Welcome back</h4>
         <p className="text-muted mb-0">The brand at a glance — workshop, catalogue and enquiries.</p>

@@ -2,10 +2,10 @@ import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap'
 import ComponentContainerCard from '@/components/ComponentContainerCard';
 import CustomFlatpickr from '@/components/CustomFlatpickr';
 import UIExamplesList from '@/components/UIExamplesList';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const FlatPicker = () => {
   return <>
-      <PageTItle title="FlatPicker" />
+      <PageTitle title="FlatPicker" />
       <Container>
         <Row>
           <Col xl={9}>

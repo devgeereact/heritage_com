@@ -1,9 +1,9 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import InvoiceCard from './components/InvoiceCard';
 import InvoiceList from './components/InvoiceList';
 const InvoiceListPage = () => {
   return <>
-      <PageTItle title="Invoices List" />
+      <PageTitle title="Invoices List" />
       <InvoiceCard />
       <InvoiceList />
     </>;

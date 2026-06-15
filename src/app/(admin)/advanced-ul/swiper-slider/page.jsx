@@ -1,10 +1,10 @@
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 import AllSwiper from './AllSwiper';
 import UIExamplesList from '@/components/UIExamplesList';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Swiper = () => {
   return <>
-      <PageTItle title="Swiper Slider" />
+      <PageTitle title="Swiper Slider" />
       <Container>
         <Row>
           <Col xl={9}>

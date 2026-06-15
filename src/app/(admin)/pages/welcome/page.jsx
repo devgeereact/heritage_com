@@ -1,7 +1,7 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const WelcomePage = () => {
   return <>
-      <PageTItle title="Welcome" />
+      <PageTitle title="Welcome" />
     </>;
 };
 export default WelcomePage;

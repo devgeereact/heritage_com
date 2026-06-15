@@ -1,8 +1,8 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import CheckoutForm from './components/CheckoutForm';
 const CheckoutPage = () => {
   return <>
-      <PageTItle title="Order Checkout" />
+      <PageTitle title="Order Checkout" />
       <CheckoutForm />
     </>;
 };

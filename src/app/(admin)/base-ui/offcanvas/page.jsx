@@ -1,10 +1,10 @@
 import AllOffcanvas from './components/AllOffcanvas';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Offcanvas = () => {
   return <>
-      <PageTItle title="Offcanvas" />
+      <PageTitle title="Offcanvas" />
       <Container>
         <Row>
           <Col xl={9}>

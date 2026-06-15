@@ -1,10 +1,10 @@
 import AllNavTabs from './components/AllNavTabs';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Col, Container, Row } from 'react-bootstrap';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 const Tabs = () => {
   return <>
-      <PageTItle title="Nav Tabs" />
+      <PageTitle title="Nav Tabs" />
       <Container>
         <Row>
           <Col xl={9}>

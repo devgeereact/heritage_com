@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Row, Col, Card, CardBody, Table, Badge, Button, Spinner, Alert, Form, Dropdown } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -147,7 +147,7 @@ const ProductDetailPage = () => {
 
   return (
     <>
-      <PageTItle title={product.name} />
+      <PageTitle title={product.name} />
 
       <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
         <Link to="/catalogue" className="btn btn-sm btn-light">

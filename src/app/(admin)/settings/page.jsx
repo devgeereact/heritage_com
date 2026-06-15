@@ -1,4 +1,4 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import CustomersSettings from './components/CustomersSettings';
 import GeneralSettings from './components/GeneralSettings';
 import LocalizationSettings from './components/LocalizationSettings';
@@ -7,7 +7,7 @@ import StoreSettings from './components/StoreSettings';
 import { Link } from 'react-router-dom';
 const SettingsPage = () => {
   return <>
-      <PageTItle title="Settings" />
+      <PageTitle title="Settings" />
       <GeneralSettings />
       <StoreSettings />
       <LocalizationSettings />

@@ -1,9 +1,9 @@
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import OrdersDataCardPage from './components/OrdersDataCard';
 import OrdersList from './components/OrdersList';
 const page = () => {
   return <>
-      <PageTItle title="Order List" />
+      <PageTitle title="Order List" />
       <OrdersDataCardPage />
       <OrdersList />
     </>;

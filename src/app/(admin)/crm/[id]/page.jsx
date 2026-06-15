@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Row, Col, Card, CardBody, Table, Badge, Button, Spinner, Alert, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 
@@ -80,7 +80,7 @@ const CrmDetailPage = () => {
 
   return (
     <>
-      <PageTItle title={c.name} />
+      <PageTitle title={c.name} />
 
       <div className="d-flex align-items-center gap-2 mb-3">
         <Link to="/crm" className="btn btn-sm btn-light"><IconifyIcon icon="solar:arrow-left-linear" /> Customers</Link>

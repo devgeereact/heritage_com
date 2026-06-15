@@ -1,6 +1,6 @@
 import ComponentContainerCard from '@/components/ComponentContainerCard';
 import ChoicesFormInput from '@/components/form/ChoicesFormInput';
-import PageTItle from '@/components/PageTItle';
+import PageTitle from '@/components/PageTitle';
 import UIExamplesList from '@/components/UIExamplesList';
 import { Card, CardBody, CardTitle, Col, Container, Row } from 'react-bootstrap';
 const BasicExample = () => {
@@ -234,7 +234,7 @@ const DisabledInput = () => {
 };
 const SelectPage = () => {
   return <>
-      <PageTItle title="Form Select" />
+      <PageTitle title="Form Select" />
       <Container>
         <Row>
           <Col xl={9}>
