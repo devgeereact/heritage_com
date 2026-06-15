@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HeritOS — Feature Spec</title>
+<style>
+  :root{
+    --surface1:#FFFBEB; --surface2:#B8A98C; --primary:#262626; --accent:#F59E0B;
+    --card:#fff; --radius:12px; --shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 8px 24px rgba(146,64,14,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --surface1:#1c1a17; --primary:#FFFBEB; --surface2:#8a7d63; --card:#262320; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface1);color:var(--primary);font:16px/1.5 'Inter',system-ui,Roboto,Arial,sans-serif}
+  header{padding:48px 24px 24px;max-width:980px;margin:0 auto}
+  .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px}
+  h1{font-family:'Source Serif 4',Georgia,serif;font-size:clamp(28px,5vw,44px);letter-spacing:-.02em;margin:0 0 6px}
+  .sub{color:var(--surface2);font-size:18px}
+  .bar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--surface2) 45%,transparent);overflow:hidden;margin:18px 0 4px}
+  .bar > i{display:block;height:100%;width:0;background:var(--accent);transition:width .18s ease}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 0;font-size:13px;color:var(--surface2)}
+  .legend b{color:var(--primary);font-weight:600}
+  main{max-width:980px;margin:0 auto;padding:0 24px 80px}
+  .domain{background:var(--card);border:1px solid color-mix(in srgb,var(--surface2) 55%,transparent);
+    border-radius:var(--radius);box-shadow:var(--shadow);margin:16px 0;overflow:hidden}
+  .domain > summary{cursor:pointer;list-style:none;padding:18px 20px;font-weight:600;font-size:18px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .domain > summary::-webkit-details-marker{display:none}
+  .domain > summary .num{font-family:'Source Serif 4',Georgia,serif;color:var(--accent);font-size:15px;min-width:26px}
+  .domain > summary .nm{flex:1}
+  .count{color:var(--surface2);font-weight:500;font-size:14px}
+  ul{margin:0;padding:6px 20px 18px;list-style:none}
+  li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid color-mix(in srgb,var(--surface2) 30%,transparent)}
+  li:first-child{border-top:0}
+  input[type=checkbox]{margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .feat{flex:1}
+  .tag{font-size:11px;padding:2px 8px;border-radius:99px;margin-left:auto;white-space:nowrap;font-weight:600}
+  .p0{background:#F59E0B;color:#78350F}
+  .p1{background:color-mix(in srgb,#92400E 22%,transparent);color:#92400E}
+  .p2{background:color-mix(in srgb,var(--surface2) 32%,transparent);color:var(--surface2)}
+  @media (prefers-color-scheme: dark){ .p1{color:#F59E0B} }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Herit Clothing · Wear your heritage</p>
+  <h1>HeritOS</h1>
+  <div class="sub">The commerce &amp; operations platform that runs Herit Clothing — storefront, admin, Ajuwon Market POS and the bespoke craft engine.</div>
+  <div class="bar"><i id="pf"></i></div>
+  <div class="sub"><span id="done">0</span> / <span id="total">0</span> features specced</div>
+  <div class="legend">
+    <span><b class="tag p0">P0</b> launch contract (Must)</span>
+    <span><b class="tag p1">P1</b> high-value next (Should)</span>
+    <span><b class="tag p2">P2</b> backlog (Could / later phase)</span>
+  </div>
+</header>
+<main id="spec">
+
+  <details class="domain" open>
+    <summary><span class="num">01</span><span class="nm">Authentication &amp; access control</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Sign in / sign out</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Customer registration (email + phone)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Forgot / reset password</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">OTP verification (SMS / WhatsApp)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Guest checkout (no forced account)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Role-based access control (8 roles)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Error pages (400/403/404/500/503)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">SSO — Google / Apple (OAuth 2.0)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Staff PIN login (shared market device)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Session management &amp; device tracking</span><span class="tag p1">P1</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">02</span><span class="nm">Dashboard &amp; analytics</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Owner overview dashboard</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Sales KPIs (revenue, orders, AOV, units)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Data export (CSV, PDF, XLSX)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Channel split (online / POS / social)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Best / worst sellers by product &amp; fabric</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Low / out-of-stock alerts</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Revenue by region / country</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Recent activity feed / timeline</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Margin &amp; cash-flow view</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Scheduled email / WhatsApp reports</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">03</span><span class="nm">Product &amp; catalogue management</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Product list (grid/list) + search &amp; filter</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Add / edit / delete product</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Variants (size, colour, fit, length)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Fabric attributes + origin &amp; meaning</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Storytelling / rich-text fields</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Images, zoom, video, 360°</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Collections &amp; timed drops</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Draft / scheduled publish</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">SEO fields per product</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Care instructions per fabric</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">One-of-a-kind flag (single-qty, auto-retire)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Gift-ready toggle (note + wrap)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Size guide &amp; fit advisor</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Reviews &amp; ratings (with photos)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Bundles &amp; curated sets</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">04</span><span class="nm">Inventory &amp; fabric stock</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Real-time stock by variant &amp; location</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">One-of-a-kind register</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Low-stock thresholds &amp; reorder alerts</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Fabric roll / yardage tracking</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Stock transfers (market ↔ online)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Stocktake / count mode (mobile)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Barcode / QR label generation</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Incoming stock / purchase orders</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Dye-lot / batch tracking</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">05</span><span class="nm">Order management &amp; fulfilment</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Order list (search, filter, status)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Order detail view</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Status pipeline (paid→production→shipped→delivered)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Packing slip &amp; branded invoice</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Order notes &amp; gift messages</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Unified orders (online + POS + social)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Manual order creation (DM sales)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Pre-orders &amp; backorders</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Fraud / address verification flags</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Bulk actions &amp; label printing</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Split / partial fulfilment</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">06</span><span class="nm">Made-to-measure &amp; bespoke</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Custom-order request form</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Customer measurement profile (saved)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Measurement capture (stall / self-measure)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Bespoke project pipeline (consult→deliver)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Deposit &amp; balance-due tracking</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Fitting appointment scheduler + reminders</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Tailor assignment &amp; workload</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Aso-ebi / group orders (organiser + many)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Revision &amp; approval log (photos)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Sample / swatch request flow</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Per-project profitability</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">07</span><span class="nm">Point of sale — Ajuwon Market</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Fast touchscreen POS (phone/tablet)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Offline mode with auto-sync</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Cash / transfer / card / POS-terminal capture</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Print / WhatsApp digital receipt</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Daily cash reconciliation (Z-report)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Live shared inventory with online</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Barcode / QR scan to sell</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Split &amp; part payment</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Walk-in quick-add (capture phone)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Staff sales attribution &amp; shifts</span><span class="tag p1">P1</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">08</span><span class="nm">Shipping &amp; logistics</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Zone-based shipping rates</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Real-time tracking + tracking page</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Dispatch / delivery notifications</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Free-delivery thresholds</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Carrier integrations (DHL, GIG, riders)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Customs / duties messaging (international)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Pickup-from-market option</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Returns labels &amp; RMA</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Proof of delivery</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">09</span><span class="nm">Customer &amp; CRM</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Customer list (search, filter, tags)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Customer profile (orders, LTV, prefs)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Self-service account portal</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Wishlist / saved items</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Saved addresses &amp; measurements</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Communication history (incl. WhatsApp)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Notes &amp; flags per customer</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Bulk import / export</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Segments (Lagos / diaspora / VIP / lapsed)</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">10</span><span class="nm">Marketing, loyalty &amp; promotions</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Coupon / promo-code engine</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Drop / restock waitlist + notify-me</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">SMS notifications</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Welcome offer automation</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Referral programme</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Loyalty points / store credit</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Email automated flows (cart, win-back, restock)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">WhatsApp broadcast &amp; drip campaigns</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Gift cards (digital)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Creator gifting &amp; code tracking</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">11</span><span class="nm">Content, lookbook &amp; storytelling</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Homepage &amp; landing-page builder</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Lookbook / collection story pages</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Fabric origin &amp; meaning library</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Journal / blog (SEO)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Maker / behind-the-scenes features</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Shoppable galleries / UGC</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Reusable content / asset library</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Multi-language content</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">12</span><span class="nm">AI-powered features</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">AI product description / story generator</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">AI size &amp; fit recommender (cut returns)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">“Complete the look” recommendations</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Personalised recommendations</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">AI semantic search</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">AI social-caption assistant (admin)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">AI demand forecast (what to restock)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">At-risk customer alerts + win-back</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">AI photo auto-tagging</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">AI customer assistant (WhatsApp FAQ)</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">13</span><span class="nm">Payments &amp; billing</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Local gateways (Paystack / Flutterwave)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">International (Stripe / PayPal)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Multi-currency checkout (₦, $, £)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Transaction list &amp; detail</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Bank transfer + proof-of-payment confirm</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Tax / VAT configuration</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Made-to-measure deposits &amp; balance links</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Reconciliation across channels</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Refund &amp; store-credit workflow</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Instalment / part-payment</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">B2B / wholesale invoicing</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">14</span><span class="nm">Reviews, UGC &amp; community</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Verified-purchase reviews (photos)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Star ratings per product</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Review moderation &amp; response</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">UGC collection + rights tracking</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">“As worn by” customer gallery</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">NPS / satisfaction survey</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Product Q&amp;A</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">15</span><span class="nm">Communication &amp; notifications</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Transactional messages (order/dispatch/delivery)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">WhatsApp Business inbox (sales + support)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">On-site chat widget</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Notification bell &amp; panel</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Instagram / Facebook DM unification</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Broadcast announcements</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Push notifications (PWA)</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Internal staff notes &amp; @mentions</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">16</span><span class="nm">Supplier, artisan &amp; vendor management</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">Supplier / artisan directory</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Tailor / maker profiles &amp; capacity</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Purchase orders &amp; deliveries</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Cost &amp; lead-time tracking</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Payout / settlement tracking</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">Quality notes &amp; ratings</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">17</span><span class="nm">Returns, exchanges &amp; quality</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">14-day window logic + MTM exclusions</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Self-service return / exchange request</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">RMA generation &amp; tracking</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Exchange-for-size flow</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Refund vs store-credit routing</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Fault / defect logging (photos)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Returns analytics</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+  <details class="domain">
+    <summary><span class="num">18</span><span class="nm">Admin, settings &amp; platform</span> <span class="count"></span></summary>
+    <ul>
+      <li><input type="checkbox"><span class="feat">General settings &amp; business profile</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Roles &amp; permissions management</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Brand theming (Herit palette, logo, fonts)</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">NDPA 2023 / data-privacy controls</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">WCAG 2.1 AA accessibility</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Automated backup &amp; restore</span><span class="tag p0">P0</span></li>
+      <li><input type="checkbox"><span class="feat">Multi-location (online + market + future)</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">PWA — installable, offline-capable</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Audit log &amp; activity trail</span><span class="tag p1">P1</span></li>
+      <li><input type="checkbox"><span class="feat">Accounting export / sync</span><span class="tag p2">P2</span></li>
+      <li><input type="checkbox"><span class="feat">REST API + webhooks</span><span class="tag p2">P2</span></li>
+    </ul>
+  </details>
+
+</main>
+<script>
+  const boxes=[...document.querySelectorAll('input[type=checkbox]')];
+  const total=document.getElementById('total'); const done=document.getElementById('done');
+  const pf=document.getElementById('pf');
+  const KEY='HeritOS-spec';
+  try{const s=JSON.parse(localStorage.getItem(KEY)||'[]');boxes.forEach((b,i)=>b.checked=!!s[i]);}catch(e){}
+  function refresh(){
+    const n=boxes.filter(b=>b.checked).length;
+    total.textContent=boxes.length; done.textContent=n;
+    pf.style.width=(boxes.length?100*n/boxes.length:0)+'%';
+    document.querySelectorAll('.domain').forEach(d=>{
+      const all=[...d.querySelectorAll('input')]; const c=all.filter(b=>b.checked).length;
+      d.querySelector('.count').textContent=c+'/'+all.length;
+    });
+    try{localStorage.setItem(KEY,JSON.stringify(boxes.map(b=>b.checked)));}catch(e){}
+  }
+  boxes.forEach(b=>b.addEventListener('change',refresh)); refresh();
+</script>
+</body>
+</html>

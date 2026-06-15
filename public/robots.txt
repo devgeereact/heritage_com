@@ -1,0 +1,43 @@
+# Herit Clothing — storefront is indexable; the admin app, auth and
+# private/transactional surfaces are not.
+User-agent: *
+Allow: /
+
+# Auth + private customer surfaces
+Disallow: /auth
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /track
+
+# Admin / operations app (staff-only, client-rendered)
+Disallow: /dashboard
+Disallow: /sales
+Disallow: /orders
+Disallow: /products
+Disallow: /catalogue
+Disallow: /category
+Disallow: /attributes
+Disallow: /inventory
+Disallow: /stock
+Disallow: /suppliers
+Disallow: /purchases
+Disallow: /crm
+Disallow: /customer
+Disallow: /finance
+Disallow: /invoice
+Disallow: /analytics
+Disallow: /marketing
+Disallow: /studio
+Disallow: /pos
+Disallow: /inbox
+Disallow: /enquiries
+Disallow: /tailoring
+Disallow: /reviews
+Disallow: /channels
+Disallow: /settings
+Disallow: /permissions
+Disallow: /role
+Disallow: /profile
+
+Sitemap: https://heritclothing.com/sitemap.xml

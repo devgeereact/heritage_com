@@ -1,0 +1,131 @@
+{
+  "app": {
+    "name": "Herit Clothing",
+    "slug": "herit",
+    "platform": "HeritOS",
+    "tagline": "Wear your heritage.",
+    "positioning": "African heritage fashion — traditional fabrics, prints and patterns fused with contemporary cuts. Sold online and from the Ajuwon Market base in Lagos, shipping to customers worldwide. HeritOS is the custom commerce & operations platform that runs the whole business: storefront, admin, market POS and the bespoke craft engine.",
+    "tone": ["warm", "rooted", "confident", "modern", "premium"]
+  },
+  "audience": "Modern Africans and the diaspora who want to wear their culture with pride, plus walk-in customers at the Ajuwon Market stall in Lagos. Primary shoppers are style-conscious adults buying ready-to-wear heritage pieces or commissioning made-to-measure and aso-ebi group orders.",
+  "roles": [
+    { "key": "customer", "label": "Customer", "can": ["Browse catalogue & collections", "Buy (guest or account checkout)", "Track orders & delivery", "Manage account, addresses, saved measurements", "Wishlist & notify-me / restock waitlist", "Request bespoke / made-to-measure", "Leave verified reviews"] },
+    { "key": "owner", "label": "Owner / Admin", "can": ["Full access to every module", "Owner overview dashboard & KPIs", "Manage roles, permissions & settings", "Brand theming, payments, integrations"] },
+    { "key": "manager", "label": "Manager", "can": ["Products, catalogue & collections", "Inventory & fabric stock", "Orders & fulfilment", "Customers & CRM", "Marketing & promotions"] },
+    { "key": "staff", "label": "Market Staff (POS)", "can": ["Touchscreen POS at Ajuwon Market", "Walk-in sales & quick-add", "Take payments (cash / transfer / card)", "Fulfil & pack orders", "Daily cash reconciliation"] },
+    { "key": "tailor", "label": "Tailor / Artisan", "can": ["See assigned bespoke projects", "Customer measurement profiles", "Update project pipeline & fittings", "Log revisions & approvals"] }
+  ],
+  "rbacNote": "HeritOS spec defines 8 roles with full RBAC; the 5 above are the launch set. Marketing, Support and Wholesale roles are added in later phases.",
+  "entities": [
+    { "name": "Product", "fields": ["title", "slug", "description (rich/story)", "fabricOriginAndMeaning", "careInstructions", "basePrice", "currency", "status (draft/scheduled/published)", "oneOfAKind (bool)", "seoTitle", "seoDescription", "collectionId"], "relations": ["hasMany Variant", "belongsTo Fabric", "belongsToMany Collection", "hasMany Review", "hasMany Image"] },
+    { "name": "Variant", "fields": ["sku", "size", "colour", "fit", "length", "priceDelta", "stockQty", "locationStock"], "relations": ["belongsTo Product"] },
+    { "name": "Fabric", "fields": ["name (Ankara/Adire/Aso-Oke/Kente)", "origin", "meaning", "care", "supplierId"], "relations": ["hasMany Product", "belongsTo Supplier"] },
+    { "name": "Collection", "fields": ["title", "slug", "story", "heroImage", "isDrop (bool)", "dropAt", "status"], "relations": ["belongsToMany Product"] },
+    { "name": "Order", "fields": ["number", "channel (online/pos/social)", "status (paid/production/shipped/delivered)", "items", "subtotal", "shipping", "total", "currency", "shippingAddress", "trackingNumber", "giftMessage", "notes"], "relations": ["belongsTo Customer", "hasMany OrderItem", "hasOne Payment", "hasOne Shipment"] },
+    { "name": "Customer", "fields": ["name", "email", "phone", "segment (lagos/diaspora/vip/lapsed)", "ltv", "tags", "savedAddresses", "savedMeasurements", "notes"], "relations": ["hasMany Order", "hasMany BespokeProject", "hasMany Review", "hasOne Wishlist"] },
+    { "name": "BespokeProject", "fields": ["customerId", "type (made-to-measure/aso-ebi)", "stage (consult/measure/production/fitting/deliver)", "measurements", "deposit", "balanceDue", "tailorId", "fittingAppointment", "revisions"], "relations": ["belongsTo Customer", "belongsTo Tailor", "hasMany Revision"] },
+    { "name": "Inventory", "fields": ["variantId", "location (online/market)", "qtyOnHand", "lowStockThreshold", "fabricRollYardage"], "relations": ["belongsTo Variant"] }
+  ],
+  "domains": [
+    { "name": "Storefront", "features": [
+      { "title": "Home / landing with hero, featured drops, story", "priority": "P0", "roles": ["customer"] },
+      { "title": "Product catalogue: grid/list, search, filter by fabric/size/price", "priority": "P0", "roles": ["customer"] },
+      { "title": "Product detail: variants, gallery + zoom, fabric story, care, size guide", "priority": "P0", "roles": ["customer"] },
+      { "title": "Collections & timed drops / lookbook story pages", "priority": "P0", "roles": ["customer"] },
+      { "title": "Cart & guest checkout (no forced account)", "priority": "P0", "roles": ["customer"] },
+      { "title": "Wishlist & notify-me / restock waitlist", "priority": "P1", "roles": ["customer"] },
+      { "title": "Customer account portal: orders, tracking, addresses, measurements", "priority": "P0", "roles": ["customer"] },
+      { "title": "Bespoke / made-to-measure request form", "priority": "P1", "roles": ["customer"] },
+      { "title": "Journal / blog + fabric origin & meaning library (SEO)", "priority": "P1", "roles": ["customer"] }
+    ]},
+    { "name": "Catalogue & Inventory", "features": [
+      { "title": "Add / edit / delete products with variants & fabric attributes", "priority": "P0", "roles": ["owner", "manager"] },
+      { "title": "Rich storytelling fields, care instructions, SEO per product", "priority": "P0", "roles": ["owner", "manager"] },
+      { "title": "One-of-a-kind flag (single-qty, auto-retire)", "priority": "P1", "roles": ["owner", "manager"] },
+      { "title": "Collections, timed drops, draft / scheduled publish", "priority": "P1", "roles": ["owner", "manager"] },
+      { "title": "Real-time stock by variant & location; low-stock alerts", "priority": "P1", "roles": ["owner", "manager"] },
+      { "title": "Fabric roll / yardage tracking; one-of-a-kind register", "priority": "P1", "roles": ["owner", "manager"] }
+    ]},
+    { "name": "Orders & Fulfilment", "features": [
+      { "title": "Order list (search, filter, status) + order detail", "priority": "P0", "roles": ["owner", "manager", "staff"] },
+      { "title": "Status pipeline: paid → production → shipped → delivered", "priority": "P0", "roles": ["owner", "manager", "staff"] },
+      { "title": "Branded packing slip & invoice; order notes & gift messages", "priority": "P0", "roles": ["owner", "manager", "staff"] },
+      { "title": "Manual order creation (DM/social sales)", "priority": "P1", "roles": ["owner", "manager"] },
+      { "title": "Zone-based shipping rates, free-delivery thresholds, tracking page", "priority": "P0", "roles": ["customer", "owner", "manager"] }
+    ]},
+    { "name": "Bespoke Craft Engine", "features": [
+      { "title": "Custom-order request → consult → measure → production → fitting → deliver pipeline", "priority": "P1", "roles": ["owner", "manager", "tailor"] },
+      { "title": "Saved customer measurement profiles", "priority": "P1", "roles": ["customer", "tailor"] },
+      { "title": "Deposit & balance-due tracking with payment links", "priority": "P1", "roles": ["owner", "manager"] },
+      { "title": "Aso-ebi / group orders (organiser + many participants)", "priority": "P2", "roles": ["customer", "manager"] },
+      { "title": "Fitting appointment scheduler + reminders; tailor assignment", "priority": "P2", "roles": ["tailor", "manager"] }
+    ]},
+    { "name": "Market POS (Omnichannel)", "features": [
+      { "title": "Fast touchscreen POS (phone/tablet) with shared live inventory", "priority": "P1", "roles": ["staff"] },
+      { "title": "Offline mode with auto-sync (PWA)", "priority": "P1", "roles": ["staff"] },
+      { "title": "Cash / transfer / card capture; print or WhatsApp receipt", "priority": "P1", "roles": ["staff"] },
+      { "title": "Daily cash reconciliation (Z-report); staff PIN login", "priority": "P1", "roles": ["staff", "owner"] }
+    ]},
+    { "name": "Dashboard & CRM", "features": [
+      { "title": "Owner overview dashboard: revenue, orders, AOV, units", "priority": "P0", "roles": ["owner"] },
+      { "title": "Customer list & profiles (orders, LTV, prefs, tags)", "priority": "P0", "roles": ["owner", "manager"] },
+      { "title": "Channel split, best/worst sellers, low-stock alerts", "priority": "P1", "roles": ["owner", "manager"] },
+      { "title": "Data export (CSV, PDF, XLSX)", "priority": "P0", "roles": ["owner", "manager"] }
+    ]},
+    { "name": "Marketing & Payments", "features": [
+      { "title": "Coupon / promo-code engine", "priority": "P0", "roles": ["owner", "manager"] },
+      { "title": "Local gateways (Paystack / Flutterwave) + international (Stripe / PayPal)", "priority": "P0", "roles": ["customer", "owner"] },
+      { "title": "Multi-currency checkout (₦, $, £); tax / VAT config", "priority": "P0", "roles": ["customer", "owner"] },
+      { "title": "Bank transfer + proof-of-payment confirm", "priority": "P1", "roles": ["customer", "owner"] },
+      { "title": "Email & WhatsApp transactional + drip flows (cart, win-back, restock)", "priority": "P2", "roles": ["owner", "manager"] }
+    ]},
+    { "name": "Platform & Settings", "features": [
+      { "title": "Auth: email + phone, OTP (SMS/WhatsApp), forgot/reset, guest checkout", "priority": "P0", "roles": ["customer", "owner"] },
+      { "title": "Role-based access control; roles & permissions management", "priority": "P0", "roles": ["owner"] },
+      { "title": "General settings, business profile, brand theming (Herit palette/logo/fonts)", "priority": "P0", "roles": ["owner"] },
+      { "title": "NDPA 2023 data-privacy controls; WCAG 2.1 AA; audit log", "priority": "P0", "roles": ["owner"] },
+      { "title": "PWA installable & offline-capable; automated backup & restore", "priority": "P1", "roles": ["owner"] }
+    ]}
+  ],
+  "brand": {
+    "colors": ["#F59E0B", "#D97706", "#92400E", "#78350F", "#262626", "#6B7280", "#FFFBEB", "#E5E7EB", "#FFFFFF"],
+    "colorRoles": {
+      "amber": "#F59E0B (Herit Amber — signature accent)",
+      "amber600": "#D97706",
+      "heritageBrown": "#92400E",
+      "earth": "#78350F (richest brown; text on amber)",
+      "ink": "#262626 (primary text)",
+      "slate": "#6B7280 (secondary text)",
+      "cream": "#FFFBEB (surfaces)",
+      "line": "#E5E7EB (borders)",
+      "paper": "#FFFFFF (background)"
+    },
+    "fonts": ["Source Serif 4 (display/headlines/wordmark)", "Inter (body, UI, labels)"],
+    "references": ["Amber gold used with restraint as the one scarce accent", "Golden-hour photography, real people, true skin tones, fabric as hero", "Lagos / Ajuwon Market in frame where it fits", "Heritage tailored for now"],
+    "signatureCandidate": "Needle-and-thread craft mark + a single amber accent stitch/underline motif drawn from the logo — to be finalised in design-sop.",
+    "logo": "Needle-and-thread monogram forming 'HERIT' in cream Source Serif, 'CLOTHING' in amber; supplied on black. Place at apps/web/public/herit-logo.png (light + dark lockups). Min 24px tall on screen; clear space = height of the 'H'.",
+    "voice": "Warm not salesy, rooted not preachy, modern not slangy, confident not boastful. British/Nigerian English (colour, honour). Capitalise fabric names (Ankara, Adire, Aso-Oke, Kente). Sentence case for headings/buttons; only the wordmark is all-caps."
+  },
+  "hosting": {
+    "domain": "",
+    "apiSubdomain": "api.",
+    "cpanelHost": "",
+    "git": "unknown",
+    "notes": "Lagos-based, sells globally. Domain & cPanel host to confirm. House stack: React+Vite+TS SPA at apex, Laravel API at api. subdomain, MySQL on cPanel, Cloudflare in front."
+  },
+  "integrations": {
+    "auth": ["Email + phone", "OTP via SMS/WhatsApp", "Google / Apple OAuth (P2)", "Staff PIN login (shared device)"],
+    "payments": ["Paystack", "Flutterwave", "Stripe", "PayPal", "Bank transfer + proof-of-payment", "Multi-currency ₦ / $ / £"],
+    "apis": ["WhatsApp Business (notifications + inbox, P2)", "Shipping: DHL / GIG / local riders (P2)", "Email provider for flows (P2)"]
+  },
+  "constraints": [
+    "Naira-first but multi-currency (₦ primary, $ and £ for international).",
+    "Omnichannel from launch path: online storefront + Ajuwon Market POS sharing one live inventory.",
+    "NDPA 2023 (Nigeria Data Protection Act) compliance and WCAG 2.1 AA are Must.",
+    "PWA: installable and offline-capable (critical for market POS).",
+    "Must run on the DEVGEE house stack (React + Laravel + MySQL on cPanel) and locally before deploy.",
+    "Build the 'Must / P1' launch contract first; P2–P5 modules are a sequenced backlog, not launch scope.",
+    "Brand is already established — inherit the amber/brown palette, Source Serif 4 + Inter, and the Herit voice; do not invent a new identity."
+  ],
+  "revive": { "isRevive": false, "decisions": [] }
+}
