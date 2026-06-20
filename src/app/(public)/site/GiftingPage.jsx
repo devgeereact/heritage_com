@@ -80,15 +80,15 @@ const GiftingPage = () => (
         </div>
         <div className="hc-grid hc-grid--4">
           {[
-            { c: 'hc-tile-ankara', s: 'Birthdays', l: 'Bold, joyful Ankara' },
-            { c: 'hc-tile-asooke', s: 'Weddings', l: 'Aso-ebi & Aso-Oke sets' },
-            { c: 'hc-tile-adire', s: 'For the diaspora', l: 'A piece of home' },
-            { c: 'hc-tile-mixed', s: 'Just because', l: 'Accessories & gift cards' },
+            { c: 'hc-tile-ankara', s: 'Birthdays', l: 'Bold, joyful Ankara', to: '/shop?fabric=Ankara' },
+            { c: 'hc-tile-asooke', s: 'Weddings', l: 'Aso-ebi & Aso-Oke sets', to: '/shop?fabric=Aso-Oke' },
+            { c: 'hc-tile-adire', s: 'For the diaspora', l: 'A piece of home', to: '/shop?fabric=Adire' },
+            { c: 'hc-tile-mixed', s: 'Just because', l: 'Accessories & gift cards', to: '/shop' },
           ].map((t) => (
-            <div key={t.s} className={`hc-tile ${t.c}`}>
+            <Link to={t.to} key={t.s} className={`hc-tile ${t.c}`}>
               <span>{t.s}</span>
               <small>{t.l}</small>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

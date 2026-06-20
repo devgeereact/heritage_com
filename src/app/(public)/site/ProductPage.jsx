@@ -116,21 +116,16 @@ const ProductPage = () => {
 
               {/* size */}
               <div className="hc-mt-4">
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>
+                <div className="hc-chip-label">
                   Size {product.type === 'Accessories' && '· one size'}
                 </div>
-                <div className="hc-flex hc-wrap" style={{ gap: '0.4rem' }}>
+                <div className="hc-chip-group">
                   {(product.type === 'Accessories' ? ['One size'] : SIZES).map((s) => (
                     <button
                       key={s}
+                      type="button"
                       onClick={() => setSize(s)}
-                      className="hc-nav-link"
-                      style={{
-                        border: '2px solid var(--foreground)',
-                        background: size === s || product.type === 'Accessories' ? 'var(--foreground)' : 'transparent',
-                        color: size === s || product.type === 'Accessories' ? '#fff' : 'var(--foreground)',
-                        cursor: 'pointer', minWidth: '3rem', textAlign: 'center',
-                      }}
+                      className={`hc-chip hc-size ${size === s || product.type === 'Accessories' ? 'is-active' : ''}`}
                     >{s}</button>
                   ))}
                 </div>

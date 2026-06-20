@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
+import { CounterBand, ProcessSteps, TeamCarousel, Testimonials } from './sections';
 
 const stands = [
   { t: 'Heritage with intent', d: 'Tradition is our starting point, never a costume. We name each fabric and where it comes from.' },
@@ -10,17 +11,37 @@ const stands = [
   { t: 'Worn with pride', d: 'We want you to feel seen and connected to your story when you wear Herit.' },
 ];
 
-const howWeWork = [
-  { n: '1', t: 'Source with respect', d: 'We source heritage fabrics with care and respect for their origin and meaning.' },
-  { n: '2', t: 'Design for now', d: 'We design contemporary cuts and tailor each pattern for a modern, everyday fit.' },
-  { n: '3', t: 'Sell direct, tell the story', d: 'We sell direct online and in person, telling the story behind every piece.' },
-  { n: '4', t: 'Deliver, near and far', d: 'We deliver with branded, considered packaging — across Lagos, Nigeria and worldwide.' },
+const process = [
+  { icon: 'solar:leaf-bold', title: 'Source with respect', desc: 'We source heritage fabrics with care and respect for their origin and meaning.' },
+  { icon: 'solar:pen-new-square-bold', title: 'Design for now', desc: 'We design contemporary cuts and tailor each pattern for a modern, everyday fit.' },
+  { icon: 'solar:shop-bold', title: 'Sell direct, tell the story', desc: 'We sell direct online and in person, telling the story behind every piece.' },
+  { icon: 'solar:delivery-bold', title: 'Deliver, near and far', desc: 'We deliver with branded, considered packaging — across Lagos, Nigeria and worldwide.' },
 ];
 
 const serve = [
   { icon: 'solar:home-2-bold', t: 'Lagos & Nigeria', d: 'The modern African who wants style and identity at a fair price.' },
   { icon: 'solar:global-bold', t: 'The diaspora', d: 'A wearable connection to roots, wherever home now is.' },
   { icon: 'solar:gift-bold', t: 'Gifters', d: 'Meaningful pieces with presentation that matches the meaning.' },
+];
+
+const stats = [
+  { value: 2024, suffix: '', label: 'Founded in Lagos' },
+  { value: 1200, suffix: '+', label: 'Pieces delivered' },
+  { value: 18, suffix: '', label: 'Countries shipped to' },
+  { value: 3, suffix: '', label: 'Heritage fabrics, sourced at origin' },
+];
+
+const team = [
+  { name: 'Amara Okafor', role: 'Founder & Creative Director', tile: 'hc-tile-adire' },
+  { name: 'Tunde Bello', role: 'Head of Tailoring', tile: 'hc-tile-asooke' },
+  { name: 'Zainab Yusuf', role: 'Fabric Sourcing', tile: 'hc-tile-ankara' },
+  { name: 'Chidi Eze', role: 'Customer Care', tile: 'hc-tile-mixed' },
+];
+
+const quotes = [
+  { name: 'Funmi A.', role: 'Lagos, Nigeria', tile: 'hc-tile-ankara', text: 'They tell you the story of the fabric — it’s not costume, it’s something you actually want to live in.' },
+  { name: 'David O.', role: 'London, UK', tile: 'hc-tile-asooke', text: 'It finally feels like wearing home, properly tailored. The packaging alone made it feel like a gift.' },
+  { name: 'Ngozi M.', role: 'Toronto, Canada', tile: 'hc-tile-adire', text: 'Ordered matching aso-ebi for six of us and every piece was consistent. Will be back for the next drop.' },
 ];
 
 const AboutPage = () => (
@@ -34,22 +55,27 @@ const AboutPage = () => (
       </div>
     </section>
 
-    {/* story */}
+    {/* story — about split with visual + experience badge */}
     <section className="hc-section">
       <div className="hc-container">
-        <div className="hc-grid hc-grid--2" style={{ gap: '3rem', alignItems: 'start' }}>
+        <div className="hc-about-split">
+          <div className="hc-about-visual">
+            <div className="hc-about-figure hc-tile hc-tile-asooke" />
+            <div className="hc-about-exp">
+              <strong>Lagos</strong>
+              <span>Ajuwon Market · where it began</span>
+            </div>
+          </div>
           <div>
             <div className="hc-kicker">Our story</div>
             <h2 className="hc-h2 hc-mt-2">From a stall in Ajuwon Market.</h2>
-          </div>
-          <div>
-            <p className="hc-lead">
+            <p className="hc-lead hc-mt-3">
               Herit Clothing started in Ajuwon Market, Lagos, with a simple frustration: the
               fabrics and prints we grew up with — Ankara, Adire, Aso-Oke — were too often saved
               for special occasions, or treated abroad as costume rather than culture. We believed
               they deserved a place in everyday life, cut for the way people actually dress today.
             </p>
-            <p className="hc-lead hc-mt-3">
+            <p className="hc-mt-3" style={{ color: 'var(--muted-foreground)' }}>
               So we began making contemporary pieces from traditional cloth — honouring where each
               fabric comes from, then tailoring it for a modern fit. Today we sell online and in
               person, dressing customers in Lagos, across Nigeria and around the world. We&apos;ve
@@ -86,6 +112,17 @@ const AboutPage = () => (
       </div>
     </section>
 
+    {/* how we work — numbered process cards */}
+    <ProcessSteps
+      kicker="How we work"
+      title="Roots first, every step."
+      lead="From the fabric stall to your doorstep, the same care runs through everything we do."
+      steps={process}
+    />
+
+    {/* animated stat counter */}
+    <CounterBand stats={stats} />
+
     {/* what we stand for */}
     <section className="hc-section">
       <div className="hc-container">
@@ -104,37 +141,8 @@ const AboutPage = () => (
       </div>
     </section>
 
-    {/* how we work */}
-    <section className="hc-section hc-section--paper">
-      <div className="hc-container">
-        <div className="hc-grid hc-grid--2" style={{ gap: '3rem', alignItems: 'start' }}>
-          <div>
-            <div className="hc-kicker">How we work</div>
-            <h2 className="hc-h2 hc-mt-2">Roots first, every step.</h2>
-            <p className="hc-lead hc-mt-3">
-              From the fabric stall to your doorstep, the same care runs through everything we do.
-            </p>
-            <Link to="/shop" className="hc-btn hc-btn--primary hc-mt-4">
-              See the collection <IconifyIcon icon="solar:arrow-right-linear" />
-            </Link>
-          </div>
-          <div>
-            {howWeWork.map((s) => (
-              <div key={s.n} className="hc-step">
-                <div className="hc-step-n">{s.n}</div>
-                <div>
-                  <h4>{s.t}</h4>
-                  <p>{s.d}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-
     {/* who we serve */}
-    <section className="hc-section">
+    <section className="hc-section hc-section--paper">
       <div className="hc-container">
         <div className="hc-head hc-head--center">
           <div className="hc-kicker">Who we serve</div>
@@ -151,6 +159,24 @@ const AboutPage = () => (
         </div>
       </div>
     </section>
+
+    {/* the makers */}
+    <TeamCarousel
+      kicker="The makers"
+      title="The hands behind every piece."
+      lead="A small Lagos team that sources, cuts and finishes everything we sell."
+      members={team}
+    />
+
+    {/* testimonials */}
+    <Testimonials
+      kicker="In their words"
+      title="Worn with pride, worldwide."
+      lead="From Lagos to the diaspora, here’s what wearing Herit means to the people who do."
+      ctaTo="/shop"
+      ctaLabel="Shop the collection"
+      quotes={quotes}
+    />
 
     {/* where we're going / CTA */}
     <section className="hc-section hc-section--crimson">

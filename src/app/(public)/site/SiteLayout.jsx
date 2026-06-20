@@ -136,71 +136,91 @@ const NewsletterForm = () => {
 
 const SiteFooter = () => {
   const { isAuthenticated, user } = useAuthContext();
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   return (
-  <footer className="hc-footer">
+  <footer className="hc-footer hc-footer--editorial">
     <div className="hc-container">
-      <div className="hc-foot-grid">
-        <div>
-          <img src={logoLight} alt="Herit Clothing" className="hc-foot-logo" />
-          <p className="hc-mt-2" style={{ maxWidth: '20rem', lineHeight: 1.6 }}>
-            Contemporary African fashion, rooted in real heritage fabrics. We fuse Ankara,
-            Adire and Aso-Oke with modern cuts — made in Ajuwon Market, Lagos, for the world.
+      {/* feature — brand invitation + newsletter */}
+      <div className="hc-foot-feature">
+        <div className="hc-foot-feature-lead">
+          <div className="hc-kicker">Join the family</div>
+          <h2 className="hc-foot-headline">
+            Heritage, <em>delivered</em><br />worldwide.
+          </h2>
+          <p>
+            Our pieces are made in limited runs. Be first to new drops — and get 10% off your
+            first piece with code <strong>HERIT10</strong>.
           </p>
-          <div className="hc-mt-3">
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', marginBottom: '0.5rem' }}>
-              Join the family — 10% off your first piece
-            </div>
-            <NewsletterForm />
-          </div>
-          <div className="hc-flex hc-gap hc-mt-3" style={{ gap: '0.5rem' }}>
-            <a href="https://instagram.com" className="hc-social" aria-label="Instagram"><IconifyIcon icon="solar:instagram-bold" /></a>
+        </div>
+        <div className="hc-foot-feature-side">
+          <span className="hc-foot-news-label">Get the drop list</span>
+          <NewsletterForm />
+          <div className="hc-foot-socials" aria-label="Herit on social">
+            <a href="https://instagram.com" className="hc-social" aria-label="Instagram"><IconifyIcon icon="mdi:instagram" /></a>
             <a href="https://facebook.com" className="hc-social" aria-label="Facebook"><IconifyIcon icon="mdi:facebook" /></a>
             <a href="https://wa.me/234" className="hc-social" aria-label="WhatsApp"><IconifyIcon icon="mdi:whatsapp" /></a>
-            <a href="https://tiktok.com" className="hc-social" aria-label="TikTok"><IconifyIcon icon="mdi:music-note" /></a>
+            <a href="https://tiktok.com" className="hc-social" aria-label="TikTok"><IconifyIcon icon="ic:baseline-tiktok" /></a>
           </div>
         </div>
+      </div>
 
-        <div>
+      <hr className="hc-foot-rule" />
+
+      {/* link columns */}
+      <div className="hc-foot-cols">
+        <div className="hc-foot-about">
+          <img src={logoLight} alt="Herit Clothing" className="hc-foot-logo" />
+          <p>
+            Contemporary African fashion, rooted in real heritage fabrics — Ankara, Adire and
+            Aso-Oke, reworked with modern cuts. Made by hand in Ajuwon Market, Lagos, for the world.
+          </p>
+          <ul className="hc-foot-visit">
+            <li><IconifyIcon icon="solar:map-point-bold" /> Ajuwon Market · Lagos, Nigeria</li>
+            <li><a href="mailto:hello@heritclothing.com"><IconifyIcon icon="solar:letter-bold" /> hello@heritclothing.com</a></li>
+          </ul>
+        </div>
+
+        <nav className="hc-foot-links" aria-label="Shop">
           <h6>Shop</h6>
           <Link to="/shop">All pieces</Link>
           <Link to="/shop?fabric=Ankara">Ankara</Link>
           <Link to="/shop?fabric=Adire">Adire</Link>
           <Link to="/shop?fabric=Aso-Oke">Aso-Oke</Link>
           <Link to="/gifting">Gifting</Link>
-        </div>
+        </nav>
 
-        <div>
+        <nav className="hc-foot-links" aria-label="Company">
           <h6>Company</h6>
           <Link to="/about">Our story</Link>
           <Link to="/about">Mission &amp; vision</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/contact">Stockists</Link>
-        </div>
+        </nav>
 
-        <div>
+        <nav className="hc-foot-links" aria-label="Help">
           <h6>Help</h6>
           <Link to="/contact">Shipping</Link>
           <Link to="/contact">Returns</Link>
           <Link to="/contact">Size &amp; fit</Link>
           <Link to="/track">Track order</Link>
-        </div>
-
-        <div>
-          <h6>Visit</h6>
-          <p style={{ fontSize: '0.92rem', lineHeight: 1.7 }}>
-            Ajuwon Market<br />Lagos, Nigeria
-          </p>
-          <p className="hc-mt-2" style={{ fontSize: '0.92rem' }}>hello@heritclothing.com</p>
-          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'} className="hc-foot-staff">
-            <IconifyIcon icon={isAuthenticated ? 'solar:widget-5-bold' : 'solar:lock-keyhole-minimalistic-linear'} />
-            {isAuthenticated ? ' Staff dashboard' : ' Staff login'} →
-          </Link>
-        </div>
+        </nav>
       </div>
+
+      {/* oversized brand watermark */}
+      <div className="hc-foot-wordmark" aria-hidden="true">HERIT</div>
 
       <div className="hc-foot-bottom">
         <span>© {new Date().getFullYear()} Herit Clothing · Wear your heritage.</span>
-        <span>Made in Lagos, shipped worldwide</span>
+        <span className="hc-foot-bottom-links">
+          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'} className="hc-foot-staff">
+            <IconifyIcon icon={isAuthenticated ? 'solar:widget-5-bold' : 'solar:lock-keyhole-minimalistic-linear'} />
+            {isAuthenticated ? 'Staff dashboard' : 'Staff login'}
+          </Link>
+          <span className="hc-foot-madein">Made in Lagos, shipped worldwide</span>
+        </span>
+        <button type="button" className="hc-foot-top" onClick={toTop} aria-label="Back to top">
+          Back to top <IconifyIcon icon="solar:alt-arrow-up-linear" />
+        </button>
       </div>
     </div>
   </footer>

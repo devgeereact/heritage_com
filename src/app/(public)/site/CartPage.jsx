@@ -59,7 +59,7 @@ const CartPage = () => {
               </div>
 
               {/* summary */}
-              <div className="hc-card" style={{ padding: '1.5rem', position: 'sticky', top: '6rem' }}>
+              <div className="hc-card hc-card--stitch" style={{ padding: '1.5rem', position: 'sticky', top: '6rem' }}>
                 <span className="hc-card-badge">Order summary</span>
                 <div className="hc-flex" style={{ justifyContent: 'space-between', marginTop: '1.25rem', fontSize: '0.95rem' }}>
                   <span style={{ color: 'var(--muted-foreground)' }}>Subtotal</span>
