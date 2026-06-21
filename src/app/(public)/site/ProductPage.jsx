@@ -94,10 +94,12 @@ const ProductPage = () => {
               <div className={`hc-tile ${product.tile}`} style={{ aspectRatio: '4 / 5' }}>
                 {product.premium && <span className="hc-tile-tag">Premium</span>}
               </div>
-              <div className="hc-grid hc-grid--4 hc-mt-3" style={{ gap: '0.6rem' }}>
-                {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className={`hc-tile ${product.tile}`} style={{ aspectRatio: '1', opacity: i === 0 ? 1 : 0.6 }} />
-                ))}
+              <div className="hc-swatch-note hc-mt-3">
+                <span className={`hc-tile ${product.tile}`} aria-hidden="true" />
+                <span>
+                  Real <strong>{product.fabric}</strong> cloth — colour and pattern vary slightly
+                  from piece to piece, because each one is cut and finished by hand.
+                </span>
               </div>
             </div>
 
@@ -116,21 +118,16 @@ const ProductPage = () => {
 
               {/* size */}
               <div className="hc-mt-4">
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>
+                <div className="hc-chip-label">
                   Size {product.type === 'Accessories' && '· one size'}
                 </div>
-                <div className="hc-flex hc-wrap" style={{ gap: '0.4rem' }}>
+                <div className="hc-chip-group">
                   {(product.type === 'Accessories' ? ['One size'] : SIZES).map((s) => (
                     <button
                       key={s}
+                      type="button"
                       onClick={() => setSize(s)}
-                      className="hc-nav-link"
-                      style={{
-                        border: '2px solid var(--foreground)',
-                        background: size === s || product.type === 'Accessories' ? 'var(--foreground)' : 'transparent',
-                        color: size === s || product.type === 'Accessories' ? '#fff' : 'var(--foreground)',
-                        cursor: 'pointer', minWidth: '3rem', textAlign: 'center',
-                      }}
+                      className={`hc-chip hc-size ${size === s || product.type === 'Accessories' ? 'is-active' : ''}`}
                     >{s}</button>
                   ))}
                 </div>

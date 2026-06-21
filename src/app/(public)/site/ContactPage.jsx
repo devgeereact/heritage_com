@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
@@ -7,7 +8,7 @@ const channels = [
   { icon: 'solar:letter-bold', label: 'Email', value: 'hello@heritclothing.com' },
   { icon: 'mdi:whatsapp', label: 'WhatsApp', value: '+234 ...' },
   { icon: 'solar:map-point-bold', label: 'Visit', value: 'Ajuwon Market, Lagos, Nigeria' },
-  { icon: 'solar:instagram-bold', label: 'Social', value: '@heritclothing' },
+  { icon: 'mdi:instagram', label: 'Social', value: '@heritclothing' },
 ];
 
 const shipping = [
@@ -26,6 +27,19 @@ const faqs = [
   { q: 'Can I order matching aso-ebi?', a: 'Yes. We offer tiered discounts on six or more matching pieces. Send us your occasion, sizes and timing for a quote.' },
   { q: 'How do payments work?', a: 'Cards, bank transfer and supported wallets. Naira for local orders; international billed in USD at checkout. Made-to-measure requires a 50% deposit.' },
 ];
+
+const Faq = ({ q, a }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`hc-faq ${open ? 'is-open' : ''}`}>
+      <button type="button" className="hc-faq-q" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <span>{q}</span>
+        <IconifyIcon icon={open ? 'solar:minus-circle-linear' : 'solar:add-circle-linear'} />
+      </button>
+      {open && <p className="hc-faq-a" dangerouslySetInnerHTML={{ __html: a }} />}
+    </div>
+  );
+};
 
 const ContactPage = () => (
   <SiteLayout title="Contact">
@@ -65,8 +79,37 @@ const ContactPage = () => (
       </div>
     </section>
 
+    {/* map */}
+    <section className="hc-section--tight hc-section--paper">
+      <div className="hc-container">
+        <div className="hc-head" style={{ marginBottom: '1.5rem' }}>
+          <div className="hc-kicker">Find us</div>
+          <h2 className="hc-h2 hc-mt-2">Ajuwon Market, Lagos.</h2>
+        </div>
+        <div className="hc-map">
+          <iframe
+            title="Herit Clothing — Ajuwon Market, Lagos"
+            src="https://maps.google.com/maps?q=Ajuwon%20Market%2C%20Lagos%2C%20Nigeria&z=14&output=embed"
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+        <div className="hc-map-actions">
+          <a
+            className="hc-btn hc-btn--ghost"
+            href="https://www.google.com/maps/search/?api=1&query=Ajuwon+Market,+Lagos,+Nigeria"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <IconifyIcon icon="solar:map-point-bold" /> Get directions
+          </a>
+        </div>
+      </div>
+    </section>
+
     {/* shipping table */}
-    <section className="hc-section hc-section--paper">
+    <section className="hc-section">
       <div className="hc-container">
         <div className="hc-head">
           <div className="hc-kicker">Shipping &amp; delivery</div>
@@ -87,20 +130,15 @@ const ContactPage = () => (
       </div>
     </section>
 
-    {/* FAQ */}
-    <section className="hc-section">
+    {/* FAQ accordion */}
+    <section className="hc-section hc-section--paper">
       <div className="hc-container">
         <div className="hc-head hc-head--center">
           <div className="hc-kicker">Good to know</div>
           <h2 className="hc-h2">Frequently asked.</h2>
         </div>
-        <div className="hc-grid hc-grid--2">
-          {faqs.map((f) => (
-            <div key={f.q} className="hc-pillar">
-              <h4>{f.q}</h4>
-              <p dangerouslySetInnerHTML={{ __html: f.a }} />
-            </div>
-          ))}
+        <div className="hc-faq-list">
+          {faqs.map((f) => <Faq key={f.q} {...f} />)}
         </div>
       </div>
     </section>

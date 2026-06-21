@@ -80,15 +80,15 @@ const GiftingPage = () => (
         </div>
         <div className="hc-grid hc-grid--4">
           {[
-            { c: 'hc-tile-ankara', s: 'Birthdays', l: 'Bold, joyful Ankara' },
-            { c: 'hc-tile-asooke', s: 'Weddings', l: 'Aso-ebi & Aso-Oke sets' },
-            { c: 'hc-tile-adire', s: 'For the diaspora', l: 'A piece of home' },
-            { c: 'hc-tile-mixed', s: 'Just because', l: 'Accessories & gift cards' },
+            { c: 'hc-tile-ankara', s: 'Birthdays', l: 'Bold, joyful Ankara', to: '/shop?fabric=Ankara' },
+            { c: 'hc-tile-asooke', s: 'Weddings', l: 'Aso-ebi & Aso-Oke sets', to: '/shop?fabric=Aso-Oke' },
+            { c: 'hc-tile-adire', s: 'For the diaspora', l: 'A piece of home', to: '/shop?fabric=Adire' },
+            { c: 'hc-tile-mixed', s: 'Just because', l: 'Accessories & gift cards', to: '/shop' },
           ].map((t) => (
-            <div key={t.s} className={`hc-tile ${t.c}`}>
+            <Link to={t.to} key={t.s} className={`hc-tile ${t.c}`}>
               <span>{t.s}</span>
               <small>{t.l}</small>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -105,11 +105,17 @@ const GiftingPage = () => (
               Planning matching aso-ebi for six or more, or a bespoke gift? Tell us what you have
               in mind — occasion, sizes, fabric and timing — and we&apos;ll quote and guide you.
             </p>
-            <ul className="hc-check">
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Tiered discount on 6+ matching pieces</li>
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Custom fit from your measurements (+15% of item price)</li>
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Bespoke design from ₦75,000</li>
-            </ul>
+            <div className="hc-card hc-card--stitch hc-mt-4" style={{ padding: '1.5rem' }}>
+              <span className="hc-card-badge">What&apos;s on offer</span>
+              <ul className="hc-check" style={{ marginTop: '0.85rem' }}>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Tiered discount on 6+ matching pieces</li>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Custom fit from your measurements (+15% of item price)</li>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Bespoke design from ₦75,000</li>
+              </ul>
+            </div>
+            <p className="hc-mt-3" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+              Prefer to talk it through? <a href="https://wa.me/234" target="_blank" rel="noreferrer noopener" style={{ color: 'var(--primary)', fontWeight: 600 }}>Message us on WhatsApp</a>.
+            </p>
           </div>
           <div className="hc-form-card">
             <SiteContactForm defaultType="gifting" />

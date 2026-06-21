@@ -104,6 +104,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:magic-stick-3-bold-duotone',
   url: '/studio'
 }, {
+  key: 'content',
+  label: 'Content & Journal',
+  icon: 'solar:notebook-bold-duotone',
+  url: '/content'
+}, {
   key: 'money',
   label: 'MONEY & INSIGHT',
   isTitle: true

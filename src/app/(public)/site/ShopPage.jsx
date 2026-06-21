@@ -12,19 +12,14 @@ const matchFabric = (p, f) => f === 'All' || p.fabric.toLowerCase().startsWith(f
 
 const Chips = ({ label, options, value, onChange }) => (
   <div>
-    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.66rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>{label}</div>
-    <div className="hc-flex hc-wrap" style={{ gap: '0.4rem' }}>
+    <div className="hc-chip-label">{label}</div>
+    <div className="hc-chip-group">
       {options.map((o) => (
         <button
           key={o}
+          type="button"
           onClick={() => onChange(o)}
-          className="hc-nav-link"
-          style={{
-            border: '2px solid var(--foreground)',
-            background: value === o ? 'var(--primary)' : 'transparent',
-            color: value === o ? '#fff' : 'var(--foreground)',
-            cursor: 'pointer',
-          }}
+          className={`hc-chip ${value === o ? 'is-active' : ''}`}
         >{o}</button>
       ))}
     </div>

@@ -292,7 +292,7 @@ const CheckoutPage = () => {
           </div>
 
           {/* summary */}
-          <div className="hc-card" style={{ padding: '1.5rem', position: 'sticky', top: '6rem' }}>
+          <div className="hc-card hc-card--stitch" style={{ padding: '1.5rem', position: 'sticky', top: '6rem' }}>
             <span className="hc-card-badge">Your order</span>
             <div className="hc-flex" style={{ flexDirection: 'column', gap: '0.6rem', marginTop: '1rem' }}>
               {items.map((l) => (

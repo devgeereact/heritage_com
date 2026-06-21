@@ -125,6 +125,7 @@
   cursor: pointer;
   transition: transform 0.08s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   line-height: 1;
+  white-space: nowrap;
 }
 .hc-btn:hover { transform: translateY(-1px); }
 .hc-btn:active { transform: translateY(0); }
@@ -160,7 +161,7 @@
   white-space: nowrap;
 }
 .hc-brand span { color: var(--primary); }
-.hc-brand-logo { height: 42px; width: auto; display: block; }
+.hc-brand-logo { height: 48px; width: auto; display: block; }
 .hc-foot-logo { height: 48px; width: auto; display: block; margin-bottom: 0.25rem; }
 .hc-brand small {
   display: block;
@@ -186,20 +187,30 @@
 }
 .hc-nav-link:hover { color: var(--primary); background: var(--secondary); }
 .hc-nav-link.is-active { color: var(--primary); background: var(--secondary); }
-.hc-nav-cta { margin-left: 0.5rem; }
-.hc-nav-cart {
-  position: relative; display: inline-flex; align-items: center; gap: 0.35rem;
-  margin-left: 0.5rem; padding: 0.4rem 0.6rem; color: var(--foreground);
-  text-decoration: none; border-radius: var(--radius); font-size: 1.1rem;
+/* account — quiet icon link */
+.hc-nav-icon {
+  display: inline-flex; align-items: center; gap: 0.4rem; margin-left: 0.5rem;
+  padding: 0.45rem 0.65rem; color: var(--foreground); border-radius: var(--radius); font-size: 1.15rem;
   transition: color 0.15s, background 0.15s;
 }
-.hc-nav-cart:hover { color: var(--primary); background: var(--secondary); }
-.hc-nav-cart-label { font-size: 0.82rem; font-weight: 600; }
-.hc-nav-cart-badge {
-  position: absolute; top: -2px; left: 18px; min-width: 17px; height: 17px;
-  padding: 0 4px; border-radius: 9px; background: var(--primary); color: #fff;
-  font-size: 0.66rem; font-weight: 700; line-height: 17px; text-align: center;
+.hc-nav-icon:hover { color: var(--primary); background: var(--secondary); }
+.hc-nav-icon-label { font-size: 0.82rem; font-weight: 600; }
+/* bag — the one standalone shopping action: outlined pill, amber count, fills on hover */
+.hc-nav-bag {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.6rem;
+  padding: 0.5rem 0.95rem; border-radius: 100px;
+  border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
+  font-family: var(--font-mono); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
+.hc-nav-bag svg { font-size: 1.05rem; }
+.hc-nav-bag:hover { background: var(--primary); color: #fff; box-shadow: var(--shadow-sm); }
+.hc-nav-bag-count {
+  min-width: 1.3rem; height: 1.3rem; padding: 0 0.35rem; border-radius: 100px;
+  background: var(--gold); color: #171717; font-size: 0.68rem; font-weight: 700; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hc-nav-bag:hover .hc-nav-bag-count { background: #fff; color: var(--primary); }
 .hc-nav-login {
   display: inline-flex; align-items: center; gap: 0.35rem;
   margin-left: 0.75rem; padding: 0.4rem 0.65rem;
@@ -223,7 +234,7 @@
   font-size: 1.4rem; cursor: pointer;
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1180px) {
   .hc-nav-toggle { display: inline-flex; }
   .hc-nav-links {
     position: absolute; top: 76px; left: 0; right: 0;
@@ -235,10 +246,9 @@
   }
   .hc-nav-links.is-open { display: flex; }
   .hc-nav-link { padding: 0.85rem 0.6rem; border-radius: 0; border-bottom: 1px solid var(--border); }
-  .hc-nav-cta { margin: 0.75rem 0 0; }
   .hc-nav-login { margin: 0.75rem 0 0; justify-content: center; padding: 0.7rem; border: 1px solid var(--border); }
-  .hc-nav-cart { margin: 0.75rem 0 0; justify-content: center; padding: 0.7rem; border: 1px solid var(--border); }
-  .hc-nav-cart-badge { position: static; margin-left: 0.25rem; }
+  .hc-nav-icon { margin: 0.75rem 0 0; justify-content: center; padding: 0.7rem; border: 1px solid var(--border); font-size: 1rem; }
+  .hc-nav-bag { margin: 0.75rem 0 0; justify-content: center; }
 }
 
 /* ---------------------------------------------------------- hero */
@@ -738,3 +748,518 @@ a.hc-tile:hover {
 @media (prefers-reduced-motion: reduce) {
   .hc main > section.hc-reveal { opacity: 1; transform: none; }
 }
+
+/* ============================================================
+   Oxybuild-derived sections — layout patterns from the Oxybuild
+   construction template, rebuilt in the amber-heritage brand.
+   Hero slider · stat counter · sliders w/ arrows · working-process
+   step cards · team & testimonial carousels · brand strip · journal.
+   ============================================================ */
+
+/* ---- slider headers: title left, prev/next arrows right ---- */
+.hc-slider-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+}
+.hc-slider-head .hc-head { max-width: 40rem; }
+.hc-slider-nav { display: flex; gap: 0.6rem; flex: 0 0 auto; }
+.hc-slider-arrow {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1.5px solid var(--border); background: var(--card); color: var(--primary);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+}
+.hc-slider-arrow:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.hc-slider-arrow:active { transform: scale(0.94); }
+.hc-slider-arrow.swiper-button-disabled { opacity: 0.4; cursor: default; }
+.hc-slider-nav--light .hc-slider-arrow { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); color: #fff; }
+.hc-slider-nav--light .hc-slider-arrow:hover { background: #fff; color: var(--primary); }
+/* swiper slides need full-height children so cards in a row match */
+.hc .swiper { overflow: hidden; }
+.hc .swiper-slide { height: auto; }
+.hc .swiper-slide > * { height: 100%; }
+
+/* ---- hero slider tweaks (reuses .hc-hero--bold) ---- */
+.hc-hero--slider { padding-bottom: 1rem; }
+.hc-hero-swiper { width: 100%; }
+.hc-hero--slider .hc-hero-grid { padding: 1rem 0; }
+.hc-hero-dots { display: flex; gap: 0.5rem; justify-content: center; padding: 0 0 2.25rem; }
+.hc-hero-dots .swiper-pagination-bullet {
+  width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.35);
+  opacity: 1; cursor: pointer; transition: background 0.2s, width 0.2s;
+}
+.hc-hero-dots .swiper-pagination-bullet-active { background: var(--gold); width: 26px; border-radius: 5px; }
+
+/* ---- counter band (animated stats) ---- */
+.hc-counter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+@media (max-width: 768px) { .hc-counter-grid { grid-template-columns: repeat(2, 1fr); } }
+.hc-counter-item { text-align: center; position: relative; padding: 0.5rem 1rem; }
+/* hairline vertical rules between columns — never trailing a row's last item */
+.hc-counter-item::after {
+  content: ""; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  height: 56%; width: 1px; background: rgba(255,255,255,0.14);
+}
+.hc-counter-grid > :nth-child(2n)::after { content: none; }
+@media (min-width: 769px) {
+  .hc-counter-grid > :nth-child(2n)::after { content: ""; }
+  .hc-counter-grid > :nth-child(4n)::after,
+  .hc-counter-item:last-child::after { content: none; }
+}
+.hc-counter-n {
+  font-family: var(--font-serif); font-weight: 700; font-size: clamp(2.2rem, 4vw, 3rem);
+  color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums;
+}
+.hc-counter-l {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.78); margin-top: 0.6rem;
+}
+
+/* ---- services / lookbook cards inside sliders ---- */
+.hc-serv-card { display: flex; flex-direction: column; align-items: flex-start; }
+.hc-serv-card .hc-card-link { margin-top: auto; padding-top: 1.1rem; }
+.hc-look-tile { aspect-ratio: 3 / 4; }
+
+/* ---- working-process step cards (oxybuild banner-four) ---- */
+.hc-proc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+@media (max-width: 992px) { .hc-proc-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .hc-proc-grid { grid-template-columns: 1fr; } }
+.hc-proc-card {
+  position: relative; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 2.5rem 1.6rem 1.8rem; box-shadow: var(--shadow-sm);
+  overflow: hidden; transition: transform 0.28s cubic-bezier(.2,.8,.2,1), box-shadow 0.28s ease, border-color 0.28s ease;
+}
+.hc-proc-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: rgba(245,158,11,0.45); }
+.hc-section--dark .hc-proc-card { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+.hc-proc-n {
+  position: absolute; top: 0.6rem; right: 1rem; font-family: var(--font-serif); font-weight: 700;
+  font-size: 3.4rem; line-height: 1; color: var(--secondary); opacity: 0.7;
+}
+.hc-section--dark .hc-proc-n { color: rgba(245,209,138,0.2); opacity: 1; }
+.hc-proc-ico {
+  width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--secondary); color: var(--primary); font-size: 1.5rem; border-radius: var(--radius);
+  margin-bottom: 1.1rem; position: relative;
+}
+.hc-section--dark .hc-proc-ico { background: rgba(255,255,255,0.12); color: var(--secondary); }
+.hc-proc-card h4 { font-size: 1.15rem; position: relative; }
+.hc-section--dark .hc-proc-card h4 { color: #fff; }
+.hc-proc-card p { margin-top: 0.5rem; color: var(--muted-foreground); font-size: 0.95rem; }
+.hc-section--dark .hc-proc-card p { color: #c9c2bc; }
+
+/* ---- team carousel cards ---- */
+.hc-team-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+.hc-team-photo {
+  position: relative; aspect-ratio: 4 / 5; display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+/* supplies the box so the hc-tile-* fabric motif (a ::before background) paints */
+.hc-team-photo::before { content: ""; position: absolute; inset: 0; z-index: 0; }
+.hc-team-photo::after { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(180deg, transparent 45%, rgba(28,15,12,0.55)); }
+.hc-team-initials {
+  font-family: var(--font-serif); font-weight: 700; font-size: 3rem; color: #fff;
+  position: relative; z-index: 1; text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.hc-team-social {
+  position: absolute; left: 0; right: 0; bottom: 0.85rem; z-index: 2;
+  display: flex; gap: 0.5rem; justify-content: center;
+  opacity: 0; transform: translateY(10px); transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.hc-team-card:hover .hc-team-social { opacity: 1; transform: none; }
+.hc-team-social a {
+  width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.92); color: var(--primary);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 1rem;
+  transition: background 0.15s, color 0.15s;
+}
+.hc-team-social a:hover { background: var(--gold); color: #fff; }
+.hc-team-meta { padding: 1.1rem 1.25rem 1.35rem; text-align: center; }
+.hc-team-meta h4 { font-size: 1.15rem; }
+.hc-team-meta span { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); display: block; margin-top: 0.35rem; }
+
+/* ---- testimonials (asymmetric text + quote carousel) ---- */
+.hc-testi-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 3rem; align-items: center; }
+@media (max-width: 900px) { .hc-testi-grid { grid-template-columns: 1fr; gap: 2rem; } }
+.hc-testi-aside .hc-slider-nav { margin-top: 2rem; }
+@media (max-width: 900px) { .hc-testi-aside .hc-slider-nav { display: none; } }
+.hc-testi-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem 1.75rem 1.75rem; box-shadow: var(--shadow-sm); position: relative; margin: 0; height: 100%;
+  display: flex; flex-direction: column;
+}
+.hc-testi-mark { font-family: var(--font-serif); font-size: 4rem; line-height: 0.6; color: var(--secondary); height: 2rem; }
+.hc-testi-card blockquote { margin: 0.5rem 0 0; font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.55; color: var(--foreground); font-style: italic; flex: 1; }
+.hc-testi-card figcaption { display: flex; align-items: center; gap: 0.8rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.hc-testi-avatar {
+  width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-weight: 700; color: #fff; font-size: 0.95rem;
+  background: var(--primary);
+}
+.hc-testi-card figcaption strong { display: block; font-family: var(--font-sans); font-size: 0.95rem; }
+.hc-testi-card figcaption small { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
+.hc-testi-dots { display: flex; gap: 0.4rem; justify-content: center; margin-top: 1.5rem; }
+.hc-testi-dots .swiper-pagination-bullet { width: 8px; height: 8px; border-radius: 50%; background: var(--border); opacity: 1; cursor: pointer; transition: background 0.2s, width 0.2s; }
+.hc-testi-dots .swiper-pagination-bullet-active { background: var(--primary); width: 22px; border-radius: 4px; }
+
+/* ---- stockist / brand strip ---- */
+.hc-brandstrip-label {
+  text-align: center; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 1.25rem;
+}
+.hc-brandstrip-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.25rem 2.5rem; }
+.hc-brandstrip-logo {
+  font-family: var(--font-serif); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.01em;
+  color: var(--muted-foreground); opacity: 0.75; transition: opacity 0.2s, color 0.2s;
+}
+.hc-brandstrip-logo:hover { opacity: 1; color: var(--primary); }
+
+/* ---- journal (blog) cards ---- */
+.hc-journal-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.hc-journal-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.hc-journal-media { position: relative; aspect-ratio: 16 / 10; display: block; overflow: hidden; }
+.hc-journal-media::before { content: ""; position: absolute; inset: 0; z-index: 0; transition: transform 0.5s cubic-bezier(.2,.8,.2,1); }
+.hc-journal-card:hover .hc-journal-media::before { transform: scale(1.07); }
+.hc-journal-cat {
+  position: absolute; bottom: 0.7rem; left: 0.7rem; z-index: 1;
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+  background: rgba(245,209,138,0.95); color: #5c1414; font-weight: 700; padding: 0.28rem 0.6rem; border-radius: 6px;
+}
+.hc-journal-body { padding: 1.25rem 1.35rem 1.5rem; display: flex; flex-direction: column; flex: 1; }
+.hc-journal-date { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+.hc-journal-body h4 { font-size: 1.2rem; margin-top: 0.5rem; }
+.hc-journal-body h4 a:hover { color: var(--primary); }
+.hc-journal-body p { margin-top: 0.6rem; color: var(--muted-foreground); font-size: 0.94rem; flex: 1; }
+.hc-journal-body .hc-card-link { margin-top: 1rem; }
+
+/* ---- about split (visual + experience badge + checklist) ---- */
+.hc-about-split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+@media (max-width: 900px) { .hc-about-split { grid-template-columns: 1fr; gap: 2.5rem; } }
+.hc-about-visual { position: relative; }
+.hc-about-figure { aspect-ratio: auto; height: clamp(20rem, 30vw, 26rem); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); position: relative; }
+.hc-about-exp {
+  position: absolute; bottom: -1.25rem; right: -1.25rem; z-index: 2;
+  background: var(--primary); color: #fff; border-radius: var(--radius); padding: 1.1rem 1.4rem;
+  box-shadow: var(--shadow-lg); text-align: center; min-width: 9rem;
+}
+@media (max-width: 480px) { .hc-about-exp { right: 0.5rem; bottom: 0.5rem; } }
+.hc-about-exp strong { font-family: var(--font-serif); font-size: 2.2rem; display: block; line-height: 1; color: var(--secondary); }
+.hc-about-exp span { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.85); display: block; margin-top: 0.4rem; }
+
+/* ---- contact map embed (oxybuild contact) ---- */
+.hc-map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-md); line-height: 0; }
+.hc-map iframe { width: 100%; height: 360px; border: 0; display: block; filter: grayscale(0.25) contrast(1.02); }
+
+/* ---- FAQ accordion ---- */
+.hc-faq-list { max-width: 52rem; margin: 0 auto; display: grid; gap: 0.85rem; }
+.hc-faq { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; transition: border-color 0.2s; }
+.hc-faq.is-open { border-color: rgba(245,158,11,0.5); }
+.hc-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: none; border: none; cursor: pointer; text-align: left;
+  font-family: var(--font-serif); font-weight: 700; font-size: 1.08rem; color: var(--foreground);
+  padding: 1.15rem 1.35rem;
+}
+.hc-faq-q svg { color: var(--primary); font-size: 1.4rem; flex: 0 0 auto; }
+.hc-faq.is-open .hc-faq-q { color: var(--primary); }
+.hc-faq-a { padding: 0 1.35rem 1.25rem; color: var(--muted-foreground); line-height: 1.7; animation: hc-faq-in 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes hc-faq-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   Polish pass — perfection details across the public site.
+   Typographic balance · tabular figures · cohesive focus rings ·
+   unified hover lift · brand selection · motion-aware niceties.
+   ============================================================ */
+
+/* — typographic balance: short headings break evenly, body wraps prettily — */
+.hc-h1, .hc-h2, .hc-h3, .hc-hero-title, .hc-pagehead h1 { text-wrap: balance; }
+.hc-lead, .hc-hero-sub, .hc-card-desc, .hc-proc-card p, .hc-journal-body p { text-wrap: pretty; }
+
+/* — figures never reflow mid-animation / never jitter in tables — */
+.hc-counter-n, .hc-stat-n, .hc-product-price, .hc-fabric-price,
+.hc-about-exp strong, .hc-table td .hc-price { font-variant-numeric: tabular-nums; }
+
+/* — brand text selection — */
+.hc ::selection { background: var(--gold); color: #171717; }
+
+/* — one cohesive focus-visible ring on every interactive surface — */
+.hc a:focus-visible,
+.hc button:focus-visible,
+.hc-look-product:focus-visible,
+.hc-journal-media:focus-visible,
+.hc-journal-body h4 a:focus-visible,
+.hc-team-social a:focus-visible,
+.hc-brandstrip-logo:focus-visible,
+.hc-faq-q:focus-visible,
+.hc-slider-arrow:focus-visible,
+.hc-hero-dots .swiper-pagination-bullet:focus-visible,
+.hc-testi-dots .swiper-pagination-bullet:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+.hc-section--dark a:focus-visible,
+.hc-section--crimson a:focus-visible,
+.hc-section--dark button:focus-visible { outline-color: var(--secondary); }
+
+/* — icons inside buttons sit at a consistent optical size — */
+.hc-btn svg { font-size: 1.05em; flex: 0 0 auto; }
+
+/* — team cards gain the same considered hover as the rest — */
+.hc-team-card { transition: transform 0.28s cubic-bezier(.2,.8,.2,1), box-shadow 0.28s ease, border-color 0.28s ease; }
+.hc-team-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: rgba(245,158,11,0.4); }
+.hc-team-photo::before { transition: transform 0.6s cubic-bezier(.2,.8,.2,1); }
+.hc-team-card:hover .hc-team-photo::before { transform: scale(1.06); }
+
+/* — slider arrows: crisper press + clearer disabled — */
+.hc-slider-arrow { box-shadow: var(--shadow-sm); }
+.hc-slider-arrow.swiper-button-disabled { box-shadow: none; }
+
+/* — hero dots and testimonial dots get a real focus target — */
+.hc-hero-dots .swiper-pagination-bullet,
+.hc-testi-dots .swiper-pagination-bullet { outline-offset: 4px; }
+
+/* — lookbook product media: gentle zoom to match shop tiles — */
+.hc-look-product .hc-product-media::before { transition: transform 0.5s cubic-bezier(.2,.8,.2,1); }
+.hc-look-product:hover .hc-product-media::before { transform: scale(1.06); }
+
+/* — mobile: lean on swipe + the peek of the next card; hide arrow clutter — */
+@media (max-width: 640px) {
+  .hc-slider-head .hc-slider-nav { display: none; }
+  .hc-slider-head { margin-bottom: 1.75rem; }
+}
+
+/* — respect reduced motion for the niceties added here — */
+@media (prefers-reduced-motion: reduce) {
+  .hc-faq-a { animation: none; }
+  .hc-team-card:hover { transform: none; }
+  .hc-team-card:hover .hc-team-photo::before,
+  .hc-look-product:hover .hc-product-media::before { transform: none; }
+}
+
+/* ============================================================
+   Fixes — button visibility + carousel overflow
+   ============================================================ */
+
+/* Link-buttons were inheriting their parent's text colour because
+   `.hc a { color: inherit }` (0,1,1) outranks `.hc-btn--x { color }` (0,1,0).
+   Raise the variant rules to `a.hc-btn--x` (0,2,1) so every button shows the
+   correct ink — not white-on-white in the CTA or dark-on-dark in the nav. */
+.hc a.hc-btn,
+.hc button.hc-btn { color: var(--foreground); }
+.hc a.hc-btn--primary, .hc button.hc-btn--primary,
+.hc a.hc-btn--dark,    .hc button.hc-btn--dark,
+.hc a.hc-btn--glass,   .hc button.hc-btn--glass,
+.hc a.hc-btn--onfill,  .hc button.hc-btn--onfill { color: #fff; }
+.hc a.hc-btn--light,   .hc button.hc-btn--light { color: var(--primary); }
+.hc a.hc-btn--gold,    .hc button.hc-btn--gold { color: #171717; }
+.hc a.hc-btn--ghost,   .hc button.hc-btn--ghost { color: var(--foreground); }
+
+/* A swiper inside a grid/flex column blows the track out to its full
+   min-content width (the testimonial card ran off-screen). min-width:0 lets the
+   column shrink and the carousel clip to its real width everywhere. */
+.hc .swiper { min-width: 0; max-width: 100%; }
+.hc-testi-rail { min-width: 0; }
+.hc-testi-rail .swiper { width: 100%; }
+
+/* ============================================================
+   Footer — editorial redesign (brand invitation · watermark · stitch)
+   ============================================================ */
+.hc-footer--editorial {
+  position: relative; overflow: hidden; border-top: none;
+  padding: 3.25rem 0 1.5rem;
+  background:
+    radial-gradient(115% 80% at 85% -10%, #271812 0%, transparent 58%),
+    var(--espresso);
+}
+/* tack-stitch signature — dashed amber edge */
+.hc-footer--editorial::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 0;
+  border-top: 2px dashed var(--gold); opacity: 0.85;
+}
+
+.hc-foot-feature {
+  position: relative; z-index: 1; display: grid; grid-template-columns: 1.25fr 0.9fr;
+  gap: 3rem; align-items: end; padding: 1.25rem 0 2.5rem;
+}
+@media (max-width: 860px) { .hc-foot-feature { grid-template-columns: 1fr; gap: 1.75rem; align-items: start; } }
+.hc-foot-feature .hc-kicker { color: var(--gold); }
+.hc-footer--editorial .hc-foot-headline {
+  font-family: var(--font-serif); color: #fff; font-weight: 700;
+  font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: 1.03; letter-spacing: -0.02em; margin: 0.9rem 0 0;
+}
+.hc-foot-headline em {
+  font-style: italic;
+  background: linear-gradient(100deg, #FDEAC2, #F59E0B);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hc-foot-feature-lead p { color: #c9c2bc; max-width: 30rem; margin-top: 1rem; line-height: 1.65; }
+.hc-foot-feature-lead strong { color: var(--secondary); font-weight: 600; }
+
+.hc-foot-feature-side { display: flex; flex-direction: column; gap: 0.85rem; align-items: stretch; }
+.hc-foot-news-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.hc-footer--editorial .hc-foot-news {
+  border: 1.5px solid #3a322e; background: rgba(255,255,255,0.03); border-radius: 100px; padding: 4px; transition: border-color 0.2s;
+}
+.hc-footer--editorial .hc-foot-news:focus-within { border-color: var(--gold); }
+.hc-footer--editorial .hc-foot-news input { background: transparent; padding: 0.72rem 1.1rem; font-size: 0.95rem; }
+.hc-footer--editorial .hc-foot-news button {
+  background: linear-gradient(100deg, #FDEAC2, #F59E0B); color: #171717; border-radius: 100px; padding: 0 1.4rem; font-weight: 600;
+}
+.hc-footer--editorial .hc-foot-news button:hover { filter: brightness(1.05); }
+.hc-foot-socials { display: flex; gap: 0.55rem; margin-top: 0.25rem; }
+.hc-footer--editorial .hc-social { border-radius: 50%; width: 44px; height: 44px; border-color: #3a322e; transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s; }
+.hc-footer--editorial .hc-social:hover { background: var(--gold); border-color: var(--gold); color: #171717; transform: translateY(-2px); }
+
+.hc-foot-rule { border: none; border-top: 1px solid #2a2422; margin: 0; position: relative; z-index: 1; }
+
+.hc-foot-cols {
+  position: relative; z-index: 1; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 2.5rem; padding: 2.5rem 0 1rem;
+}
+@media (max-width: 860px) { .hc-foot-cols { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+@media (max-width: 520px) { .hc-foot-cols { grid-template-columns: 1fr; } }
+.hc-foot-about p { color: #b8afa8; max-width: 25rem; line-height: 1.65; margin-top: 0.85rem; font-size: 0.92rem; }
+.hc-foot-visit { list-style: none; padding: 0; margin: 1.15rem 0 0; display: grid; gap: 0.55rem; }
+.hc-foot-visit li, .hc-foot-visit a { display: inline-flex; align-items: center; gap: 0.55rem; color: #b8afa8; font-size: 0.9rem; padding: 0; }
+.hc-foot-visit svg { color: var(--gold); flex: 0 0 auto; }
+.hc-foot-visit a:hover { color: var(--secondary); }
+.hc-foot-links a { position: relative; width: fit-content; }
+.hc-foot-links a::after {
+  content: ""; position: absolute; left: 0; bottom: 3px; height: 1px; width: 100%;
+  background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 0.25s;
+}
+.hc-foot-links a:hover { color: #fff; }
+.hc-foot-links a:hover::after { transform: scaleX(1); }
+
+/* oversized brand watermark */
+.hc-foot-wordmark {
+  position: relative; z-index: 0; pointer-events: none; user-select: none; text-align: center;
+  font-family: var(--font-serif); font-weight: 700; white-space: nowrap;
+  font-size: clamp(5rem, 23vw, 17rem); line-height: 0.78; letter-spacing: 0.04em;
+  color: transparent; -webkit-text-stroke: 1px rgba(245,158,11,0.22);
+  margin: 1.25rem 0 -2rem;
+}
+
+.hc-footer--editorial .hc-foot-bottom { position: relative; z-index: 1; align-items: center; margin-top: 2.25rem; }
+.hc-foot-bottom-links { display: inline-flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.hc-foot-bottom .hc-foot-staff { margin: 0; }
+.hc-foot-madein { color: #8a807a; }
+.hc-foot-top {
+  display: inline-flex; align-items: center; gap: 0.45rem; background: none; border: none; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #b8afa8; transition: color 0.15s;
+}
+.hc-foot-top:hover { color: var(--gold); }
+.hc-foot-top svg { font-size: 1rem; }
+
+/* ============================================================
+   Hero — editorial accents (vertical label · scroll cue · stitch)
+   ============================================================ */
+.hc-hero-vlabel {
+  position: absolute; left: 1.6rem; top: 50%; z-index: 2;
+  transform: translateY(-50%); writing-mode: vertical-rl; rotate: 180deg;
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(255,255,255,0.38); pointer-events: none;
+}
+@media (max-width: 1180px) { .hc-hero-vlabel { display: none; } }
+
+.hc-hero-foot { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.75rem; gap: 1rem; }
+.hc-hero-foot .hc-hero-dots { padding: 0; justify-content: flex-start; }
+.hc-hero-scroll {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+.hc-hero-scroll svg { color: var(--gold); font-size: 1rem; animation: hc-bounce 1.8s ease-in-out infinite; }
+@keyframes hc-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+@media (max-width: 640px) { .hc-hero-scroll { display: none; } }
+
+/* tack-stitch signature on the front fabric card */
+.hc-fabric-card:nth-child(3) { outline: 2px dashed rgba(245,209,138,0.85); outline-offset: -9px; }
+
+@media (prefers-reduced-motion: reduce) { .hc-hero-scroll svg { animation: none; } }
+
+/* ============================================================
+   Commerce refinements — selectable chips · stitched summaries
+   ============================================================ */
+
+/* selectable chips — shop filters & product size selectors */
+.hc-chip-group { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.hc-chip-label {
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted-foreground); margin-bottom: 0.55rem;
+}
+.hc-chip {
+  font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500; letter-spacing: 0.04em;
+  text-transform: uppercase; padding: 0.5rem 0.95rem; border-radius: 100px; line-height: 1;
+  border: 1.5px solid var(--border); background: var(--card); color: var(--foreground); cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.hc-chip:hover { border-color: var(--primary); transform: translateY(-1px); }
+.hc-chip:active { transform: translateY(0); }
+.hc-chip.is-active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: var(--shadow-sm); }
+.hc-chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* size selector — squarer chips */
+.hc-size { min-width: 3rem; text-align: center; border-radius: var(--radius); padding: 0.6rem 0.7rem; }
+
+/* tack-stitch top edge on key conversion cards (cart / checkout summary) */
+.hc-card--stitch { border-top: 2px dashed var(--gold); }
+
+/* ============================================================
+   Round-2 fixes — button hovers · cleaner filters · footer socials
+   · functional scroll cue · map
+   ============================================================ */
+
+/* Link-button HOVER colours must beat the non-hover override (a.hc-btn--x = 0,2,1)
+   that we added earlier, or the text keeps its base colour on hover — e.g. the
+   onfill "Talk to us" went white-on-white. These (0,3,1) win on hover. */
+.hc a.hc-btn--onfill:hover, .hc button.hc-btn--onfill:hover { color: var(--primary); }
+.hc a.hc-btn--ghost:hover,  .hc button.hc-btn--ghost:hover  { color: #fff; }
+.hc a.hc-btn--light:hover,  .hc button.hc-btn--light:hover  { color: var(--primary-dark); }
+
+/* Cleaner filter chips — quiet until active (no white boxes, no bounce) */
+.hc-chip {
+  background: transparent; border-color: var(--border); color: var(--muted-foreground);
+  padding: 0.45rem 0.9rem; font-size: 0.72rem;
+}
+.hc-chip:hover { background: rgba(38, 38, 38, 0.05); border-color: var(--border); color: var(--foreground); transform: none; box-shadow: none; }
+.hc-chip.is-active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: none; }
+/* size selector keeps a solid, clearly-tappable surface */
+.hc-size { background: var(--card); border-color: var(--input); color: var(--foreground); }
+.hc-size:hover { background: var(--card); border-color: var(--primary); }
+.hc-size.is-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* Footer socials — brighter on the espresso footer, amber on hover */
+.hc-footer--editorial .hc-social { color: #d9d1c9; border-color: #4a413b; }
+.hc-footer--editorial .hc-social svg { font-size: 1.15rem; }
+.hc-footer--editorial .hc-social:hover { background: var(--gold); border-color: var(--gold); color: #171717; }
+/* balance the feature row so the newsletter isn't stranded low */
+.hc-foot-feature { align-items: center; }
+
+/* Hero scroll cue is now a real button */
+.hc-hero-scroll { background: none; border: none; cursor: pointer; padding: 0.3rem 0.2rem; transition: color 0.15s; }
+.hc-hero-scroll:hover { color: rgba(255, 255, 255, 0.9); }
+.hc-hero-scroll:hover svg { color: var(--gold); }
+
+/* Map — full colour (the grayscale read as "broken"), taller, framed */
+.hc-map iframe { filter: none; height: 420px; }
+.hc-map-actions { margin-top: 0.85rem; }
+
+/* product fabric swatch + handmade-variation note (replaces fake thumbnails) */
+.hc-swatch-note {
+  display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
+  background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius);
+  font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.5; color: var(--muted-foreground);
+}
+.hc-swatch-note .hc-tile { width: 48px; height: 58px; flex: 0 0 48px; border-radius: 8px; box-shadow: none; }
+.hc-swatch-note strong { color: var(--primary); }
+
+/* blog post body */
+.hc-prose { color: var(--foreground); font-size: 1.08rem; line-height: 1.8; }
+.hc-prose p { margin: 0 0 1.25rem; }
+.hc-prose p:last-child { margin-bottom: 0; }
+.hc-prose h2, .hc-prose h3 { margin: 2rem 0 0.75rem; }
+.hc-prose h2 { font-size: 1.5rem; }
+.hc-prose h3 { font-size: 1.2rem; }
+.hc-prose a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.hc-prose ul, .hc-prose ol { margin: 0 0 1.25rem; padding-left: 1.25rem; }
+.hc-prose li { margin-bottom: 0.4rem; }
+.hc-prose blockquote { margin: 1.5rem 0; padding-left: 1.25rem; border-left: 3px solid var(--gold); font-family: var(--font-serif); font-style: italic; font-size: 1.2rem; color: var(--foreground); }

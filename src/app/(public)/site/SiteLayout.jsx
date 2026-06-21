@@ -18,6 +18,36 @@ const NAV = [
   { to: '/contact', label: 'Contact' },
 ];
 
+// Social links. Defaults are placeholders; super_admin sets the real URLs in
+// Settings (saved to settings.socials, served publicly via store.php?action=config).
+// A platform is shown only when it has a URL.
+const SOCIAL_DEFS = [
+  { key: 'instagram', label: 'Instagram', icon: 'mdi:instagram', fallback: 'https://instagram.com' },
+  { key: 'facebook', label: 'Facebook', icon: 'mdi:facebook', fallback: 'https://facebook.com' },
+  { key: 'whatsapp', label: 'WhatsApp', icon: 'mdi:whatsapp', fallback: 'https://wa.me/234' },
+  { key: 'tiktok', label: 'TikTok', icon: 'ic:baseline-tiktok', fallback: 'https://tiktok.com' },
+  { key: 'twitter', label: 'X (Twitter)', icon: 'mdi:twitter', fallback: '' },
+  { key: 'youtube', label: 'YouTube', icon: 'mdi:youtube', fallback: '' },
+];
+
+let _socialsCache = null;
+const useSocials = () => {
+  const [socials, setSocials] = useState(_socialsCache);
+  useEffect(() => {
+    if (_socialsCache) return;
+    let live = true;
+    heritApi.store.config()
+      .then((cfg) => { if (live) { _socialsCache = cfg?.socials || {}; setSocials(_socialsCache); } })
+      .catch(() => { if (live) { _socialsCache = {}; setSocials({}); } });
+    return () => { live = false; };
+  }, []);
+  // resolve: configured URL wins; else placeholder fallback (so the footer is
+  // never empty before the backend is deployed / configured).
+  return SOCIAL_DEFS
+    .map((s) => ({ ...s, url: (socials?.[s.key] || '').trim() || s.fallback }))
+    .filter((s) => s.url);
+};
+
 const SiteNav = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -50,17 +80,14 @@ const SiteNav = () => {
               {n.label}
             </Link>
           ))}
-          <Link to="/account" className="hc-nav-cart" aria-label="Your account">
-            <IconifyIcon icon="solar:user-circle-bold" />
-            <span className="hc-nav-cart-label">Account</span>
+          <Link to="/account" className="hc-nav-icon" aria-label="Your account">
+            <IconifyIcon icon="solar:user-circle-linear" />
+            <span className="hc-nav-icon-label">Account</span>
           </Link>
-          <Link to="/cart" className="hc-nav-cart" aria-label={`Bag (${count})`}>
+          <Link to="/cart" className="hc-nav-bag" aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
             <IconifyIcon icon="solar:bag-4-bold" />
-            {count > 0 && <span className="hc-nav-cart-badge">{count}</span>}
-            <span className="hc-nav-cart-label">Bag</span>
-          </Link>
-          <Link to="/shop" className="hc-btn hc-btn--primary hc-nav-cta">
-            <IconifyIcon icon="solar:bag-4-bold" /> Shop the drop
+            <span className="hc-nav-bag-label">Bag</span>
+            <span className="hc-nav-bag-count">{count}</span>
           </Link>
           {isAuthenticated ? (
             <Link to={dash} className="hc-nav-login hc-nav-login--in" aria-label="Go to dashboard">
@@ -136,71 +163,93 @@ const NewsletterForm = () => {
 
 const SiteFooter = () => {
   const { isAuthenticated, user } = useAuthContext();
+  const socials = useSocials();
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   return (
-  <footer className="hc-footer">
+  <footer className="hc-footer hc-footer--editorial">
     <div className="hc-container">
-      <div className="hc-foot-grid">
-        <div>
-          <img src={logoLight} alt="Herit Clothing" className="hc-foot-logo" />
-          <p className="hc-mt-2" style={{ maxWidth: '20rem', lineHeight: 1.6 }}>
-            Contemporary African fashion, rooted in real heritage fabrics. We fuse Ankara,
-            Adire and Aso-Oke with modern cuts — made in Ajuwon Market, Lagos, for the world.
+      {/* feature — brand invitation + newsletter */}
+      <div className="hc-foot-feature">
+        <div className="hc-foot-feature-lead">
+          <div className="hc-kicker">Join the family</div>
+          <h2 className="hc-foot-headline">
+            Heritage, <em>delivered</em><br />worldwide.
+          </h2>
+          <p>
+            Our pieces are made in limited runs. Be first to new drops — and get 10% off your
+            first piece with code <strong>HERIT10</strong>.
           </p>
-          <div className="hc-mt-3">
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', marginBottom: '0.5rem' }}>
-              Join the family — 10% off your first piece
-            </div>
-            <NewsletterForm />
-          </div>
-          <div className="hc-flex hc-gap hc-mt-3" style={{ gap: '0.5rem' }}>
-            <a href="https://instagram.com" className="hc-social" aria-label="Instagram"><IconifyIcon icon="solar:instagram-bold" /></a>
-            <a href="https://facebook.com" className="hc-social" aria-label="Facebook"><IconifyIcon icon="mdi:facebook" /></a>
-            <a href="https://wa.me/234" className="hc-social" aria-label="WhatsApp"><IconifyIcon icon="mdi:whatsapp" /></a>
-            <a href="https://tiktok.com" className="hc-social" aria-label="TikTok"><IconifyIcon icon="mdi:music-note" /></a>
+        </div>
+        <div className="hc-foot-feature-side">
+          <span className="hc-foot-news-label">Get the drop list</span>
+          <NewsletterForm />
+          <div className="hc-foot-socials" aria-label="Herit on social">
+            {socials.map((s) => (
+              <a key={s.key} href={s.url} target="_blank" rel="noreferrer noopener" className="hc-social" aria-label={s.label}>
+                <IconifyIcon icon={s.icon} />
+              </a>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div>
+      <hr className="hc-foot-rule" />
+
+      {/* link columns */}
+      <div className="hc-foot-cols">
+        <div className="hc-foot-about">
+          <img src={logoLight} alt="Herit Clothing" className="hc-foot-logo" />
+          <p>
+            Contemporary African fashion, rooted in real heritage fabrics — Ankara, Adire and
+            Aso-Oke, reworked with modern cuts. Made by hand in Ajuwon Market, Lagos, for the world.
+          </p>
+          <ul className="hc-foot-visit">
+            <li><IconifyIcon icon="solar:map-point-bold" /> Ajuwon Market · Lagos, Nigeria</li>
+            <li><a href="mailto:hello@heritclothing.com"><IconifyIcon icon="solar:letter-bold" /> hello@heritclothing.com</a></li>
+          </ul>
+        </div>
+
+        <nav className="hc-foot-links" aria-label="Shop">
           <h6>Shop</h6>
           <Link to="/shop">All pieces</Link>
           <Link to="/shop?fabric=Ankara">Ankara</Link>
           <Link to="/shop?fabric=Adire">Adire</Link>
           <Link to="/shop?fabric=Aso-Oke">Aso-Oke</Link>
           <Link to="/gifting">Gifting</Link>
-        </div>
+        </nav>
 
-        <div>
+        <nav className="hc-foot-links" aria-label="Company">
           <h6>Company</h6>
           <Link to="/about">Our story</Link>
-          <Link to="/about">Mission &amp; vision</Link>
+          <Link to="/journal">Journal</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/contact">Stockists</Link>
-        </div>
+        </nav>
 
-        <div>
+        <nav className="hc-foot-links" aria-label="Help">
           <h6>Help</h6>
           <Link to="/contact">Shipping</Link>
           <Link to="/contact">Returns</Link>
           <Link to="/contact">Size &amp; fit</Link>
           <Link to="/track">Track order</Link>
-        </div>
-
-        <div>
-          <h6>Visit</h6>
-          <p style={{ fontSize: '0.92rem', lineHeight: 1.7 }}>
-            Ajuwon Market<br />Lagos, Nigeria
-          </p>
-          <p className="hc-mt-2" style={{ fontSize: '0.92rem' }}>hello@heritclothing.com</p>
-          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'} className="hc-foot-staff">
-            <IconifyIcon icon={isAuthenticated ? 'solar:widget-5-bold' : 'solar:lock-keyhole-minimalistic-linear'} />
-            {isAuthenticated ? ' Staff dashboard' : ' Staff login'} →
-          </Link>
-        </div>
+        </nav>
       </div>
+
+      {/* oversized brand watermark */}
+      <div className="hc-foot-wordmark" aria-hidden="true">HERIT</div>
 
       <div className="hc-foot-bottom">
         <span>© {new Date().getFullYear()} Herit Clothing · Wear your heritage.</span>
-        <span>Made in Lagos, shipped worldwide</span>
+        <span className="hc-foot-bottom-links">
+          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'} className="hc-foot-staff">
+            <IconifyIcon icon={isAuthenticated ? 'solar:widget-5-bold' : 'solar:lock-keyhole-minimalistic-linear'} />
+            {isAuthenticated ? 'Staff dashboard' : 'Staff login'}
+          </Link>
+          <span className="hc-foot-madein">Made in Lagos, shipped worldwide</span>
+        </span>
+        <button type="button" className="hc-foot-top" onClick={toTop} aria-label="Back to top">
+          Back to top <IconifyIcon icon="solar:alt-arrow-up-linear" />
+        </button>
       </div>
     </div>
   </footer>
