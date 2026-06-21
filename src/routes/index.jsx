@@ -166,6 +166,8 @@ const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
 const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
 const Track = lazy(() => import('@/app/(public)/site/TrackPage'));
 const Account = lazy(() => import('@/app/(public)/site/AccountPage'));
+const Blog = lazy(() => import('@/app/(public)/site/BlogPage'));
+const BlogPost = lazy(() => import('@/app/(public)/site/BlogPostPage'));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
@@ -186,6 +188,7 @@ const Analytics = lazy(() => import('@/app/(admin)/analytics/page'));
 const Marketing = lazy(() => import('@/app/(admin)/marketing/page'));
 const Pos = lazy(() => import('@/app/(admin)/pos/page'));
 const Studio = lazy(() => import('@/app/(admin)/studio/page'));
+const Content = lazy(() => import('@/app/(admin)/content/page'));
 const Channels = lazy(() => import('@/app/(admin)/channels/page'));
 const Weather = lazy(() => import('@/app/(admin)/weather/page'));
 const Team = lazy(() => import('@/app/(admin)/team/page'));
@@ -247,6 +250,14 @@ export const publicRoutes = [{
   name: 'Contact',
   element: <Contact />
 }, {
+  path: '/journal',
+  name: 'Journal',
+  element: <Blog />
+}, {
+  path: '/journal/:slug',
+  name: 'Journal Post',
+  element: <BlogPost />
+}, {
   path: '/track',
   name: 'Track order',
   element: <Track />
@@ -307,6 +318,10 @@ const generalRoutes = [{
   path: '/studio',
   name: 'Brand Studio',
   element: <Studio />
+}, {
+  path: '/content',
+  name: 'Content',
+  element: <Content />
 }, {
   path: '/channels',
   name: 'Store & Channels',

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
 import { useCatalogue, formatNgn } from './products';
+import { useBlog, useTestimonials } from './content';
 import {
   HeroSlider, CounterBand, Lookbook, ServicesCarousel,
   TeamCarousel, Testimonials, BrandStrip, JournalCarousel,
@@ -76,21 +77,10 @@ const team = [
   { name: 'Chidi Eze', role: 'Customer Care', tile: 'hc-tile-mixed' },
 ];
 
-const quotes = [
-  { name: 'Funmi A.', role: 'Lagos, Nigeria', tile: 'hc-tile-ankara', text: 'The Adire dress arrived better than the photos — the indigo is so deep. I’ve had three people stop me to ask where it’s from.' },
-  { name: 'David O.', role: 'London, UK', tile: 'hc-tile-asooke', text: 'Shipping to the UK was tracked the whole way and the packaging was beautiful. It finally feels like wearing home, properly tailored.' },
-  { name: 'Ngozi M.', role: 'Toronto, Canada', tile: 'hc-tile-adire', text: 'Ordered matching aso-ebi for six of us. The fit notes made sizing easy and every piece was consistent. Will be back for the next drop.' },
-  { name: 'Kemi T.', role: 'Abuja, Nigeria', tile: 'hc-tile-mixed', text: 'I love that they tell you the story of the fabric. It’s not costume — it’s something you actually want to live in.' },
-];
-
-const journal = [
-  { cat: 'Heritage', date: 'June 2026', title: 'Reading Adire: the language of indigo', excerpt: 'Every resist pattern in hand-dyed Adire carries meaning. Here’s how to read the cloth before you wear it.', tile: 'hc-tile-adire', to: '/about' },
-  { cat: 'Craft', date: 'May 2026', title: 'Why we cut for now, not for one occasion', excerpt: 'Heritage fabric belongs in everyday life. A look at how we tailor traditional cloth for modern wardrobes.', tile: 'hc-tile-asooke', to: '/about' },
-  { cat: 'Behind the seams', date: 'April 2026', title: 'From Ajuwon Market to your doorstep', excerpt: 'How a piece travels from the fabric stall to a tracked parcel anywhere in the world.', tile: 'hc-tile-ankara', to: '/about' },
-];
-
 const HomePage = () => {
   const { products } = useCatalogue();
+  const quotes = useTestimonials();      // live curated testimonials (fallback baked in)
+  const journal = useBlog(6);            // live published journal posts (fallback baked in)
   // Lead with premium pieces, then the rest — real published catalogue.
   const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 8);
 

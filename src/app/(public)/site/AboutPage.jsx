@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
 import { CounterBand, ProcessSteps, TeamCarousel, Testimonials } from './sections';
+import { useTestimonials } from './content';
 
 const stands = [
   { t: 'Heritage with intent', d: 'Tradition is our starting point, never a costume. We name each fabric and where it comes from.' },
@@ -38,13 +39,9 @@ const team = [
   { name: 'Chidi Eze', role: 'Customer Care', tile: 'hc-tile-mixed' },
 ];
 
-const quotes = [
-  { name: 'Funmi A.', role: 'Lagos, Nigeria', tile: 'hc-tile-ankara', text: 'They tell you the story of the fabric — it’s not costume, it’s something you actually want to live in.' },
-  { name: 'David O.', role: 'London, UK', tile: 'hc-tile-asooke', text: 'It finally feels like wearing home, properly tailored. The packaging alone made it feel like a gift.' },
-  { name: 'Ngozi M.', role: 'Toronto, Canada', tile: 'hc-tile-adire', text: 'Ordered matching aso-ebi for six of us and every piece was consistent. Will be back for the next drop.' },
-];
-
-const AboutPage = () => (
+const AboutPage = () => {
+  const quotes = useTestimonials();
+  return (
   <SiteLayout title="About">
     <section className="hc-pagehead">
       <div className="hc-container">
@@ -192,6 +189,7 @@ const AboutPage = () => (
       </div>
     </section>
   </SiteLayout>
-);
+  );
+};
 
 export default AboutPage;

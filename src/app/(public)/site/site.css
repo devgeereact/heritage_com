@@ -187,20 +187,30 @@
 }
 .hc-nav-link:hover { color: var(--primary); background: var(--secondary); }
 .hc-nav-link.is-active { color: var(--primary); background: var(--secondary); }
-.hc-nav-cta { margin-left: 0.5rem; }
-.hc-nav-cart {
-  position: relative; display: inline-flex; align-items: center; gap: 0.35rem;
-  margin-left: 0.5rem; padding: 0.4rem 0.6rem; color: var(--foreground);
-  text-decoration: none; border-radius: var(--radius); font-size: 1.1rem;
+/* account — quiet icon link */
+.hc-nav-icon {
+  display: inline-flex; align-items: center; gap: 0.4rem; margin-left: 0.5rem;
+  padding: 0.45rem 0.65rem; color: var(--foreground); border-radius: var(--radius); font-size: 1.15rem;
   transition: color 0.15s, background 0.15s;
 }
-.hc-nav-cart:hover { color: var(--primary); background: var(--secondary); }
-.hc-nav-cart-label { font-size: 0.82rem; font-weight: 600; }
-.hc-nav-cart-badge {
-  position: absolute; top: -2px; left: 18px; min-width: 17px; height: 17px;
-  padding: 0 4px; border-radius: 9px; background: var(--primary); color: #fff;
-  font-size: 0.66rem; font-weight: 700; line-height: 17px; text-align: center;
+.hc-nav-icon:hover { color: var(--primary); background: var(--secondary); }
+.hc-nav-icon-label { font-size: 0.82rem; font-weight: 600; }
+/* bag — the one standalone shopping action: outlined pill, amber count, fills on hover */
+.hc-nav-bag {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.6rem;
+  padding: 0.5rem 0.95rem; border-radius: 100px;
+  border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
+  font-family: var(--font-mono); font-size: 0.76rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
+.hc-nav-bag svg { font-size: 1.05rem; }
+.hc-nav-bag:hover { background: var(--primary); color: #fff; box-shadow: var(--shadow-sm); }
+.hc-nav-bag-count {
+  min-width: 1.3rem; height: 1.3rem; padding: 0 0.35rem; border-radius: 100px;
+  background: var(--gold); color: #171717; font-size: 0.68rem; font-weight: 700; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hc-nav-bag:hover .hc-nav-bag-count { background: #fff; color: var(--primary); }
 .hc-nav-login {
   display: inline-flex; align-items: center; gap: 0.35rem;
   margin-left: 0.75rem; padding: 0.4rem 0.65rem;
@@ -236,10 +246,9 @@
   }
   .hc-nav-links.is-open { display: flex; }
   .hc-nav-link { padding: 0.85rem 0.6rem; border-radius: 0; border-bottom: 1px solid var(--border); }
-  .hc-nav-cta { margin: 0.75rem 0 0; }
   .hc-nav-login { margin: 0.75rem 0 0; justify-content: center; padding: 0.7rem; border: 1px solid var(--border); }
-  .hc-nav-cart { margin: 0.75rem 0 0; justify-content: center; padding: 0.7rem; border: 1px solid var(--border); }
-  .hc-nav-cart-badge { position: static; margin-left: 0.25rem; }
+  .hc-nav-icon { margin: 0.75rem 0 0; justify-content: center; padding: 0.7rem; border: 1px solid var(--border); font-size: 1rem; }
+  .hc-nav-bag { margin: 0.75rem 0 0; justify-content: center; }
 }
 
 /* ---------------------------------------------------------- hero */
@@ -1193,3 +1202,64 @@ a.hc-tile:hover {
 
 /* tack-stitch top edge on key conversion cards (cart / checkout summary) */
 .hc-card--stitch { border-top: 2px dashed var(--gold); }
+
+/* ============================================================
+   Round-2 fixes — button hovers · cleaner filters · footer socials
+   · functional scroll cue · map
+   ============================================================ */
+
+/* Link-button HOVER colours must beat the non-hover override (a.hc-btn--x = 0,2,1)
+   that we added earlier, or the text keeps its base colour on hover — e.g. the
+   onfill "Talk to us" went white-on-white. These (0,3,1) win on hover. */
+.hc a.hc-btn--onfill:hover, .hc button.hc-btn--onfill:hover { color: var(--primary); }
+.hc a.hc-btn--ghost:hover,  .hc button.hc-btn--ghost:hover  { color: #fff; }
+.hc a.hc-btn--light:hover,  .hc button.hc-btn--light:hover  { color: var(--primary-dark); }
+
+/* Cleaner filter chips — quiet until active (no white boxes, no bounce) */
+.hc-chip {
+  background: transparent; border-color: var(--border); color: var(--muted-foreground);
+  padding: 0.45rem 0.9rem; font-size: 0.72rem;
+}
+.hc-chip:hover { background: rgba(38, 38, 38, 0.05); border-color: var(--border); color: var(--foreground); transform: none; box-shadow: none; }
+.hc-chip.is-active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: none; }
+/* size selector keeps a solid, clearly-tappable surface */
+.hc-size { background: var(--card); border-color: var(--input); color: var(--foreground); }
+.hc-size:hover { background: var(--card); border-color: var(--primary); }
+.hc-size.is-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* Footer socials — brighter on the espresso footer, amber on hover */
+.hc-footer--editorial .hc-social { color: #d9d1c9; border-color: #4a413b; }
+.hc-footer--editorial .hc-social svg { font-size: 1.15rem; }
+.hc-footer--editorial .hc-social:hover { background: var(--gold); border-color: var(--gold); color: #171717; }
+/* balance the feature row so the newsletter isn't stranded low */
+.hc-foot-feature { align-items: center; }
+
+/* Hero scroll cue is now a real button */
+.hc-hero-scroll { background: none; border: none; cursor: pointer; padding: 0.3rem 0.2rem; transition: color 0.15s; }
+.hc-hero-scroll:hover { color: rgba(255, 255, 255, 0.9); }
+.hc-hero-scroll:hover svg { color: var(--gold); }
+
+/* Map — full colour (the grayscale read as "broken"), taller, framed */
+.hc-map iframe { filter: none; height: 420px; }
+.hc-map-actions { margin-top: 0.85rem; }
+
+/* product fabric swatch + handmade-variation note (replaces fake thumbnails) */
+.hc-swatch-note {
+  display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
+  background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius);
+  font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.5; color: var(--muted-foreground);
+}
+.hc-swatch-note .hc-tile { width: 48px; height: 58px; flex: 0 0 48px; border-radius: 8px; box-shadow: none; }
+.hc-swatch-note strong { color: var(--primary); }
+
+/* blog post body */
+.hc-prose { color: var(--foreground); font-size: 1.08rem; line-height: 1.8; }
+.hc-prose p { margin: 0 0 1.25rem; }
+.hc-prose p:last-child { margin-bottom: 0; }
+.hc-prose h2, .hc-prose h3 { margin: 2rem 0 0.75rem; }
+.hc-prose h2 { font-size: 1.5rem; }
+.hc-prose h3 { font-size: 1.2rem; }
+.hc-prose a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.hc-prose ul, .hc-prose ol { margin: 0 0 1.25rem; padding-left: 1.25rem; }
+.hc-prose li { margin-bottom: 0.4rem; }
+.hc-prose blockquote { margin: 1.5rem 0; padding-left: 1.25rem; border-left: 3px solid var(--gold); font-family: var(--font-serif); font-style: italic; font-size: 1.2rem; color: var(--foreground); }

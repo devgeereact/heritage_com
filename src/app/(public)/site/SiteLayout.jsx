@@ -18,6 +18,36 @@ const NAV = [
   { to: '/contact', label: 'Contact' },
 ];
 
+// Social links. Defaults are placeholders; super_admin sets the real URLs in
+// Settings (saved to settings.socials, served publicly via store.php?action=config).
+// A platform is shown only when it has a URL.
+const SOCIAL_DEFS = [
+  { key: 'instagram', label: 'Instagram', icon: 'mdi:instagram', fallback: 'https://instagram.com' },
+  { key: 'facebook', label: 'Facebook', icon: 'mdi:facebook', fallback: 'https://facebook.com' },
+  { key: 'whatsapp', label: 'WhatsApp', icon: 'mdi:whatsapp', fallback: 'https://wa.me/234' },
+  { key: 'tiktok', label: 'TikTok', icon: 'ic:baseline-tiktok', fallback: 'https://tiktok.com' },
+  { key: 'twitter', label: 'X (Twitter)', icon: 'mdi:twitter', fallback: '' },
+  { key: 'youtube', label: 'YouTube', icon: 'mdi:youtube', fallback: '' },
+];
+
+let _socialsCache = null;
+const useSocials = () => {
+  const [socials, setSocials] = useState(_socialsCache);
+  useEffect(() => {
+    if (_socialsCache) return;
+    let live = true;
+    heritApi.store.config()
+      .then((cfg) => { if (live) { _socialsCache = cfg?.socials || {}; setSocials(_socialsCache); } })
+      .catch(() => { if (live) { _socialsCache = {}; setSocials({}); } });
+    return () => { live = false; };
+  }, []);
+  // resolve: configured URL wins; else placeholder fallback (so the footer is
+  // never empty before the backend is deployed / configured).
+  return SOCIAL_DEFS
+    .map((s) => ({ ...s, url: (socials?.[s.key] || '').trim() || s.fallback }))
+    .filter((s) => s.url);
+};
+
 const SiteNav = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -50,17 +80,14 @@ const SiteNav = () => {
               {n.label}
             </Link>
           ))}
-          <Link to="/account" className="hc-nav-cart" aria-label="Your account">
-            <IconifyIcon icon="solar:user-circle-bold" />
-            <span className="hc-nav-cart-label">Account</span>
+          <Link to="/account" className="hc-nav-icon" aria-label="Your account">
+            <IconifyIcon icon="solar:user-circle-linear" />
+            <span className="hc-nav-icon-label">Account</span>
           </Link>
-          <Link to="/cart" className="hc-nav-cart" aria-label={`Bag (${count})`}>
+          <Link to="/cart" className="hc-nav-bag" aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
             <IconifyIcon icon="solar:bag-4-bold" />
-            {count > 0 && <span className="hc-nav-cart-badge">{count}</span>}
-            <span className="hc-nav-cart-label">Bag</span>
-          </Link>
-          <Link to="/shop" className="hc-btn hc-btn--primary hc-nav-cta">
-            <IconifyIcon icon="solar:bag-4-bold" /> Shop the drop
+            <span className="hc-nav-bag-label">Bag</span>
+            <span className="hc-nav-bag-count">{count}</span>
           </Link>
           {isAuthenticated ? (
             <Link to={dash} className="hc-nav-login hc-nav-login--in" aria-label="Go to dashboard">
@@ -136,6 +163,7 @@ const NewsletterForm = () => {
 
 const SiteFooter = () => {
   const { isAuthenticated, user } = useAuthContext();
+  const socials = useSocials();
   const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   return (
   <footer className="hc-footer hc-footer--editorial">
@@ -156,10 +184,11 @@ const SiteFooter = () => {
           <span className="hc-foot-news-label">Get the drop list</span>
           <NewsletterForm />
           <div className="hc-foot-socials" aria-label="Herit on social">
-            <a href="https://instagram.com" className="hc-social" aria-label="Instagram"><IconifyIcon icon="mdi:instagram" /></a>
-            <a href="https://facebook.com" className="hc-social" aria-label="Facebook"><IconifyIcon icon="mdi:facebook" /></a>
-            <a href="https://wa.me/234" className="hc-social" aria-label="WhatsApp"><IconifyIcon icon="mdi:whatsapp" /></a>
-            <a href="https://tiktok.com" className="hc-social" aria-label="TikTok"><IconifyIcon icon="ic:baseline-tiktok" /></a>
+            {socials.map((s) => (
+              <a key={s.key} href={s.url} target="_blank" rel="noreferrer noopener" className="hc-social" aria-label={s.label}>
+                <IconifyIcon icon={s.icon} />
+              </a>
+            ))}
           </div>
         </div>
       </div>
@@ -192,7 +221,7 @@ const SiteFooter = () => {
         <nav className="hc-foot-links" aria-label="Company">
           <h6>Company</h6>
           <Link to="/about">Our story</Link>
-          <Link to="/about">Mission &amp; vision</Link>
+          <Link to="/journal">Journal</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/contact">Stockists</Link>
         </nav>

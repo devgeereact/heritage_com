@@ -36,6 +36,65 @@ $NG_SHIP        = 4500;           // rest of Nigeria
 
 $action = $_GET['action'] ?? 'catalogue';
 
+/* ---- PUBLIC CONFIG ------------------------------------------------------- */
+/* Storefront-safe slice of platform settings — social links + store name —
+ * so the public site (footer etc.) can show admin-set values without auth. */
+if ($action === 'config' && method() === 'GET') {
+  $socials = [];
+  $storeName = '';
+  $res = $conn->query("SELECT skey, svalue FROM settings WHERE skey IN ('socials','store_name')");
+  while ($res && $row = $res->fetch_assoc()) {
+    if ($row['skey'] === 'socials') { $d = json_decode($row['svalue'], true); if (is_array($d)) $socials = $d; }
+    if ($row['skey'] === 'store_name') $storeName = (string)$row['svalue'];
+  }
+  json(['socials' => $socials, 'store_name' => $storeName]);
+}
+
+/* ---- BLOG (Journal) ------------------------------------------------------ */
+/* Public, published-only. ?slug= returns the full post (with body); otherwise a
+ * list (no body) newest first. */
+if ($action === 'blog' && method() === 'GET') {
+  $slug = trim($_GET['slug'] ?? '');
+  if ($slug !== '') {
+    $stmt = $conn->prepare("SELECT slug, title, excerpt, body, category, tile, tags, author, published_at
+                              FROM blog_posts WHERE slug = ? AND status = 'published' LIMIT 1");
+    $stmt->bind_param('s', $slug);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if (!$row) fail('Post not found', 404);
+    $row['cat'] = $row['category'];
+    $row['date'] = $row['published_at'] ? date('F Y', strtotime($row['published_at'])) : '';
+    json(['post' => $row]);
+  }
+  $limit = min(50, max(1, (int)($_GET['limit'] ?? 24)));
+  $out = [];
+  $res = $conn->query("SELECT slug, title, excerpt, category, tile, published_at
+                         FROM blog_posts WHERE status = 'published'
+                        ORDER BY published_at DESC LIMIT $limit");
+  while ($res && $row = $res->fetch_assoc()) {
+    $out[] = [
+      'slug' => $row['slug'], 'title' => $row['title'], 'excerpt' => $row['excerpt'],
+      'cat' => $row['category'], 'category' => $row['category'], 'tile' => $row['tile'],
+      'date' => $row['published_at'] ? date('F Y', strtotime($row['published_at'])) : '',
+    ];
+  }
+  json(['posts' => $out]);
+}
+
+/* ---- TESTIMONIALS -------------------------------------------------------- */
+if ($action === 'testimonials' && method() === 'GET') {
+  $out = [];
+  $res = $conn->query("SELECT name, location, quote, rating, tile FROM testimonials
+                        WHERE status = 'published' ORDER BY featured DESC, sort ASC, id DESC LIMIT 24");
+  while ($res && $row = $res->fetch_assoc()) {
+    $out[] = [
+      'name' => $row['name'], 'role' => $row['location'], 'location' => $row['location'],
+      'text' => $row['quote'], 'rating' => (int)$row['rating'], 'tile' => $row['tile'],
+    ];
+  }
+  json(['testimonials' => $out]);
+}
+
 /* ---- CATALOGUE ----------------------------------------------------------- */
 /* Serves the live products table (published pieces), shaped for the storefront.
  * Falls back to the curated $CATALOGUE only if nothing is published yet. */

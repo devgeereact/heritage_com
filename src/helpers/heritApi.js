@@ -183,6 +183,17 @@ export const heritApi = {
     remove: (id) => request(`/marketing.php?action=delete&id=${id}`, { method: 'POST' }),
   },
 
+  // Content hub — public Blog (Journal) + curated Testimonials (staff CRUD)
+  content: {
+    blogList: () => request('/content.php?action=blog_list'),
+    blogGet: (id) => request(`/content.php?action=blog_get&id=${id}`),
+    blogSave: (data) => request('/content.php?action=blog_save', { method: 'POST', body: data }),
+    blogDelete: (id) => request(`/content.php?action=blog_delete&id=${id}`, { method: 'POST' }),
+    testiList: () => request('/content.php?action=testi_list'),
+    testiSave: (data) => request('/content.php?action=testi_save', { method: 'POST', body: data }),
+    testiDelete: (id) => request(`/content.php?action=testi_delete&id=${id}`, { method: 'POST' }),
+  },
+
   // Platform settings / channels
   settings: {
     get: () => request('/settings.php'),
@@ -297,6 +308,12 @@ export const heritApi = {
   // Public storefront (no auth) — catalogue, checkout, payment
   store: {
     catalogue: () => request('/store.php?action=catalogue', { auth: false }),
+    // public store config (socials, store name) — set by admins in Settings
+    config: () => request('/store.php?action=config', { auth: false }),
+    // public blog (Journal) + testimonials, published only
+    blog: (limit = 24) => request(`/store.php?action=blog&limit=${limit}`, { auth: false }),
+    blogPost: (slug) => request(`/store.php?action=blog&slug=${encodeURIComponent(slug)}`, { auth: false }),
+    testimonials: () => request('/store.php?action=testimonials', { auth: false }),
     checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
     payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),

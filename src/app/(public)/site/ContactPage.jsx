@@ -89,10 +89,21 @@ const ContactPage = () => (
         <div className="hc-map">
           <iframe
             title="Herit Clothing — Ajuwon Market, Lagos"
-            src="https://www.google.com/maps?q=Ajuwon%20Market%2C%20Lagos%2C%20Nigeria&output=embed"
+            src="https://maps.google.com/maps?q=Ajuwon%20Market%2C%20Lagos%2C%20Nigeria&z=14&output=embed"
             loading="lazy"
+            allowFullScreen
             referrerPolicy="no-referrer-when-downgrade"
           />
+        </div>
+        <div className="hc-map-actions">
+          <a
+            className="hc-btn hc-btn--ghost"
+            href="https://www.google.com/maps/search/?api=1&query=Ajuwon+Market,+Lagos,+Nigeria"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <IconifyIcon icon="solar:map-point-bold" /> Get directions
+          </a>
         </div>
       </div>
     </section>

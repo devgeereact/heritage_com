@@ -105,11 +105,17 @@ const GiftingPage = () => (
               Planning matching aso-ebi for six or more, or a bespoke gift? Tell us what you have
               in mind — occasion, sizes, fabric and timing — and we&apos;ll quote and guide you.
             </p>
-            <ul className="hc-check">
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Tiered discount on 6+ matching pieces</li>
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Custom fit from your measurements (+15% of item price)</li>
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Bespoke design from ₦75,000</li>
-            </ul>
+            <div className="hc-card hc-card--stitch hc-mt-4" style={{ padding: '1.5rem' }}>
+              <span className="hc-card-badge">What&apos;s on offer</span>
+              <ul className="hc-check" style={{ marginTop: '0.85rem' }}>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Tiered discount on 6+ matching pieces</li>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Custom fit from your measurements (+15% of item price)</li>
+                <li><IconifyIcon icon="solar:check-circle-bold" /> Bespoke design from ₦75,000</li>
+              </ul>
+            </div>
+            <p className="hc-mt-3" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+              Prefer to talk it through? <a href="https://wa.me/234" target="_blank" rel="noreferrer noopener" style={{ color: 'var(--primary)', fontWeight: 600 }}>Message us on WhatsApp</a>.
+            </p>
           </div>
           <div className="hc-form-card">
             <SiteContactForm defaultType="gifting" />

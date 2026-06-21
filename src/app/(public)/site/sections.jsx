@@ -418,9 +418,14 @@ export const HeroSlider = ({ slides }) => {
     </Swiper>
     <div className="hc-container hc-hero-foot">
       <div className="hc-hero-dots" />
-      <span className="hc-hero-scroll" aria-hidden="true">
+      <button
+        type="button"
+        className="hc-hero-scroll"
+        aria-label="Scroll to explore"
+        onClick={(e) => e.currentTarget.closest('section')?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+      >
         Scroll <IconifyIcon icon="solar:alt-arrow-down-linear" />
-      </span>
+      </button>
     </div>
   </section>
   );
