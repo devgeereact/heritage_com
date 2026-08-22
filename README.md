@@ -17,7 +17,7 @@ marketing and money — with a 2026 AI layer. Full feature spec in
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5112
 ```
 
 `fetch` calls to real endpoints hit the live API via `API_BASE` (see

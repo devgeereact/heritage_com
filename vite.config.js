@@ -10,8 +10,15 @@ export default defineConfig({
       "@": resolve(__dirname, "src")
     }
   },
-  // Honour the PORT env (used by the preview tool) so dev binds the expected port.
+  // Project block 11 in the workspace port scheme (see ~/.claude/CLAUDE.md, "Dev-server ports").
+  // strictPort so a clash fails loudly instead of drifting to a random port.
+  // Previously this defaulted to Vite's shared 5173, which no project owns.
   server: {
-    port: process.env.PORT ? Number(process.env.PORT) : 5173,
+    port: 5112,
+    strictPort: true,
+  },
+  preview: {
+    port: 5112,
+    strictPort: true,
   }
 });
