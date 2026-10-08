@@ -26,3 +26,8 @@ dist-ssr
 # Server secrets — never commit
 config.php
 .vite
+
+# Local environment files may contain credentials. Keep only the example public.
+.env
+.env.*
+!.env.example
