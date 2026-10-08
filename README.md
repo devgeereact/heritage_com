@@ -7,7 +7,7 @@ marketing and money — with a 2026 AI layer. Full feature spec in
 
 ## Stack
 
-- **Frontend:** React 18 + Vite + Bootstrap 5 (Larkon admin kit), builds to `dist/`.
+- **Frontend:** React 19 + Vite + Bootstrap 5 (Larkon admin kit), builds to `dist/`.
 - **API:** PHP + `mysqli` prepared statements, JSON. Source in [`php-api/`](php-api/).
 - **DB:** MySQL on cPanel (phpMyAdmin). Schema: [`php-api/schema.sql`](php-api/schema.sql).
 - **AI:** OpenRouter, server-side via `php-api/ai.php`.
@@ -30,7 +30,8 @@ See [`php-api/README.md`](php-api/README.md): create the DB, import `schema.sql`
 copy `config.sample.php` → `config.php` with real credentials, upload the PHP
 files + `.htaccess` to the document root.
 
-Seed login: `dev@heritclothing.com` / `Testing123!` — change in production.
+Seed login: `dev@heritclothing.com` (`super_admin`). Set its password straight after
+importing `schema.sql`; see "Seed login" in [`php-api/README.md`](php-api/README.md).
 
 ## Project memory
 

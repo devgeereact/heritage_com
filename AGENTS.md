@@ -1,6 +1,6 @@
 # heritage_com Agent Contract
 
-This existing project adopts the active shared GEE OS, minimum version 0.5.0. Read `.agent/PROJECT.yml` and `.agent/CURRENT-TASK.md`, then apply the constitution, loop and routing rules at `~/.agents/gee-os`.
+This existing project adopts the active shared GEE OS, minimum version 0.9.0. Read `.agent/PROJECT.yml` and `.agent/CURRENT-TASK.md`, then apply the constitution, loop and routing rules at `~/.agents/gee-os`.
 
 ## Read order
 
@@ -9,6 +9,15 @@ This existing project adopts the active shared GEE OS, minimum version 0.5.0. Re
 3. `.agent/CURRENT-TASK.md`, current scope and evidence.
 4. `CLAUDE.md`, preserved project knowledge pending modularisation.
 5. `README.md` and the relevant files under `docs/`.
+
+## Commands
+
+- Install: `npm ci`
+- Develop: `npm run dev` (port 5112). Development calls the live API at heritclothing.com.
+- Build: `npm run build`
+- Lint: `npm run lint` (the ESLint config currently matches only `.ts`/`.tsx`, so no JS file is linted)
+- Test: none configured
+- Type check: none (JavaScript project)
 
 ## Shared rules
 

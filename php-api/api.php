@@ -4,7 +4,7 @@
  *
  * Proves the pipe: React → api.php → MySQL → JSON, before any feature work.
  *   GET  /api.php          → list items   (returns [] on a fresh `items` table)
- *   POST /api.php {label}  → insert an item, returns the created row
+ *   POST /api.php {label}  → insert an item, returns the created row (staff only)
  */
 require __DIR__ . '/_lib.php';
 cors();
@@ -19,6 +19,8 @@ if ($m === 'GET') {
 }
 
 if ($m === 'POST') {
+  // Writing needs a staff session; no page calls this, so only smoke tests are affected.
+  require_auth(['super_admin', 'admin', 'manager', 'tailor', 'editor', 'seller', 'employee']);
   $b = body();
   $label = trim($b['label'] ?? '');
   if ($label === '') fail('label is required');

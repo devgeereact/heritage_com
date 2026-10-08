@@ -31,6 +31,14 @@ define('DB_PASS', 'CHANGE_ME');                        // the DB user's password
 // ---- Auth --------------------------------------------------------------------
 define('TOKEN_SECRET',   'CHANGE_ME_long_random_string'); // reserved for signed tokens
 define('TOKEN_TTL_DAYS', 14);                             // session lifetime in days
+// Login throttling (auth.php). Failed attempts are counted in audit_log over a
+// sliding window and answered with HTTP 429 once a limit is reached; 0 switches
+// a limit off. The values below are the built-in defaults, so these lines are optional.
+define('LOGIN_THROTTLE_WINDOW', 900);   // seconds
+define('LOGIN_MAX_PER_IP',      10);    // email-login failures per IP
+define('LOGIN_MAX_PER_ACCOUNT', 5);     // email-login failures per email address
+define('PIN_MAX_PER_IP',        5);     // PIN failures per IP (the stall device)
+define('PIN_MAX_GLOBAL',        20);    // PIN failures from every source combined
 
 // ---- OpenRouter (server-side AI only — key never reaches the browser) --------
 define('OPENROUTER_KEY', '');                          // sk-or-v1-...  (set on server)

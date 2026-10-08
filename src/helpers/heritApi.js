@@ -1,8 +1,7 @@
 // HeritOS API client — talks to the real PHP backend over fetch().
 //
-// Larkon's bundled axios `fake-backend` still serves demo data for modules that
-// aren't wired to PHP yet. Anything backed by a real endpoint goes through here
-// so there's a clean line between "mock demo" and "live data".
+// Larkon's bundled axios `fake-backend` only mocks POST /login with demo users and loads
+// in development only (see App.jsx). Every real endpoint goes through this fetch client.
 //
 // Dev hits the live API (CORS enabled in api.php); production is same-origin.
 import { API_BASE } from '@/context/constants';
@@ -55,7 +54,7 @@ async function crequest(path, { method = 'GET', body } = {}) {
 export const heritApi = {
   // Smoke test — proves React → api.php → MySQL → JSON.
   listItems: () => request('/api.php', { auth: false }),
-  addItem: (label) => request('/api.php', { method: 'POST', body: { label }, auth: false }),
+  addItem: (label) => request('/api.php', { method: 'POST', body: { label } }), // staff session required
 
   // Auth
   login: (email, password) =>

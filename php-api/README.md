@@ -28,8 +28,19 @@ root, exactly as the project's `CLAUDE.md` describes.
 
 ## Seed login
 
-`dev@heritclothing.com` / `Testing123!` (`super_admin`). Change the password
-immediately in production.
+`schema.sql` seeds one `super_admin`, `dev@heritclothing.com`. Give it your own
+password as soon as the import finishes. Generate a hash on any machine with PHP
+(replace the placeholder; do not commit or share the real password):
+
+```bash
+php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_DEFAULT), PHP_EOL;'
+```
+
+then run in phpMyAdmin:
+
+```sql
+UPDATE users SET password_hash = '<paste the hash>' WHERE email = 'dev@heritclothing.com';
+```
 
 ## Files
 
@@ -37,14 +48,15 @@ immediately in production.
 |---|---|
 | `config.sample.php` | Template for the server-only `config.php` (DB + OpenRouter + CORS). |
 | `_lib.php` | Shared helpers: CORS, JSON, auth/token validation, audit log. |
-| `api.php` | Smoke-test/default endpoint — `items` CRUD. |
-| `auth.php` | Login / logout / me — issues and validates session tokens. |
+| `api.php` | Smoke-test/default endpoint: `items` list (public) and insert (staff session). |
+| `auth.php` | Login / logout / me: issues and validates session tokens; throttles failed email and PIN logins. |
 | `ai.php` | OpenRouter proxy. Key stays server-side; staff-only. |
 | `tailoring.php` | Tailoring & Production — orders, stages, measurements (staff). |
 | `products.php` | Products & Variants — catalogue, size×colour matrix, stock (staff). |
 | `contact.php` | Public enquiry submit + staff inbox (list/status). |
 | `schema.sql` | All tables + seeds (foundation, tailoring, catalogue, enquiries). |
 | `.htaccess` | SPA routing (`RewriteBase /`). |
+| `tests/run.php` | CLI tests for the pure helpers in `_lib.php`: `php php-api/tests/run.php`. Not deployed. |
 
 When deploying, upload **all** the `.php` files above to the document root, and
 re-import `schema.sql` (or just the new sections) so the new tables exist.

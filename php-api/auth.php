@@ -29,11 +29,76 @@ function issue_token($userId) {
   return $token;
 }
 
+/* ---- BRUTE-FORCE THROTTLING ---------------------------------------------- */
+/* Failed attempts are written to audit_log (an existing table, so no migration
+ * and no writable folder on the host) and counted over a sliding window. While
+ * a limit is reached the endpoint answers 429 with the usual {error} body, before
+ * any password or PIN is checked. Limits can be tuned in config.php; 0 disables
+ * one. The client IP is REMOTE_ADDR, the same value issue_token() records. */
+$THROTTLE_WINDOW = (int) cfg('LOGIN_THROTTLE_WINDOW', 900);   // seconds
+$THROTTLE_LIMITS = [
+  'login_fail_ip'   => (int) cfg('LOGIN_MAX_PER_IP', 10),       // email login, per IP
+  'login_fail_acct' => (int) cfg('LOGIN_MAX_PER_ACCOUNT', 5),   // email login, per email address
+  'pin_fail_ip'     => (int) cfg('PIN_MAX_PER_IP', 5),          // PIN login, per IP (the stall device)
+  'pin_fail_all'    => (int) cfg('PIN_MAX_GLOBAL', 20),         // PIN login, every source combined
+];
+
+function client_ip() {
+  return substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
+}
+
+/** Opaque per-account key: the email is hashed so attempted addresses are not stored. */
+function account_key($email) {
+  return 'acct:' . substr(hash('sha256', (string)$email), 0, 32);
+}
+
+/** Timestamps of the newest failures for one action (optionally one entity) inside the window. */
+function recent_failures($action, $entity, $limit, $window) {
+  global $conn;
+  $limit = max(1, (int)$limit);
+  $sql = 'SELECT UNIX_TIMESTAMP(created_at) AS t FROM audit_log
+           WHERE action = ? AND created_at > (NOW() - INTERVAL ? SECOND)';
+  $types = 'si'; $args = [$action, (int)$window];
+  if ($entity !== null) { $sql .= ' AND entity = ?'; $types .= 's'; $args[] = $entity; }
+  $sql .= ' ORDER BY id DESC LIMIT ' . $limit;
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param($types, ...$args);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $times = [];
+  while ($row = $res->fetch_assoc()) $times[] = (int)$row['t'];
+  return $times;
+}
+
+/** $checks: [[limit key, audit action, entity or null], …]. Sends 429 if any limit is reached. */
+function throttle_guard(array $checks) {
+  global $conn, $THROTTLE_WINDOW, $THROTTLE_LIMITS;
+  $now = (int)($conn->query('SELECT UNIX_TIMESTAMP() AS n')->fetch_assoc()['n'] ?? time());
+  $wait = 0;
+  foreach ($checks as [$key, $action, $entity]) {
+    $limit = (int)($THROTTLE_LIMITS[$key] ?? 0);
+    if ($limit <= 0) continue;
+    $wait = max($wait, throttle_retry_after(recent_failures($action, $entity, $limit, $THROTTLE_WINDOW), $limit, $THROTTLE_WINDOW, $now));
+  }
+  if ($wait > 0) {
+    if (!headers_sent()) header('Retry-After: ' . $wait);
+    $mins = (int) ceil($wait / 60);
+    fail('Too many attempts. Try again in ' . $mins . ' minute' . ($mins === 1 ? '' : 's') . '.', 429);
+  }
+}
+
 if ($action === 'login' && method() === 'POST') {
   $b = body();
   $email = trim(strtolower($b['email'] ?? ''));
   $password = $b['password'] ?? '';
   if ($email === '' || $password === '') fail('Email and password are required');
+
+  $ipKey = 'ip:' . client_ip();
+  $acctKey = account_key($email);
+  throttle_guard([
+    ['login_fail_ip', 'login_fail_ip', $ipKey],
+    ['login_fail_acct', 'login_fail_acct', $acctKey],
+  ]);
 
   $stmt = $conn->prepare(
     'SELECT id, name, email, role, password_hash FROM users WHERE email = ? AND deleted_at IS NULL'
@@ -42,6 +107,9 @@ if ($action === 'login' && method() === 'POST') {
   $stmt->execute();
   $user = $stmt->get_result()->fetch_assoc();
   if (!$user || !password_verify($password, $user['password_hash'])) {
+    // Two rows so each limit is a plain action + entity match (no JSON queries).
+    audit(null, 'login_fail_ip', $ipKey);
+    audit(null, 'login_fail_acct', $acctKey);
     fail('Invalid email or password', 401);
   }
 
@@ -59,6 +127,13 @@ if ($action === 'pin_login' && method() === 'POST') {
   $pin = preg_replace('/\D/', '', (string)($b['pin'] ?? ''));
   if (strlen($pin) < 4 || strlen($pin) > 6) fail('Enter your 4–6 digit PIN', 400);
 
+  // A PIN carries no account, so limit per IP and across all sources combined.
+  $ipKey = 'ip:' . client_ip();
+  throttle_guard([
+    ['pin_fail_ip', 'pin_login_fail', $ipKey],
+    ['pin_fail_all', 'pin_login_fail', null],
+  ]);
+
   $res = $conn->query(
     "SELECT id, name, email, role, pin_hash FROM users
       WHERE pin_hash IS NOT NULL AND pin_hash <> '' AND status = 'active'
@@ -68,7 +143,10 @@ if ($action === 'pin_login' && method() === 'POST') {
   while ($res && $row = $res->fetch_assoc()) {
     if (password_verify($pin, $row['pin_hash'])) { $match = $row; break; }
   }
-  if (!$match) fail('PIN not recognised', 401);
+  if (!$match) {
+    audit(null, 'pin_login_fail', $ipKey);
+    fail('PIN not recognised', 401);
+  }
 
   $token = issue_token($match['id']);
   audit($match['id'], 'pin_login');
