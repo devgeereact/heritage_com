@@ -343,3 +343,86 @@ function audit($userId, $action, $entity = null, $entityId = null, $meta = null)
   $stmt->bind_param('issis', $userId, $action, $entity, $entityId, $m);
   $stmt->execute();
 }
+
+/* ---- Login throttling (pure decision; auth.php supplies the counts) ------- */
+
+/**
+ * Sliding-window throttle. $times are the Unix timestamps of the most recent
+ * failures inside the window (at most $limit of them, any order). Returns 0 if
+ * another attempt is allowed, otherwise the seconds until the oldest of those
+ * failures leaves the window. A $limit of 0 or less disables the check.
+ */
+function throttle_retry_after(array $times, $limit, $window, $now) {
+  $limit = (int)$limit; $window = (int)$window; $now = (int)$now;
+  if ($limit <= 0 || $window <= 0 || count($times) < $limit) return 0;
+  $times = array_map('intval', $times);
+  rsort($times);                                   // newest first
+  $oldest = $times[$limit - 1];                    // the $limit-th newest failure
+  $wait = $oldest + $window - $now;
+  return $wait > 0 ? $wait : 0;
+}
+
+/* ---- Payment verification (pure; store.php supplies the gateway reply) ---- */
+
+/** Gateway reference pay_init issues for Paystack / Flutterwave (recomputed on verify). */
+function pay_reference($code, $orderId) {
+  return $code . '-' . substr(md5($code . $orderId), 0, 8);
+}
+
+/** Major currency units → integer minor units (kobo / cents), as pay_init sends them. */
+function pay_minor_units($major) {
+  return (int) round(((float)$major) * 100);
+}
+
+/**
+ * Does a gateway verify reply prove payment for this order? Pure, no I/O.
+ *   $provider: 'paystack' | 'flutterwave' | 'stripe'
+ *   $resp:     decoded verify JSON
+ *   $expect:   ['reference' => issued ref (Stripe: the cs_ session id),
+ *               'amount_minor' => order total in minor units, 'currency' => 'NGN',
+ *               'code' => order code (Stripe metadata binding)]
+ * Units: Paystack data.amount is already in the subunit (kobo); Flutterwave
+ * data.amount is in major units; Stripe amount_total is in the smallest unit.
+ * Paying at least the total is accepted (Flutterwave guidance: give value and
+ * refund any excess); paying less never is. Returns ['ok' => bool, 'reason' => string].
+ */
+function pay_check($provider, $resp, array $expect) {
+  if (!is_array($resp)) return ['ok' => false, 'reason' => 'no_response'];
+  $wantRef = (string)($expect['reference'] ?? '');
+  $wantMinor = (int)($expect['amount_minor'] ?? -1);
+  $wantCur = strtoupper((string)($expect['currency'] ?? ''));
+  if ($wantRef === '' || $wantMinor < 0 || $wantCur === '') return ['ok' => false, 'reason' => 'bad_expectation'];
+
+  if ($provider === 'paystack') {
+    $d = is_array($resp['data'] ?? null) ? $resp['data'] : [];
+    $status = ($d['status'] ?? '') === 'success';
+    $ref = (string)($d['reference'] ?? '');
+    $minor = isset($d['amount']) && is_numeric($d['amount']) ? (int)$d['amount'] : null;
+    $cur = strtoupper((string)($d['currency'] ?? ''));
+  } elseif ($provider === 'flutterwave') {
+    $d = is_array($resp['data'] ?? null) ? $resp['data'] : [];
+    $status = ($d['status'] ?? '') === 'successful';
+    $ref = (string)($d['tx_ref'] ?? '');
+    $minor = isset($d['amount']) && is_numeric($d['amount']) ? pay_minor_units($d['amount']) : null;
+    $cur = strtoupper((string)($d['currency'] ?? ''));
+  } elseif ($provider === 'stripe') {
+    $status = ($resp['payment_status'] ?? '') === 'paid';
+    $ref = (string)($resp['id'] ?? '');
+    $minor = isset($resp['amount_total']) && is_numeric($resp['amount_total']) ? (int)$resp['amount_total'] : null;
+    $cur = strtoupper((string)($resp['currency'] ?? ''));
+    $wantCode = (string)($expect['code'] ?? '');
+    $metaCode = (string)($resp['metadata']['order_code'] ?? '');
+    $clientRef = (string)($resp['client_reference_id'] ?? '');
+    if ($wantCode === '' || $metaCode !== $wantCode || ($clientRef !== '' && $clientRef !== $wantCode)) {
+      return ['ok' => false, 'reason' => 'order_mismatch'];
+    }
+  } else {
+    return ['ok' => false, 'reason' => 'unknown_provider'];
+  }
+
+  if (!$status) return ['ok' => false, 'reason' => 'not_successful'];
+  if (!hash_equals($wantRef, $ref)) return ['ok' => false, 'reason' => 'reference_mismatch'];
+  if ($cur !== $wantCur) return ['ok' => false, 'reason' => 'currency_mismatch'];
+  if ($minor === null || $minor < $wantMinor) return ['ok' => false, 'reason' => 'amount_mismatch'];
+  return ['ok' => true, 'reason' => 'ok'];
+}

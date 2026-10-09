@@ -427,7 +427,7 @@ if ($action === 'pay_init' && method() === 'POST') {
       'email' => $email ?: 'customer@heritclothing.com',
       'amount' => $amountKobo,
       'currency' => 'NGN',
-      'reference' => $code . '-' . substr(md5($code . $order['id']), 0, 8),
+      'reference' => pay_reference($code, $order['id']),
       'metadata' => ['order_code' => $code, 'order_id' => (int)$order['id']],
     ]);
     $resp = gateway_post('https://api.paystack.co/transaction/initialize', $payload, $paystack);
@@ -438,7 +438,7 @@ if ($action === 'pay_init' && method() === 'POST') {
   }
 
   if (($provider === 'flutterwave' || ($provider === '' && $flw)) && $flw) {
-    $ref = $code . '-' . substr(md5($code . $order['id']), 0, 8);
+    $ref = pay_reference($code, $order['id']);
     $payload = json_encode([
       'tx_ref' => $ref,
       'amount' => (float)$order['total'],
@@ -497,23 +497,59 @@ if ($action === 'pay_verify' && method() === 'GET') {
 
   if (strpos($reference, 'cs_') === 0 && $stripe) {
     // Stripe Checkout session id → confirm + recover the order code from metadata.
+    $provider = 'stripe';
     $resp = gateway_get('https://api.stripe.com/v1/checkout/sessions/' . rawurlencode($reference), $stripe);
-    $ok = $resp && ($resp['payment_status'] ?? '') === 'paid';
     $code = $resp['metadata']['order_code'] ?? ($resp['client_reference_id'] ?? $code);
   } elseif ($paystack) {
+    $provider = 'paystack';
     $resp = gateway_get('https://api.paystack.co/transaction/verify/' . rawurlencode($reference), $paystack);
-    $ok = $resp && ($resp['data']['status'] ?? '') === 'success';
   } elseif ($flw) {
+    $provider = 'flutterwave';
     $resp = gateway_get('https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=' . rawurlencode($reference), $flw);
-    $ok = $resp && ($resp['data']['status'] ?? '') === 'successful';
   } else {
     fail('No payment gateway configured', 503);
   }
 
+  // A "successful" status is not enough: the gateway transaction must carry the
+  // reference pay_init issued for THIS order and at least its total, in the
+  // currency pay_init charged (see pay_check() in _lib.php for the units).
+  $stmt = $conn->prepare('SELECT id, total, paid FROM orders WHERE code = ? AND deleted_at IS NULL LIMIT 1');
+  $stmt->bind_param('s', $code);
+  $stmt->execute();
+  $order = $stmt->get_result()->fetch_assoc();
+  if ($order) {
+    if ($provider === 'stripe') {
+      $rate = (float)cfg('STRIPE_USD_RATE', 0);
+      $expect = [
+        'reference' => $reference,
+        'amount_minor' => pay_minor_units($rate > 0 ? ((float)$order['total'] / $rate) : (float)$order['total']),
+        'currency' => cfg('STRIPE_CURRENCY', 'usd'),
+        'code' => $code,
+      ];
+    } else {
+      $expect = [
+        'reference' => pay_reference($code, $order['id']),
+        'amount_minor' => pay_minor_units($order['total']),
+        'currency' => 'NGN',
+      ];
+    }
+    $check = pay_check($provider, $resp, $expect);
+    $ok = $check['ok'] && hash_equals($expect['reference'], $reference);
+    if (!$ok && ($check['reason'] ?? '') !== 'not_successful') {
+      audit(null, 'web_order_pay_mismatch', 'order', (int)$order['id'], ['code' => $code, 'reference' => $reference, 'provider' => $provider, 'reason' => $check['ok'] ? 'reference_mismatch' : $check['reason']]);
+    }
+    // Already settled (e.g. the customer reloaded the confirmation page): report
+    // paid without re-awarding loyalty credit or moving the status backwards.
+    if ($ok && (float)$order['total'] > 0 && (float)$order['paid'] >= (float)$order['total']) {
+      json(['ok' => true, 'code' => $code, 'status' => 'paid']);
+    }
+  }
+
   if ($ok) {
     // Mark paid: paid = total, status → paid.
-    $stmt = $conn->prepare("UPDATE orders SET paid = total, status = 'paid' WHERE code = ? AND deleted_at IS NULL");
-    $stmt->bind_param('s', $code);
+    $stmt = $conn->prepare("UPDATE orders SET paid = total, status = 'paid' WHERE id = ? AND deleted_at IS NULL");
+    $oidPaid = (int)$order['id'];
+    $stmt->bind_param('i', $oidPaid);
     $stmt->execute();
 
     // Loyalty: award store credit on the goods value (a % back, config-set).

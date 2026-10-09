@@ -22,7 +22,7 @@
 | FTP username | `heritage_com@heritclothing.com` |
 | OpenRouter model | `anthropic/claude-sonnet-4.6` (`OR_MODEL`) |
 | Base kit | Larkon React v2 (JS) — ecommerce admin, Vite + Bootstrap |
-| Seed login | `dev@heritclothing.com` / `Testing123!` (`super_admin`) |
+| Seed login | `dev@heritclothing.com` (`super_admin`); set its password at import, see `php-api/README.md` |
 
 ---
 
@@ -67,7 +67,7 @@ MySQL database (cPanel)
 
 ## 5. Tech stack
 
-- **Frontend:** React 18 + Vite (JavaScript)
+- **Frontend:** React 19 + Vite (JavaScript)
 - **API:** PHP with `mysqli` + prepared statements, returns JSON
 - **Database:** MySQL (cPanel → phpMyAdmin)
 - **DNS:** Cloudflare (DNS only / grey cloud)
@@ -83,12 +83,12 @@ MySQL database (cPanel)
 - `.github/workflows/deploy.yml` — the auto-deploy workflow
 - `.gitignore` — must exclude `node_modules/`, `dist/`, and `config.php`
 
-**On the server only (placed by hand once, NOT in the repo, NOT touched by deploys):**
-- `config.php` — DB credentials
-- `api.php` — the API endpoints
+**Placed on the server by hand (not uploaded by CI):**
+- `config.php` — DB credentials (never in the repo)
+- the `php-api/` endpoints that `deploy.yml` does not copy (see below)
 - `.htaccess` — SPA routing (`RewriteBase /`)
 
-Deploys upload **only the `dist/` build**, so the three server files are never disturbed.
+Deploys upload the `dist/` build plus the nine PHP files that `.github/workflows/deploy.yml` copies into it (`_lib`, `api`, `auth`, `ai`, `products`, `customers`, `stats`, `tailoring`, `contact`). Every other `php-api/` endpoint, `config.php` and `.htaccess` is managed by hand on the server.
 
 ---
 
@@ -102,7 +102,7 @@ Deploys upload **only the `dist/` build**, so the three server files are never d
    const API_BASE = import.meta.env.DEV ? "https://<domain.com>" : "";
    fetch(`${API_BASE}/api.php`)
    ```
-4. **Deploys upload only `dist/`.** `config.php`/`api.php`/`.htaccess` are managed by hand on the server.
+4. **Deploys upload `dist/` plus the nine PHP files listed in `deploy.yml`.** `config.php`, `.htaccess` and the remaining `php-api/` endpoints are managed by hand on the server.
 5. **Cloudflare records stay grey-cloud (DNS only)** so cPanel can issue SSL.
 6. **Don't manually FTP files.** `git push` is the deploy.
 
@@ -167,21 +167,21 @@ git add . && git commit -m "..." && git push   # → live
 for what to build. Build order follows the kickoff brief §8.
 
 **Base kit:** Larkon React v2 (JS variant) transplanted into the repo root. Vite +
-React 18 + Bootstrap 5 + react-bootstrap. Prebuilt admin sections under
+React 19 + Bootstrap 5 + react-bootstrap. Prebuilt admin sections under
 `src/app/(admin)/` map onto HeritOS modules: products/attributes/category →
 Products & Variants · orders → Orders · inventory → Stock · customer → CRM ·
 seller + purchases → Suppliers · invoice → Payments · charts → Analytics ·
 apps (chat/email/calendar) → Comms/Scheduling · permissions/role/settings → Platform.
 
 **Server API (`php-api/`):** version-controlled here, deployed to the cPanel doc root
-**by hand once** (deploy uploads only `dist/`). One file per resource, all
+partly by CI (nine files, see section 6) and otherwise by hand. One file per resource, all
 `require '_lib.php'` (CORS + JSON + auth + audit). `config.php` is server-only and
 gitignored — only `config.sample.php` is committed. Import `schema.sql` via phpMyAdmin.
 
 **React ↔ API:** real endpoints go through `src/helpers/heritApi.js` (native `fetch`,
 adds `Authorization: Bearer <token>`, uses `API_BASE` from `constants.js`). Larkon's
-bundled axios `fake-backend` still serves demo data for modules not yet wired to PHP —
-swap each module to `heritApi` as it's built. Don't fight the MockAdapter; bypass it.
+bundled axios `fake-backend` only mocks `POST /login` with demo users, and no module calls axios.
+It now loads only in development (`src/App.jsx`), so it is not in the production bundle.
 
 **Auth:** `auth.php` issues a random token stored in `auth_tokens`; React keeps it in
 the `_LARKON_AUTH_KEY_` session cookie (Larkon's auth context). Roles enforced
