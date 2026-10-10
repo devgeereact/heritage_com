@@ -680,9 +680,29 @@ if ($action === 'fitting' && method() === 'POST') {
   $date = $b['fitting_date'] ?? null;
   if ($date === '') $date = null;
   if ($date !== null && ymd_or_null($date) === null) fail('Invalid fitting date');
+  $job = db_row('SELECT id, customer_id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $id);
+  if (!$job) fail('Order not found', 404);
   db_exec('UPDATE tailoring_orders SET fitting_date = ?, lock_version = lock_version + 1 WHERE id = ? AND deleted_at IS NULL', 'si', $date, $id);
+  // Phase 3: the date also lives as an all-day fitting appointment (it never
+  // blocks timed slots). Moving the date moves that appointment, with history;
+  // clearing it cancels it. Timed fittings are booked in Appointments.
+  $apptId = null;
+  if (has_table('appointments')) {
+    $ex = db_row("SELECT id FROM appointments WHERE job_id = ? AND type = 'fitting' AND all_day = 1 AND status = 'confirmed' ORDER BY id DESC LIMIT 1", 'i', $id);
+    $actor = ['type' => 'owner', 'id' => (int)$user['id']];
+    if ($date === null) {
+      if ($ex) appt_set_status((int)$ex['id'], 'cancelled', 'Fitting date cleared on the job', $actor);
+    } elseif ($ex) {
+      $apptId = (int)appt_reserve(['id' => (int)$ex['id'], 'type' => 'fitting', 'mode' => 'owner', 'all_day' => true, 'date' => $date,
+        'reason' => 'Fitting date changed on the job'], $actor)['appointment']['id'];
+    } else {
+      $apptId = (int)appt_reserve(['type' => 'fitting', 'mode' => 'owner', 'source' => 'owner', 'status' => 'confirmed', 'all_day' => true,
+        'date' => $date, 'job_id' => $id, 'customer_id' => (int)$job['customer_id'],
+        'request_key' => 'fit-' . $id . '-' . bin2hex(random_bytes(8))], $actor)['appointment']['id'];
+    }
+  }
   audit($user['id'], 'tailoring_fitting', 'tailoring_order', $id, ['fitting_date' => $date]);
-  json(['ok' => true, 'fitting_date' => $date]);
+  json(['ok' => true, 'fitting_date' => $date, 'appointment_id' => $apptId]);
 }
 
 /* ---- REMIND (WhatsApp fitting / balance nudge) --------------------------- */

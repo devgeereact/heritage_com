@@ -4,7 +4,7 @@ This file owns the table and schema inventory, codes and references, the current
 
 ## Table inventory
 
-41 tables from the `CREATE TABLE` statements in `php-api/*.sql` on the Phase 2 branch (Verified 10 October 2026): 35 before Phase 2 plus six from `schema_phase19.sql` to `schema_phase22.sql`. This is the source inventory, not proof of what the live database contains. There is no appointments table yet (Phase 3).
+45 tables from the `CREATE TABLE` statements in `php-api/*.sql` on the Phase 3 branch (Verified 10 October 2026): 35 before Phase 2, six from `schema_phase19.sql` to `schema_phase22.sql` and four from `schema_phase23.sql`. This is the source inventory, not proof of what the live database contains.
 
 | Schema file | Creates | Also alters |
 |---|---|---|
@@ -31,6 +31,7 @@ This file owns the table and schema inventory, codes and references, the current
 | `schema_phase20.sql` | quotes, quote_items | |
 | `schema_phase21.sql` | job_payments | tailoring_orders (`deposit` mirrors `paid_total`) |
 | `schema_phase22.sql` | job_handovers | |
+| `schema_phase23.sql` | appointments, appointment_events, availability_blocks, booking_lock | settings default; old `fitting_date` values copied into appointments ([detail](#phase-3-tables-and-columns-schema_phase23-to-25)) |
 
 ## Codes and references
 
@@ -47,7 +48,7 @@ On the Phase 2 branch (PR #9, Verified from source and the staging end-to-end sc
 
 - Measurements: dated, immutable measurement sets on editable templates with an explicit unit (`cm`, `in`, or `unknown` for imported legacy values). The owner approves each set; customer and tailor entries wait as pending. A job keeps a frozen snapshot of the set it used. The old JSON fields were imported once as `imported_unverified` (A10).
 - Payments: an append-only, signed `job_payments` ledger with unique request keys and reversal links; `tailoring_orders.paid_total` and `payment_state` are recalculated from it, and overpayment shows as credit rather than being capped (A05). Retail `payments` stay separate.
-- Scheduling: still only `tailoring_orders.fitting_date DATE` plus the new `event_date`, with no time or duration (A08, Phase 3).
+- Scheduling: on the Phase 3 branch, `appointments` with type, status, UTC start and end, buffer, hold expiry and history in `appointment_events`; every reservation is decided under the one-row `booking_lock`. `tailoring_orders.fitting_date` stays as a cache of the next confirmed fitting (A08).
 
 Before Phase 2 is imported on the live database, the older shape applies there: one mutable JSON measurement field per customer and job, and a single deposit total updated inside a transaction (PR #6).
 
@@ -92,3 +93,10 @@ Owner of every entity: the business owner.
 | `schema_phase20.sql` | `quotes` (shown as `Q-{series}-v{version}`; unique `(series_id, version)` and `request_key`; `content_hash` frozen on send) and `quote_items`. |
 | `schema_phase21.sql` | `job_payments`: append-only and signed, with `request_key` and `reverses_id` unique. Opening entries come from the old deposit. `deposit` mirrors `paid_total` and is not capped. Retail `payments` stay separate. |
 | `schema_phase22.sql` | `job_handovers`: collection or delivery with quantity, checklist, `balance_at_handover` and a unique `request_key`. |
+
+## Phase 3 tables and columns (schema_phase23 to 25)
+
+| File | Change |
+|---|---|
+| `schema_phase23.sql` | `appointments`: type (`consultation`, `fitting`, `collection`), status (`requested`, `confirmed`, `completed`, `cancelled`, `no_show`, `expired`), `starts_at` and `ends_at` in UTC, `all_day`, `buffer_min`, client, job and enquiry links, contact fields, `source` (`owner`, `public`, `portal`, `migration`), `hold_expires_at`, `override_reason`, `notes_internal`, `client_note`, unique `request_key`. `appointment_events`: status and time changes with reason and actor. `availability_blocks`: closed dates and leave. `booking_lock`: one row locked by every reservation. Each job's `fitting_date` becomes an all-day fitting (`migr-fitting-<id>`): `confirmed` when today or later in Lagos, `completed` when earlier, `cancelled` when the job is cancelled; nothing is deleted. All-day appointments never block timed slots. Settings default `public_booking_enabled = 0`. |
+

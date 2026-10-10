@@ -6,8 +6,14 @@
  *     date (Lagos Y-m-d), generated_at (UTC),
  *     appointments_today, overdue, due_soon, next_actions, ready, enquiries,
  *     balances (+ total_balance), credits (+ total_credit), unverified_payments
- *     (+ total_unverified), stage_review, measurements_pending
+ *     (+ total_unverified), stage_review, measurements_pending,
+ *     appointment_requests, access_requests, messages_unread, change_requests, feedback_follow_up
  *   }  each block is {count, items[<=20]}
+ *
+ * appointments_today comes from the appointments table once schema_phase23.sql
+ * is imported (items: id, type, status, all_day, starts_at_local, ends_at_local,
+ * client_name, job_id, job_code); before that it is the old fitting_date list.
+ * The Phase 3 blocks are empty ({count:0, items:[]}) until their schema exists.
  *
  * "Today" is the Africa/Lagos date computed in PHP and passed as a parameter,
  * never the database server's CURDATE().
@@ -46,8 +52,30 @@ function job_block($where, $types, array $args, $order) {
 $OPEN = "o.job_stage NOT IN ('handed_over','cancelled')";
 $out = ['date' => $today, 'timezone' => BUSINESS_TZ, 'generated_at' => gmdate('Y-m-d H:i:s')];
 
-// Phase 3 replaces this with real appointments; until then, fittings dated today.
-$out['appointments_today'] = job_block("$OPEN AND o.fitting_date = ?", 's', [$today], 'o.id');
+$EMPTY = ['count' => 0, 'items' => []];
+if (has_table('appointments')) {
+  // Today's Lagos day in UTC; all-day appointments for today are included.
+  $dayStart = utc_sql(lagos_midnight_ts($today)); $dayEnd = utc_sql(lagos_midnight_ts($today) + 86400);
+  $ACTIVE = "a.starts_at < ? AND a.ends_at > ? AND (a.status = 'confirmed' OR (a.status = 'requested' AND a.hold_expires_at > UTC_TIMESTAMP()))";
+  $appt = fn($r) => ['id' => (int)$r['id'], 'type' => $r['type'], 'status' => $r['status'], 'all_day' => (int)$r['all_day'],
+    'starts_at_local' => lagos_iso($r['starts_at']), 'ends_at_local' => lagos_iso($r['ends_at']), 'client_name' => $r['client_name'] ?? $r['contact_name'],
+    'job_id' => $r['job_id'] !== null ? (int)$r['job_id'] : null, 'job_code' => $r['job_code'], 'source' => $r['source']];
+  $SEL = 'SELECT a.*, c.name AS client_name, o.code AS job_code FROM appointments a
+            LEFT JOIN customers c ON c.id = a.customer_id LEFT JOIN tailoring_orders o ON o.id = a.job_id';
+  $out['appointments_today'] = [
+    'count' => (int)db_row("SELECT COUNT(*) AS n FROM appointments a WHERE $ACTIVE", 'ss', $dayEnd, $dayStart)['n'],
+    'items' => array_map($appt, db_rows("$SEL WHERE $ACTIVE ORDER BY a.all_day DESC, a.starts_at LIMIT " . TODAY_LIMIT, 'ss', $dayEnd, $dayStart)),
+  ];
+  $REQ = "a.status = 'requested' AND a.hold_expires_at > UTC_TIMESTAMP()";
+  $out['appointment_requests'] = [
+    'count' => (int)db_row("SELECT COUNT(*) AS n FROM appointments a WHERE $REQ")['n'],
+    'items' => array_map($appt, db_rows("$SEL WHERE $REQ ORDER BY a.hold_expires_at LIMIT " . TODAY_LIMIT)),
+  ];
+} else {
+  // Before schema_phase23.sql: fittings dated today, as in Phase 2.
+  $out['appointments_today'] = job_block("$OPEN AND o.fitting_date = ?", 's', [$today], 'o.id');
+  $out['appointment_requests'] = $EMPTY;
+}
 $out['overdue'] = job_block("$OPEN AND o.due_date IS NOT NULL AND o.due_date < ?", 's', [$today], 'o.due_date, o.id');
 $out['due_soon'] = job_block("$OPEN AND o.due_date BETWEEN ? AND ?", 'ss', [$today, $week], 'o.due_date, o.id');
 $out['next_actions'] = job_block("$OPEN AND o.next_action_date IS NOT NULL AND o.next_action_date <= ?", 's', [$today], 'o.next_action_date, o.id');

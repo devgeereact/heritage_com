@@ -474,6 +474,253 @@ function legacy_measure_to_set($customerId, $vals, $unit, $source, $approve, $us
   return $r + ['errors' => []];
 }
 
+/* ==== Phase 3 ============================================================== */
+
+/** Does a table exist? Cached per request. Lets CI-deployed files run before a schema import. */
+function has_table($table) {
+  static $cache = [];
+  if (!array_key_exists($table, $cache)) {
+    $cache[$table] = (bool)db_row('SELECT 1 AS x FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1', 's', $table);
+  }
+  return $cache[$table];
+}
+
+/** A '0'/'1' setting as a boolean. */
+function setting_flag($key, $default = false) {
+  return (string)setting_get($key, $default ? '1' : '0') === '1';
+}
+
+/** Clean availability settings (empty until the owner fills them in). */
+function availability_get() {
+  $raw = json_decode((string)setting_get('availability', ''), true);
+  return availability_clean(is_array($raw) ? $raw : [])['clean'];
+}
+
+/** A UTC DATETIME string from MySQL as Unix time. */
+function utc_ts($s) { return $s === null ? null : strtotime($s . ' UTC'); }
+
+/* ---- Appointments --------------------------------------------------------- */
+
+function appt_event_tx($id, $fromStatus, $toStatus, $fromStart, $toStart, $reason, $actorType, $actorId = null) {
+  db_exec('INSERT INTO appointment_events (appointment_id, from_status, to_status, from_starts_at, to_starts_at, reason, actor_type, actor_id)
+           VALUES (?,?,?,?,?,?,?,?)', 'issssssi', (int)$id, $fromStatus, $toStatus, $fromStart, $toStart,
+    $reason !== null ? mb_substr((string)$reason, 0, 255) : null, $actorType, $actorId);
+}
+
+/** Requested appointments whose hold has run out become 'expired' (lazy, under the booking lock). */
+function appt_expire_holds_tx() {
+  $rows = db_rows("SELECT id, starts_at FROM appointments WHERE status = 'requested' AND hold_expires_at IS NOT NULL AND hold_expires_at < UTC_TIMESTAMP() FOR UPDATE");
+  foreach ($rows as $r) {
+    db_exec("UPDATE appointments SET status = 'expired' WHERE id = ?", 'i', (int)$r['id']);
+    appt_event_tx($r['id'], 'requested', 'expired', null, null, 'Request not confirmed before the hold ran out', 'system');
+  }
+  return count($rows);
+}
+
+/** Active timed reservations overlapping [from, to] (Unix), as [[start, end], ...]. */
+function appt_busy($fromTs, $toTs, $excludeId = 0) {
+  $rows = db_rows("SELECT starts_at, ends_at FROM appointments
+                    WHERE all_day = 0 AND id <> ? AND starts_at < ? AND ends_at > ?
+                      AND (status = 'confirmed' OR (status = 'requested' AND (hold_expires_at IS NULL OR hold_expires_at > UTC_TIMESTAMP())))",
+    'iss', (int)$excludeId, utc_sql($toTs), utc_sql($fromTs));
+  return array_map(fn($r) => [utc_ts($r['starts_at']), utc_ts($r['ends_at'])], $rows);
+}
+
+/** Blocked time overlapping [from, to] (Unix), as [[start, end], ...]. */
+function appt_blocks($fromTs, $toTs) {
+  $rows = db_rows('SELECT starts_at, ends_at FROM availability_blocks WHERE starts_at < ? AND ends_at > ?', 'ss', utc_sql($toTs), utc_sql($fromTs));
+  return array_map(fn($r) => [utc_ts($r['starts_at']), utc_ts($r['ends_at'])], $rows);
+}
+
+/** Free slots for a type over Lagos dates [$fromDate, +$days). Empty when availability is not ready. */
+function appt_free_slots($type, $fromDate, $days, $nowTs = null) {
+  $a = availability_get();
+  if (!availability_ready($a, $type)) return [];
+  $now = $nowTs ?? time();
+  $dur = (int)$a['durations'][$type] * 60;
+  $buf = (int)$a['buffer_min'] * 60;
+  $step = (int)($a['step_min'] ?? 15) * 60;
+  $earliest = $now + (int)$a['min_notice_hours'] * 3600;
+  $latest = $now + (int)$a['horizon_days'] * 86400;
+  $from = lagos_midnight_ts($fromDate);
+  if ($from === null) return [];
+  $to = $from + (int)$days * 86400 + 7200;
+  $busy = appt_busy($from - 86400, $to + 86400);
+  $blocks = appt_blocks($from - 86400, $to + 86400);
+  $out = [];
+  for ($i = 0; $i < (int)$days; $i++) {
+    $date = date_add_days($fromDate, $i);
+    foreach (free_slots(slot_windows($a['weekly'], $date), $busy, $blocks, $dur, $buf, $step, $earliest, $latest) as [$s, $e]) {
+      $out[] = ['start' => lagos_iso($s), 'end' => lagos_iso($e)];
+    }
+  }
+  return $out;
+}
+
+const APPT_REASON_MESSAGES = [
+  'not_configured' => 'Appointments cannot be requested yet.',
+  'outside_hours' => 'That time is outside working hours.',
+  'too_soon' => 'That time is too soon. Please choose a later time.',
+  'too_far' => 'That time is too far ahead. Please choose an earlier date.',
+  'blocked' => 'That time is not available.',
+  'conflict' => 'That time is not available.',
+];
+
+/**
+ * Reserve or move an appointment under the single booking lock (BR-12, BR-13).
+ *   $d: id (reschedule) | request_key (create), type, start_ts or (all_day + date),
+ *       duration_min (owner only), status ('confirmed' | 'requested'), source,
+ *       customer_id, job_id, enquiry_id, contact_name/phone/email, notes_internal,
+ *       client_note, override_reason (owner only), reason (reschedule), mode ('owner' | 'client').
+ *   $actor: ['type' => 'owner'|'customer'|'system', 'id' => int|null]
+ * Clients must hit a free slot exactly (422 for hours, notice or horizon; 409 for
+ * a clash). The owner may book outside hours or over a clash only with an
+ * override_reason, which is stored; min notice and horizon do not bind the owner.
+ * All-day appointments never block timed slots and are not checked for clashes.
+ * Returns ['appointment' => row, 'duplicate' => bool].
+ */
+function appt_reserve(array $d, array $actor) {
+  global $conn;
+  $isOwner = ($d['mode'] ?? 'owner') === 'owner';
+  $id = (int)($d['id'] ?? 0);
+  $key = $d['request_key'] ?? null;
+  if (!$id && $key !== null) {
+    $ex = db_row('SELECT * FROM appointments WHERE request_key = ?', 's', $key);
+    if ($ex) return ['appointment' => $ex, 'duplicate' => true];
+  }
+  $a = availability_get();
+  $type = $d['type'] ?? '';
+  if (!in_array($type, APPOINTMENT_TYPES, true)) fail('Type must be consultation, fitting or collection');
+  $allDay = $isOwner && !empty($d['all_day']);
+  if ($allDay) {
+    $start = lagos_midnight_ts($d['date'] ?? '');
+    if ($start === null) fail('Give a date (YYYY-MM-DD) for an all-day appointment');
+    $end = $start + 86400;
+  } else {
+    $start = $d['start_ts'] ?? null;
+    if (!is_int($start)) fail('Give a start time');
+    $durMin = $isOwner && !empty($d['duration_min']) ? (int)$d['duration_min'] : (int)($a['durations'][$type] ?? 0);
+    if ($isOwner && !empty($d['duration_min']) && !in_array($durMin, APPOINTMENT_DURATIONS, true)) fail('Duration must be 30, 45 or 60 minutes');
+    if ($durMin <= 0) fail($isOwner ? 'Choose a duration (30, 45 or 60 minutes), or set one in availability' : APPT_REASON_MESSAGES['not_configured'], $isOwner ? 400 : 422);
+    $end = $start + $durMin * 60;
+  }
+  $buf = (int)($a['buffer_min'] ?? 0);
+  $override = $isOwner ? trim((string)($d['override_reason'] ?? '')) : '';
+  if (mb_strlen($override) > 255) fail('Override reason is too long');
+
+  try {
+    return db_tx(function () use ($conn, $d, $actor, $isOwner, $id, $key, $a, $type, $allDay, $start, $end, $buf, $override) {
+      db_exec('SELECT id FROM booking_lock WHERE id = 1 FOR UPDATE')->get_result();
+      db_exec('UPDATE booking_lock SET touched_at = UTC_TIMESTAMP() WHERE id = 1');
+      appt_expire_holds_tx();
+      $cur = null;
+      if ($id) {
+        $cur = db_row('SELECT * FROM appointments WHERE id = ? FOR UPDATE', 'i', $id);
+        if (!$cur) tx_fail('Appointment not found', 404);
+        if (!in_array($cur['status'], ['requested', 'confirmed'], true)) tx_fail('Only a requested or confirmed appointment can be moved (this one is ' . $cur['status'] . ')', 409);
+      }
+      $problems = [];
+      if (!$allDay) {
+        $busy = appt_busy($start - 86400, $end + 86400, $id);
+        $blocks = appt_blocks($start - 86400, $end + 86400);
+        if ($isOwner) {
+          $hasHours = false;
+          foreach ((array)$a['weekly'] as $w) if ($w) { $hasHours = true; break; }
+          if ($hasHours) {
+            $inside = false;
+            foreach (slot_windows($a['weekly'], lagos_date_of($start)) as [$ws, $we]) if ($start >= $ws && $end <= $we) { $inside = true; break; }
+            if (!$inside) $problems[] = 'outside_hours';
+          }
+          foreach ($blocks as [$bs, $be]) if (intervals_overlap($start, $end, $bs, $be, 0)) { $problems[] = 'blocked'; break; }
+          foreach ($busy as [$bs, $be]) if (intervals_overlap($start, $end, $bs, $be, $buf)) { $problems[] = 'conflict'; break; }
+          if ($problems && $override === '') {
+            tx_fail('That time clashes with working hours, blocked time or another appointment. Give an override reason to book it anyway.',
+              409, ['reason' => $problems[0], 'problems' => $problems, 'can_override' => true]);
+          }
+        } else {
+          $r = slot_check($start, $type, $a, $busy, $blocks, time());
+          if ($r !== 'ok') tx_fail(APPT_REASON_MESSAGES[$r] ?? 'That time is not available.', in_array($r, ['conflict', 'blocked'], true) ? 409 : 422, ['reason' => $r]);
+        }
+      }
+      $overrideStored = $problems ? $override : null;
+      $actorType = $actor['type'] ?? 'system';
+      $actorId = $actor['id'] ?? null;
+      if ($cur) {
+        $reason = trim((string)($d['reason'] ?? '')) ?: 'Rescheduled';
+        db_exec('UPDATE appointments SET starts_at = ?, ends_at = ?, all_day = ?, buffer_min = ?, override_reason = COALESCE(?, override_reason) WHERE id = ?',
+          'ssiisi', utc_sql($start), utc_sql($end), (int)$allDay, $buf, $overrideStored, $id);
+        appt_event_tx($id, $cur['status'], $cur['status'], $cur['starts_at'], utc_sql($start),
+          $reason . ($overrideStored ? ' (override: ' . $overrideStored . ')' : ''), $actorType, $actorId);
+        $newId = $id;
+      } else {
+        $status = ($d['status'] ?? 'confirmed') === 'requested' ? 'requested' : 'confirmed';
+        $hold = $status === 'requested' ? utc_sql(time() + max(1, (int)($a['request_hold_hours'] ?? 48)) * 3600) : null;
+        $src = in_array($d['source'] ?? '', ['owner', 'public', 'portal', 'migration'], true) ? $d['source'] : 'owner';
+        $cust = isset($d['customer_id']) ? (int)$d['customer_id'] ?: null : null;
+        $job = isset($d['job_id']) ? (int)$d['job_id'] ?: null : null;
+        $enq = isset($d['enquiry_id']) ? (int)$d['enquiry_id'] ?: null : null;
+        $cn = $d['contact_name'] ?? null; $cp = $d['contact_phone'] ?? null; $ce = $d['contact_email'] ?? null;
+        $ni = $d['notes_internal'] ?? null; $cnote = $d['client_note'] ?? null;
+        $by = $actorType === 'owner' ? $actorId : null;
+        db_exec('INSERT INTO appointments (type, status, starts_at, ends_at, all_day, buffer_min, customer_id, job_id, enquiry_id,
+                   contact_name, contact_phone, contact_email, source, hold_expires_at, override_reason, notes_internal, client_note, request_key, created_by)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', 'ssssiiiiisssssssssi',
+          $type, $status, utc_sql($start), utc_sql($end), (int)$allDay, $buf, $cust, $job, $enq,
+          $cn, $cp, $ce, $src, $hold, $overrideStored, $ni, $cnote, $key, $by);
+        $newId = (int)$conn->insert_id;
+        appt_event_tx($newId, null, $status, null, utc_sql($start),
+          'Created (' . $src . ')' . ($overrideStored ? ' (override: ' . $overrideStored . ')' : ''), $actorType, $actorId);
+      }
+      $row = db_row('SELECT * FROM appointments WHERE id = ?', 'i', $newId);
+      if ($row['job_id'] && $row['type'] === 'fitting') appt_sync_fitting_date((int)$row['job_id']);
+      return ['appointment' => $row, 'duplicate' => false];
+    });
+  } catch (mysqli_sql_exception $e) {
+    if (!is_duplicate_key($e) || $key === null) throw $e;
+    return ['appointment' => db_row('SELECT * FROM appointments WHERE request_key = ?', 's', $key), 'duplicate' => true];
+  }
+}
+
+/**
+ * Move an appointment to a new status under the booking lock, with history.
+ * Confirming a request whose hold has run out answers 409 (it has expired).
+ */
+function appt_set_status($id, $to, $reason, array $actor) {
+  return db_tx(function () use ($id, $to, $reason, $actor) {
+    db_exec('SELECT id FROM booking_lock WHERE id = 1 FOR UPDATE')->get_result();
+    appt_expire_holds_tx();
+    $cur = db_row('SELECT * FROM appointments WHERE id = ? FOR UPDATE', 'i', (int)$id);
+    if (!$cur) tx_fail('Appointment not found', 404);
+    if ($cur['status'] === $to) return $cur;
+    if (!appointment_transition_ok($cur['status'], $to)) tx_fail('An appointment that is ' . $cur['status'] . ' cannot become ' . $to, 409);
+    db_exec('UPDATE appointments SET status = ?, hold_expires_at = IF(? = \'requested\', hold_expires_at, NULL) WHERE id = ?', 'ssi', $to, $to, (int)$id);
+    appt_event_tx($id, $cur['status'], $to, null, null, $reason, $actor['type'] ?? 'system', $actor['id'] ?? null);
+    $row = db_row('SELECT * FROM appointments WHERE id = ?', 'i', (int)$id);
+    if ($row['job_id'] && $row['type'] === 'fitting') appt_sync_fitting_date((int)$row['job_id']);
+    return $row;
+  });
+}
+
+/** Keep tailoring_orders.fitting_date as a cache of the next confirmed fitting (Lagos date), or NULL. */
+function appt_sync_fitting_date($jobId) {
+  db_exec("UPDATE tailoring_orders SET fitting_date = (
+             SELECT MIN(DATE(a.starts_at + INTERVAL 1 HOUR)) FROM appointments a
+              WHERE a.job_id = ? AND a.type = 'fitting' AND a.status = 'confirmed' AND DATE(a.starts_at + INTERVAL 1 HOUR) >= ?)
+           WHERE id = ?", 'isi', (int)$jobId, lagos_today(), (int)$jobId);
+}
+
+/** Appointment row shaped for staff: typed ids and Lagos times beside the UTC ones. */
+function appointment_view(array $a) {
+  foreach (['id', 'customer_id', 'job_id', 'enquiry_id', 'created_by', 'all_day', 'buffer_min'] as $k) {
+    if (array_key_exists($k, $a) && $a[$k] !== null) $a[$k] = (int)$a[$k];
+  }
+  $a['starts_at_local'] = lagos_iso($a['starts_at']);
+  $a['ends_at_local'] = lagos_iso($a['ends_at']);
+  $a['hold_expires_at_local'] = lagos_iso($a['hold_expires_at'] ?? null);
+  unset($a['request_key']);
+  return $a;
+}
+
 /* ---- Quotes (shared by quotes.php and the portal) ------------------------- */
 
 function quote_lock($id) {

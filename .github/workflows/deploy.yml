@@ -64,6 +64,8 @@ jobs:
           # Phase 3 files. New in this repo except mail.php's shared sender, so no
           # hand-managed server copy exists; callers and includes ship together.
           cp php-api/_mail.php       dist/
+          cp php-api/appointments.php dist/
+          cp php-api/booking.php     dist/
       - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:   ${{ secrets.FTP_SERVER }}

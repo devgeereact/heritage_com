@@ -20,9 +20,14 @@ $KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate'
   // enters; recheck age defaults to 180 days; cash only is verified on entry.
   'business_phone', 'business_email', 'business_address', 'business_hours_text',
   'quote_default_terms', 'quote_validity_days', 'deposit_policy_text',
-  'measurement_recheck_days', 'payment_verified_methods'];
+  'measurement_recheck_days', 'payment_verified_methods',
+  // Phase 3 (owner decisions, 10 October 2026). All portal extras start off;
+  // sessions last 7 days; the consent wording starts as proposed text.
+  // Availability itself is saved through appointments.php (validated there).
+  'public_booking_enabled', 'portal_quote_accept_enabled', 'portal_show_measurements', 'customer_session_days',
+  'feedback_publish_wording', 'feedback_photo_wording'];
 // keys stored as JSON (object/array) rather than a plain string
-$JSON_KEYS = ['channels', 'socials', 'payment_verified_methods'];
+$JSON_KEYS = ['channels', 'socials', 'payment_verified_methods', 'availability'];
 
 /** Validate a Phase 2 setting; returns the value to store or fails. */
 function setting_validate($k, $val) {
@@ -38,6 +43,14 @@ function setting_validate($k, $val) {
       $ok = ['cash', 'transfer', 'pos_card', 'gateway', 'other'];
       if (!is_array($val) || array_diff($val, $ok)) fail('Verified methods must be a list from: ' . implode(', ', $ok));
       return array_values(array_unique($val));
+    case 'public_booking_enabled': case 'portal_quote_accept_enabled': case 'portal_show_measurements':
+      return !empty($val) && $val !== '0' ? '1' : '0';
+    case 'customer_session_days':
+      if (filter_var($val, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 90]]) === false) fail('Session length must be 1 to 90 days');
+      return (string)(int)$val;
+    case 'feedback_publish_wording': case 'feedback_photo_wording':
+      if (mb_strlen(trim((string)$val)) > 1000) fail("$k is too long (1000 characters at most)");
+      return trim((string)$val);
     case 'business_email':
       if ($val !== '' && $val !== null && !filter_var($val, FILTER_VALIDATE_EMAIL)) fail('Business email looks wrong');
       return (string)$val;

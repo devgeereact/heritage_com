@@ -146,7 +146,7 @@ Do not assume suits, embroidery, printing, corporate uniforms, women's wear, wor
 
 Confirm: exact men's garment range; public business address and safe appointment location; hours, durations and buffers; realistic weekly job capacity; fabric supply options; fitting and change allowance; quote expiry and deposit policy; pickup and delivery area and charges; payment methods; company quantity and sample terms; real imagery and review permissions; a sustainable Journal and Community cadence; whether any retail stays; tax treatment and record retention; measurement template field names and measuring method.
 
-Until confirmed, unknown business facts become editable settings and the website hides empty sections; nothing is invented (D-013). Already settled and not to be asked again: brand, name, location, men's-only scope, amber accent, removal of invented website claims.
+Until confirmed, unknown business facts become editable settings and the website hides empty sections; nothing is invented (D-013). On the Phase 3 branch hours, breaks, buffer, durations, minimum notice, horizon and hold time are such settings, empty by default, so no slot is offered until the owner fills them in (D-021). Already settled and not to be asked again: brand, name, location, men's-only scope, amber accent, removal of invented website claims.
 
 ## User roles
 
