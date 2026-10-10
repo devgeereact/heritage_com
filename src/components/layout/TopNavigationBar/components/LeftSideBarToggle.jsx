@@ -26,7 +26,9 @@ const LeftSideBarToggle = () => {
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
-    } else if (size === 'hidden') {
+    } else if (size === 'hidden' && document.documentElement.classList.contains('sidebar-enable')) {
+      // Close the phone sidebar after navigating, but never open it: links in
+      // pages and the bottom navigation also change the route.
       toggleBackdrop();
     }
   }, [pathname]);
