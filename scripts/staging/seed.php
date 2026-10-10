@@ -5,6 +5,10 @@
  * Every record is clearly synthetic: names like "Test Client 01", phones
  * 0800000000x, emails @example.test. The staging admin password is random and
  * printed once; it exists only in the local heritos_staging database.
+ *
+ *   php scripts/staging/seed.php            base records (legacy-shaped, like live data)
+ *   php scripts/staging/seed.php --phase2   Phase 2 extras, run by setup.sh after the
+ *                                           Phase 2 migrations have been replayed
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
@@ -31,8 +35,19 @@ function q($sql, $types = '', ...$args) {
 $locked = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
 q("UPDATE users SET password_hash = ?, status = 'suspended' WHERE email NOT LIKE '%@example.test'", 's', $locked);
 $sample = "SELECT id FROM customers WHERE name IN ('Chukwu Okafor','Emeka Bello')";
+// Phase 2 tables point at jobs and clients, so clear their rows first. Each is
+// skipped when its schema file has not been imported.
+$sampleJobs = "SELECT id FROM tailoring_orders WHERE customer_id IN ($sample)";
+foreach (['job_payments' => "job_id IN (SELECT id FROM ($sampleJobs) AS j)",
+          'job_handovers' => "job_id IN (SELECT id FROM ($sampleJobs) AS j)",
+          'quotes' => "customer_id IN (SELECT id FROM ($sample) AS s)",
+          'measurement_sets' => "customer_id IN (SELECT id FROM ($sample) AS s)"] as $table => $cond) {
+  if ($conn->query("SHOW TABLES LIKE '$table'")->num_rows) $conn->query("DELETE FROM $table WHERE $cond");
+}
 $conn->query("DELETE FROM tailoring_orders WHERE customer_id IN ($sample)");
 $conn->query("DELETE FROM customers WHERE id IN (SELECT id FROM ($sample) AS s)");
+
+if (in_array('--phase2', $argv, true)) { seed_phase2(); exit(0); }
 
 // Already seeded (setup.sh --keep)? Leave the synthetic records alone.
 if (q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()) {
@@ -133,3 +148,44 @@ echo "  Jobs:      " . implode(', ', $jobRefs) . "\n";
 echo "  Orders:    " . implode('; ', $orderRefs) . "\n";
 echo "  Enquiries: 4, blog posts: 2 (1 published)\n";
 echo "\n  LOCAL STAGING ADMIN PASSWORD (shown once, local database only): $adminPass\n";
+
+/**
+ * Phase 2 extras on top of the migrated base records: enquiry follow-ups that
+ * have come due, an unverified transfer and a pending tailor measurement set,
+ * so Today has something in each block. Idempotent (marked by request keys).
+ */
+function seed_phase2() {
+  if (q("SELECT id FROM job_payments WHERE request_key = 'seed-phase2-transfer-01'")->get_result()->fetch_row()) {
+    echo "  Phase 2 extras already present.\n";
+    return;
+  }
+  $lagos = new DateTimeZone('Africa/Lagos');
+  $today = (new DateTime('now', $lagos))->format('Y-m-d');
+  $yesterday = (new DateTime('yesterday', $lagos))->format('Y-m-d');
+  $inMonth = (new DateTime('+30 days', $lagos))->format('Y-m-d');
+  $admin = (int)q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()[0];
+  $tailor = (int)q("SELECT id FROM users WHERE email = 'tailor01@example.test'")->get_result()->fetch_row()[0];
+
+  // A follow-up that is due (the seeded 'contacted' enquiry became awaiting_reply).
+  q("UPDATE enquiries SET next_follow_up = ? WHERE name = 'Test Enquirer 02'", 's', $yesterday);
+  q("INSERT INTO enquiries (name, phone, type, interest, quantity, desired_date, message, status, next_follow_up, source, request_key)
+     VALUES ('Test Enquirer 05', '08000000015', 'wholesale', 'Matching kaftans (test)', 6, ?, 'Synthetic: follow-up due today.',
+             'quote_sent', ?, 'staging-seed', 'seed-phase2-enquiry-05')", 'ss', $inMonth, $today);
+
+  // An unverified transfer on the first open job with a price.
+  $job = q("SELECT id FROM tailoring_orders WHERE price > 0 AND job_stage NOT IN ('handed_over','cancelled') ORDER BY id LIMIT 1")->get_result()->fetch_row();
+  if ($job) {
+    q("INSERT INTO job_payments (job_id, kind, amount, method, external_ref, received_on, verified, note, request_key, recorded_by)
+       VALUES (?, 'payment', 5000.00, 'transfer', 'TEST-REF-001', ?, 0, 'Synthetic transfer awaiting verification', 'seed-phase2-transfer-01', ?)",
+      'isi', $job[0], $today, $admin);
+  }
+
+  // A tailor's measurement set waiting for the owner.
+  $client = q("SELECT id FROM customers WHERE name = 'Test Client 02'")->get_result()->fetch_row();
+  if ($client) {
+    q("INSERT INTO measurement_sets (customer_id, template_key, unit, vals, source, status, taken_at, created_by, request_key, notes)
+       VALUES (?, 'shirt', 'in', '{\"neck\":15.5,\"chest\":40,\"sleeve_length\":25}', 'owner', 'pending', ?, ?, 'seed-phase2-pending-set-01',
+               'Synthetic: entered by a tailor, waiting for approval')", 'isi', $client[0], $today, $tailor);
+  }
+  echo "  Phase 2 extras: 2 enquiry follow-ups due, 1 unverified transfer, 1 pending measurement set\n";
+}

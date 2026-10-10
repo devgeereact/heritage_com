@@ -12,6 +12,10 @@
 #      order, and reports any file that raised an error (import carries on).
 #   3. Runs scripts/staging/seed.php: synthetic staff, clients, jobs, orders,
 #      enquiries and blog posts. It prints the staging admin password once.
+#   4. Replays the Phase 2 migrations (schema_phase18.sql onwards) over the seeded
+#      legacy-shaped records. This exercises their backfills (stage mapping,
+#      imported measurements, opening ledger entries) and proves a second run is
+#      harmless, as the release checklist requires.
 #
 # The admin connection defaults to `mariadb` as the current OS user (unix socket).
 # Override with HERITOS_DB_ADMIN, for example: HERITOS_DB_ADMIN="mysql -u root -p".
@@ -123,6 +127,19 @@ done
 
 echo "== Seeding synthetic records"
 php "$ROOT/scripts/staging/seed.php"
+
+echo "== Replaying Phase 2 migrations over the seeded records (idempotency check)"
+for N in $(seq 18 99); do
+  F="$API/schema_phase$N.sql"
+  [ -f "$F" ] || continue
+  NAME="replay-$(basename "$F")"
+  if "${ADMIN[@]}" "$DB_NAME" < "$F" 2> "$LOG_DIR/$NAME.err" && [ ! -s "$LOG_DIR/$NAME.err" ]; then
+    echo "  ok    $NAME"; rm -f "$LOG_DIR/$NAME.err"
+  else
+    FAILED+=("$NAME"); echo "  ERROR $NAME"; sed 's/^/        /' "$LOG_DIR/$NAME.err" | head -5
+  fi
+done
+php "$ROOT/scripts/staging/seed.php" --phase2
 
 echo
 if [ "${#FAILED[@]}" -gt 0 ]; then

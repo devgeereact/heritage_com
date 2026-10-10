@@ -18,6 +18,9 @@ PORT="${HERITOS_STAGING_PORT:-8088}"
   exit 1
 }
 mkdir -p "$LOG_DIR"
+# Several workers, so two requests really can run at once (the ledger's
+# concurrent-payment check needs that; one worker would serialise them).
+export PHP_CLI_SERVER_WORKERS="${PHP_CLI_SERVER_WORKERS:-4}"
 
 echo "HeritOS LOCAL STAGING API: http://$HOST:$PORT (database heritos_staging, synthetic data)"
 echo "Mail is written to scripts/staging/.logs/mail.log. Ctrl+C to stop."
