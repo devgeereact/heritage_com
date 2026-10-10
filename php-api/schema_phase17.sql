@@ -1,4 +1,4 @@
--- HeritOS — Phase 17 migration. Additive only; safe to re-run on a live DB.
+-- HeritOS: Phase 17 migration. Additive only; safe to re-run on a live DB.
 -- 1. Non-guessable public references (finding A06). Staff codes (ORD-0042,
 --    HC-0042) stay as they are; customers look orders up with a separate random
 --    public_ref instead, so one code never reveals another order.

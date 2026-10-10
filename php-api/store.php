@@ -37,8 +37,8 @@ $NG_SHIP        = 4500;           // rest of Nigeria
 $action = $_GET['action'] ?? 'catalogue';
 
 /* ---- PUBLIC CONFIG ------------------------------------------------------- */
-/* Storefront-safe slice of platform settings — social links, store name and
- * whether the retail shop shows in public navigation —
+/* Storefront-safe slice of platform settings (social links, store name and
+ * whether the retail shop shows in public navigation),
  * so the public site (footer etc.) can show admin-set values without auth. */
 if ($action === 'config' && method() === 'GET') {
   $socials = [];
