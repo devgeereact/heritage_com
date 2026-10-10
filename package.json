@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "staging:setup": "bash scripts/staging/setup.sh",
     "staging:serve": "bash scripts/staging/serve.sh",
-    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'"
+    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
+    "docs:check": "node scripts/check-docs.mjs"
   },
   "dependencies": {
     "@fullcalendar/bootstrap": "^6.1.19",
