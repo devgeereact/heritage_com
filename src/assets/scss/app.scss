@@ -10,11 +10,8 @@
 
 @import "config/variables-custom";
 @import "config/theme-mode";
-@import 'gridjs/dist/theme/mermaid.css';
 
 @import "./node_modules/bootstrap/scss/bootstrap";
-
-@import "nouislider/distribute/nouislider.css";
 
 // Structure
 @import "structure/topbar";
@@ -54,31 +51,10 @@
 // Plugin
 @import "plugins/simplebar";
 @import "plugins/calendar";
-@import "plugins/choice";
-@import "plugins/dropzone";
-@import "plugins/editors";
-@import "plugins/gridjs";
-@import "plugins/apexcharts";
-@import "plugins/google-map";
-@import "plugins/vector-map";
-@import "plugins/dragula";
-@import "plugins/flatpicker";
 @import "plugins/swiper";
-@import "plugins/sweetalert";
-@import "plugins/prismjs";
-@import "plugins/range-slider";
 @import "plugins/toastify";
 
 
-// App Page
-@import "pages/app-chat";
-@import "pages/app-email";
-@import "pages/app-ecommerce";
-
-
 // Pages
-@import "pages/icon-demo";
 @import "pages/authentication";
-@import "pages/pricing";
-@import "pages/timeline";
 @import "pages/custom-react";
