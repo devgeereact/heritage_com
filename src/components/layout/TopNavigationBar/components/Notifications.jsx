@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SimplebarReactClient from '@/components/wrappers/SimplebarReactClient';
 import heritApi from '@/helpers/heritApi';
+import { useAuthContext } from '@/context/useAuthContext';
+import { canAccessSection } from '@/helpers/roles';
 import { Dropdown, DropdownMenu, DropdownToggle, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
@@ -19,14 +21,18 @@ const timeAgo = (ts) => {
 
 const Notifications = () => {
   const [items, setItems] = useState([]);
+  const { user } = useAuthContext();
+  // Only roles the server lets read enquiries ask for them (K-01: no 403 noise).
+  const allowed = canAccessSection(user?.role, 'enquiries');
 
   useEffect(() => {
+    if (!allowed) return undefined;
     let live = true;
     heritApi.contact.list()
       .then((r) => { if (live) setItems((Array.isArray(r) ? r : []).filter((e) => e.status === 'new').slice(0, 8)); })
       .catch(() => {});
     return () => { live = false; };
-  }, []);
+  }, [allowed]);
 
   const count = items.length;
 

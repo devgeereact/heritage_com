@@ -1,7 +1,16 @@
 import { lazy } from 'react';
-import { Navigate } from 'react-router-dom';
+import RedirectWithParams from './RedirectWithParams';
 
-// Dashboard Routes
+// Daily records (Phase 2)
+const Today = lazy(() => import('@/app/(admin)/today/page'));
+const Payments = lazy(() => import('@/app/(admin)/payments/page'));
+const Appointments = lazy(() => import('@/app/(admin)/appointments/page'));
+const PrintDoc = lazy(() => import('@/app/(admin)/print/page'));
+const EnquiryDetail = lazy(() => import('@/app/(admin)/enquiries/[id]/page'));
+const EnquiryConvert = lazy(() => import('@/app/(admin)/enquiries/[id]/convert/page'));
+const NewMeasurements = lazy(() => import('@/app/(admin)/crm/[id]/measurements/new/page'));
+
+// The old dashboard lives on as Reports
 const Dashboard = lazy(() => import('@/app/(admin)/dashboard/page'));
 
 // Apps Routes
@@ -128,22 +137,69 @@ export const publicRoutes = [{
   name: 'Account',
   element: <Account />
 }];
+// Old URLs keep working (bookmarks, links in messages). Rendered before the app
+// routes and outside the layout; the target applies sign-in and role checks.
+export const redirectRoutes = [
+  { path: '/dashboard', to: '/today' },
+  { path: '/tailoring', to: '/jobs' },
+  { path: '/tailoring/groups', to: '/jobs/groups' },
+  { path: '/tailoring/:id', to: '/jobs/:id' },
+  { path: '/crm', to: '/clients' },
+  { path: '/crm/:id', to: '/clients/:id' },
+].map((r) => ({ ...r, name: `Redirect ${r.path}`, element: <RedirectWithParams to={r.to} /> }));
+
 const generalRoutes = [{
-  path: '/dashboard',
-  name: 'Dashboard',
-  element: <Dashboard />
+  path: '/today',
+  name: 'Today',
+  element: <Today />
 }, {
-  path: '/tailoring',
-  name: 'Tailoring',
+  path: '/jobs',
+  name: 'Jobs',
   element: <Tailoring />
 }, {
-  path: '/tailoring/groups',
-  name: 'Aso-ebi groups',
+  path: '/jobs/groups',
+  name: 'Groups',
   element: <TailoringGroups />
 }, {
-  path: '/tailoring/:id',
-  name: 'Tailoring Detail',
+  path: '/jobs/:id',
+  name: 'Job',
   element: <TailoringDetail />
+}, {
+  path: '/clients',
+  name: 'Clients',
+  element: <Crm />
+}, {
+  path: '/clients/:id',
+  name: 'Client',
+  element: <CrmDetail />
+}, {
+  path: '/clients/:id/measurements/new',
+  name: 'Add measurements',
+  element: <NewMeasurements />
+}, {
+  path: '/enquiries/:id',
+  name: 'Enquiry',
+  element: <EnquiryDetail />
+}, {
+  path: '/enquiries/:id/convert',
+  name: 'Convert enquiry',
+  element: <EnquiryConvert />
+}, {
+  path: '/payments',
+  name: 'Payments',
+  element: <Payments />
+}, {
+  path: '/appointments',
+  name: 'Appointments',
+  element: <Appointments />
+}, {
+  path: '/print/:doc/:id',
+  name: 'Print',
+  element: <PrintDoc />
+}, {
+  path: '/reports',
+  name: 'Reports',
+  element: <Dashboard />
 }, {
   path: '/catalogue',
   name: 'Catalogue',
@@ -224,14 +280,6 @@ const generalRoutes = [{
   path: '/enquiries',
   name: 'Enquiries',
   element: <Enquiries />
-}, {
-  path: '/crm',
-  name: 'Customers',
-  element: <Crm />
-}, {
-  path: '/crm/:id',
-  name: 'Customer Detail',
-  element: <CrmDetail />
 }, {
   path: '/sales',
   name: 'Orders',
