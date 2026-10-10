@@ -15,7 +15,7 @@ This file owns how HeritOS is checked: the risk priorities, the commands and the
 |---|---|---|
 | `npm run build` | Vite production build to `dist/` | PASS on 10 Oct 2026 (`chore/cleanup-docs-sync`); Sass deprecation and large-chunk warnings remain |
 | `npm run lint` | ESLint | Exit 0, but the committed config matches only `.ts`/`.tsx`, so it checks none of the JS/JSX files (A13). A JS/JSX config is written and tested (476 files, 0 errors, 194 warnings) and waits for the owner to apply it, because a local hook blocks agents from editing `eslint.config.js`. Result: FAIL (coverage) |
-| `php php-api/tests/run.php` | 166 pure checks for `_lib.php` and `_domain.php` (sanitiser, CORS decision, throttle maths, payments, references and codes, kobo money, stage transitions, request keys); no database or network | PASS on 10 Oct 2026 (166 passed, 0 failed) |
+| `php php-api/tests/run.php` | 251 pure checks for `_lib.php` and `_domain.php` (sanitiser, CORS decision, throttle maths, payments, references and codes, kobo money, stage transitions, request keys; on the Phase 3 branch also availability validation, Lagos slot windows, buffers, blocks, minimum notice, horizon, access-code hashing and expiry, and the portal projection's exact key set); no database or network | PASS on 10 Oct 2026 (251 passed, 0 failed, `feat/phase3-appointments-portal`) |
 | `php -l` on `php-api/*.php` and `php-api/tests/*.php` | PHP syntax | PASS for all 41 files on 10 Oct 2026; not functional proof |
 | `bash scripts/staging/e2e-phase2.sh` | Phase 2 API journeys against local staging ([LOCAL-STAGING.md](LOCAL-STAGING.md#end-to-end-checks)) | PASS, 48 of 48 on two runs, 10 Oct 2026 (`feat/phase2-daily-records`) |
 | `node scripts/check-docs.mjs` | Broken Markdown links and anchors, em dashes in live docs, mentions of missing `docs/` or `qa/` paths | PASS on 10 Oct 2026; runs in CI |
@@ -28,7 +28,7 @@ There is no committed frontend test script and no type check (JavaScript project
 
 | Level | Purpose | Target behaviour | Environment | Command or method | Owner |
 |---|---|---|---|---|---|
-| Unit | Rules and boundary cases | `_lib.php` and `_domain.php` helpers: sanitiser, throttle, CORS, payments, references, money, stages | Local, CI | `php php-api/tests/run.php` | Owner |
+| Unit | Rules and boundary cases | `_lib.php` and `_domain.php` helpers: sanitiser, throttle, CORS, payments, references, money, stages, slots, access codes, portal projection | Local, CI | `php php-api/tests/run.php` | Owner |
 | Integration | Data, API and service boundaries | Endpoint requests against seeded data, including forbidden cross-role and cross-customer cases | Local staging | `scripts/staging/e2e-phase2.sh` for Phase 2; each later phase adds its own script; cross-customer cases come with Phase 3 | Owner |
 | End to end | Critical user journeys | J-01 to J-08 on phone and laptop | Local staging with synthetic records | Playwright walkthrough per phase (Phase 2 owner journey PASS; other journeys not built or NOT TESTED) | Owner |
 | Regression | Previously failed behaviour | A03, A04, A05, A06, A11, A17, A21 and every later fix | Local staging | Recorded in [qa/REGRESSION-AUDIT.md](../qa/REGRESSION-AUDIT.md) | Owner |

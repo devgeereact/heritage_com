@@ -292,5 +292,147 @@ check('ymd: valid date', ymd_or_null('2026-02-28'), '2026-02-28');
 check('ymd: impossible date rejected', ymd_or_null('2026-02-30'), null);
 check('date add days', date_add_days('2026-10-28', 7), '2026-11-04');
 
+/* ---- Phase 3: appointments ---------------------------------------------- */
+$avail = availability_clean([
+  'weekly' => ['mon' => [['14:00', '18:00'], ['09:00', '13:00']], 'tue' => [['09:00', '17:00']], 'sun' => []],
+  'buffer_min' => 15, 'min_notice_hours' => 24, 'horizon_days' => 30, 'step_min' => 15,
+  'durations' => ['consultation' => 45, 'fitting' => 30], 'request_hold_hours' => 48,
+]);
+check('availability: valid input has no errors', $avail['errors'], []);
+$A = $avail['clean'];
+check('availability: windows sorted by start', $A['weekly']['mon'], [['09:00', '13:00'], ['14:00', '18:00']]);
+check('availability: empty input is valid but not ready', [availability_clean([])['errors'], availability_ready(availability_clean([])['clean'], 'consultation')], [[], false]);
+check('availability: empty input keeps every number empty', availability_clean([])['clean']['buffer_min'], null);
+check('availability: ready for a type with a duration', availability_ready($A, 'consultation'), true);
+check('availability: not ready for a type without a duration', availability_ready($A, 'collection'), false);
+check('availability: 50 minutes refused', isset(availability_clean(['durations' => ['fitting' => 50]])['errors']['durations.fitting']), true);
+check('availability: overlapping windows refused', isset(availability_clean(['weekly' => ['mon' => [['09:00', '12:00'], ['11:00', '13:00']]]])['errors']['weekly.mon']), true);
+check('availability: end before start refused', isset(availability_clean(['weekly' => ['mon' => [['12:00', '09:00']]]])['errors']['weekly.mon']), true);
+check('availability: step 20 refused', isset(availability_clean(['step_min' => 20])['errors']['step_min']), true);
+
+// 2026-10-12 is a Monday. Lagos is UTC+1 all year, so 09:00 Lagos is 08:00 UTC.
+$mon = gmmktime(0, 0, 0, 10, 12, 2026);
+$h = fn($hh, $mm = 0) => $mon + ($hh - 1) * 3600 + $mm * 60;     // Lagos hh:mm on Monday as Unix time
+check('slot windows: Monday windows in UTC', slot_windows($A['weekly'], '2026-10-12'), [[$h(9), $h(13)], [$h(14), $h(18)]]);
+check('slot windows: closed Sunday is empty', slot_windows($A['weekly'], '2026-10-11'), []);
+check('slot windows: day with no entry is closed', slot_windows($A['weekly'], '2026-10-14'), []);
+check('slot windows: invalid date is empty', slot_windows($A['weekly'], '2026-02-30'), []);
+check('lagos midnight: 2026-10-12 is 23:00 UTC the day before', lagos_midnight_ts('2026-10-12'), gmmktime(23, 0, 0, 10, 11, 2026));
+check('lagos iso: UTC 09:00 shows 10:00+01:00', lagos_iso('2026-10-12 09:00:00'), '2026-10-12T10:00:00+01:00');
+check('lagos iso: Unix time as a digit string (UNIX_TIMESTAMP)', lagos_iso((string)gmmktime(9, 0, 0, 10, 12, 2026)), '2026-10-12T10:00:00+01:00');
+check('lagos iso: null stays null', lagos_iso(null), null);
+
+check('overlap: touching intervals do not overlap without buffer', intervals_overlap(0, 10, 10, 20, 0), false);
+check('overlap: touching intervals overlap with a buffer', intervals_overlap(0, 10, 10, 20, 5), true);
+check('overlap: gap equal to the buffer is fine', intervals_overlap(0, 10, 15, 20, 5), false);
+
+$win = [[$h(9), $h(13)]];
+$all = free_slots($win, [], [], 45 * 60, 15 * 60, 15 * 60, 0, PHP_INT_MAX);
+check('free slots: step snaps to a 15 minute grid', array_slice(array_column($all, 0), 0, 3), [$h(9), $h(9, 15), $h(9, 30)]);
+check('free slots: last slot ends at the window end', end($all)[1], $h(13));
+$busy = [[$h(10), $h(10, 45)]];
+$starts = array_column(free_slots($win, $busy, [], 45 * 60, 15 * 60, 15 * 60, 0, PHP_INT_MAX), 0);
+check('free slots: 09:00 stays free (ends 09:45, 15 min buffer to 10:00)', in_array($h(9), $starts, true), true);
+check('free slots: 09:15 excluded by the buffer', in_array($h(9, 15), $starts, true), false);
+check('free slots: 10:00 to 10:45 starts excluded', [in_array($h(10), $starts, true), in_array($h(10, 45), $starts, true)], [false, false]);
+check('free slots: 11:00 free again after the buffer', in_array($h(11), $starts, true), true);
+$starts = array_column(free_slots($win, [], [[$h(11), $h(12)]], 30 * 60, 0, 30 * 60, 0, PHP_INT_MAX), 0);
+check('free slots: a block removes slots without buffer', [in_array($h(10, 30), $starts, true), in_array($h(11), $starts, true), in_array($h(12), $starts, true)], [true, false, true]);
+$starts = array_column(free_slots($win, [], [], 30 * 60, 0, 30 * 60, $h(10, 10), $h(11, 30)), 0);
+check('free slots: minimum notice and horizon respected', $starts, [$h(10, 30), $h(11), $h(11, 30)]);
+
+$now = $h(9) - 3 * 86400;     // Friday 09:00 Lagos
+check('slot check: free grid slot is ok', slot_check($h(9), 'consultation', $A, [], [], $now), 'ok');
+check('slot check: lunch break is outside hours', slot_check($h(13, 15), 'consultation', $A, [], [], $now), 'outside_hours');
+check('slot check: running past the window end is outside hours', slot_check($h(12, 30), 'consultation', $A, [], [], $now), 'outside_hours');
+check('slot check: off the grid is outside hours', slot_check($h(9, 5), 'consultation', $A, [], [], $now), 'outside_hours');
+check('slot check: closed day is outside hours', slot_check($h(9) - 86400, 'consultation', $A, [], [], $now), 'outside_hours');
+check('slot check: inside minimum notice is too soon', slot_check($h(9), 'consultation', $A, [], [], $h(9) - 3600), 'too_soon');
+check('slot check: past the horizon is too far', slot_check($h(9), 'consultation', $A, [], [], $h(9) - 31 * 86400), 'too_far');
+check('slot check: buffer conflict', slot_check($h(9, 15), 'consultation', $A, $busy, [], $now), 'conflict');
+check('slot check: block wins', slot_check($h(9), 'consultation', $A, [], [[$h(9), $h(9, 30)]], $now), 'blocked');
+check('slot check: type without duration not configured', slot_check($h(9), 'collection', $A, [], [], $now), 'not_configured');
+
+check('appointment: requested to confirmed allowed', appointment_transition_ok('requested', 'confirmed'), true);
+check('appointment: completed to requested refused', appointment_transition_ok('completed', 'requested'), false);
+check('appointment: cancelled is final', appointment_transition_ok('cancelled', 'confirmed'), false);
+
+/* ---- Phase 3: customer access -------------------------------------------- */
+$code = access_code_new();
+check('access code: six digits', (bool)preg_match('/^\d{6}$/', $code), true);
+check('access code hash: deterministic', access_code_hash('123456', 's1'), access_code_hash('123456', 's1'));
+check('access code hash: differs per secret', access_code_hash('123456', 's1') === access_code_hash('123456', 's2'), false);
+check('access code hash: is not the code', strpos(access_code_hash('123456', 's1'), '123456'), false);
+$hc = access_code_hash('012345', 'sec');
+check('access code ok: right code', access_code_ok('012345', $hc, 'sec'), true);
+check('access code ok: spaces ignored', access_code_ok(' 012 345 ', $hc, 'sec'), true);
+check('access code ok: wrong code', access_code_ok('012346', $hc, 'sec'), false);
+check('access code ok: wrong secret', access_code_ok('012345', $hc, 'other'), false);
+check('access code ok: letters never match', access_code_ok('01234a', $hc, 'sec'), false);
+check('token hash: sha256 hex', strlen(token_hash('abc')), 64);
+$t0 = gmmktime(12, 0, 0, 10, 12, 2026);
+$ch = ['customer_id' => 7, 'channel' => 'email', 'status' => 'pending', 'expires_at' => gmdate('Y-m-d H:i:s', $t0 + 600), 'used_at' => null, 'attempts' => 0];
+check('challenge: fresh is ok', challenge_state($ch, $t0), 'ok');
+check('challenge: expired after ten minutes', challenge_state($ch, $t0 + 600), 'expired');
+check('challenge: used', challenge_state(['used_at' => '2026-10-12 12:01:00', 'status' => 'used'] + $ch, $t0), 'used');
+check('challenge: locked after five attempts', challenge_state(['attempts' => 5] + $ch, $t0), 'locked');
+check('challenge: decoy has no customer', challenge_state(['customer_id' => null] + $ch, $t0), 'decoy');
+check('challenge: awaiting owner cannot verify', challenge_state(['status' => 'awaiting_owner'] + $ch, $t0), 'pending_owner');
+check('contact match: partial phone fails', contact_matches('0001', null, '08030000001'), false);
+check('contact match: partial email fails', contact_matches('a@example', 'a@example.test', null), false);
+check('contact match: empty fails', contact_matches('', 'a@example.test', '08030000001'), false);
+check('contact match: email given, record has none', contact_matches('a@example.test', null, '08030000001'), false);
+
+/* ---- Phase 3: portal projection ------------------------------------------ */
+$jobRow = ['id' => 9, 'code' => 'HC-0009', 'public_ref' => 'ABCDEFGH23', 'customer_id' => 3, 'job_stage' => 'in_production',
+  'description' => 'Two kaftans', 'garment_type' => 'kaftan', 'quantity' => 2, 'price' => '50000.00', 'due_date' => '2026-11-01',
+  'event_date' => '2026-11-05', 'handed_over_qty' => 0, 'notes' => 'PRIVATE NOTE', 'notes_internal' => 'PRIVATE', 'owner_notes' => 'PRIVATE',
+  'fabric_cost' => '9000.00', 'labour_cost' => '7000.00', 'assigned_tailor_id' => 4, 'tailor_name' => 'Tailor X', 'lock_version' => 3,
+  'measurements' => '{"chest":40}', 'measurement_snapshot' => '{"vals":{}}'];
+$ledgerRows = [
+  ['id' => 1, 'kind' => 'payment', 'amount' => '20000.00', 'verified' => 1, 'method' => 'cash', 'received_on' => '2026-10-01', 'reverses_id' => null, 'note' => 'PRIVATE'],
+  ['id' => 2, 'kind' => 'payment', 'amount' => '5000.00', 'verified' => 0, 'method' => 'transfer', 'received_on' => '2026-10-02', 'reverses_id' => null],
+  ['id' => 3, 'kind' => 'payment', 'amount' => '1000.00', 'verified' => 1, 'method' => 'cash', 'received_on' => '2026-10-03', 'reverses_id' => null],
+  ['id' => 4, 'kind' => 'reversal', 'amount' => '-1000.00', 'verified' => 1, 'method' => 'cash', 'received_on' => '2026-10-03', 'reverses_id' => 3],
+];
+$apptRows = [
+  ['id' => 5, 'type' => 'fitting', 'status' => 'confirmed', 'all_day' => 0, 'starts_at' => '2026-10-20 09:00:00', 'ends_at' => '2026-10-20 09:30:00', 'notes_internal' => 'PRIVATE', 'override_reason' => 'PRIVATE'],
+  ['id' => 6, 'type' => 'fitting', 'status' => 'cancelled', 'all_day' => 0, 'starts_at' => '2026-10-19 09:00:00', 'ends_at' => '2026-10-19 09:30:00'],
+];
+$eventRows = [
+  ['stage' => 'in_production', 'kind' => 'stage', 'note' => 'PRIVATE stage note', 'public' => 1, 'created_at' => '2026-10-05 10:00:00'],
+  ['stage' => 'in_production', 'kind' => 'measurements', 'note' => 'PRIVATE', 'public' => 0, 'created_at' => '2026-10-05 11:00:00'],
+];
+$handoverRows = [['method' => 'delivery', 'status' => 'planned', 'quantity' => 2, 'planned_for' => '2026-11-01 10:00:00', 'address' => 'PRIVATE',
+  'received_by' => 'PRIVATE', 'evidence_note' => 'PRIVATE', 'balance_at_handover' => '1.00', 'checklist' => '{}', 'courier' => null, 'tracking_url' => null]];
+$pv = job_public_view($jobRow, null, $ledgerRows, $handoverRows, $apptRows, $eventRows);
+check('public view: exact key set', array_keys($pv), JOB_PUBLIC_KEYS);
+$pvJson = json_encode($pv);
+check('public view: no private text anywhere', strpos($pvJson, 'PRIVATE'), false);
+check('public view: no HC code, costs or tailor', [strpos($pvJson, 'HC-0009'), strpos($pvJson, '9000'), strpos($pvJson, 'Tailor X'), strpos($pvJson, 'lock_version')], [false, false, false, false]);
+check('public view: stage label mapped to customer wording', $pv['stage_label'], 'Being made');
+check('public view: only verified, unreversed money counts', [$pv['payment']['paid_verified'], $pv['payment']['balance']], ['20000.00', '30000.00']);
+check('public view: receipts exclude unverified and reversed', array_column($pv['payment']['receipts'], 'receipt_no'), ['RCT-1']);
+check('public view: cancelled appointments hidden; Lagos time', [count($pv['appointments']), $pv['appointments'][0]['starts_at']], [1, '2026-10-20T10:00:00+01:00']);
+check('public view: appointment keys', array_keys($pv['appointments'][0]), ['id', 'type', 'status', 'all_day', 'starts_at', 'ends_at']);
+check('public view: timeline has public stage events only, no notes', $pv['timeline'], [['stage' => 'in_production', 'label' => 'Being made', 'at' => '2026-10-05T11:00:00+01:00']]);
+check('public view: handover keys', array_keys($pv['handovers'][0]), ['method', 'status', 'quantity', 'planned_for', 'completed_at', 'courier', 'tracking_url']);
+
+/* ---- Phase 3: messages and feedback --------------------------------------- */
+check('message body: trimmed and control characters removed', message_body_clean("  hi\x07 there\n "), "hi there");
+check('message body: empty refused', message_body_clean('   '), null);
+check('message body: too long refused', message_body_clean(str_repeat('a', 2001)), null);
+check('message body: HTML kept as text', message_body_clean('<b>x</b>'), '<b>x</b>');
+$fb = feedback_clean(['rating' => '4', 'comment' => 'Lovely fit', 'publish_consent' => 'first_name', 'photo_consent' => true]);
+check('feedback: valid', [$fb['errors'], $fb['clean']['rating'], $fb['clean']['publish_consent'], $fb['clean']['photo_consent'], $fb['clean']['contact_ok']], [[], 4, 'first_name', 1, 0]);
+check('feedback: rating optional with a comment', feedback_clean(['comment' => 'ok'])['errors'], []);
+check('feedback: consents default to no', [feedback_clean(['comment' => 'ok'])['clean']['publish_consent'], feedback_clean(['comment' => 'ok'])['clean']['photo_consent']], ['no', 0]);
+check('feedback: rating 6 refused', isset(feedback_clean(['rating' => 6])['errors']['rating']), true);
+check('feedback: nothing given refused', isset(feedback_clean([])['errors']['comment']), true);
+check('feedback: unknown consent refused', isset(feedback_clean(['comment' => 'x', 'publish_consent' => 'yes'])['errors']['publish_consent']), true);
+check('testimonial name: anonymous', testimonial_name('anonymous', 'Ada Obi'), 'Herit client');
+check('testimonial name: first name only', testimonial_name('first_name', 'Ada Obi'), 'Ada');
+check('testimonial name: no consent never publishes', testimonial_name('no', 'Ada Obi'), null);
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

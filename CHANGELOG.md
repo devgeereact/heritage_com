@@ -6,6 +6,10 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### `feat/phase3-appointments-portal` (no PR yet), 10 October 2026
 
+Added
+
+- Pure Phase 3 rules in `_domain.php`: availability validation (empty means not set), Lagos slot windows, buffer-aware overlap, free slots, a slot check with reasons, appointment transitions, six-digit access codes stored only as an HMAC, challenge expiry and lockout, and `job_public_view()`, the allowlist projection the portal returns. 85 new helper tests (251 in total).
+
 Changed
 
 - Mail: the SMTP client moved from `mail.php` into the shared include `_mail.php` with `mail_send_html()`, so other endpoints can send mail; `mail.php` is a thin endpoint over it and also audits failed sends. `_mail.php` is deployed by CI.
