@@ -86,9 +86,6 @@ Nothing below is deleted yet. Each needs explicit approval, and links must be re
 
 | Candidate | Reason |
 |---|---|
-| `docs/features.md`, `docs/nav-map.md`, `docs/seo-analytics.md` | Superseded 2025 retail-platform plans (see [PRODUCT.md](PRODUCT.md#superseded-decisions-from-the-old-plans)) |
-| `docs/brief.json` | Superseded brief; brand facts kept in DESIGN.md. Keep only if a real consumer is found (none found by search). |
-| `docs/HeritOS.html` (29,658 bytes) and root `HeritOS.html` (39,721 bytes) | Two different versions of the old feature spec; neither is launch authority. Compare unique content before removal. |
 | `docs/GEE-OS.md` | Adoption note at GEE OS 0.9.0; its source map is replaced by [docs/README.md](README.md) |
 | Larkon demo routes and duplicate kit pages | Runtime surface to remove only after import and caller checks (A18, Phase 7) |
 | Unused tsconfig and TypeScript-only lint leftovers | Revisit only with dependency and check evidence |

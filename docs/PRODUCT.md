@@ -219,7 +219,7 @@ A new feature should solve a repeated owner or client problem, reuse an existing
 
 ## Superseded decisions from the old plans
 
-The 2025 plans (docs/features.md, docs/nav-map.md, docs/brief.json, docs/seo-analytics.md and both HeritOS.html files) described an omnichannel retail platform: eight roles, multicurrency, offline POS, international gateways, coupons and Laravel/TypeScript. The approved direction reverses their priorities, putting measurements and fittings first. Specifically retired:
+The 2025 plans (features.md, nav-map.md, brief.json, seo-analytics.md and two HeritOS.html files, deleted on 10 October 2026 and kept only in Git history) described an omnichannel retail platform: eight roles, multicurrency, offline POS, international gateways, coupons and Laravel/TypeScript. The approved direction reverses their priorities, putting measurements and fittings first. Specifically retired:
 
 - Omnichannel inventory, multicurrency, Laravel and offline POS from brief.json.
 - Coupons and international gateways as launch priorities from features.md.

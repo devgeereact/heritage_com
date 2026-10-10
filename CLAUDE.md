@@ -55,4 +55,4 @@ Owner decisions of 10 October 2026 (men's tailoring scope, amber accent on a Tes
 
 - Production confidence is PARTIAL. A passing build is not proof that a workflow works; report runtime behaviour as NOT TESTED until staging exists.
 - Design work follows [docs/DESIGN.md](docs/DESIGN.md) only. The old "Tack Stitch" rule is retired.
-- Older docs (`docs/features.md`, `docs/nav-map.md`, `docs/seo-analytics.md`, `docs/brief.json`, both `HeritOS.html` files) are superseded. Do not plan from them.
+- The superseded 2025 plans (`docs/features.md`, `docs/nav-map.md`, `docs/seo-analytics.md`, `docs/brief.json`, both `HeritOS.html` files) were deleted on 10 October 2026 with owner approval; they remain in Git history only. Do not plan from them.

@@ -33,18 +33,13 @@ Statements carry one of four labels: **Verified** (checked in the repository, fi
 
 ## Superseded files
 
-These are superseded, kept for reference, and are deletion candidates pending owner approval. None is a live source for anything; do not act on them.
+This file is superseded, kept for reference and a deletion candidate pending owner approval. It is not a live source for anything; do not act on it.
 
 | File | What it was | Replaced by |
 |---|---|---|
-| `features.md` | 2025 checklist of about 180 features across 18 modules | [PRODUCT.md](PRODUCT.md#feature-priorities) |
-| `nav-map.md` | Per-role route map written for a Laravel stack | [PRODUCT.md](PRODUCT.md#daily-navigation), [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory) |
-| `seo-analytics.md` | SEO and analytics plan (prerender, Plausible, consent) | [CONTENT-AND-SOCIAL.md](CONTENT-AND-SOCIAL.md#seo-and-performance) |
-| `brief.json` | Master brief for an omnichannel retail platform | [PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md) |
-| `HeritOS.html` (here, 29,658 bytes) and `../HeritOS.html` (39,721 bytes) | Two different versions of the interactive feature spec | [PRODUCT.md](PRODUCT.md) |
 | `GEE-OS.md` | GEE OS adoption note at version 0.9.0 with a provisional source map | This file and [../AGENTS.md](../AGENTS.md) |
 
-Those older files were written for a different stack (React with TypeScript, a Laravel API on a subdomain, eight roles, multicurrency, offline POS). This repository is the Larkon React JavaScript kit with plain PHP endpoints.
+Deleted on 10 October 2026 with owner approval (still in Git history): `features.md`, `nav-map.md`, `seo-analytics.md`, `brief.json`, `HeritOS.html` and the root `../HeritOS.html`. They described a different stack (React with TypeScript, a Laravel API on a subdomain, eight roles, multicurrency, offline POS); their still-valid decisions live in [PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md) and [CONTENT-AND-SOCIAL.md](CONTENT-AND-SOCIAL.md).
 
 The root `DESIGN-SYSTEM.md` has been removed; [DESIGN.md](DESIGN.md) holds every fact from it that is still valid. The temporary `Plans 2026` folder was removed on 10 October 2026 after every section was mapped into these docs.
 
