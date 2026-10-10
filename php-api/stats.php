@@ -19,17 +19,32 @@ function scalar($conn, $sql) {
 }
 
 /* ---- Tailoring ----------------------------------------------------------- */
+// by_stage keeps the legacy keys (the old dashboard reads them; stage is still
+// dual-written). Counts use job_stage once schema_phase18.sql is imported, and
+// "today" is the Lagos date computed here rather than the server's CURDATE().
 $byStage = [];
 $res = $conn->query(
   "SELECT stage, COUNT(*) c FROM tailoring_orders WHERE deleted_at IS NULL GROUP BY stage"
 );
 while ($res && $row = $res->fetch_assoc()) $byStage[$row['stage']] = (int)$row['c'];
 
+$today = (new DateTime('now', new DateTimeZone('Africa/Lagos')))->format('Y-m-d');
+$week = (new DateTime($today . ' +7 days'))->format('Y-m-d');
+$open = has_column('tailoring_orders', 'job_stage')
+  ? "job_stage NOT IN ('handed_over','cancelled')"
+  : "stage NOT IN ('done','cancelled')";
+$byJobStage = [];
+if (has_column('tailoring_orders', 'job_stage')) {
+  $res = $conn->query("SELECT job_stage, COUNT(*) c FROM tailoring_orders WHERE deleted_at IS NULL GROUP BY job_stage");
+  while ($res && $row = $res->fetch_assoc()) $byJobStage[(string)$row['job_stage']] = (int)$row['c'];
+}
+
 $tailoring = [
-  'active'   => scalar($conn, "SELECT COUNT(*) FROM tailoring_orders WHERE deleted_at IS NULL AND stage NOT IN ('done','cancelled')"),
-  'by_stage' => $byStage,
-  'due_week' => scalar($conn, "SELECT COUNT(*) FROM tailoring_orders WHERE deleted_at IS NULL AND stage NOT IN ('done','cancelled') AND due_date IS NOT NULL AND due_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)"),
-  'overdue'  => scalar($conn, "SELECT COUNT(*) FROM tailoring_orders WHERE deleted_at IS NULL AND stage NOT IN ('done','cancelled') AND due_date IS NOT NULL AND due_date < CURDATE()"),
+  'active'       => scalar($conn, "SELECT COUNT(*) FROM tailoring_orders WHERE deleted_at IS NULL AND $open"),
+  'by_stage'     => $byStage,
+  'by_job_stage' => $byJobStage,
+  'due_week'     => scalar($conn, "SELECT COUNT(*) FROM tailoring_orders WHERE deleted_at IS NULL AND $open AND due_date IS NOT NULL AND due_date BETWEEN '$today' AND '$week'"),
+  'overdue'      => scalar($conn, "SELECT COUNT(*) FROM tailoring_orders WHERE deleted_at IS NULL AND $open AND due_date IS NOT NULL AND due_date < '$today'"),
 ];
 
 /* ---- Catalogue ----------------------------------------------------------- */

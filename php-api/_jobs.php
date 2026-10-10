@@ -83,9 +83,21 @@ function verified_methods() {
 
 /* ---- Jobs ----------------------------------------------------------------- */
 
-/** Lock and return a live job row (SELECT ... FOR UPDATE), or null. */
+/**
+ * A job's stage. A row written by the pre-Phase-2 code after schema_phase18.sql
+ * was imported has job_stage NULL until the migration is re-run; read it through
+ * the legacy mapping meanwhile.
+ */
+function job_stage_of(array $row) {
+  if (!empty($row['job_stage'])) return $row['job_stage'];
+  return job_stage_from_legacy($row['stage'] ?? '')[0] ?? 'confirmed';
+}
+
+/** Lock and return a live job row (SELECT ... FOR UPDATE), or null. job_stage is never null in the result. */
 function job_lock($id) {
-  return db_row('SELECT * FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL FOR UPDATE', 'i', (int)$id);
+  $row = db_row('SELECT * FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL FOR UPDATE', 'i', (int)$id);
+  if ($row) $row['job_stage'] = job_stage_of($row);
+  return $row;
 }
 
 /** Append a timeline event. $stage defaults to the job's current job_stage. */

@@ -23,7 +23,7 @@ if ($action === 'list' && method() === 'GET') {
   $rows = [];
   $sql = "SELECT c.id, c.name, c.phone, c.email, c.tags, c.segment, c.loyalty_points,
                  COUNT(o.id) AS order_count,
-                 SUM(o.stage NOT IN ('done','cancelled')) AS active_orders,
+                 SUM(o.job_stage NOT IN ('handed_over','cancelled')) AS active_orders,
                  COALESCE(SUM(o.price), 0) AS ordered_value
             FROM customers c
        LEFT JOIN tailoring_orders o ON o.customer_id = c.id AND o.deleted_at IS NULL
@@ -46,7 +46,7 @@ if ($action === 'get' && method() === 'GET') {
 
   $orders = [];
   $stmt = $conn->prepare(
-    "SELECT id, code, garment_type, fabric, stage, price, due_date
+    "SELECT id, code, garment_type, fabric, stage, job_stage, payment_state, price, due_date
        FROM tailoring_orders WHERE customer_id = ? AND deleted_at IS NULL ORDER BY id DESC"
   );
   $stmt->bind_param('i', $id);
