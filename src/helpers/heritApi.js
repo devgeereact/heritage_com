@@ -30,8 +30,28 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  if (!res.ok) throw apiError(res.status, data);
   return data;
+}
+
+/**
+ * An Error carrying the HTTP status and the JSON body, so screens can act on a
+ * 409 (duplicate candidates, allowed stages, stale lock_version) without
+ * parsing message text. The message stays the server's plain sentence.
+ */
+function apiError(status, data) {
+  const err = new Error(data?.error || `Request failed (${status})`);
+  err.status = status;
+  err.data = data || {};
+  return err;
+}
+
+/** Build a query string from an object, skipping empty values. */
+function qs(params = {}) {
+  const parts = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+  return parts.length ? `&${parts.join('&')}` : '';
 }
 
 /** Customer-portal token (separate from staff auth) lives in localStorage. */
@@ -73,9 +93,73 @@ export const heritApi = {
   aiImage: (task, prompt, opts = {}) =>
     request('/ai_image.php', { method: 'POST', body: { task, prompt, ...opts } }),
 
+  // Today: the owner's daily worklist (owner roles)
+  today: () => request('/today.php'),
+
+  // Enquiry pipeline (staff side; convert is owner-only)
+  enquiries: {
+    list: (params = {}) => request(`/enquiries.php?action=list${qs(params)}`),
+    get: (id) => request(`/enquiries.php?action=get&id=${id}`),
+    create: (data) => request('/enquiries.php?action=create', { method: 'POST', body: data }),
+    update: (id, data) => request(`/enquiries.php?action=update&id=${id}`, { method: 'POST', body: data }),
+    linkClient: (id, client_id) =>
+      request(`/enquiries.php?action=link_client&id=${id}`, { method: 'POST', body: { client_id } }),
+    convert: (id, data) => request(`/enquiries.php?action=convert&id=${id}`, { method: 'POST', body: data }),
+  },
+
+  // Measurement sets and templates (workshop roles; approve, reject and templates owner-only)
+  measurements: {
+    templates: (all = false) => request(`/measurements.php?action=templates${all ? '&all=1' : ''}`),
+    templateSave: (data) => request('/measurements.php?action=template_save', { method: 'POST', body: data }),
+    list: (customerId) => request(`/measurements.php?action=list&customer_id=${customerId}`),
+    get: (id) => request(`/measurements.php?action=get&id=${id}`),
+    create: (data) => request('/measurements.php?action=create', { method: 'POST', body: data }),
+    approve: (id, unit) =>
+      request(`/measurements.php?action=approve&id=${id}`, { method: 'POST', body: unit ? { unit } : {} }),
+    reject: (id, reason) => request(`/measurements.php?action=reject&id=${id}`, { method: 'POST', body: { reason } }),
+    convertPreview: (id, to) => request(`/measurements.php?action=convert_preview&id=${id}&to=${to}`),
+  },
+
+  // Versioned quotes (owner roles)
+  quotes: {
+    list: (params) => request(`/quotes.php?action=list${qs(params)}`),
+    get: (id) => request(`/quotes.php?action=get&id=${id}`),
+    create: (data) => request('/quotes.php?action=create', { method: 'POST', body: data }),
+    save: (id, data) => request(`/quotes.php?action=save&id=${id}`, { method: 'POST', body: data }),
+    send: (id, channel) => request(`/quotes.php?action=send&id=${id}`, { method: 'POST', body: { channel } }),
+    revise: (id, request_key) => request(`/quotes.php?action=revise&id=${id}`, { method: 'POST', body: { request_key } }),
+    accept: (id, data) => request(`/quotes.php?action=accept&id=${id}`, { method: 'POST', body: data }),
+    decline: (id, note) => request(`/quotes.php?action=decline&id=${id}`, { method: 'POST', body: { note } }),
+    withdraw: (id, note) => request(`/quotes.php?action=withdraw&id=${id}`, { method: 'POST', body: { note } }),
+  },
+
+  // Job payment ledger (owner roles; append-only)
+  ledger: {
+    list: (params = {}) => request(`/ledger.php?action=list${qs(params)}`),
+    due: () => request('/ledger.php?action=due'),
+    credits: () => request('/ledger.php?action=credits'),
+    record: (data) => request('/ledger.php?action=record', { method: 'POST', body: data }),
+    verify: (id) => request(`/ledger.php?action=verify&id=${id}`, { method: 'POST', body: {} }),
+    reverse: (id, reason, request_key) =>
+      request(`/ledger.php?action=reverse&id=${id}`, { method: 'POST', body: { reason, request_key } }),
+    refund: (data) => request('/ledger.php?action=refund', { method: 'POST', body: data }),
+  },
+
   // Tailoring & production
   tailoring: {
-    list: () => request('/tailoring.php?action=list'),
+    meta: () => request('/tailoring.php?action=meta'),
+    update: (id, data) => request(`/tailoring.php?action=update&id=${id}`, { method: 'POST', body: data }),
+    moveStage: (id, data) => request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: data }),
+    confirmReview: (id, outcome) =>
+      request(`/tailoring.php?action=confirm_review&id=${id}`, { method: 'POST', body: { outcome } }),
+    attachMeasurements: (id, set_id, reason) =>
+      request(`/tailoring.php?action=attach_measurements&id=${id}`, { method: 'POST', body: { set_id, reason } }),
+    handovers: (id) => request(`/tailoring.php?action=handovers&id=${id}`),
+    handoverSave: (id, data) => request(`/tailoring.php?action=handover_save&id=${id}`, { method: 'POST', body: data }),
+    handoverComplete: (id, hid, data) =>
+      request(`/tailoring.php?action=handover_complete&id=${id}&hid=${hid}`, { method: 'POST', body: data }),
+    document: (id, doc, ref) => request(`/tailoring.php?action=document&id=${id}&doc=${doc}${ref ? `&ref=${ref}` : ''}`),
+    list: (params = {}) => request(`/tailoring.php?action=list${qs(params)}`),
     get: (id) => request(`/tailoring.php?action=get&id=${id}`),
     tailors: () => request('/tailoring.php?action=tailors'),
     create: (data) => request('/tailoring.php?action=create', { method: 'POST', body: data }),
@@ -112,7 +196,8 @@ export const heritApi = {
 
   // Customers / CRM
   customers: {
-    list: () => request('/customers.php?action=list'),
+    list: (q) => request(`/customers.php?action=list${qs({ q })}`),
+    match: (phone, email) => request(`/customers.php?action=match${qs({ phone, email })}`),
     get: (id) => request(`/customers.php?action=get&id=${id}`),
     create: (data) => request('/customers.php?action=create', { method: 'POST', body: data }),
     update: (id, data) => request(`/customers.php?action=update&id=${id}`, { method: 'POST', body: data }),
