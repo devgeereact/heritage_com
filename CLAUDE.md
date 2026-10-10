@@ -1,230 +1,58 @@
-# CLAUDE.md — HeritOS (Herit Clothing)
+# CLAUDE.md: HeritOS (Herit Clothing)
 
-> **Project memory for Claude Code.** Read this fully before doing any work on this project.
-> This is a reusable template: copy it into each new project's repo root and fill in §1.
-> The full one-time setup steps live in the separate **PROJECT-SETUP-GUIDE**.
+> **Project memory for Claude Code.** Short by design: routing, safety and the facts needed every session. Everything else lives in [docs/](docs/README.md).
 
----
+@AGENTS.md
 
-## 1. Project-specific values — FILL THESE IN
+## Project
 
 | Item | Value |
 |---|---|
-| Project / repo | `devgeereact/heritage_com` |
-| Remote | `git@github.com:devgeereact/heritage_com.git` |
-| Product | **HeritOS** — Herit Clothing brand operations platform |
-| Domain | `heritclothing.com` |
-| Document root | `/home/<cpanel_user>/heritclothing.com` (confirm cPanel user) |
-| Database name | `heritage_com` |
-| Database user | `heritage_com` |
-| Database host | `localhost` |
-| Deploy branch | `main` |
-| FTP username | `heritage_com@heritclothing.com` |
-| OpenRouter model | `anthropic/claude-sonnet-4.6` (`OR_MODEL`) |
-| Base kit | Larkon React v2 (JS) — ecommerce admin, Vite + Bootstrap |
-| Seed login | `dev@heritclothing.com` (`super_admin`); set its password at import, see `php-api/README.md` |
+| Repo | `devgeereact/heritage_com` (`git@github.com:devgeereact/heritage_com.git`) |
+| Product | HeritOS, the operations app and website for Herit Clothing, a men's fashion and tailoring business in Lagos run by one owner |
+| Domain | `heritclothing.com`, served from the cPanel document root |
+| Hosting | Namecheap shared hosting (cPanel); DNS on Cloudflare |
+| Database | MySQL `heritage_com` on `localhost` (cPanel may prefix the name) |
+| Deploy branch | `main`: **pushing it deploys** |
+| FTP user | `heritage_com@heritclothing.com` (credentials only in GitHub secrets) |
+| Stack | React 19, Vite, Bootstrap 5 (Larkon React v2 JS kit); plain PHP endpoints in `php-api/`; MySQL |
+| AI | `ai.php` proxies OpenRouter; key and `OR_MODEL` only in server `config.php` |
+| Seed login | `dev@heritclothing.com` (`super_admin`); set its password at import, see [docs/OPERATIONS.md](docs/OPERATIONS.md#database-and-schema-files) |
 
----
+Owner decisions of 10 October 2026 (men's tailoring scope, amber accent on a Tesla-style layout, removal of invented website claims) are in [docs/PRODUCT.md](docs/PRODUCT.md#owner-decisions).
 
-## 2. Shared hosting infrastructure (same for every project on this account)
+## Golden rules
 
-| Item | Value |
+1. **Never commit `config.php` or any secret.** It is gitignored and lives only on the server. Only `config.sample.php` is committed.
+2. **React never touches MySQL.** Any data need means adding or extending a PHP endpoint (the `_lib.php` pattern: auth, prepared statements, JSON, audit) and calling it through `src/helpers/heritApi.js`.
+3. **Use the `API_BASE` pattern** from `src/context/constants.js`: development calls `https://heritclothing.com`, production uses relative paths. This means **local development reads and writes live production data**. Do not create, edit or delete records locally unless the change is meant for production. The live API answers a localhost origin only while `ALLOW_LOCALHOST_CORS` is on in the server `config.php`.
+4. **Pushing `main` deploys.** Work on a feature branch, push the branch, open a pull request. Never push, merge or rebase `main` without explicit authority. Start with `git pull --ff-only`.
+5. **Cloudflare records stay grey cloud (DNS only)** so cPanel can issue SSL.
+6. **Roles are enforced on the server** with `require_auth($roles)`. `src/helpers/roles.js` only hides UI; never trust the client.
+7. **No manual FTP of the build.** The deploy workflow uploads it.
+
+## Deploy truth
+
+- `.github/workflows/deploy.yml` builds `dist/`, copies **nine** PHP files into it (`_lib`, `api`, `auth`, `ai`, `products`, `customers`, `stats`, `tailoring`, `contact`) and FTP-uploads the lot to the document root.
+- The other **22** endpoints, `config.php`, `.htaccess` and every SQL import are done **by hand** in cPanel. A pull request that changes one of those endpoints must list it as a manual upload.
+- Deploy runs on Node 22 and repeats lint, PHP checks and the build before uploading; a failure stops the upload. Hand-uploaded endpoints that depend on new `_lib.php` functions go up after the deploy, never before.
+- Detail, schema import order and the release checklist: [docs/OPERATIONS.md](docs/OPERATIONS.md).
+
+## Where to look
+
+| Need | File |
 |---|---|
-| Hosting | Namecheap shared hosting (cPanel) |
-| cPanel account | `<cpanel_user>` |
-| Home directory | `/home/<cpanel_user>` |
-| Server IP | `<server_ip>` |
-| DNS provider | Cloudflare — records set to **DNS only (grey cloud)** |
-| FTP server | `<server_ip>` |
+| Doc index and source map | [docs/README.md](docs/README.md) |
+| Scope, decisions, journeys, priorities | [docs/PRODUCT.md](docs/PRODUCT.md) |
+| Runtime, API, routes, tables, integrations | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Design tokens and UI rules | [docs/DESIGN.md](docs/DESIGN.md) |
+| Setup, checks, deploy, recovery, troubleshooting | [docs/OPERATIONS.md](docs/OPERATIONS.md) |
+| Website copy, SEO, social drafts | [docs/CONTENT-AND-SOCIAL.md](docs/CONTENT-AND-SOCIAL.md) |
+| Phases, findings A01 to A24, status | [docs/ROADMAP.md](docs/ROADMAP.md) |
+| Current task and scope | [.agent/CURRENT-TASK.md](.agent/CURRENT-TASK.md) |
 
-> Credentials are NEVER stored in this repo. The DB password lives only in `config.php` on the server; FTP credentials live only in GitHub repo Secrets.
+## Claude-specific notes
 
----
-
-## 3. What this project is
-
-A **React (Vite) single-page app** hosted on Namecheap shared hosting (cPanel), served at the domain above. It reads/writes a **MySQL database** on the same server through a small **PHP API** (`api.php`). Deployment is **automatic**: pushing to the deploy branch triggers a GitHub Actions workflow that builds the app and uploads it via FTP.
-
----
-
-## 4. Architecture & data flow
-
-```
-Browser (React)
-   │  fetch() → JSON
-   ▼
-api.php  (PHP, on the server)
-   │  mysqli, host = localhost
-   ▼
-MySQL database (cPanel)
-```
-
-- **React runs in the browser and NEVER connects to MySQL directly.** It only calls `api.php` over HTTP and receives JSON.
-- `api.php` is the only thing that touches the database, using credentials from `config.php`.
-- The React build (static files) and the PHP files live together in the document root.
-
----
-
-## 5. Tech stack
-
-- **Frontend:** React 19 + Vite (JavaScript)
-- **API:** PHP with `mysqli` + prepared statements, returns JSON
-- **Database:** MySQL (cPanel → phpMyAdmin)
-- **DNS:** Cloudflare (DNS only / grey cloud)
-- **CI/CD:** GitHub Actions → FTP deploy (`SamKirkland/FTP-Deploy-Action`)
-
----
-
-## 6. Key files & where they live
-
-**In the repo (version-controlled, auto-deployed on push):**
-- `src/` — React app source
-- `index.html`, `vite.config.js`, `package.json`, `package-lock.json` — Vite project
-- `.github/workflows/deploy.yml` — the auto-deploy workflow
-- `.gitignore` — must exclude `node_modules/`, `dist/`, and `config.php`
-
-**Placed on the server by hand (not uploaded by CI):**
-- `config.php` — DB credentials (never in the repo)
-- the `php-api/` endpoints that `deploy.yml` does not copy (see below)
-- `.htaccess` — SPA routing (`RewriteBase /`)
-
-Deploys upload the `dist/` build plus the nine PHP files that `.github/workflows/deploy.yml` copies into it (`_lib`, `api`, `auth`, `ai`, `products`, `customers`, `stats`, `tailoring`, `contact`). Every other `php-api/` endpoint, `config.php` and `.htaccess` is managed by hand on the server.
-
----
-
-## 7. Golden rules (do not break these)
-
-1. **Never commit `config.php` or any password.** It's gitignored. DB creds live only in `config.php` on the server.
-2. **React never connects to MySQL directly.** Any data need = add/extend a PHP endpoint, then `fetch` it.
-3. **Always use the `API_BASE` pattern** so dev and production both work:
-   ```js
-   // dev → hit the live API (CORS enabled in api.php); production → relative (same domain)
-   const API_BASE = import.meta.env.DEV ? "https://<domain.com>" : "";
-   fetch(`${API_BASE}/api.php`)
-   ```
-4. **Deploys upload `dist/` plus the nine PHP files listed in `deploy.yml`.** `config.php`, `.htaccess` and the remaining `php-api/` endpoints are managed by hand on the server.
-5. **Cloudflare records stay grey-cloud (DNS only)** so cPanel can issue SSL.
-6. **Don't manually FTP files.** `git push` is the deploy.
-
----
-
-## 8. Local development
-
-```bash
-npm install      # first time only
-npm run dev      # http://localhost:5112, hot reload (strictPort — fails loudly if taken)
-```
-`fetch` calls hit the live API at the project's domain (no PHP/MySQL on the laptop). Edit components in `src/`.
-
----
-
-## 9. Build & deploy
-
-- **Build:** `npm run build` → `dist/`.
-- **Deploy:** `git push` to the deploy branch. GitHub Actions runs `npm ci` → `npm run build` → FTP-uploads `dist/`. Watch the repo's **Actions** tab; live in ~1–2 minutes.
-
-Everyday loop:
-```bash
-git add . && git commit -m "..." && git push   # → live
-```
-
----
-
-## 10. Database & adding features
-
-- Managed in cPanel → phpMyAdmin, on the database named in §1.
-- To add a feature with data:
-  1. Create the table(s) in phpMyAdmin.
-  2. Add an endpoint in `api.php` — read `$_SERVER['REQUEST_METHOD']`, use **prepared statements**, `echo json_encode(...)`. For a separate resource, create another PHP file (e.g. `products.php`).
-  3. `fetch` it from React using `API_BASE`.
-- `api.php` begins with `require 'config.php';`, which provides `$conn` (a `mysqli` connection).
-
----
-
-## 11. Troubleshooting
-
-- **Site 404 / wrong content:** Cloudflare record may be orange-cloud (set grey) or wrong IP. Hard refresh / incognito for cache.
-- **`api.php` "Database connection failed":** wrong creds in `config.php`, or user lacks privileges.
-- **`api.php` errors on GET:** the queried table doesn't exist — create it in phpMyAdmin.
-- **Deploy red X:** open the Actions run; `npm ci` fail → commit `package-lock.json`; FTP auth fail → check the three Secrets match the FTP account.
-- **HTTPS warning:** SSL still issuing — use `http://` or run cPanel → SSL/TLS Status → Run AutoSSL.
-
----
-
-## 12. What NOT to do
-
-- Don't commit `config.php`, `node_modules/`, `dist/`, or any secret.
-- Don't write database connection code in React.
-- Don't manually FTP/upload the build — push instead.
-- Don't switch Cloudflare to orange-cloud without proper SSL setup.
-- Don't deploy into a subfolder — the site lives at the document root (`server-dir: ./`).
-
----
-
-## 13. HeritOS build notes (this project)
-
-**Spec:** `HeritOS.html` — 14 modules, 182 features (58 AI). It's the source of truth
-for what to build. Build order follows the kickoff brief §8.
-
-**Base kit:** Larkon React v2 (JS variant) transplanted into the repo root. Vite +
-React 19 + Bootstrap 5 + react-bootstrap. Prebuilt admin sections under
-`src/app/(admin)/` map onto HeritOS modules: products/attributes/category →
-Products & Variants · orders → Orders · inventory → Stock · customer → CRM ·
-seller + purchases → Suppliers · invoice → Payments · charts → Analytics ·
-apps (chat/email/calendar) → Comms/Scheduling · permissions/role/settings → Platform.
-
-**Server API (`php-api/`):** version-controlled here, deployed to the cPanel doc root
-partly by CI (nine files, see section 6) and otherwise by hand. One file per resource, all
-`require '_lib.php'` (CORS + JSON + auth + audit). `config.php` is server-only and
-gitignored — only `config.sample.php` is committed. Import `schema.sql` via phpMyAdmin.
-
-**React ↔ API:** real endpoints go through `src/helpers/heritApi.js` (native `fetch`,
-adds `Authorization: Bearer <token>`, uses `API_BASE` from `constants.js`). Larkon's
-bundled axios `fake-backend` only mocks `POST /login` with demo users, and no module calls axios.
-It now loads only in development (`src/App.jsx`), so it is not in the production bundle.
-
-**Auth:** `auth.php` issues a random token stored in `auth_tokens`; React keeps it in
-the `_LARKON_AUTH_KEY_` session cookie (Larkon's auth context). Roles enforced
-server-side via `require_auth($roles)` — never trust the client.
-
-**AI:** every AI feature calls `ai.php` (OpenRouter proxy, staff-only). Key + `OR_MODEL`
-live in `config.php`, never in the browser.
-
-**Status:** foundation done — kit transplanted, **amber-heritage brand**
-(`#262626` ink primary, `#F59E0B` amber accent, `#FFFBEB` cream surface · Source Serif 4
-+ Inter + IBM Plex Mono) across app + public site, real login. Built on Herit Clothing's
-established identity (amber gold, heritage browns) — amber is the one scarce accent
-("one amber thing per screen"); the "Tack Stitch" dashed-amber edge + warm heritage-brown
-shadow is the signature surface treatment. Dark mode = espresso surfaces (`#1C1A17`) with
-amber emphasis, cream text. See DESIGN-SYSTEM.md for tokens.
-Public storefront live (multi-page: Home/About/Shop/Product/Gifting/Contact).
-Live PHP modules (all 14 §8 modules now built): Dashboard, Products & Variants
-(catalogue), Orders (sales), Customers (CRM), Production & Tailoring, Enquiries,
-Inventory & Stock (stock.php), Suppliers & Purchasing (suppliers.php — POs that
-bump stock on receive), Payments & Finance (payments.php — money in/out, cash
-position), Analytics & Reports (analytics.php — read-only over live tables),
-Marketing & Social (marketing.php — campaign planner), Market Sales/POS
-(pos page → orders.php, channel=market), Content & Brand Studio (studio → ai.php),
-Online Store & Channels + Platform (settings.php — channel toggles, store config),
-Weather & Ops (weather.php — Lagos forecast via Open-Meteo, no key, turned into
-trading nudges: rain → push online + protect deliveries, hot → lightweight pieces),
-Team & Access (users.php — admin-only staff CRUD over the existing `users` table:
-add/invite, edit role+status, reset password, deactivate; guards against locking
-out the last super_admin; self password-change for any role). The Platform group
-now also has a real Permissions matrix (read-only, generated from roles.js so it
-can't drift from enforced access) and a real Profile page (own account + password
-change). The leftover Larkon Roles/Settings demo pages were dropped from the nav.
-Email (Inbox at /inbox): `mail.php` sends via SMTP (hand-rolled client, no
-Composer/PHPMailer; SSL 465 / STARTTLS 587 / AUTH LOGIN; PHP mail() fallback when
-SMTP_HOST blank) and `inbox.php` reads the mailbox over IMAP (PHP imap extension;
-list/get/mark-seen; clean 501 when unconfigured). SMTP_*/IMAP_* live in server
-config.php (mail host premium152.web-hosting.com, mailbox hello@heritclothing.com);
-`_lib.php`'s `cfg()` reads them whether they're $vars or define()d constants.
-Each endpoint follows the `_lib.php` pattern (auth + audit); React pages go through
-`heritApi`, role-gated in roles.js, listed in menu-items.js.
-**Deploy note:** upload the new php-api/*.php to the cPanel doc root by hand and
-import the new tables from schema.sql (deploys only push dist/). `users.php` needs
-no new table — `users` already ships in schema.sql. `mail.php`/`inbox.php` need no
-table either — add the SMTP/IMAP block to config.php (see config.sample.php).
-For DBs where the full schema.sql aborts on a stale legacy table, import
-`schema_modules.sql` instead — it creates only the later-module tables.
+- Production confidence is PARTIAL. A passing build is not proof that a workflow works; report runtime behaviour as NOT TESTED until staging exists.
+- Design work follows [docs/DESIGN.md](docs/DESIGN.md) only. The old "Tack Stitch" rule is retired.
+- Older docs (`docs/features.md`, `docs/nav-map.md`, `docs/seo-analytics.md`, `docs/brief.json`, both `HeritOS.html` files) are superseded. Do not plan from them.

@@ -5,7 +5,7 @@ project:
   risk: "production"
 
 gee_os:
-  minimum_version: "0.9.0"
+  minimum_version: "0.10.1"
   primary_mode: "EXISTING-APPLICATION"
   workflows:
     - "CHANGE-SAFETY"
@@ -17,7 +17,7 @@ gee_os:
 
 sources_of_truth:
   project_memory: "CLAUDE.md (short entry point)"
-  product_overview: "README.md"
+  product_overview: "docs/PRODUCT.md (README.md is the front page)"
   implementation: "source tree and package.json"
   detailed_documentation: "docs/ (PRODUCT, ARCHITECTURE, DESIGN, OPERATIONS, CONTENT-AND-SOCIAL, ROADMAP)"
   current_task: ".agent/CURRENT-TASK.md"

@@ -1,38 +1,24 @@
-# HeritOS — Herit Clothing brand operations platform
+# HeritOS: Herit Clothing
 
-The system behind [heritclothing.com](https://heritclothing.com): products and
-variants, orders across web and the Ajuwon Market floor, stock, customers,
-marketing and money — with a 2026 AI layer. Full feature spec in
-[`HeritOS.html`](HeritOS.html) (14 modules, 182 features).
+The app and website behind [heritclothing.com](https://heritclothing.com), for a men's fashion and tailoring business in Lagos run by one owner. It handles enquiries, clients, measurements, tailoring jobs, payments and the public site.
 
 ## Stack
 
-- **Frontend:** React 19 + Vite + Bootstrap 5 (Larkon admin kit), builds to `dist/`.
-- **API:** PHP + `mysqli` prepared statements, JSON. Source in [`php-api/`](php-api/).
-- **DB:** MySQL on cPanel (phpMyAdmin). Schema: [`php-api/schema.sql`](php-api/schema.sql).
-- **AI:** OpenRouter, server-side via `php-api/ai.php`.
-- **Deploy:** push to `main` → GitHub Actions builds and FTP-uploads `dist/`.
+- **Frontend:** React 19, Vite, Bootstrap 5 (Larkon admin kit), JavaScript. Builds to `dist/`.
+- **API:** plain PHP endpoints with `mysqli` prepared statements, returning JSON. Source in [`php-api/`](php-api/).
+- **Database:** MySQL on cPanel.
+- **Deploy:** merging to `main` runs GitHub Actions, which uploads the build and nine PHP files; the rest of the server files are uploaded by hand.
 
 ## Develop
 
 ```bash
-npm install
+npm ci
 npm run dev      # http://localhost:5112
 ```
 
-`fetch` calls to real endpoints hit the live API via `API_BASE` (see
-`src/context/constants.js`). Larkon's bundled mock backend serves demo data for
-modules not yet wired to PHP.
+Development talks to the live production API. Read [docs/OPERATIONS.md](docs/OPERATIONS.md) before changing any data.
 
-## Server setup (once, by hand)
+## Documentation
 
-See [`php-api/README.md`](php-api/README.md): create the DB, import `schema.sql`,
-copy `config.sample.php` → `config.php` with real credentials, upload the PHP
-files + `.htaccess` to the document root.
-
-Seed login: `dev@heritclothing.com` (`super_admin`). Set its password straight after
-importing `schema.sql`; see "Seed login" in [`php-api/README.md`](php-api/README.md).
-
-## Project memory
-
-[`CLAUDE.md`](CLAUDE.md) holds the architecture, golden rules, and build notes.
+- [docs/README.md](docs/README.md): index of product, architecture, design, operations, content and roadmap docs.
+- [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md): entry points for coding agents.

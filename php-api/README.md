@@ -1,9 +1,11 @@
 # HeritOS server files (`php-api/`)
 
-These PHP files and the SQL schema are **source-controlled here** but are **not
-auto-deployed**. The GitHub Actions workflow only uploads `dist/` (the React
-build). You place these on the server **by hand, once**, in the cPanel document
-root, exactly as the project's `CLAUDE.md` describes.
+These PHP files and the SQL schema are **source-controlled here**. Deployment is
+split: `.github/workflows/deploy.yml` uploads nine of them with every push to
+`main` (`_lib`, `api`, `auth`, `ai`, `products`, `customers`, `stats`,
+`tailoring`, `contact`). Every other endpoint, `config.php`, `.htaccess` and the
+SQL imports are placed by hand in the cPanel document root. The full procedure
+and upload order are in [docs/OPERATIONS.md](../docs/OPERATIONS.md).
 
 ## One-time server setup
 
@@ -58,5 +60,6 @@ UPDATE users SET password_hash = '<paste the hash>' WHERE email = 'dev@heritclot
 | `.htaccess` | SPA routing (`RewriteBase /`). |
 | `tests/run.php` | CLI tests for the pure helpers in `_lib.php`: `php php-api/tests/run.php`. Not deployed. |
 
-When deploying, upload **all** the `.php` files above to the document root, and
-re-import `schema.sql` (or just the new sections) so the new tables exist.
+When a change touches an endpoint outside the nine CI files, upload that file by
+hand after the deploy finishes, and import any new schema sections so new tables
+exist. List every manual upload in the pull request.
