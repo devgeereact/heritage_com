@@ -5,7 +5,7 @@ split: `.github/workflows/deploy.yml` uploads nine of them with every push to
 `main` (`_lib`, `api`, `auth`, `ai`, `products`, `customers`, `stats`,
 `tailoring`, `contact`). Every other endpoint, `config.php`, `.htaccess` and the
 SQL imports are placed by hand in the cPanel document root. The full procedure
-and upload order are in [docs/OPERATIONS.md](../docs/OPERATIONS.md).
+and upload order are in [docs/07-operations/DEPLOYMENT.md](../docs/07-operations/DEPLOYMENT.md).
 
 ## One-time server setup
 
@@ -17,7 +17,7 @@ and upload order are in [docs/OPERATIONS.md](../docs/OPERATIONS.md).
    and seeds the super-admin.
 3. **Create `config.php`** in the document root: copy `config.sample.php` to
    `config.php`, fill in the real DB credentials, `TOKEN_SECRET`, and (when
-   ready) `OPENROUTER_KEY`. **Never commit `config.php`** — it is gitignored.
+   ready) `OPENROUTER_KEY`. **Never commit `config.php`**; it is gitignored.
 4. **Upload** `_lib.php`, `api.php`, `auth.php`, `ai.php`, `.htaccess`, and your
    `config.php` to the document root via cPanel File Manager / FTP.
 
@@ -54,8 +54,8 @@ UPDATE users SET password_hash = '<paste the hash>' WHERE email = 'dev@heritclot
 | `api.php` | Smoke-test/default endpoint: `items` list (public) and insert (staff session). |
 | `auth.php` | Login / logout / me: issues and validates session tokens; throttles failed email and PIN logins. |
 | `ai.php` | OpenRouter proxy. Key stays server-side; staff-only. |
-| `tailoring.php` | Tailoring & Production — orders, stages, measurements (staff). |
-| `products.php` | Products & Variants — catalogue, size×colour matrix, stock (staff). |
+| `tailoring.php` | Tailoring & Production: orders, stages, measurements (staff). |
+| `products.php` | Products & Variants: catalogue, size×colour matrix, stock (staff). |
 | `contact.php` | Public enquiry submit + staff inbox (list/status). |
 | `schema.sql` | All tables + seeds (foundation, tailoring, catalogue, enquiries). |
 | `.htaccess` | SPA routing (`RewriteBase /`). |

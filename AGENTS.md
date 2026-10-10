@@ -8,12 +8,27 @@ This existing project adopts the active shared GEE OS, minimum version 0.10.1. R
 2. `.agent/PROJECT.yml`, project routing and risk.
 3. `.agent/CURRENT-TASK.md`, current scope and evidence.
 4. `CLAUDE.md`, project essentials and golden rules.
-5. `docs/README.md`, then only the files under `docs/` the task needs: `PRODUCT.md`, `ARCHITECTURE.md`, `DESIGN.md`, `OPERATIONS.md`, `CONTENT-AND-SOCIAL.md`, `ROADMAP.md`.
+5. `docs/README.md`, then only the files under `docs/` the task needs (sources of truth below).
+
+## Project sources of truth
+
+- Context: `docs/00-foundation/PROJECT-CONTEXT.md`
+- Product: `docs/01-product/PRODUCT-SPEC.md`, with business rules, journeys, roles, website content (`CONTENT.md`) and social profiles (`SOCIAL.md`) beside it
+- Architecture and data: `docs/02-architecture/`
+- Design and accessibility: `docs/03-design/`
+- PWA behaviour: `docs/04-pwa/`
+- Security and permissions: `docs/05-security/`
+- Test strategy: `docs/06-quality/TEST-STRATEGY.md`; evidence: `qa/`
+- Operations: `docs/07-operations/`
+- Decisions and live status: `docs/08-change-management/DECISIONS.md` and `ROADMAP.md`
+- Release decision: `docs/09-release/RELEASE-REPORT.md`
+- Approved plan of record: `docs/Plans 2026/` (read-only; `docs/08-change-management/` wins where they differ)
+- Open issues and changes: `KNOWN-ISSUES.md`, `CHANGELOG.md`
 
 ## Commands
 
 - Install: `npm ci`
-- Staging: `npm run staging:setup` once, then `npm run staging:serve` (local API on 127.0.0.1:8088, synthetic data; see docs/OPERATIONS.md).
+- Staging: `npm run staging:setup` once, then `npm run staging:serve` (local API on 127.0.0.1:8088, synthetic data; see docs/07-operations/LOCAL-STAGING.md).
 - Develop: `npm run dev` (port 5112). Development calls the local staging API unless `VITE_API_BASE` says otherwise; never point it at production without the owner's agreement.
 - Build: `npm run build`
 - Lint: `npm run lint` (ESLint over JS/JSX; the JS/JSX config lands with `feat/plans-2026-phase1`, before which it matched only TS/TSX and linted nothing)

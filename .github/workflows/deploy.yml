@@ -41,7 +41,7 @@ jobs:
         # Only these nine files are deployed by CI; every other php-api/ endpoint
         # is still uploaded by hand. Do not add to this list until the live doc
         # root has been inventoried, because adding a file here overwrites the
-        # hand-managed copy on the server. See docs/OPERATIONS.md.
+        # hand-managed copy on the server. See docs/07-operations/DEPLOYMENT.md.
         run: |
           cp php-api/_lib.php       dist/
           cp php-api/api.php        dist/

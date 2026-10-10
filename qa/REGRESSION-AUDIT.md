@@ -12,6 +12,6 @@ Each material change, what it could break, and how it was checked. Strategy: [do
 | Local staging; dev no longer calls production (743d470, A01) | Development API target | Production builds stay same-origin | Staging smoke checks; build | PASS (API and build) | [FUNCTIONAL-AUDIT.md](FUNCTIONAL-AUDIT.md) |
 | Larkon demo routes removed (f976fa5, A18) | Admin routes and menu | Remaining kit pages `/apps/calendar`, `/settings`, `/review` | `npm run build` | PASS (build); navigation NOT TESTED in a browser | Build output |
 | Shop hidden behind `shop_enabled` (deef585) | Public navigation | Shop routes by direct URL | Source review | NOT TESTED in a browser | `settings.php`, `store.php` |
-| Documentation moved to the GEE OS hierarchy (this branch) | Links in docs and entry files | None at runtime | Relative-link check; `npm run build` | See the commit for results | `feat/docs-gee-os` |
+| Documentation moved to the GEE OS hierarchy (this branch) | Links in docs and entry files | None at runtime | Relative-link and anchor check over all Markdown; `npm run build` | PASS: 451 links, 0 broken; build exit 0 (10 Oct 2026) | `feat/docs-gee-os` |
 
 Record intentional changes separately from regressions. No regression has been reported so far.

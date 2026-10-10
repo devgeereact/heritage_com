@@ -37,6 +37,7 @@ Existing Application. Workflow: Change Safety for every change.
 
 - Per phase: `npm run build`, `php php-api/tests/run.php`, `php -l`, lint (if config applied), and end-to-end checks against local staging with synthetic records. Browser checks where tooling allows; otherwise NOT TESTED.
 - Completion: each PR lists manual uploads, schema imports and NOT TESTED items.
+- Record status in `docs/08-change-management/ROADMAP.md`, decisions in `DECISIONS.md`, evidence in `qa/`, open defects in `KNOWN-ISSUES.md`. Follow `docs/Plans 2026/` as the plan of record (owner instruction, 10 October 2026).
 
 ## Previous task
 

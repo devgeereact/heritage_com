@@ -18,9 +18,11 @@ npm run staging:serve   # local API on http://127.0.0.1:8088 (leave running)
 npm run dev             # http://localhost:5112, talking to the local staging API
 ```
 
-Development no longer talks to production. Read [docs/OPERATIONS.md](docs/OPERATIONS.md#local-staging) for staging details and before changing any live data.
+Development no longer talks to production. Read [docs/07-operations/LOCAL-STAGING.md](docs/07-operations/LOCAL-STAGING.md) for staging details and before changing any live data.
 
 ## Documentation
 
-- [docs/README.md](docs/README.md): index of product, architecture, design, operations, content and roadmap docs.
+- [docs/README.md](docs/README.md): index of the documentation, organised in the GEE OS hierarchy (`docs/00-foundation` to `docs/09-release`).
+- [docs/Plans 2026/](docs/Plans%202026/READ-ME-FIRST.md): the approved plan of record.
+- [qa/](qa/), [CHANGELOG.md](CHANGELOG.md) and [KNOWN-ISSUES.md](KNOWN-ISSUES.md): audit evidence, changes and open issues.
 - [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md): entry points for coding agents.
