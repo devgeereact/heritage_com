@@ -1,3 +1,5 @@
+> Plan of record approved 10 October 2026. Live status and any later decisions are in [docs/08-change-management/ROADMAP.md](../08-change-management/ROADMAP.md) and [DECISIONS.md](../08-change-management/DECISIONS.md); where they differ, those files win.
+
 # Herit Clothing: Plans 2026
 
 Prepared 10 October 2026. Baseline: main, d91951c. Status: PROPOSED, awaiting owner approval. Verification pass completed 10 October 2026 (see below). This folder is a planning package, not permission to implement or deploy.
