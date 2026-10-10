@@ -12,6 +12,7 @@ Added
 
 Changed
 
+- Quotes: acceptance moved from `quotes.php` into `quote_accept()` in `_jobs.php` so the portal can reuse it; behaviour unchanged (`e2e-phase2.sh` 48 of 48).
 - Mail: the SMTP client moved from `mail.php` into the shared include `_mail.php` with `mail_send_html()`, so other endpoints can send mail; `mail.php` is a thin endpoint over it and also audits failed sends. `_mail.php` is deployed by CI.
 
 ### `chore/cleanup-docs-sync` (no PR yet), 10 October 2026

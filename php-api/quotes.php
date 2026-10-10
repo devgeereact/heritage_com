@@ -106,9 +106,7 @@ function quote_write_items($qid, array $items) {
   }
 }
 
-function quote_lock($id) {
-  return db_row('SELECT * FROM quotes WHERE id = ? FOR UPDATE', 'i', (int)$id);
-}
+/* quote_lock() and quote_accept() live in _jobs.php (shared with the portal). */
 
 /* ---- LIST / GET ----------------------------------------------------------- */
 if ($action === 'list' && method() === 'GET') {
@@ -257,40 +255,7 @@ if ($action === 'accept' && method() === 'POST') {
   if (!in_array($channel, QUOTE_CHANNELS, true)) fail('Channel must be one of: ' . implode(', ', QUOTE_CHANNELS));
   $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 255) ?: null;
   $hash = (string)($b['content_hash'] ?? '');
-  $res = db_tx(function () use ($id, $channel, $note, $hash, $user) {
-    $q = quote_lock($id);
-    if (!$q) tx_fail('Quote not found', 404);
-    if ($q['status'] === 'accepted') return ['job_id' => (int)$q['job_id'], 'already' => true];
-    if ($q['status'] !== 'sent') tx_fail('Only the current sent version can be accepted (this one is ' . $q['status'] . ')', 409);
-    if ($q['valid_until'] !== null && $q['valid_until'] < lagos_today()) tx_fail('This quote expired on ' . $q['valid_until'] . '. Revise and send it again.', 409);
-    if (!hash_equals((string)$q['content_hash'], $hash)) tx_fail('The quote changed since you loaded it. Reload and check before accepting.', 409);
-    $jobId = $q['job_id'] ? (int)$q['job_id'] : null;
-    if (!$jobId && $q['enquiry_id']) {
-      $e = db_row('SELECT job_id FROM enquiries WHERE id = ?', 'i', (int)$q['enquiry_id']);
-      $jobId = $e && $e['job_id'] ? (int)$e['job_id'] : null;
-    }
-    if (!$jobId) tx_fail('Convert the enquiry to a job before accepting the quote');
-    $job = job_lock($jobId);
-    if (!$job) tx_fail('Job not found', 404);
-
-    db_exec("UPDATE quotes SET status = 'superseded' WHERE series_id = ? AND id <> ? AND status IN ('sent','accepted')", 'ii', (int)$q['series_id'], $id);
-    db_exec("UPDATE quotes SET status = 'accepted', accepted_at = UTC_TIMESTAMP(), accepted_channel = ?, acceptance_note = ?, accepted_recorded_by = ?, job_id = ?
-              WHERE id = ?", 'ssiii', $channel, $note, $user['id'], $jobId, $id);
-    if ($q['promised_date'] !== null) {
-      db_exec('UPDATE tailoring_orders SET price = ?, quote_id = ?, due_date = ?, lock_version = lock_version + 1 WHERE id = ?', 'sisi', $q['total'], $id, $q['promised_date'], $jobId);
-    } else {
-      db_exec('UPDATE tailoring_orders SET price = ?, quote_id = ?, lock_version = lock_version + 1 WHERE id = ?', 'sii', $q['total'], $id, $jobId);
-    }
-    if ($job['job_stage'] === 'quote') {
-      job_set_stage_tx($job, 'confirmed', $user['id'], 'Quote ' . quote_number($q['series_id'], $q['version']) . ' accepted', ['quote_id' => (int)$id]);
-    }
-    job_event($jobId, 'quote', null, 'Quote ' . quote_number($q['series_id'], $q['version']) . ' accepted (' . $channel . ')',
-      ['quote_id' => (int)$id, 'total' => $q['total'], 'money' => true], 0, $user['id']);
-    $enq = $q['enquiry_id'] ?: $job['enquiry_id'];
-    if ($enq) db_exec("UPDATE enquiries SET status = 'accepted' WHERE id = ? AND status <> 'closed'", 'i', (int)$enq);
-    job_recalc_money($jobId);
-    return ['job_id' => $jobId, 'already' => false];
-  });
+  $res = quote_accept($id, $channel, $note, $hash, (int)$user['id']);
   if (!$res['already']) audit($user['id'], 'quote_accept', 'quote', $id, ['channel' => $channel, 'job_id' => $res['job_id']]);
   json(quote_view(db_row('SELECT * FROM quotes WHERE id = ?', 'i', $id)) + ['job_id' => $res['job_id']]);
 }
