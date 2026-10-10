@@ -28,8 +28,6 @@ const LayoutProvider = ({
   };
   const [settings, setSettings] = useLocalStorage('__REBACK_NEXT_CONFIG__', INIT_STATE, override);
   const [offcanvasStates, setOffcanvasStates] = useState({
-    showThemeCustomizer: false,
-    showActivityStream: false,
     showBackdrop: false
   });
 
@@ -71,30 +69,6 @@ const LayoutProvider = ({
         size: newSize
       }
     });
-  };
-
-  // toggle theme customizer offcanvas
-  const toggleThemeCustomizer = () => {
-    setOffcanvasStates({
-      ...offcanvasStates,
-      showThemeCustomizer: !offcanvasStates.showThemeCustomizer
-    });
-  };
-
-  // toggle activity stream offcanvas
-  const toggleActivityStream = () => {
-    setOffcanvasStates({
-      ...offcanvasStates,
-      showActivityStream: !offcanvasStates.showActivityStream
-    });
-  };
-  const themeCustomizer = {
-    open: offcanvasStates.showThemeCustomizer,
-    toggle: toggleThemeCustomizer
-  };
-  const activityStream = {
-    open: offcanvasStates.showActivityStream,
-    toggle: toggleActivityStream
   };
 
   // toggle backdrop
@@ -165,8 +139,6 @@ const LayoutProvider = ({
       theme: changeMenuTheme,
       size: changeMenuSize
     },
-    themeCustomizer,
-    activityStream,
     toggleBackdrop,
     resetSettings
   }), [settings, offcanvasStates])}>
