@@ -1,6 +1,6 @@
 # User Journeys
 
-This file owns the step-by-step journeys and their acceptance criteria. Rules they rely on are in [BUSINESS-RULES.md](BUSINESS-RULES.md) and cited by ID. Screen-level navigation and states are in [UX-SPEC.md](../03-design/UX-SPEC.md). All journeys are approved direction (Plans 2026, owner approval 10 October 2026) and none is built in its target form yet; current status is in [ROADMAP.md](../08-change-management/ROADMAP.md).
+This file owns the step-by-step journeys and their acceptance criteria. Rules they rely on are in [BUSINESS-RULES.md](BUSINESS-RULES.md) and cited by ID. Screen-level navigation and states are in [UX-SPEC.md](UX-SPEC.md). All journeys are approved direction (Plans 2026, owner approval 10 October 2026) and none is built in its target form yet; current status is in [ROADMAP.md](ROADMAP.md).
 
 | ID | Person | Trigger | Successful outcome | Recovery path | Evidence |
 |---|---|---|---|---|---|
@@ -13,7 +13,7 @@ This file owns the step-by-step journeys and their acceptance criteria. Rules th
 | J-07 | Client, company contact | Wants to see or change a job | Verified private access to own records only | Expiry, logout, revocation, recovery through verified contact | Isolation test required |
 | J-08 | Owner, client | Message or completed job | Linked conversation and private feedback | Failed message shown as failed; manual fallback | Scenario test required |
 
-Every journey specifies loading, empty, success, validation error, service error, permission denied, offline and session-expired states as set out in [UX-SPEC.md](../03-design/UX-SPEC.md#required-states).
+Every journey specifies loading, empty, success, validation error, service error, permission denied, offline and session-expired states as set out in [UX-SPEC.md](UX-SPEC.md#required-states).
 
 ## J-01 Enquiry to delivery
 
@@ -84,7 +84,7 @@ Acceptance: a delivered job shows when and how it was handed over and whether an
 
 ## J-07 Customer access
 
-The access mechanism (reference plus verified contact channel, short-lived single-use link, generic responses) is specified in [AUTH-MODEL.md](../05-security/AUTH-MODEL.md#customers). What the customer can see and do once verified:
+The access mechanism (reference plus verified contact channel, short-lived single-use link, generic responses) is specified in [SECURITY.md](SECURITY.md#customers). What the customer can see and do once verified:
 
 - See only their own jobs, agreed dates, quotes, payment summaries, approved public progress, message thread, appointment requests and proposed profile changes. Measurements are restricted further by ownership. Identity documents and internal cost or profit notes never appear.
 - Send a message, ask to reschedule, request an address correction, propose measurements (BR-07) and give feedback. Changes after cutting follow BR-30; forbidden actions are listed in BR-31.
@@ -94,7 +94,7 @@ Acceptance: guessed references, wrong contact, expired links and swapped identif
 
 ## J-08 Communication and feedback
 
-A simple job-linked conversation thread with unread badges and clearly marked internal notes. WhatsApp and email buttons open the existing tools, and the owner saves a short summary to the job. Never promise automatic sync of personal WhatsApp or all external messages; if an integration is used, document which directions and message types it captures ([INTEGRATIONS.md](../02-architecture/INTEGRATIONS.md)). Message templates and their sending rules are in [NOTIFICATIONS-SPEC.md](../07-operations/NOTIFICATIONS-SPEC.md).
+A simple job-linked conversation thread with unread badges and clearly marked internal notes. WhatsApp and email buttons open the existing tools, and the owner saves a short summary to the job. Never promise automatic sync of personal WhatsApp or all external messages; if an integration is used, document which directions and message types it captures ([ARCHITECTURE.md](ARCHITECTURE.md#integrations)). Message templates and their sending rules are in [NOTIFICATIONS-SPEC.md](NOTIFICATIONS-SPEC.md).
 
 Feedback: optional rating, comment, permission to contact about a problem, a separate public-publication choice and optional photo consent (BR-33). Negative feedback stays private and can become a follow-up task.
 

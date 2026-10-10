@@ -5,7 +5,7 @@ This file owns personal-data handling: categories, purposes, retention, rights r
 ## Position
 
 - **Controller:** Herit Clothing, the owner's business in Lagos (Owner-confirmed 10 October 2026). Legal entity form, registration and contact details for the privacy notice: Unknown.
-- **Jurisdiction:** Nigeria. The Nigeria Data Protection Act and current NDPC guidance are the starting sources ([PROJECT-CONTEXT.md](../00-foundation/PROJECT-CONTEXT.md#external-references)). Do not import UK-only rules or assume a sole-trader exemption. Confirm registration and compliance duties against the real scale and categories of data before launch. Status: Unknown, review not done.
+- **Jurisdiction:** Nigeria. The Nigeria Data Protection Act and current NDPC guidance are the starting sources ([PRODUCT-SPEC.md](PRODUCT-SPEC.md#external-references)). Do not import UK-only rules or assume a sole-trader exemption. Confirm registration and compliance duties against the real scale and categories of data before launch. Status: Unknown, review not done.
 - Phone numbers, addresses, measurements, messages and photos are private client information. Measurements are personal data when tied to a person; they are not automatically medical data. Do not collect identity documents just to issue a reference.
 
 ## Data categories
@@ -28,14 +28,14 @@ Never keep everything for ever, and never promise immediate deletion of records 
 
 ## Privacy notice
 
-Prepare a short notice: who runs the business, what is collected and why, service providers, disclosures and transfers, retention, rights and contact. Choose lawful grounds for service records separately from marketing consent. Portfolio and review publication need separate permission, never bundled into order acceptance. Cookies and analytics: evaluate the actual position rather than assuming cookieless analytics needs no consent ([CONTENT.md](../01-product/CONTENT.md#analytics)).
+Prepare a short notice: who runs the business, what is collected and why, service providers, disclosures and transfers, retention, rights and contact. Choose lawful grounds for service records separately from marketing consent. Portfolio and review publication need separate permission, never bundled into order acceptance. Cookies and analytics: evaluate the actual position rather than assuming cookieless analytics needs no consent ([CONTENT.md](CONTENT.md#analytics)).
 
 ## Rights requests and incidents
 
 - A manual request workflow for access, correction and deletion, with identity verification and a logged decision. Remove or anonymise eligible data in the live database, exports and backup rotation, documenting lawful exceptions.
-- Keep an incident contact and checklist, and verify notification obligations if an incident occurs ([MONITORING.md](../07-operations/MONITORING.md)).
+- Keep an incident contact and checklist, and verify notification obligations if an incident occurs ([DEPLOYMENT.md](DEPLOYMENT.md#monitoring)).
 
 ## Processors and AI
 
-- Processors in use when configured: hosting provider, mail host, Meta (WhatsApp Cloud API), payment gateway, OpenRouter and image AI providers ([INTEGRATIONS.md](../02-architecture/INTEGRATIONS.md)).
+- Processors in use when configured: hosting provider, mail host, Meta (WhatsApp Cloud API), payment gateway, OpenRouter and image AI providers ([ARCHITECTURE.md](ARCHITECTURE.md#integrations)).
 - No private customer content goes to OpenRouter or image AI by default. If customer processing is ever approved, document the providers and international transfer arrangements first.

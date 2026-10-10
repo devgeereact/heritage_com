@@ -8,7 +8,7 @@ Status: drafts only. No account has been created, edited or published, and exist
 
 Use Herit Clothing consistently: men's fashion and tailoring in Lagos (Owner-confirmed 10 October 2026), with the real logo, owner and work photographs. Suggested handle `@heritclothing`, subject to availability and current ownership; alternative `@heritclothinglagos`. Keep the same stem across platforms where possible. Check existing profiles before creating anything, so no duplicates appear. Use an owner-controlled business email and a verified contact number; no credentials in CMS or docs.
 
-CMS settings store only public profile URLs. The website and quote and contact surfaces use them. A saved link grants the app no publishing authority ([INTEGRATIONS.md](../02-architecture/INTEGRATIONS.md)).
+CMS settings store only public profile URLs. The website and quote and contact surfaces use them. A saved link grants the app no publishing authority ([ARCHITECTURE.md](ARCHITECTURE.md#integrations)).
 
 ## Profile drafts
 
@@ -83,7 +83,7 @@ Launch structure: one announcements group only. Add a discussion group only if t
 
 ## Visual profile kit
 
-One logo crop tested in a circular avatar; one owner or workshop portrait; one horizontal banner; one vertical process-video cover; one simple project-caption style. Same typography, Herit amber accent and real fabric images as the website ([DESIGN-SYSTEM.md](../03-design/DESIGN-SYSTEM.md)). No platform-specific rebrands, AI portraits, repeated giant slogans or fake luxury badges.
+One logo crop tested in a circular avatar; one owner or workshop portrait; one horizontal banner; one vertical process-video cover; one simple project-caption style. Same typography, Herit amber accent and real fabric images as the website ([DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)). No platform-specific rebrands, AI portraits, repeated giant slogans or fake luxury badges.
 
 Crop assets to the current upload interface and check phone previews rather than freezing dimensions that may go out of date. Store reusable public source images in the existing asset structure, not one folder per platform. Client photos need explicit publication permission ([BR-33](BUSINESS-RULES.md)).
 

@@ -1,11 +1,12 @@
 # HeritOS server files (`php-api/`)
 
 These PHP files and the SQL schema are **source-controlled here**. Deployment is
-split: `.github/workflows/deploy.yml` uploads nine of them with every push to
-`main` (`_lib`, `api`, `auth`, `ai`, `products`, `customers`, `stats`,
-`tailoring`, `contact`). Every other endpoint, `config.php`, `.htaccess` and the
+split: `.github/workflows/deploy.yml` uploads the files it lists with every push
+to `main`: nine on `main` (`_lib`, `api`, `auth`, `ai`, `products`, `customers`,
+`stats`, `tailoring`, `contact`), plus seven on the Phase 2 branch (`_domain`,
+`_jobs`, `today`, `enquiries`, `measurements`, `quotes`, `ledger`). Every other endpoint, `config.php`, `.htaccess` and the
 SQL imports are placed by hand in the cPanel document root. The full procedure
-and upload order are in [docs/07-operations/DEPLOYMENT.md](../docs/07-operations/DEPLOYMENT.md).
+and upload order are in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md).
 
 ## One-time server setup
 
@@ -58,9 +59,10 @@ UPDATE users SET password_hash = '<paste the hash>' WHERE email = 'dev@heritclot
 | `products.php` | Products & Variants: catalogue, size×colour matrix, stock (staff). |
 | `contact.php` | Public enquiry submit + staff inbox (list/status). |
 | `schema.sql` | All tables + seeds (foundation, tailoring, catalogue, enquiries). |
-| `.htaccess` | SPA routing (`RewriteBase /`). |
+| `.htaccess` | SPA routing (`RewriteBase /`); refuses direct requests to `_*.php` and `config*.php`. |
 | `tests/run.php` | CLI tests for the pure helpers in `_lib.php`: `php php-api/tests/run.php`. Not deployed. |
 
-When a change touches an endpoint outside the nine CI files, upload that file by
-hand after the deploy finishes, and import any new schema sections so new tables
-exist. List every manual upload in the pull request.
+When a change touches an endpoint that `deploy.yml` does not copy, upload that
+file by hand in the order the pull request gives, and import any new schema files
+so new tables exist. List every manual upload in the pull request and in the
+owner-actions table of `docs/DEPLOYMENT.md`.

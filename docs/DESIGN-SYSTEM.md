@@ -1,10 +1,10 @@
 # Design System
 
-This is the single design contract for the HeritOS app and the public website. It owns principles, tokens and measured contrast, typography, spacing, surfaces, control styling, motion, the Tesla reference and every deviation from it. Screen behaviour, forms and navigation are in [UX-SPEC.md](UX-SPEC.md); keyboard, focus, touch-target, reduced-motion and test-width rules are in [ACCESSIBILITY.md](ACCESSIBILITY.md); copy and photography rules are in [CONTENT.md](../01-product/CONTENT.md).
+This is the single design contract for the HeritOS app and the public website. It owns principles, tokens and measured contrast, typography, spacing, surfaces, control styling, motion, the Tesla reference and every deviation from it. Screen behaviour, forms and navigation are in [UX-SPEC.md](UX-SPEC.md); keyboard, focus, touch-target, reduced-motion and test-width rules are in [ACCESSIBILITY.md](ACCESSIBILITY.md); copy and photography rules are in [CONTENT.md](CONTENT.md).
 
-The direction, approved by the owner on 10 October 2026 (D-002), is a restrained Tesla-style layout led by real photography, with Herit amber `#F59E0B` as the only accent. The code does not match this yet: the rebuild is Phase 4 of [ROADMAP.md](../08-change-management/ROADMAP.md). Until then this file describes the target and records what is implemented today.
+The direction, approved by the owner on 10 October 2026 (D-002), is a restrained Tesla-style layout led by real photography, with Herit amber `#F59E0B` as the only accent. The code does not match this yet: the rebuild is Phase 4 of [ROADMAP.md](ROADMAP.md). Until then this file describes the target and records what is implemented today.
 
-Contrast figures are calculated from token values with the WCAG formula on 10 October 2026. They are not measurements of rendered pages. Visual quality and cross-device behaviour are NOT TESTED until screenshots and device checks exist ([qa/UX-AUDIT.md](../../qa/UX-AUDIT.md)).
+Contrast figures are calculated from token values with the WCAG formula on 10 October 2026. They are not measurements of rendered pages. Visual quality and cross-device behaviour are NOT TESTED until screenshots and device checks exist ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
 
 ## Principles
 
@@ -64,7 +64,8 @@ Two separate token sets hold the same brand values and must merge into one layer
 
 - Public site: `src/app/(public)/site/site.css:10-41`, scoped under `.hc` (`--accent`, `--primary`, `--background`, `--font-*`, `--shadow-*`, radius `0.625rem`). Its header comment still describes an old "deep indigo, warm gold" palette; the values are amber and ink.
 - Admin: `src/assets/scss/config/_variables.scss` plus the `--herit-*` CSS variables in `src/assets/scss/heritos-admin.css`, loaded after `app.scss`.
-- PWA manifest: `background_color` `#FFFBEB` and `theme_color` `#262626` (`public/manifest.webmanifest:9-10`) still use the old cream and ink; update with the token merge.
+- PWA manifest and icons: `background_color` `#FFFFFF`, `theme_color` ink `#171A20`, and the needle H monogram (ink with amber crossbar) as favicon, Apple touch and PWA icons (commit f1e8960, K-03).
+- Phase 2 shared components in `src/components/herit/` (for example `PageHeader`, `StatusChip`, `LoadError`) use their own `--hd-*` custom properties in `herit-daily.css` (ink, muted, amber, divider, status colours), a third token set until the Phase 4 merge into one layer (A23).
 
 | Current token | Light | Dark | Target |
 |---|---|---|---|
@@ -129,11 +130,11 @@ IBM Plex Mono is loaded today for codes and kicker labels. It is not part of the
 ## Icon and image direction
 
 - Icons: one existing icon family, consistent stroke and size. Icons accompany labels for important tasks, never replace them.
-- Images: real garment and workshop photography only ([CONTENT.md](../01-product/CONTENT.md#photography)).
+- Images: real garment and workshop photography only ([CONTENT.md](CONTENT.md#photography)).
 
 ## What the Tesla reference contributes
 
-The reference came from `npx getdesign@latest add tesla` and is kept at [docs/Plans 2026/TESLA-DESIGN-REFERENCE.md](../Plans%202026/TESLA-DESIGN-REFERENCE.md) as reference material, not an active rule. It is an independently written style reference, not an official Tesla specification, and no Tesla assets are used. Values adopted:
+The reference came from `npx getdesign@latest add tesla` and is kept at [docs/Plans 2026/TESLA-DESIGN-REFERENCE.md](Plans%202026/TESLA-DESIGN-REFERENCE.md) as reference material, not an active rule. It is an independently written style reference, not an official Tesla specification, and no Tesla assets are used. Values adopted:
 
 - Neutral palette: white `#FFFFFF`, light ash `#F4F4F4`, carbon `#171A20`, graphite `#393C41`, pewter `#5C5E62`, pale silver `#D0D1D2`, silver fog `#8E8E8E`.
 - Photography-led public sections with near-zero decoration: no gradients, patterns or decorative shadows.

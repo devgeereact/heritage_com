@@ -1,6 +1,6 @@
 # Website Content
 
-This file owns what the public website says and shows: positioning, the claims being removed, site architecture and page plan, the company-order hook, copy and photography rules, and SEO, performance and analytics. Social profiles are in [SOCIAL.md](SOCIAL.md). How the CMS feeds the site is in [ARCHITECTURE.md](../02-architecture/ARCHITECTURE.md#cms-and-public-projection). Visual tokens are in [DESIGN-SYSTEM.md](../03-design/DESIGN-SYSTEM.md). Nothing here is published yet; the website rebuild is Phase 4 of [ROADMAP.md](../08-change-management/ROADMAP.md).
+This file owns what the public website says and shows: positioning, the claims being removed, site architecture and page plan, the company-order hook, copy and photography rules, and SEO, performance and analytics. Social profiles are in [SOCIAL.md](SOCIAL.md). How the CMS feeds the site is in [ARCHITECTURE.md](ARCHITECTURE.md#cms-and-public-projection). Visual tokens are in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Nothing here is published yet; the website rebuild is Phase 4 of [ROADMAP.md](ROADMAP.md).
 
 The public story is simple: a men's fashion and tailoring business in Lagos, run by its owner, showing real work and a clear order process.
 
@@ -57,15 +57,15 @@ Top navigation: Services, Our work, How it works, About, Contact. A clear Book a
 | Optional shop | Only real published stock; honest unavailable states | Catalogue, price, stock and fulfilment verified |
 | Optional Journal | Garment care, measuring and project stories | Time to maintain and genuine authorship |
 
-Current public routes are listed in [ARCHITECTURE.md](../02-architecture/ARCHITECTURE.md#route-inventory). Keep useful existing URLs; any rename needs redirects and checks of saved links, emails and customer references.
+Current public routes are listed in [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory). Keep useful existing URLs; any rename needs redirects and checks of saved links, emails and customer references.
 
 ## Company order hook
 
 - Draft: "A clear process for coordinated men's clothing."
 - Supporting text: "Share the garment type, number of pieces and required date. I will confirm whether the work fits my capacity, discuss a sample and measurement approach, and provide a written quote."
 - Action: "Send your company brief".
-- Form fields: company name, contact name, phone or email, garment type, approximate quantity, required date, material responsibility, short brief. Attachments come later and only with safe private storage ([SECURITY.md](../05-security/SECURITY.md#private-files-and-content-safety)).
-- The honeypot is now `website_url_confirm` and `company` is a real optional field stored on `enquiries` (A11, fixed on `feat/phase1b-staging`; needs `schema_phase17.sql` in production).
+- Form fields: company name, contact name, phone or email, garment type, approximate quantity, required date, material responsibility, short brief. Attachments come later and only with safe private storage ([SECURITY.md](SECURITY.md#private-files-and-content-safety)).
+- The honeypot is now `website_url_confirm` and `company` is a real optional field stored on `enquiries` (A11, fixed in PR #7; needs `schema_phase17.sql` in production).
 
 ## Copy rules
 
@@ -90,8 +90,8 @@ Current public routes are listed in [ARCHITECTURE.md](../02-architecture/ARCHITE
 - Truthful LocalBusiness and service structured data, using only verified public details. No self-serving review stars. Test metadata and structured data with provider tools.
 - Google can process JavaScript-generated data, but previews and crawlable content need verifying. Add static prerendering for a small set of marketing pages only if tests show the SPA approach falls short; no framework migration for SEO.
 - Images: responsive AVIF or WebP, explicit dimensions, an efficient hero, lazy-loaded work photos below the fold. No heavy charts or editors on the landing page. Measure initial public requests before removing dependencies.
-- Performance targets where field data exists: LCP 2.5s or less, INP 200ms or less, CLS 0.1 or less, at the 75th percentile. Before real traffic, record lab checks as lab evidence, not field passes ([qa/PERFORMANCE-AUDIT.md](../../qa/PERFORMANCE-AUDIT.md)). A slow-network enquiry or booking must stay clear and recoverable.
+- Performance targets where field data exists: LCP 2.5s or less, INP 200ms or less, CLS 0.1 or less, at the 75th percentile. Before real traffic, record lab checks as lab evidence, not field passes ([qa/PERFORMANCE-AUDIT.md](../qa/PERFORMANCE-AUDIT.md)). A slow-network enquiry or booking must stay clear and recoverable.
 
 ## Analytics
 
-The old plan chose Plausible and treated cookieless analytics as needing no consent. That is no longer assumed (D-017); evaluate the actual analytics and consent position under Nigerian rules ([DATA-PRIVACY.md](../05-security/DATA-PRIVACY.md)). Track enquiry source, relevant enquiries, appointments and accepted jobs, not follower growth alone. Never put client references in analytics URLs.
+The old plan chose Plausible and treated cookieless analytics as needing no consent. That is no longer assumed (D-017); evaluate the actual analytics and consent position under Nigerian rules ([DATA-PRIVACY.md](DATA-PRIVACY.md)). Track enquiry source, relevant enquiries, appointments and accepted jobs, not follower growth alone. Never put client references in analytics URLs.

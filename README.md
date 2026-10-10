@@ -7,7 +7,7 @@ The app and website behind [heritclothing.com](https://heritclothing.com), for a
 - **Frontend:** React 19, Vite, Bootstrap 5 (Larkon admin kit), JavaScript. Builds to `dist/`.
 - **API:** plain PHP endpoints with `mysqli` prepared statements, returning JSON. Source in [`php-api/`](php-api/).
 - **Database:** MySQL on cPanel.
-- **Deploy:** merging to `main` runs GitHub Actions, which uploads the build and nine PHP files; the rest of the server files are uploaded by hand.
+- **Deploy:** merging to `main` runs GitHub Actions, which uploads the build and the PHP files listed in `deploy.yml`; the rest of the server files are uploaded by hand ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
 ## Develop
 
@@ -18,11 +18,14 @@ npm run staging:serve   # local API on http://127.0.0.1:8088 (leave running)
 npm run dev             # http://localhost:5112, talking to the local staging API
 ```
 
-Development no longer talks to production. Read [docs/07-operations/LOCAL-STAGING.md](docs/07-operations/LOCAL-STAGING.md) for staging details and before changing any live data.
+Development no longer talks to production. Read [docs/LOCAL-STAGING.md](docs/LOCAL-STAGING.md) for staging details and before changing any live data.
+
+Checks: `npm run build`, `npm run lint`, `php php-api/tests/run.php`, `bash scripts/staging/e2e-phase2.sh` (against staging) and `node scripts/check-docs.mjs`.
 
 ## Documentation
 
-- [docs/README.md](docs/README.md): index of the documentation, organised in the GEE OS hierarchy (`docs/00-foundation` to `docs/09-release`).
+- [docs/README.md](docs/README.md): index of the flat documentation and which file owns each fact.
 - [docs/Plans 2026/](docs/Plans%202026/READ-ME-FIRST.md): the approved plan of record.
-- [qa/](qa/), [CHANGELOG.md](CHANGELOG.md) and [KNOWN-ISSUES.md](KNOWN-ISSUES.md): audit evidence, changes and open issues.
-- [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md): entry points for coding agents.
+- [docs/ROADMAP.md](docs/ROADMAP.md): what is built, what is next.
+- [qa/](qa/), [CHANGELOG.md](CHANGELOG.md) and [KNOWN-ISSUES.md](KNOWN-ISSUES.md): evidence, changes and open issues.
+- [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md): entry points for coding agents, including the rule that keeps these docs current.

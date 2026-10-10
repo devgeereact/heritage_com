@@ -1,10 +1,10 @@
 # Data Model
 
-This file owns the table and schema inventory, codes and references, the current state of measurements and payments, and the approved target record model with its rules. Schema import order and procedure are in [DEPLOYMENT.md](../07-operations/DEPLOYMENT.md#database-and-schema-files). Business rules the records enforce are in [BUSINESS-RULES.md](../01-product/BUSINESS-RULES.md). Retention and deletion are in [DATA-PRIVACY.md](../05-security/DATA-PRIVACY.md).
+This file owns the table and schema inventory, codes and references, the current state of measurements and payments, and the approved target record model with its rules. Schema import order and procedure are in [DEPLOYMENT.md](DEPLOYMENT.md#database-and-schema-files). Business rules the records enforce are in [BUSINESS-RULES.md](BUSINESS-RULES.md). Retention and deletion are in [DATA-PRIVACY.md](DATA-PRIVACY.md).
 
 ## Table inventory
 
-35 tables from the `CREATE TABLE` statements in `php-api/*.sql` (Verified 10 October 2026). This is the source inventory, not proof of what the live database contains. There is no appointments table.
+41 tables from the `CREATE TABLE` statements in `php-api/*.sql` on the Phase 2 branch (Verified 10 October 2026): 35 before Phase 2 plus six from `schema_phase19.sql` to `schema_phase22.sql`. This is the source inventory, not proof of what the live database contains. There is no appointments table yet (Phase 3).
 
 | Schema file | Creates | Also alters |
 |---|---|---|
@@ -26,20 +26,30 @@ This file owns the table and schema inventory, codes and references, the current
 | `schema_phase15.sql` | nps_responses | |
 | `schema_phase16.sql` | blog_posts, testimonials | |
 | `schema_phase17.sql` | | orders and tailoring_orders (`public_ref` CHAR(10), backfilled, UNIQUE), enquiries (`company`) |
+| `schema_phase18.sql` | | tailoring_orders, tailoring_events, customers, enquiries, settings defaults ([detail](#phase-2-tables-and-columns-schema_phase18-to-22)) |
+| `schema_phase19.sql` | measurement_templates, measurement_sets | tailoring_orders (snapshot columns) |
+| `schema_phase20.sql` | quotes, quote_items | |
+| `schema_phase21.sql` | job_payments | tailoring_orders (`deposit` mirrors `paid_total`) |
+| `schema_phase22.sql` | job_handovers | |
 
 ## Codes and references
 
-Implemented on `feat/phase1b-staging` (A06):
+Implemented in PR #7 (A06), with client references from PR #9:
 
 - Staff codes stay sequential and readable: retail `ORD-`, tailoring `HC-` and group `HCG-` come from `MAX(id)+1`. `insert_with_code()` in `_lib.php` retries with a fresh code when an insert hits a duplicate key (errno 1062), up to five times. store.php and orders.php share one `ORD-` sequence.
 - Customers use a separate random `public_ref`: 10 characters from `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (no 0/O or 1/I/L), generated with `random_int` and UNIQUE on `orders` and `tailoring_orders` (`_lib.php:589-603`). `assign_public_ref()` sets it after insert and skips quietly if `schema_phase17.sql` is not imported yet. Rows that existed before the import get a SQL `RAND()` backfill, which is weaker.
+- Clients get a readable `client_ref` such as `CL-00042` and quotes show as `Q-{series}-v{version}` (Phase 2 branch).
 - Where references are shown and how lookups work: [API-SPEC.md](API-SPEC.md#customer-lookups-and-references).
 
 ## Current state of sensitive records
 
-- Measurements: one mutable JSON field per customer and per job, with no history; the job copy syncs to the customer only when `sync_customer` is set (A10).
-- Deposits: a single total on `tailoring_orders`. On this branch the read, add, cap and write happen inside a transaction with `SELECT ... FOR UPDATE` (`tailoring.php:236-238`, A05); the cap and the missing ledger remain until Phase 2.
-- Scheduling: only `tailoring_orders.fitting_date DATE` (`schema_phase4.sql:12`), no time or duration (A08).
+On the Phase 2 branch (PR #9, Verified from source and the staging end-to-end script):
+
+- Measurements: dated, immutable measurement sets on editable templates with an explicit unit (`cm`, `in`, or `unknown` for imported legacy values). The owner approves each set; customer and tailor entries wait as pending. A job keeps a frozen snapshot of the set it used. The old JSON fields were imported once as `imported_unverified` (A10).
+- Payments: an append-only, signed `job_payments` ledger with unique request keys and reversal links; `tailoring_orders.paid_total` and `payment_state` are recalculated from it, and overpayment shows as credit rather than being capped (A05). Retail `payments` stay separate.
+- Scheduling: still only `tailoring_orders.fitting_date DATE` plus the new `event_date`, with no time or duration (A08, Phase 3).
+
+Before Phase 2 is imported on the live database, the older shape applies there: one mutable JSON measurement field per customer and job, and a single deposit total updated inside a transaction (PR #6).
 
 ## Target record model
 
@@ -47,7 +57,7 @@ Approved direction (Plans 2026, 04): one database, the current endpoints and API
 
 | Entity | Purpose and minimum contents | Sensitive fields | Retention | Relationships and invariants |
 |---|---|---|---|---|
-| Client | ID, readable reference, name, contact, preferences | Phone, email, address | [DATA-PRIVACY.md](../05-security/DATA-PRIVACY.md) | Many jobs and approved measurement sets; phone is not identity |
+| Client | ID, readable reference, name, contact, preferences | Phone, email, address | [DATA-PRIVACY.md](DATA-PRIVACY.md) | Many jobs and approved measurement sets; phone is not identity |
 | Company | Name, authorised contact, invoice information | Contact details | As client | Linked people and jobs only as needed; no multi-tenant engine |
 | Enquiry | Contact, service, brief, desired date, source, status, next follow-up | Contact details | Short expiry for abandoned enquiries (Proposed) | Optional client and converted job links; conversion idempotent |
 | Quote version | Work and items, amount and currency, terms, expiry, acceptance evidence | None beyond price | Financial evidence period | Job uses the accepted version; edits make a new version |
@@ -68,10 +78,10 @@ Owner of every entity: the business owner.
 
 - Database constraints for unique references and request IDs, foreign keys where practical, transactions for writes that belong together.
 - When two screens edit one record, a version or updated-at check returns a conflict and asks the owner to reload, rather than silently overwriting.
-- Status transitions are validated centrally on the server and exposed with consistent labels. Today, Jobs and customer tracking never duplicate stage logic ([BR-16](../01-product/BUSINESS-RULES.md)).
+- Status transitions are validated centrally on the server and exposed with consistent labels. Today, Jobs and customer tracking never duplicate stage logic ([BR-16](BUSINESS-RULES.md)).
 - Timestamps are stored unambiguously and displayed in Africa/Lagos. Money uses consistent decimal or minor-unit rules, never browser floats.
-- Migrations: versioned `php-api/schema_*.sql` files imported by hand; `CREATE TABLE IF NOT EXISTS` does not upgrade existing columns. Fixtures for staging come from `scripts/staging/seed.php` ([LOCAL-STAGING.md](../07-operations/LOCAL-STAGING.md)). Backup: [BACKUP-RECOVERY.md](../07-operations/BACKUP-RECOVERY.md).
-- Every row-level access rule must trace to a role or business rule ([PERMISSIONS.md](../05-security/PERMISSIONS.md)).
+- Migrations: versioned `php-api/schema_*.sql` files imported by hand; `CREATE TABLE IF NOT EXISTS` does not upgrade existing columns. Fixtures for staging come from `scripts/staging/seed.php` ([LOCAL-STAGING.md](LOCAL-STAGING.md)). Backup: [DEPLOYMENT.md](DEPLOYMENT.md#backup-and-recovery).
+- Every row-level access rule must trace to a role or business rule ([SECURITY.md](SECURITY.md#permissions)).
 
 ## Phase 2 tables and columns (schema_phase18 to 22)
 

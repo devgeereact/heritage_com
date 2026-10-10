@@ -1,18 +1,19 @@
 # API Specification
 
-This file owns the endpoint inventory, the server role gate on each file, the deploy route for each file, and the request conventions. Who may do what in business terms is in [PERMISSIONS.md](../05-security/PERMISSIONS.md); deploy procedure is in [DEPLOYMENT.md](../07-operations/DEPLOYMENT.md).
+This file owns the endpoint inventory, the server role gate on each file, the deploy route for each file, the request conventions, the per-action contracts added by each phase, and the settings keys. Who may do what in business terms is in [SECURITY.md](SECURITY.md#permissions); deploy procedure is in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Conventions
 
 - One PHP file per resource under `php-api/`, each `require '_lib.php'`. Operations are selected with `?action=` and the HTTP method; responses are JSON from `json()`, errors are `{"error": "..."}` with an HTTP status from `fail()` (`_lib.php:79-86`).
 - Auth: `Authorization: Bearer <token>` checked by `require_auth($roles)` (`_lib.php:119`). Staff tokens come from `auth.php`; customer tokens from `account.php`.
 - Input: JSON body through `body()`; prepared statements only.
-- Throttling: staff email and PIN login; customer login (`account.php:54`) and public tracking (`store.php:644`) since `feat/plans-2026-phase1` (A03). Limits are server settings ([DEPLOYMENT.md](../07-operations/DEPLOYMENT.md#server-configuration)).
-- Idempotency, pagination, rate limits beyond login, versioning, timeouts and retries: not defined per operation today. Payment and conversion idempotency are required by [BR-02 and BR-22](../01-product/BUSINESS-RULES.md). Per-action contracts are Unknown until each phase documents them here.
+- Throttling: staff email and PIN login; customer login and public tracking since PR #6 (A03). Limits are server settings ([DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
+- Idempotency: Phase 2 writes that must not repeat (enquiry conversion, measurement sets, quotes, ledger entries, handovers) take a `request_key`; a repeat returns the first result with `duplicate:true` ([BR-02 and BR-22](BUSINESS-RULES.md)). Job edits carry `lock_version` and answer 409 when stale.
+- Pagination, rate limits beyond login, versioning, timeouts and retries: not defined per operation. Each phase adds its action contracts to this file.
 
 ## Endpoint inventory
 
-32 top-level PHP files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main`; "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
+40 top-level PHP files on the Phase 2 branch: 35 endpoints, three shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (16 files on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
 
 | File | Purpose | Server gate (file level) | Deployed by |
 |---|---|---|---|
@@ -21,10 +22,17 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `auth.php` | Staff login, logout, me; email and PIN throttling | Login public; other actions any signed-in staff | CI |
 | `ai.php` | OpenRouter text proxy | Any signed-in staff (`ai.php:14`) | CI |
 | `products.php` | Catalogue, variants, stock | super_admin, admin, manager, editor, employee | CI |
-| `customers.php` | Clients (CRM) and customer measurements | super_admin, admin, manager, tailor, employee | CI |
+| `customers.php` | Clients: search, match, duplicate warning, measurement sets | super_admin, admin, manager, tailor, employee (`ROLES_CLIENTS`) | CI |
+| `_domain.php` | Pure Phase 2 rules: role groups, kobo money, stage transitions, request keys | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 2 branch) |
+| `_jobs.php` | Phase 2 database helpers: jobs, clients, measurement sets, ledger | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 2 branch) |
+| `today.php` | Daily worklist | Owner: super_admin, admin, manager | CI (Phase 2 branch) |
+| `enquiries.php` | Enquiry pipeline and conversion | super_admin, admin, manager, employee (convert owner only) | CI (Phase 2 branch) |
+| `measurements.php` | Templates and measurement sets | Workshop | CI (Phase 2 branch) |
+| `quotes.php` | Versioned quotes | Owner | CI (Phase 2 branch) |
+| `ledger.php` | Append-only job payment ledger | Owner | CI (Phase 2 branch) |
 | `stats.php` | Dashboard headline numbers in one call | super_admin, admin, manager, tailor, editor, employee | CI |
-| `tailoring.php` | Tailoring jobs, stages, measurements, deposits, groups | super_admin, admin, manager, tailor, employee | CI |
-| `contact.php` | Public enquiry submit plus staff enquiry inbox | Submit public; inbox super_admin, admin, manager, employee | CI |
+| `tailoring.php` | Jobs: stages, measurements, payments wrapper, groups, handovers, documents | Workshop: super_admin, admin, manager, tailor (employee removed on the Phase 2 branch, K-01) | CI |
+| `contact.php` | Public enquiry submit plus the older staff enquiry list | Submit public; inbox super_admin, admin, manager, employee | CI |
 | `account.php` | Customer self-service portal | Customer token | Manual |
 | `ai_image.php` | Text-to-image proxy | Any signed-in staff | Manual |
 | `analytics.php` | Read-only reports over live tables | super_admin, admin, manager | Manual |
@@ -40,7 +48,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `payments.php` | Money in and out, cash position | super_admin, admin, manager | Manual |
 | `referrals.php` | Referral codes and rewards | super_admin, admin, manager | Manual |
 | `reviews.php` | Reviews, ratings and photo moderation | super_admin, admin, manager, editor | Manual |
-| `settings.php` | Channel toggles and store configuration, including `shop_enabled` | super_admin, admin, manager | Manual |
+| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings | super_admin, admin, manager | Manual |
 | `stock.php` | Stock adjustments | super_admin, admin, manager, employee | Manual |
 | `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`) | Public | Manual |
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | super_admin, admin, manager | Manual |
@@ -50,7 +58,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `config.sample.php` | Template for server-only `config.php` | Not an endpoint | Never deployed |
 | `config.local.php` | Local staging config written by `scripts/staging/setup.sh`; gitignored | Not an endpoint | Never deployed |
 
-Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../../qa/FUNCTIONAL-AUDIT.md).
+Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
 
 ## Customer lookups and references
 
@@ -58,9 +66,11 @@ Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` 
 - The checkout confirmation, tracking page, customer portal and WhatsApp order confirmation show the public reference. Tailoring jobs carry one ready for Phase 3; no customer page shows it yet. Payment start and verification (`pay_init`, `pay_verify`) still use the staff code.
 - Code and reference formats are in [DATA-MODEL.md](DATA-MODEL.md#codes-and-references).
 
-Authorisation belongs at the trusted boundary, not only in the interface. Object-level ownership checks for customer and company access are the target in [AUTH-MODEL.md](../05-security/AUTH-MODEL.md).
+Authorisation belongs at the trusted boundary, not only in the interface. Object-level ownership checks for customer and company access are the target in [SECURITY.md](SECURITY.md#authentication).
 
-## Phase 2 daily records (branch `feat/phase2-daily-records`)
+## Phase 2 daily records
+
+Branch `feat/phase2-daily-records`, PR #9 (open).
 
 Verified on local staging, 10 October 2026: `scripts/staging/e2e-phase2.sh`, 48 checks passing. Every write takes a JSON body. Money in requests is a string such as `"45,000"` or `"45000.50"`, parsed to kobo on the server. Money in responses is a decimal string. New `DATETIME` columns hold UTC. "Today" is the Africa/Lagos date, computed in PHP. `request_key` is 16 to 64 characters of `[A-Za-z0-9_-]`; repeating a key returns the first result with `duplicate:true`. Owner roles are super_admin, admin and manager. Workshop roles are owner roles plus tailor. Tailors never receive money fields.
 

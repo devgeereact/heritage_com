@@ -1,6 +1,6 @@
 -- HeritOS: Phase 18 migration (Phase 2 daily records, part 1). Additive; safe to
 -- re-run. Import via phpMyAdmin AFTER schema_phase17.sql and BEFORE uploading
--- the Phase 2 PHP files (see docs/07-operations/DEPLOYMENT.md).
+-- the Phase 2 PHP files (see docs/DEPLOYMENT.md).
 --
 -- 1. Job stages: new job_stage column beside the legacy stage, controlled mapping,
 --    the three dates, quantity, money cache columns and lock_version.

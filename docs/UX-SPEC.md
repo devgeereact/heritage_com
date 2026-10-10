@@ -1,6 +1,6 @@
 # UX Specification
 
-This file owns navigation, the screen-by-screen purpose and primary action, required states, and the form, data and modal patterns. Journeys behind each screen are in [USER-JOURNEYS.md](../01-product/USER-JOURNEYS.md); visual tokens in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md); public page content in [CONTENT.md](../01-product/CONTENT.md). Everything here is approved direction (Plans 2026, owner approval 10 October 2026). The daily navigation is built on `feat/phase2-daily-records`; see "As built" below.
+This file owns navigation, the screen-by-screen purpose and primary action, required states, and the form, data and modal patterns. Journeys behind each screen are in [USER-JOURNEYS.md](USER-JOURNEYS.md); visual tokens in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md); public page content in [CONTENT.md](CONTENT.md). The target below is approved direction (Plans 2026, owner approval 10 October 2026). What exists in code is under [As built (Phase 2)](#as-built-phase-2).
 
 ## Daily navigation (app)
 
@@ -17,11 +17,13 @@ Core navigation: Today, Enquiries, Appointments, Clients, Jobs, Payments, Websit
 | Website | Services, portfolio, reviews, business details, optional Journal | Preview or publish | Unpublish | Draft, published, failed publish | Under More | Sidebar |
 | Settings | Business details, hours, availability defaults | Save | None | Saving, saved, failed | Under More | Separate from core items |
 
-Purpose and primary action for the seven core screens come from the approved plan. Secondary actions, the per-screen state lists and the Settings row are Proposed, derived from the journeys, and need the owner's review in Phase 2.
+Purpose and primary action for the seven core screens come from the approved plan. Secondary actions, the per-screen state lists and the Settings row are Proposed, derived from the journeys; the owner usability review of the built screens is still to run ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
 
 On a phone, show Today, Jobs, Appointments and More. The daily page answers "What do I need to do next?" without revenue charts or setup prompts. Desktop uses a predictable sidebar with a clear current location.
 
-### As built (Phase 2, `feat/phase2-daily-records`, 10 October 2026)
+### As built (Phase 2)
+
+Built on `feat/phase2-daily-records` (PR #9, open), 10 October 2026. Routes are registered in `src/routes/index.jsx`, the menu in `src/assets/data/menu-items.js`, the phone bar in `src/components/layout/BottomNav.jsx`, and access in `src/helpers/roles.js`.
 
 - **Sidebar (laptop, 992px and wider):** DAILY: Today `/today`, Enquiries `/enquiries`, Appointments `/appointments`, Clients `/clients`, Jobs `/jobs`, Payments `/payments`, Website (`/content` for now). SETTINGS: Settings `/settings`. A collapsed **More tools** group holds Reports `/reports` (the old dashboard), Finance, Catalogue, Orders, Market Sales, Inventory, Suppliers, Marketing, Brand Studio, Analytics, Re-engagement, Loyalty and Gifts, Coupons, Reviews, Inbox, WhatsApp, Weather and Ops, Team and Access, Permissions, Store and Channels, and Profile. Nothing was removed.
 - **Phone (below 992px):** bottom bar with Today, Jobs, Appointments and More. More opens a bottom sheet with Enquiries, Clients, Payments, Website, Settings, More tools (opens the sidebar) and Sign out. Items follow the role rules. The sidebar closes after navigating and no longer opens by itself.
@@ -34,11 +36,11 @@ On a phone, show Today, Jobs, Appointments and More. The daily page answers "Wha
 
 ## Public navigation
 
-Services, Our work, How it works, About, Contact, with a Book appointment button and a quieter Track your job link. The mobile menu shows both actions; navigation collapses to a menu below 768px. The header gains an opaque background whenever imagery would reduce text contrast. Page-by-page content: [CONTENT.md](../01-product/CONTENT.md#site-architecture).
+Services, Our work, How it works, About, Contact, with a Book appointment button and a quieter Track your job link. The mobile menu shows both actions; navigation collapses to a menu below 768px. The header gains an opaque background whenever imagery would reduce text contrast. Page-by-page content: [CONTENT.md](CONTENT.md#site-architecture).
 
 ## Required states
 
-Every screen and journey defines: loading; empty (one clear next step); success; validation error (inline plus summary, typed values kept); service error (plain message, Retry, technical detail in logs or console only); permission denied (plain message, no data leak); offline (writes blocked, see [OFFLINE-SPEC.md](../04-pwa/OFFLINE-SPEC.md)); session expired (sign in again without losing typed values where possible).
+Every screen and journey defines: loading; empty (one clear next step); success; validation error (inline plus summary, typed values kept); service error (plain message, Retry, technical detail in logs or console only); permission denied (plain message, no data leak); offline (writes blocked, see [ARCHITECTURE.md](ARCHITECTURE.md#offline-behaviour)); session expired (sign in again without losing typed values where possible).
 
 Key actions show saving and saved immediately; a failed form keeps what was typed; empty screens show one next step.
 
@@ -54,6 +56,6 @@ Persistent labels; help or example text below the field; required fields marked;
 
 ## Interface writing
 
-Sentence case, British and Nigerian spelling, Naira as `₦18,500`, and the other copy rules in [CONTENT.md](../01-product/CONTENT.md#copy-rules) apply inside the app as well.
+Sentence case, British and Nigerian spelling, Naira as `₦18,500`, and the other copy rules in [CONTENT.md](CONTENT.md#copy-rules) apply inside the app as well.
 
-Test comprehension, navigation, form recovery, session expiry and permission denial ([qa/UX-AUDIT.md](../../qa/UX-AUDIT.md)). Remove decorative complexity that competes with the user's next step.
+Test comprehension, navigation, form recovery, session expiry and permission denial ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)). Remove decorative complexity that competes with the user's next step.

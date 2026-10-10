@@ -1,6 +1,6 @@
 # Accessibility Audit
 
-Evidence for accessibility. Requirements: [docs/03-design/ACCESSIBILITY.md](../docs/03-design/ACCESSIBILITY.md).
+Evidence for accessibility. Requirements: [docs/ACCESSIBILITY.md](../docs/ACCESSIBILITY.md).
 
 ## Automated evidence
 
@@ -10,7 +10,7 @@ The GEE OS automated gate (`./scripts/project accessibility` writing `.agent/evi
 
 | Area | Method | Expected | Observed | Status | Evidence |
 |---|---|---|---|---|---|
-| Colour contrast of tokens | WCAG formula on token values | Text pairs at least 4.5:1, controls 3:1 | Table in DESIGN-SYSTEM.md | PARTIAL: calculated, not measured on rendered pages | [DESIGN-SYSTEM.md](../docs/03-design/DESIGN-SYSTEM.md#colour-and-contrast) |
+| Colour contrast of tokens | WCAG formula on token values | Text pairs at least 4.5:1, controls 3:1 | Table in DESIGN-SYSTEM.md | PARTIAL: calculated, not measured on rendered pages | [DESIGN-SYSTEM.md](../docs/DESIGN-SYSTEM.md#colour-and-contrast) |
 | Keyboard and focus | Manual | Complete operability and visible focus | Not run | NOT TESTED | None |
 | Reflow and 200% zoom | Manual at 320 to 1440px | No loss of content, no page overflow | Not run | NOT TESTED | None |
 | Touch targets | Manual | 44px preferred, 48px primary form controls | Not run | NOT TESTED | None |
