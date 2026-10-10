@@ -9,11 +9,12 @@
  *   POST ?action=create                  {customer_id | customer,phone,email,confirm_new, garment_type, ...}
  *   POST ?action=update&id=N             {lock_version, description, quantity, dates, next_action, ...}
  *   POST ?action=stage&id=N              {stage, note, force?, reason?} (new or legacy stage values)
- *   POST ?action=confirm_review&id=N     {outcome: ready}
+ *   POST ?action=confirm_review&id=N     {outcome: ready|handed_over}
  *   POST ?action=attach_measurements&id=N {set_id, reason?}
  *   POST ?action=measure&id=N            legacy form; now a measurement set
  *   POST ?action=pay&id=N                legacy form; now a ledger entry (see ledger.php)
  *   GET  ?action=document&id=N&doc=quote|invoice|receipt[&ref=]   printable data (owner roles)
+ *   GET  ?action=handovers&id=N, POST ?action=handover_save&id=N, POST ?action=handover_complete&id=N&hid=H
  *   POST ?action=assign|fitting|costs|remind&id=N   (unchanged contracts)
  *   GET  ?action=group_list | group_get&id=N, POST ?action=group_create
  *
@@ -27,6 +28,7 @@ cors();
 
 $GARMENTS = ['agbada', 'kaftan', 'senator', 'suit', 'shirt', 'trouser', 'other'];
 $FABRIC_SOURCES = ['client', 'herit', 'mixed'];
+const HANDOVER_CHECKLIST = ['garment_count', 'fit', 'finishing', 'packaging', 'accessories', 'instructions'];
 
 // K-01: employee was allowed here by the server but not by the app. Jobs are
 // for workshop roles only, matching the approved permissions.
@@ -163,8 +165,15 @@ if ($action === 'get' && method() === 'GET') {
   $next = JOB_TRANSITIONS[$order['job_stage']] ?? [];
   $order['allowed_next'] = array_values(array_filter($next, fn($s) => $s !== 'handed_over'));
   $order['has_approved_snapshot'] = !empty($order['measurement_snapshot_at']);
+  $order['handovers'] = array_map(fn($h) => handover_view($h, $isOwner), db_rows('SELECT * FROM job_handovers WHERE job_id = ? ORDER BY id', 'i', $id));
   if ($isOwner) {
     $order['money'] = money_view(job_money($id, $order['price']), $order['price'], $order['payment_state']);
+    $order['ledger'] = array_map('ledger_row_view', job_ledger($id));
+    $order['quotes'] = array_map(function ($q) {
+      return ['id' => (int)$q['id'], 'number' => quote_number($q['series_id'], $q['version']), 'version' => (int)$q['version'],
+              'status' => $q['status'], 'total' => $q['total'], 'sent_at' => $q['sent_at'], 'accepted_at' => $q['accepted_at']];
+    }, db_rows('SELECT id, series_id, version, status, total, sent_at, accepted_at FROM quotes WHERE job_id = ? OR (job_id IS NULL AND enquiry_id IS NOT NULL AND enquiry_id = ?) ORDER BY id DESC',
+               'ii', $id, (int)$order['enquiry_id']));
   }
   json($order);
 }
@@ -381,9 +390,24 @@ if ($action === 'confirm_review' && method() === 'POST') {
   json(['ok' => true, 'job_stage' => $row['job_stage'], 'stage_review' => (int)$row['stage_review'], 'lock_version' => (int)$row['lock_version']]);
 }
 
-function job_review_outcomes() { return ['ready']; }
+function job_review_outcomes() { return ['ready', 'handed_over']; }
 
+/* 'ready': still in the shop. 'handed_over': it was collected before Phase 2;
+ * a completed handover record is written for the remaining pieces, so the job
+ * still reaches handed_over only through a handover (with the balance kept). */
 function job_review_apply_tx(array $job, $outcome, $user, array $b) {
+  global $conn;
+  if ($outcome === 'handed_over') {
+    $remaining = max(1, (int)$job['quantity']) - (int)$job['handed_over_qty'];
+    $key = 'review-' . (int)$job['id'] . '-' . bin2hex(random_bytes(6));
+    $note = 'Confirmed collected (record from before Phase 2)';
+    db_exec("INSERT INTO job_handovers (job_id, method, status, quantity, request_key, recorded_by, evidence_note)
+             VALUES (?, 'collection', 'planned', ?, ?, ?, ?)", 'iisis', (int)$job['id'], $remaining, $key, $user['id'], $note);
+    $hid = (int)$conn->insert_id;
+    db_exec('UPDATE tailoring_orders SET stage_review = 0 WHERE id = ?', 'i', (int)$job['id']);
+    handover_complete_tx($job, $hid, ['evidence_note' => $note, 'received_by' => $b['received_by'] ?? null], $user);
+    return;
+  }
   db_exec('UPDATE tailoring_orders SET stage_review = 0, lock_version = lock_version + 1 WHERE id = ?', 'i', (int)$job['id']);
   job_event($job['id'], 'review', $job['job_stage'], 'Owner confirmed: still ready, not yet collected', ['outcome' => $outcome], 0, $user['id']);
 }
@@ -517,6 +541,124 @@ if ($action === 'document' && method() === 'GET') {
     $out['number'] = 'RCT-' . $entry['id'];
     $out['entry'] = $entry;
   }
+  json($out);
+}
+
+/* ---- DELIVERY AND COLLECTION -------------------------------------------- */
+
+function handover_view(array $h, $isOwner) {
+  foreach (['id', 'job_id', 'quantity', 'recorded_by'] as $k) if (isset($h[$k])) $h[$k] = (int)$h[$k];
+  $h['checklist'] = $h['checklist'] !== null ? json_decode($h['checklist'], true) : null;
+  unset($h['request_key']);
+  if (!$isOwner) unset($h['balance_at_handover']);
+  return $h;
+}
+
+/**
+ * Complete a handover under the job lock: snapshot the balance, recount the
+ * completed quantity and move the job to handed_over only when every piece is
+ * out. Returns [handed_over_qty, quantity, job_stage, balance_minor].
+ */
+function handover_complete_tx(array $job, $hid, array $b, $user) {
+  $t = job_money($job['id'], $job['price']);
+  $bal = minor_to_decimal($t['balance']);
+  $check = [];
+  foreach (HANDOVER_CHECKLIST as $k) if (array_key_exists($k, (array)($b['checklist'] ?? []))) $check[$k] = (bool)$b['checklist'][$k];
+  $cj = $check ? json_encode($check) : null;
+  $rb = mb_substr(trim((string)($b['received_by'] ?? '')), 0, 120) ?: null;
+  $ev = mb_substr(trim((string)($b['evidence_note'] ?? '')), 0, 255) ?: null;
+  db_exec("UPDATE job_handovers SET status = 'completed', completed_at = UTC_TIMESTAMP(), received_by = ?, evidence_note = ?,
+                  checklist = ?, balance_at_handover = ? WHERE id = ?", 'ssssi', $rb, $ev, $cj, $bal, (int)$hid);
+  $done = (int)db_row("SELECT COALESCE(SUM(quantity),0) AS q FROM job_handovers WHERE job_id = ? AND status = 'completed'", 'i', (int)$job['id'])['q'];
+  db_exec('UPDATE tailoring_orders SET handed_over_qty = ?, lock_version = lock_version + 1 WHERE id = ?', 'ii', $done, (int)$job['id']);
+  $qty = max(1, (int)$job['quantity']);
+  $stage = handover_stage_after($job['job_stage'], $qty, $done);
+  job_event($job['id'], 'handover', $job['job_stage'], "Handover completed: $done of $qty handed over" . ($t['balance'] > 0 ? ' (balance ₦' . number_format(intdiv($t['balance'], 100)) . ' outstanding)' : ''),
+    ['handover_id' => (int)$hid, 'handed_over_qty' => $done, 'quantity' => $qty, 'balance_at_handover' => $bal, 'money' => true], 1, $user['id']);
+  if ($stage === 'handed_over' && $job['job_stage'] !== 'handed_over') {
+    job_set_stage_tx($job, 'handed_over', $user['id'], 'All pieces handed over', ['handover_id' => (int)$hid]);
+  }
+  return [$done, $qty, $stage, $t['balance']];
+}
+
+/* GET ?action=handovers&id=N */
+if ($action === 'handovers' && method() === 'GET') {
+  if (!db_row('SELECT id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $id)) fail('Order not found', 404);
+  json(array_map(fn($h) => handover_view($h, $isOwner), db_rows('SELECT * FROM job_handovers WHERE job_id = ? ORDER BY id', 'i', $id)));
+}
+
+/* POST ?action=handover_save&id=N   {hid?, method, status?, planned_for, quantity, address, courier,
+ *                                     contact_name, contact_phone, tracking_url, request_key}
+ * Creates (request_key required) or updates a planned or dispatched handover. */
+if ($action === 'handover_save' && method() === 'POST') {
+  $b = body();
+  $hid = (int)($b['hid'] ?? 0);
+  $method = (string)($b['method'] ?? '');
+  if (!in_array($method, ['collection', 'delivery'], true)) fail('Method must be collection or delivery');
+  $status = (string)($b['status'] ?? 'planned');
+  if (!in_array($status, ['planned', 'dispatched', 'failed', 'cancelled'], true)) fail('Status must be planned, dispatched, failed or cancelled (use handover_complete to complete)');
+  $planned = null;
+  if (!empty($b['planned_for'])) { $planned = lagos_local_to_utc($b['planned_for']); if ($planned === null) fail('Invalid planned_for (use YYYY-MM-DDTHH:MM, Lagos time)'); }
+  $qty = filter_var($b['quantity'] ?? 1, FILTER_VALIDATE_INT);
+  if ($qty === false || $qty < 1) fail('Quantity must be a whole number from 1');
+  $url = trim((string)($b['tracking_url'] ?? ''));
+  if ($url !== '' && (!sanitize_url_ok($url, false) || stripos($url, 'https://') !== 0)) fail('Tracking link must start with https://');
+  $txt = fn($k, $max) => mb_substr(trim((string)($b[$k] ?? '')), 0, $max) ?: null;
+  $f = ['method' => $method, 'status' => $status, 'planned_for' => $planned, 'quantity' => $qty, 'address' => $txt('address', 2000),
+        'courier' => $txt('courier', 80), 'contact_name' => $txt('contact_name', 120), 'contact_phone' => $txt('contact_phone', 40),
+        'tracking_url' => $url ?: null];
+  $key = $hid ? null : body_request_key($b);
+
+  $outId = db_tx(function () use ($conn, $id, $hid, $f, $key, $user) {
+    $job = job_lock($id);
+    if (!$job) tx_fail('Order not found', 404);
+    if (in_array($job['job_stage'], ['quote', 'cancelled', 'handed_over'], true)) tx_fail('This job cannot be handed over at stage ' . JOB_STAGE_LABELS[$job['job_stage']], 409);
+    $remaining = max(1, (int)$job['quantity']) - (int)$job['handed_over_qty'];
+    if ($f['status'] !== 'cancelled' && $f['quantity'] > $remaining) tx_fail("Only $remaining piece(s) are left to hand over", 409);
+    if ($hid) {
+      $h = db_row('SELECT * FROM job_handovers WHERE id = ? AND job_id = ? FOR UPDATE', 'ii', $hid, $id);
+      if (!$h) tx_fail('Handover not found', 404);
+      if (!in_array($h['status'], ['planned', 'dispatched', 'failed'], true)) tx_fail('A ' . $h['status'] . ' handover cannot be changed', 409);
+      db_exec('UPDATE job_handovers SET method = ?, status = ?, planned_for = ?, quantity = ?, address = ?, courier = ?, contact_name = ?,
+                      contact_phone = ?, tracking_url = ? WHERE id = ?', 'sssisssssi',
+        $f['method'], $f['status'], $f['planned_for'], $f['quantity'], $f['address'], $f['courier'], $f['contact_name'], $f['contact_phone'], $f['tracking_url'], $hid);
+      return $hid;
+    }
+    if ($ex = db_row('SELECT id FROM job_handovers WHERE request_key = ?', 's', $key)) return (int)$ex['id'];
+    db_exec('INSERT INTO job_handovers (job_id, method, status, planned_for, quantity, address, courier, contact_name, contact_phone, tracking_url, request_key, recorded_by)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', 'isssissssssi',
+      $id, $f['method'], $f['status'], $f['planned_for'], $f['quantity'], $f['address'], $f['courier'], $f['contact_name'], $f['contact_phone'], $f['tracking_url'], $key, $user['id']);
+    $newId = (int)$conn->insert_id;
+    job_event($id, 'handover', $job['job_stage'], ucfirst($f['method']) . ' planned for ' . $f['quantity'] . ' piece(s)', ['handover_id' => $newId], 0, $user['id']);
+    return $newId;
+  });
+  audit($user['id'], 'tailoring_handover_save', 'tailoring_order', $id, ['handover_id' => $outId, 'status' => $status]);
+  json(handover_view(db_row('SELECT * FROM job_handovers WHERE id = ?', 'i', $outId), $isOwner), $hid ? 200 : 201);
+}
+
+/* POST ?action=handover_complete&id=N&hid=H  {received_by, evidence_note, checklist:{...}} */
+if ($action === 'handover_complete' && method() === 'POST') {
+  $b = body();
+  $hid = (int)($_GET['hid'] ?? ($b['hid'] ?? 0));
+  $res = db_tx(function () use ($id, $hid, $b, $user) {
+    $job = job_lock($id);
+    if (!$job) tx_fail('Order not found', 404);
+    $h = db_row('SELECT * FROM job_handovers WHERE id = ? AND job_id = ? FOR UPDATE', 'ii', $hid, $id);
+    if (!$h) tx_fail('Handover not found', 404);
+    if ($h['status'] === 'completed') return ['already' => true];
+    if ($h['status'] === 'cancelled') tx_fail('This handover was cancelled', 409);
+    $remaining = max(1, (int)$job['quantity']) - (int)$job['handed_over_qty'];
+    if ((int)$h['quantity'] > $remaining) tx_fail("Only $remaining piece(s) are left to hand over", 409);
+    [$done, $qty, $stage, $bal] = handover_complete_tx($job, $hid, $b, $user);
+    return ['already' => false, 'balance' => $bal];
+  });
+  $j = db_row('SELECT job_stage, quantity, handed_over_qty, lock_version FROM tailoring_orders WHERE id = ?', 'i', $id);
+  if (!$res['already']) audit($user['id'], 'tailoring_handover_complete', 'tailoring_order', $id, ['handover_id' => $hid]);
+  $out = ['handover' => handover_view(db_row('SELECT * FROM job_handovers WHERE id = ?', 'i', $hid), $isOwner),
+          'job_stage' => $j['job_stage'], 'handed_over_qty' => (int)$j['handed_over_qty'], 'quantity' => (int)$j['quantity'],
+          'progress' => (int)$j['handed_over_qty'] . ' of ' . (int)$j['quantity'] . ' handed over', 'lock_version' => (int)$j['lock_version'],
+          'already_completed' => $res['already']];
+  if ($isOwner && !$res['already'] && $res['balance'] > 0) $out['warning'] = 'Handed over with ₦' . number_format(intdiv($res['balance'], 100)) . ' still to pay';
   json($out);
 }
 
