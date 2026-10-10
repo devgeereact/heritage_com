@@ -11,7 +11,7 @@ Build the full Plans 2026 roadmap (owner instruction, 10 October 2026: "build ev
 | Docs hierarchy | `feat/docs-gee-os` (PR #8) | Done, open; flattened by the clean-up step |
 | Phase 2 daily records | `feat/phase2-daily-records` (PR #9) | Built, open; awaiting merge |
 | Clean-up and docs sync | `chore/cleanup-docs-sync` | Current: unused code and assets removed; docs flattened to the Standard application profile and brought up to date; docs-sync rule and CI docs check added |
-| Phase 3 appointments and customer portal | `feat/phase3-appointments-portal` | Next: availability settings, conflict-safe appointments, verified customer access over tailoring jobs, messages, change requests, feedback |
+| Phase 3 appointments and customer portal | `feat/phase3-appointments-portal` | Current. Backend done and committed (not pushed): `schema_phase23.sql` to `25`, `_mail.php`, `_portal.php`, `appointments.php`, `booking.php`, `access.php`, `portal.php`, `messages.php`, changes to `account.php`, `settings.php`, `tailoring.php`, `today.php`, `quotes.php`; 251 helper tests, `e2e-phase3.sh` 93 of 93, `e2e-phase2.sh` 48 of 48. Next: the frontend (Appointments page, availability settings, requests queue, Book page, two-step access form, portal job pages, messages tab, change requests and feedback moderation). NOT TESTED: screens, real email delivery, legacy flag off |
 | Phase 4 website | `feat/phase4-website` | Not started: one token layer, service and portfolio CMS, business settings, invented claims removed, booking and tracking pages, sitemap |
 | Phase 5 company orders | `feat/phase5-company-orders` | Not started: parent job with members, sample approval, partial handover, wearer privacy |
 
@@ -50,6 +50,7 @@ Existing Application. Workflow: Change Safety for every change.
 - Apply the tested JS/JSX ESLint config (A13).
 - Merge PRs #6 to #9 in order, with the owner actions listed in `docs/DEPLOYMENT.md`.
 - Approve or refuse the deletion candidates in `docs/ROADMAP.md`.
+- Phase 3: fill in availability in Settings, decide when to open public requests, confirm the proposed feedback consent wording, and choose when to switch off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021).
 
 ## Previous task
 

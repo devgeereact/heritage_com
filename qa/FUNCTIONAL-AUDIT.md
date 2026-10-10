@@ -60,6 +60,34 @@ Console: the only browser console error on every page, including the unchanged F
 
 NOT TESTED: decline, withdraw and revise of quotes in the browser (API covered by E4); refund and reversal in the browser (API covered by E7 and E8); partial handover in the browser (API covered by E12); session expiry; offline; screen readers; widths other than 390 and 1280; dark theme; real phones.
 
+
+## Phase 3 API checks on staging (10 October 2026)
+
+Branch `feat/phase3-appointments-portal`, backend only (no screens yet). Fresh `npm run staging:setup` (26 schema files, no errors, Phase 2 and 3 migrations replayed), then `bash scripts/staging/e2e-phase3.sh` twice: 93 of 93 PASS each time. `e2e-phase2.sh` 48 of 48 PASS on the same database; `php php-api/tests/run.php` 251 PASS; `php -l` 48 files PASS; `npm run build` exit 0.
+
+| Area | Checks | Result |
+|---|---|---|
+| Availability | Save and validate (50 minutes refused); ready per type | PASS |
+| Slots | 09:00 and 11:00 kept, 09:15 to 10:45 dropped around a 10:00 booking with a 15 minute buffer; booked names never shown | PASS |
+| Owner clash | 409 with `can_override` until a reason is given; reason stored | PASS |
+| Concurrency | Two parallel public requests for one slot: one 201, one 409, one row | PASS |
+| Holds, cancel, reschedule | Expired hold frees the slot with history; declined request frees it; reschedule keeps one from-and-to row and frees the old time | PASS |
+| Rules | Lunch break and evening 422 `outside_hours`; 40 days out 422 `too_far`; notice 422 `too_soon`; nothing stored | PASS |
+| All-day fitting | Job fitting date becomes an all-day appointment; timed slots unchanged | PASS |
+| Public switch off | Config `enabled:false`; slots and requests 503 | PASS |
+| Access start | Match, wrong contact, guessed reference and malformed reference give identical replies; decoys stored; code emailed (staging mail log); code and challenge never stored in plain text | PASS |
+| Access verify | Wrong code 5 times then the right one refused; reused, expired and unknown give the one generic 400; token stored only as sha256 | PASS |
+| Throttles | Sixth start for one reference and eleventh from one IP answer 429 | PASS |
+| Owner invite | Client without email waits for the owner; invite link single use | PASS |
+| Isolation | Client A asking for B's job, messages, change requests, feedback or appointment gets the missing-record 404; A's lists and measurements hold only A's records; a client token cannot reach staff endpoints | PASS |
+| Private fields | Portal job JSON has no costs, notes, staff code, tailor, lock version or unverified payment | PASS |
+| Messages | Internal note absent from the portal; repeated request key stores one message; HTML kept as text; Today and unread counts | PASS |
+| Change requests | Address correction approved with a visible response; after cutting a measurement approval needs a price or date effect; proposal and approval leave the job snapshot unchanged | PASS |
+| Feedback | Refused before handover; consents and wording stored; low rating opens a follow-up; second feedback 409; publish refused without consent and allowed with it (hidden testimonial, first name) | PASS |
+| Sessions | Logout, owner revoke and expiry give 401; legacy login (flag on) issues a hashed session | PASS |
+
+Not covered: screens (not built), real email delivery, real WhatsApp sends, `ALLOW_LEGACY_ORDER_CODE_LOOKUP` switched off, and two devices in a browser.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

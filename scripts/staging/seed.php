@@ -9,6 +9,9 @@
  *   php scripts/staging/seed.php            base records (legacy-shaped, like live data)
  *   php scripts/staging/seed.php --phase2   Phase 2 extras, run by setup.sh after the
  *                                           Phase 2 migrations have been replayed
+ *   php scripts/staging/seed.php --phase3   Phase 3 extras: availability filled in for
+ *                                           STAGING ONLY (production starts empty), a few
+ *                                           appointments, messages and one change request
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
@@ -41,13 +44,18 @@ $sampleJobs = "SELECT id FROM tailoring_orders WHERE customer_id IN ($sample)";
 foreach (['job_payments' => "job_id IN (SELECT id FROM ($sampleJobs) AS j)",
           'job_handovers' => "job_id IN (SELECT id FROM ($sampleJobs) AS j)",
           'quotes' => "customer_id IN (SELECT id FROM ($sample) AS s)",
-          'measurement_sets' => "customer_id IN (SELECT id FROM ($sample) AS s)"] as $table => $cond) {
+          'measurement_sets' => "customer_id IN (SELECT id FROM ($sample) AS s)",
+          'appointments' => "customer_id IN (SELECT id FROM ($sample) AS s)",
+          'job_messages' => "customer_id IN (SELECT id FROM ($sample) AS s)",
+          'job_change_requests' => "customer_id IN (SELECT id FROM ($sample) AS s)",
+          'job_feedback' => "customer_id IN (SELECT id FROM ($sample) AS s)"] as $table => $cond) {
   if ($conn->query("SHOW TABLES LIKE '$table'")->num_rows) $conn->query("DELETE FROM $table WHERE $cond");
 }
 $conn->query("DELETE FROM tailoring_orders WHERE customer_id IN ($sample)");
 $conn->query("DELETE FROM customers WHERE id IN (SELECT id FROM ($sample) AS s)");
 
 if (in_array('--phase2', $argv, true)) { seed_phase2(); exit(0); }
+if (in_array('--phase3', $argv, true)) { seed_phase3(); exit(0); }
 
 // Already seeded (setup.sh --keep)? Leave the synthetic records alone.
 if (q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()) {
@@ -188,4 +196,59 @@ function seed_phase2() {
                'Synthetic: entered by a tailor, waiting for approval')", 'isi', $client[0], $today, $tailor);
   }
   echo "  Phase 2 extras: 2 enquiry follow-ups due, 1 unverified transfer, 1 pending measurement set\n";
+}
+
+/**
+ * Phase 3 extras. Availability values here are synthetic and exist ONLY on
+ * staging, so slots can be seen; the production database starts with no hours
+ * and therefore no public slots (owner decision, 10 October 2026). Idempotent.
+ */
+function seed_phase3() {
+  $avail = [
+    'weekly' => ['mon' => [['09:00', '13:00'], ['14:00', '18:00']], 'tue' => [['09:00', '13:00'], ['14:00', '18:00']],
+                 'wed' => [['09:00', '13:00'], ['14:00', '18:00']], 'thu' => [['09:00', '13:00'], ['14:00', '18:00']],
+                 'fri' => [['09:00', '13:00'], ['14:00', '18:00']], 'sat' => [['10:00', '14:00']], 'sun' => []],
+    'buffer_min' => 15, 'min_notice_hours' => 2, 'horizon_days' => 30, 'step_min' => 15,
+    'durations' => ['consultation' => 45, 'fitting' => 30, 'collection' => 30], 'request_hold_hours' => 48,
+  ];
+  q("INSERT INTO settings (skey, svalue) VALUES ('availability', ?) ON DUPLICATE KEY UPDATE svalue = VALUES(svalue)", 's', $j = json_encode($avail));
+  if (q("SELECT id FROM appointments WHERE request_key = 'seed-phase3-consult-01'")->get_result()->fetch_row()) {
+    echo "  Phase 3 extras already present (availability refreshed).\n";
+    return;
+  }
+  $lagos = new DateTimeZone('Africa/Lagos');
+  // Next weekday at least two days ahead, so seeded times stay inside the horizon.
+  $d = new DateTime('+2 days', $lagos);
+  while (in_array($d->format('D'), ['Sat', 'Sun'], true)) $d->modify('+1 day');
+  $day = $d->format('Y-m-d');
+  $utc = function ($ymd, $hm) use ($lagos) {
+    $t = new DateTime("$ymd $hm", $lagos);
+    $t->setTimezone(new DateTimeZone('UTC'));
+    return $t->format('Y-m-d H:i:s');
+  };
+  $admin = (int)q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()[0];
+  $c3 = q("SELECT id FROM customers WHERE name = 'Test Client 03'")->get_result()->fetch_row();
+  $j1 = q("SELECT o.id, o.customer_id FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id WHERE c.name = 'Test Client 01' ORDER BY o.id LIMIT 1")->get_result()->fetch_row();
+  $j2 = q("SELECT o.id, o.customer_id FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id WHERE c.name = 'Test Client 02' ORDER BY o.id LIMIT 1")->get_result()->fetch_row();
+
+  q("INSERT INTO appointments (type, status, starts_at, ends_at, buffer_min, customer_id, source, notes_internal, request_key, created_by)
+     VALUES ('consultation', 'confirmed', ?, ?, 15, ?, 'owner', 'Synthetic staging appointment', 'seed-phase3-consult-01', ?)",
+    'ssii', $utc($day, '15:00'), $utc($day, '15:45'), $c3 ? $c3[0] : null, $admin);
+  q("INSERT INTO appointment_events (appointment_id, to_status, to_starts_at, reason, actor_type, actor_id) VALUES (?, 'confirmed', ?, 'Seeded', 'owner', ?)",
+    'isi', $GLOBALS['conn']->insert_id, $utc($day, '15:00'), $admin);
+  if ($j1) {
+    q("INSERT INTO appointments (type, status, starts_at, ends_at, buffer_min, customer_id, job_id, source, hold_expires_at, contact_name, client_note, request_key)
+       VALUES ('fitting', 'requested', ?, ?, 15, ?, ?, 'portal', UTC_TIMESTAMP() + INTERVAL 48 HOUR, 'Test Client 01', 'Synthetic: mornings suit me', 'seed-phase3-fitting-01')",
+      'ssii', $utc($day, '16:30'), $utc($day, '17:00'), $j1[1], $j1[0]);
+    q("INSERT INTO job_messages (job_id, customer_id, author_type, visibility, channel, body, request_key)
+       VALUES (?, ?, 'customer', 'client', 'portal', 'Synthetic: could the sleeves be a little shorter?', 'seed-phase3-msg-01')", 'ii', $j1[0], $j1[1]);
+    q("INSERT INTO job_messages (job_id, customer_id, author_type, author_user_id, visibility, channel, body, read_by_owner_at, request_key)
+       VALUES (?, ?, 'owner', ?, 'internal', 'note', 'Synthetic internal note: check fabric stock first.', UTC_TIMESTAMP(), 'seed-phase3-msg-02')", 'iii', $j1[0], $j1[1], $admin);
+  }
+  if ($j2) {
+    q("INSERT INTO job_change_requests (job_id, customer_id, kind, payload, request_key)
+       VALUES (?, ?, 'address', ?, 'seed-phase3-change-01')", 'iis', $j2[0], $j2[1],
+      $p = json_encode(['details' => 'Synthetic: please deliver to my office', 'address' => 'Test Office 2, Lagos']));
+  }
+  echo "  Phase 3 extras: staging-only availability (Mon to Sat), 2 appointments on $day, 2 messages, 1 change request\n";
 }

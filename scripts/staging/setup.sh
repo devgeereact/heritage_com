@@ -12,10 +12,12 @@
 #      order, and reports any file that raised an error (import carries on).
 #   3. Runs scripts/staging/seed.php: synthetic staff, clients, jobs, orders,
 #      enquiries and blog posts. It prints the staging admin password once.
-#   4. Replays the Phase 2 migrations (schema_phase18.sql onwards) over the seeded
-#      legacy-shaped records. This exercises their backfills (stage mapping,
-#      imported measurements, opening ledger entries) and proves a second run is
-#      harmless, as the release checklist requires.
+#   4. Replays the Phase 2 and Phase 3 migrations (schema_phase18.sql onwards)
+#      over the seeded legacy-shaped records. This exercises their backfills
+#      (stage mapping, imported measurements, opening ledger entries, fitting
+#      dates to appointments) and proves a second run is harmless, as the release
+#      checklist requires. Then seed.php adds the Phase 2 and Phase 3 extras
+#      (Phase 3: staging-only availability, a few appointments and messages).
 #
 # The admin connection defaults to `mariadb` as the current OS user (unix socket).
 # Override with HERITOS_DB_ADMIN, for example: HERITOS_DB_ADMIN="mysql -u root -p".
@@ -85,6 +87,13 @@ define('TOKEN_TTL_DAYS', 14);
 define('CORS_ORIGIN', 'http://localhost:5112');
 define('ALLOW_LOCALHOST_CORS', true);
 define('ALLOW_LEGACY_ORDER_CODE_LOOKUP', true);
+define('SITE_URL', 'http://localhost:5112');
+
+// Staging only: access.php also writes each sign-in code to this local file so
+// scripts/staging/e2e-phase3.sh can read it. access.php ignores it unless the
+// staging router defined HERITOS_STAGING and HERITOS_ENV is 'staging'; the
+// production config.php never sets it.
+define('STAGING_ACCESS_CODE_LOG', '$LOG_DIR/access-codes.log');
 
 // Left blank so staging can never send real messages or take payments:
 // WhatsApp falls back to logged wa.me links, payments to manual mode, AI to
@@ -128,7 +137,7 @@ done
 echo "== Seeding synthetic records"
 php "$ROOT/scripts/staging/seed.php"
 
-echo "== Replaying Phase 2 migrations over the seeded records (idempotency check)"
+echo "== Replaying Phase 2 and 3 migrations over the seeded records (idempotency check)"
 for N in $(seq 18 99); do
   F="$API/schema_phase$N.sql"
   [ -f "$F" ] || continue
@@ -140,6 +149,7 @@ for N in $(seq 18 99); do
   fi
 done
 php "$ROOT/scripts/staging/seed.php" --phase2
+php "$ROOT/scripts/staging/seed.php" --phase3
 
 echo
 if [ "${#FAILED[@]}" -gt 0 ]; then
