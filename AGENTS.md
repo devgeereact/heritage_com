@@ -8,31 +8,42 @@ This existing project adopts the active shared GEE OS, minimum version 0.10.1. R
 2. `.agent/PROJECT.yml`, project routing and risk.
 3. `.agent/CURRENT-TASK.md`, current scope and evidence.
 4. `CLAUDE.md`, project essentials and golden rules.
-5. `docs/README.md`, then only the files under `docs/` the task needs (sources of truth below).
+5. `docs/ROADMAP.md`, `KNOWN-ISSUES.md` and the Unreleased part of `CHANGELOG.md`, so you know what is already done or in progress.
+6. `docs/README.md`, then only the files in `docs/` the task needs.
 
 ## Project sources of truth
 
-- Context: `docs/00-foundation/PROJECT-CONTEXT.md`
-- Product: `docs/01-product/PRODUCT-SPEC.md`, with business rules, journeys, roles, website content (`CONTENT.md`) and social profiles (`SOCIAL.md`) beside it
-- Architecture and data: `docs/02-architecture/`
-- Design and accessibility: `docs/03-design/`
-- PWA behaviour: `docs/04-pwa/`
-- Security and permissions: `docs/05-security/`
-- Test strategy: `docs/06-quality/TEST-STRATEGY.md`; evidence: `qa/`
-- Operations: `docs/07-operations/`
-- Decisions and live status: `docs/08-change-management/DECISIONS.md` and `ROADMAP.md`
-- Release decision: `docs/09-release/RELEASE-REPORT.md`
-- Approved plan of record: `docs/Plans 2026/` (read-only; `docs/08-change-management/` wins where they differ)
+Docs follow the GEE OS Standard application profile: flat `docs/*.md`, evidence in `qa/`. Each fact has one home; `docs/README.md` lists which file owns what.
+
+- Product, context, scope and roles: `docs/PRODUCT-SPEC.md`, with `BUSINESS-RULES.md`, `USER-JOURNEYS.md`, `CONTENT.md` (website) and `SOCIAL.md`
+- Architecture, integrations and PWA: `docs/ARCHITECTURE.md`; data: `docs/DATA-MODEL.md`; endpoints: `docs/API-SPEC.md`
+- Security, auth and permissions: `docs/SECURITY.md`; privacy: `docs/DATA-PRIVACY.md`
+- Design: `docs/DESIGN-SYSTEM.md`, `docs/UX-SPEC.md`, `docs/ACCESSIBILITY.md`
+- Tests: `docs/TEST-STRATEGY.md`; evidence and the launch checklist: `qa/`
+- Operations: `docs/DEPLOYMENT.md` (with backup and monitoring), `docs/LOCAL-STAGING.md`, `docs/NOTIFICATIONS-SPEC.md`
+- Live status and decisions: `docs/ROADMAP.md`, `docs/DECISIONS.md`
+- Approved plan of record: `docs/Plans 2026/` (read-only until the project ends; `ROADMAP.md` and `DECISIONS.md` win where they differ)
 - Open issues and changes: `KNOWN-ISSUES.md`, `CHANGELOG.md`
+
+## Keep the docs current
+
+Every agent follows `.claude/rules/docs-sync.md`. In short:
+
+- Before starting, read the files in step 5 of the read order and do not redo work they record as done.
+- In the same commit as any change, update the one doc that owns the changed fact, add a line under Unreleased in `CHANGELOG.md`, and move the status in `docs/ROADMAP.md` and `KNOWN-ISSUES.md` when a finding or issue changes.
+- When a task ends, update `.agent/CURRENT-TASK.md`.
+- Link to a fact instead of copying it. Plain British English, no em dashes.
+- `node scripts/check-docs.mjs` must pass; CI runs it.
 
 ## Commands
 
 - Install: `npm ci`
-- Staging: `npm run staging:setup` once, then `npm run staging:serve` (local API on 127.0.0.1:8088, synthetic data; see docs/07-operations/LOCAL-STAGING.md).
+- Staging: `npm run staging:setup` once, then `npm run staging:serve` (local API on 127.0.0.1:8088, synthetic data; see `docs/LOCAL-STAGING.md`).
 - Develop: `npm run dev` (port 5112). Development calls the local staging API unless `VITE_API_BASE` says otherwise; never point it at production without the owner's agreement.
 - Build: `npm run build`
-- Lint: `npm run lint` (ESLint over JS/JSX; the JS/JSX config lands with `feat/plans-2026-phase1`, before which it matched only TS/TSX and linted nothing)
-- Test: `php php-api/tests/run.php` (pure PHP helper checks); `php -l` on changed PHP files. No frontend test script yet.
+- Lint: `npm run lint` (exit 0, but the committed config matches only TS/TSX, so it lints no JS/JSX until the owner applies the tested config; finding A13)
+- Test: `php php-api/tests/run.php` (pure PHP helper checks); `php -l` on changed PHP files; `bash scripts/staging/e2e-phase2.sh` against local staging. No frontend test script yet.
+- Docs: `node scripts/check-docs.mjs`
 - Type check: none (JavaScript project)
 
 ## Shared rules
