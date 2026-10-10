@@ -3,6 +3,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
 import { useCatalogue, formatNgn } from './products';
 import { useBlog, useTestimonials } from './content';
+import { useShopEnabled } from './storeConfig';
 import {
   HeroSlider, CounterBand, Lookbook, ServicesCarousel,
   TeamCarousel, Testimonials, BrandStrip, JournalCarousel,
@@ -63,6 +64,17 @@ const services = [
   { icon: 'solar:gift-bold', title: 'Gifting', desc: 'Meaningful pieces with presentation that matches the meaning — gift notes included.', to: '/gifting', cta: 'Explore gifting' },
 ];
 
+// While the retail shop is hidden from navigation (settings.shop_enabled off),
+// shop and gifting calls to action point at enquiries and the story instead.
+const SHOP_OFF_PRIMARY = { primaryTo: '/contact', primaryLabel: 'Request a fitting', primaryIcon: 'solar:ruler-pen-bold' };
+const SHOP_OFF_SECONDARY = { secondaryTo: '/about', secondaryLabel: 'Our story', secondaryIcon: 'solar:play-circle-bold' };
+const isShopPath = (to) => to === '/shop' || to === '/gifting' || to === '/cart';
+const withoutShop = (slide) => ({
+  ...slide,
+  ...(isShopPath(slide.primaryTo) ? SHOP_OFF_PRIMARY : {}),
+  ...(isShopPath(slide.secondaryTo) ? SHOP_OFF_SECONDARY : {}),
+});
+
 const stats = [
   { value: 1200, suffix: '+', label: 'Pieces delivered' },
   { value: 18, suffix: '', label: 'Countries shipped to' },
@@ -79,6 +91,7 @@ const team = [
 
 const HomePage = () => {
   const { products } = useCatalogue();
+  const shopOn = useShopEnabled();
   const quotes = useTestimonials();      // live curated testimonials (fallback baked in)
   const journal = useBlog(6);            // live published journal posts (fallback baked in)
   // Lead with premium pieces, then the rest — real published catalogue.
@@ -100,7 +113,7 @@ const HomePage = () => {
     </div>
 
     {/* hero — multi-slide heritage canvas */}
-    <HeroSlider slides={heroSlides} />
+    <HeroSlider slides={shopOn ? heroSlides : heroSlides.map(withoutShop)} />
 
     {/* promise strip — 3-up value props */}
     <section className="hc-section">
@@ -159,12 +172,12 @@ const HomePage = () => {
     </section>
 
     {/* lookbook — live catalogue: real pieces, real prices, real product links */}
-    <Lookbook
+    {shopOn && <Lookbook
       kicker="The collection"
       title="Fresh off the cutting table."
       products={featured}
       formatNgn={formatNgn}
-    />
+    />}
 
     {/* stockist / press strip */}
     <BrandStrip
@@ -177,7 +190,7 @@ const HomePage = () => {
       kicker="What we offer"
       title="More than ready-to-wear."
       lead="From the rail to a full bespoke fitting — heritage cloth, however you want to wear it."
-      items={services}
+      items={shopOn ? services : services.filter((s) => !isShopPath(s.to))}
     />
 
     {/* animated stat counter */}
@@ -196,8 +209,8 @@ const HomePage = () => {
       kicker="Loved across Lagos & beyond"
       title="Worn with pride, worldwide."
       lead="Real words from customers in Lagos, London, Toronto and beyond — wearing heritage every day."
-      ctaTo="/shop"
-      ctaLabel="Shop the collection"
+      ctaTo={shopOn ? '/shop' : '/contact'}
+      ctaLabel={shopOn ? 'Shop the collection' : 'Talk to us'}
       quotes={quotes}
     />
 
@@ -217,9 +230,11 @@ const HomePage = () => {
         <p>Our pieces are made in limited runs. Join the family to hear first when the cutting
           table fills up, and get 10% off your first piece with code HERIT10.</p>
         <div className="hc-cta-actions">
-          <Link to="/shop" className="hc-btn hc-btn--light">
-            <IconifyIcon icon="solar:bag-4-bold" /> Shop the collection
-          </Link>
+          {shopOn && (
+            <Link to="/shop" className="hc-btn hc-btn--light">
+              <IconifyIcon icon="solar:bag-4-bold" /> Shop the collection
+            </Link>
+          )}
           <Link to="/contact" className="hc-btn hc-btn--onfill">
             <IconifyIcon icon="solar:letter-linear" /> Talk to us
           </Link>

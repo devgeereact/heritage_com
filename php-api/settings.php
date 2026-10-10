@@ -3,7 +3,7 @@
  * HeritOS — Platform settings. Key/value store for store config and the
  * channels the brand sells through (Online Store & Channels).
  *
- *   GET  /settings.php                      → { store_name, currency, free_ship_threshold, channels:{} }
+ *   GET  /settings.php                      → { store_name, currency, free_ship_threshold, channels:{}, shop_enabled }
  *   POST /settings.php  { ...keys }         → upsert any of the known keys
  *
  * Admins / managers only.
@@ -12,7 +12,9 @@ require __DIR__ . '/_lib.php';
 cors();
 
 $STAFF = ['super_admin', 'admin', 'manager'];
-$KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate', 'socials'];
+// shop_enabled: '1' shows the retail shop (Shop, Bag, Gifting) in public navigation;
+// anything else, or unset, hides it. The shop routes keep working by direct URL.
+$KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate', 'socials', 'shop_enabled'];
 // keys stored as JSON (object/array) rather than a plain string
 $JSON_KEYS = ['channels', 'socials'];
 

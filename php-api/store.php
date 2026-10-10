@@ -37,17 +37,20 @@ $NG_SHIP        = 4500;           // rest of Nigeria
 $action = $_GET['action'] ?? 'catalogue';
 
 /* ---- PUBLIC CONFIG ------------------------------------------------------- */
-/* Storefront-safe slice of platform settings — social links + store name —
+/* Storefront-safe slice of platform settings — social links, store name and
+ * whether the retail shop shows in public navigation —
  * so the public site (footer etc.) can show admin-set values without auth. */
 if ($action === 'config' && method() === 'GET') {
   $socials = [];
   $storeName = '';
-  $res = $conn->query("SELECT skey, svalue FROM settings WHERE skey IN ('socials','store_name')");
+  $shopEnabled = false;   // retail shop hidden from public navigation unless switched on
+  $res = $conn->query("SELECT skey, svalue FROM settings WHERE skey IN ('socials','store_name','shop_enabled')");
   while ($res && $row = $res->fetch_assoc()) {
     if ($row['skey'] === 'socials') { $d = json_decode($row['svalue'], true); if (is_array($d)) $socials = $d; }
     if ($row['skey'] === 'store_name') $storeName = (string)$row['svalue'];
+    if ($row['skey'] === 'shop_enabled') $shopEnabled = (string)$row['svalue'] === '1';
   }
-  json(['socials' => $socials, 'store_name' => $storeName]);
+  json(['socials' => $socials, 'store_name' => $storeName, 'shop_enabled' => $shopEnabled]);
 }
 
 /* ---- BLOG (Journal) ------------------------------------------------------ */

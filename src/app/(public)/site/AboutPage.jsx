@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
+import { useShopEnabled } from './storeConfig';
 import { CounterBand, ProcessSteps, TeamCarousel, Testimonials } from './sections';
 import { useTestimonials } from './content';
 
@@ -41,6 +42,7 @@ const team = [
 
 const AboutPage = () => {
   const quotes = useTestimonials();
+  const shopOn = useShopEnabled();
   return (
   <SiteLayout title="About">
     <section className="hc-pagehead">
@@ -170,8 +172,8 @@ const AboutPage = () => {
       kicker="In their words"
       title="Worn with pride, worldwide."
       lead="From Lagos to the diaspora, here’s what wearing Herit means to the people who do."
-      ctaTo="/shop"
-      ctaLabel="Shop the collection"
+      ctaTo={shopOn ? '/shop' : '/contact'}
+      ctaLabel={shopOn ? 'Shop the collection' : 'Talk to us'}
       quotes={quotes}
     />
 
@@ -183,7 +185,7 @@ const AboutPage = () => {
         <p>Building a loyal community around #WearYourHeritage, growing the online store, and
           expanding the collection while keeping every piece rooted and honest.</p>
         <div className="hc-cta-actions">
-          <Link to="/shop" className="hc-btn hc-btn--light"><IconifyIcon icon="solar:bag-4-bold" /> Shop the collection</Link>
+          {shopOn && <Link to="/shop" className="hc-btn hc-btn--light"><IconifyIcon icon="solar:bag-4-bold" /> Shop the collection</Link>}
           <Link to="/contact" className="hc-btn hc-btn--onfill"><IconifyIcon icon="solar:letter-linear" /> Get in touch</Link>
         </div>
       </div>

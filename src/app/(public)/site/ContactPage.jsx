@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import SiteLayout from './SiteLayout';
+import { useShopEnabled } from './storeConfig';
 import SiteContactForm from './SiteContactForm';
 
 const channels = [
@@ -41,7 +42,9 @@ const Faq = ({ q, a }) => {
   );
 };
 
-const ContactPage = () => (
+const ContactPage = () => {
+  const shopOn = useShopEnabled();
+  return (
   <SiteLayout title="Contact">
     <section className="hc-pagehead">
       <div className="hc-container">
@@ -148,12 +151,19 @@ const ContactPage = () => (
       <div className="hc-container hc-cta-band">
         <h2 className="hc-h2">Ready to wear your heritage?</h2>
         <div className="hc-cta-actions">
-          <Link to="/shop" className="hc-btn hc-btn--light"><IconifyIcon icon="solar:bag-4-bold" /> Shop the collection</Link>
-          <Link to="/gifting" className="hc-btn hc-btn--onfill"><IconifyIcon icon="solar:gift-linear" /> Explore gifting</Link>
+          {shopOn ? (
+            <>
+              <Link to="/shop" className="hc-btn hc-btn--light"><IconifyIcon icon="solar:bag-4-bold" /> Shop the collection</Link>
+              <Link to="/gifting" className="hc-btn hc-btn--onfill"><IconifyIcon icon="solar:gift-linear" /> Explore gifting</Link>
+            </>
+          ) : (
+            <Link to="/about" className="hc-btn hc-btn--light"><IconifyIcon icon="solar:book-bookmark-bold" /> Read our story</Link>
+          )}
         </div>
       </div>
     </section>
   </SiteLayout>
-);
+  );
+};
 
 export default ContactPage;

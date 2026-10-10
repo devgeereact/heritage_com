@@ -6,15 +6,17 @@ import { useAuthContext } from '@/context/useAuthContext';
 import { roleHome } from '@/helpers/roles';
 import { heritApi } from '@/helpers/heritApi';
 import { useCart } from './cart';
+import { useStoreConfig, useShopEnabled } from './storeConfig';
 import logoDark from '@/assets/images/logo-dark.svg';
 import logoLight from '@/assets/images/logo-light.svg';
 import './site.css';
 
+// `shop` items show only while the retail shop is switched on (settings.shop_enabled).
 const NAV = [
   { to: '/', label: 'Home' },
-  { to: '/shop', label: 'Shop' },
+  { to: '/shop', label: 'Shop', shop: true },
   { to: '/about', label: 'About' },
-  { to: '/gifting', label: 'Gifting' },
+  { to: '/gifting', label: 'Gifting', shop: true },
   { to: '/contact', label: 'Contact' },
 ];
 
@@ -30,17 +32,8 @@ const SOCIAL_DEFS = [
   { key: 'youtube', label: 'YouTube', icon: 'mdi:youtube', fallback: '' },
 ];
 
-let _socialsCache = null;
 const useSocials = () => {
-  const [socials, setSocials] = useState(_socialsCache);
-  useEffect(() => {
-    if (_socialsCache) return;
-    let live = true;
-    heritApi.store.config()
-      .then((cfg) => { if (live) { _socialsCache = cfg?.socials || {}; setSocials(_socialsCache); } })
-      .catch(() => { if (live) { _socialsCache = {}; setSocials({}); } });
-    return () => { live = false; };
-  }, []);
+  const socials = useStoreConfig()?.socials;
   // resolve: configured URL wins; else placeholder fallback (so the footer is
   // never empty before the backend is deployed / configured).
   return SOCIAL_DEFS
@@ -53,6 +46,7 @@ const SiteNav = () => {
   const { pathname } = useLocation();
   const { count } = useCart();
   const { isAuthenticated, user } = useAuthContext();
+  const shopOn = useShopEnabled();
   const dash = roleHome(user?.role);
   useEffect(() => { setOpen(false); }, [pathname]);
 
@@ -75,7 +69,7 @@ const SiteNav = () => {
         </button>
 
         <nav className={`hc-nav-links ${open ? 'is-open' : ''}`}>
-          {NAV.map((n) => (
+          {NAV.filter((n) => shopOn || !n.shop).map((n) => (
             <Link key={n.to} to={n.to} className={`hc-nav-link ${isActive(n.to) ? 'is-active' : ''}`}>
               {n.label}
             </Link>
@@ -84,11 +78,13 @@ const SiteNav = () => {
             <IconifyIcon icon="solar:user-circle-linear" />
             <span className="hc-nav-icon-label">Account</span>
           </Link>
-          <Link to="/cart" className="hc-nav-bag" aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
-            <IconifyIcon icon="solar:bag-4-bold" />
-            <span className="hc-nav-bag-label">Bag</span>
-            <span className="hc-nav-bag-count">{count}</span>
-          </Link>
+          {shopOn && (
+            <Link to="/cart" className="hc-nav-bag" aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
+              <IconifyIcon icon="solar:bag-4-bold" />
+              <span className="hc-nav-bag-label">Bag</span>
+              <span className="hc-nav-bag-count">{count}</span>
+            </Link>
+          )}
           {isAuthenticated ? (
             <Link to={dash} className="hc-nav-login hc-nav-login--in" aria-label="Go to dashboard">
               <IconifyIcon icon="solar:widget-5-bold" /> Dashboard
@@ -163,6 +159,7 @@ const NewsletterForm = () => {
 
 const SiteFooter = () => {
   const { isAuthenticated, user } = useAuthContext();
+  const shopOn = useShopEnabled();
   const socials = useSocials();
   const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   return (
@@ -209,14 +206,16 @@ const SiteFooter = () => {
           </ul>
         </div>
 
-        <nav className="hc-foot-links" aria-label="Shop">
-          <h6>Shop</h6>
-          <Link to="/shop">All pieces</Link>
-          <Link to="/shop?fabric=Ankara">Ankara</Link>
-          <Link to="/shop?fabric=Adire">Adire</Link>
-          <Link to="/shop?fabric=Aso-Oke">Aso-Oke</Link>
-          <Link to="/gifting">Gifting</Link>
-        </nav>
+        {shopOn && (
+          <nav className="hc-foot-links" aria-label="Shop">
+            <h6>Shop</h6>
+            <Link to="/shop">All pieces</Link>
+            <Link to="/shop?fabric=Ankara">Ankara</Link>
+            <Link to="/shop?fabric=Adire">Adire</Link>
+            <Link to="/shop?fabric=Aso-Oke">Aso-Oke</Link>
+            <Link to="/gifting">Gifting</Link>
+          </nav>
+        )}
 
         <nav className="hc-foot-links" aria-label="Company">
           <h6>Company</h6>
