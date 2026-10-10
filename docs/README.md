@@ -1,66 +1,165 @@
 # HeritOS documentation
 
-All substantive project documentation lives flat in this folder. Each fact has one home; other files link to it rather than repeat it. The owner approved this structure with the Plans 2026 package on 10 October 2026.
+Documentation follows the GEE OS Full Product hierarchy (GEE OS 0.10.1). Each fact has one home; other files link to it. The approved plan of record stays in [Plans 2026/](Plans%202026/READ-ME-FIRST.md); live status and later decisions are in [ROADMAP.md](08-change-management/ROADMAP.md) and [DECISIONS.md](08-change-management/DECISIONS.md), which win where they differ (D-012).
 
-## Where each fact lives
+## Index
 
-| File | Owns |
-|---|---|
-| [PRODUCT.md](PRODUCT.md) | Business scope, owner decisions with dates, services to confirm, daily navigation, journeys, feature priorities, what happens to each existing area, superseded old-plan decisions, remaining owner decisions |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime, PHP endpoint pattern, auth and roles, access and file-safety requirements, API, route and table inventories, data model target, integration boundaries, CMS-to-website links |
-| [DESIGN.md](DESIGN.md) | The design contract: tokens with measured contrast, type, spacing, controls, forms, status, navigation, motion, responsive checks, photography, Tesla reference and every deviation |
-| [OPERATIONS.md](OPERATIONS.md) | Hosting, local setup, checks, CI and deploy truth, server config settings, schema import, branches and machines, staging, release, rollback, backup, monitoring, launch verification matrix, privacy notes, troubleshooting |
-| [CONTENT-AND-SOCIAL.md](CONTENT-AND-SOCIAL.md) | Website positioning and page plan, claims being removed, copy and photography rules, SEO and performance, social profile drafts, publishing rhythm, moderation |
-| [ROADMAP.md](ROADMAP.md) | Phases 0 to 7 with evidence and status, findings A01 to A24 with status, owner usability review, release decision, baseline evidence, deletion candidates |
+| Folder | File | Owns |
+|---|---|---|
+| 00-foundation | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md) | Problem, confirmed business, boundaries, fact register, external references |
+| 01-product | [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md) | Promise, first-release proof, scope and priorities, requirements, services to confirm, fate of each existing area, open owner decisions |
+| | [BUSINESS-RULES.md](01-product/BUSINESS-RULES.md) | Canonical terms and rules BR-01 to BR-36 |
+| | [USER-JOURNEYS.md](01-product/USER-JOURNEYS.md) | Journeys J-01 to J-08 with acceptance |
+| | [USER-ROLES.md](01-product/USER-ROLES.md) | Who uses HeritOS and why |
+| | [CONTENT.md](01-product/CONTENT.md) | Website positioning, claims removed, site architecture, company hook, copy and photography rules, SEO, performance, analytics |
+| | [SOCIAL.md](01-product/SOCIAL.md) | Social profile drafts, visual kit, publishing rhythm, moderation, setup acceptance |
+| 02-architecture | [ARCHITECTURE.md](02-architecture/ARCHITECTURE.md) | Runtime, decision, endpoint pattern, routes, CMS projection, repository layout |
+| | [API-SPEC.md](02-architecture/API-SPEC.md) | Endpoint inventory, server role gates, deploy route, lookups |
+| | [DATA-MODEL.md](02-architecture/DATA-MODEL.md) | Tables and schemas, codes and references, target record model |
+| | [INTEGRATIONS.md](02-architecture/INTEGRATIONS.md) | External services and their boundaries |
+| 03-design | [DESIGN-SYSTEM.md](03-design/DESIGN-SYSTEM.md) | Tokens, contrast, type, spacing, motion, Tesla reference and deviations |
+| | [UX-SPEC.md](03-design/UX-SPEC.md) | Navigation, screens, required states, forms |
+| | [ACCESSIBILITY.md](03-design/ACCESSIBILITY.md) | Target, focus, touch targets, reduced motion, test widths |
+| 04-pwa | [PWA-SPEC.md](04-pwa/PWA-SPEC.md) | Manifest and service worker today |
+| | [OFFLINE-SPEC.md](04-pwa/OFFLINE-SPEC.md) | Offline behaviour; writes blocked offline |
+| | [SYNC-SPEC.md](04-pwa/SYNC-SPEC.md) | N/A: no background sync (D-016) |
+| | [UPDATE-STRATEGY.md](04-pwa/UPDATE-STRATEGY.md) | Cache versioning and update path |
+| 05-security | [SECURITY.md](05-security/SECURITY.md) | Threats, controls, private files and content safety |
+| | [AUTH-MODEL.md](05-security/AUTH-MODEL.md) | Staff and customer sign-in, target customer access, session hardening |
+| | [PERMISSIONS.md](05-security/PERMISSIONS.md) | Resource-by-role rules; client and server enforcement |
+| | [DATA-PRIVACY.md](05-security/DATA-PRIVACY.md) | Nigeria privacy position, data categories, retention, rights, AI |
+| 06-quality | [TEST-STRATEGY.md](06-quality/TEST-STRATEGY.md) | Commands and results, coverage plan, baseline audit record |
+| 07-operations | [DEPLOYMENT.md](07-operations/DEPLOYMENT.md) | Hosting, environments, CI and deploy, server config, schema import, branches, release, rollback, troubleshooting |
+| | [LOCAL-STAGING.md](07-operations/LOCAL-STAGING.md) | Local setup and local staging |
+| | [BACKUP-RECOVERY.md](07-operations/BACKUP-RECOVERY.md) | Backup targets, restore, runbook list |
+| | [MONITORING.md](07-operations/MONITORING.md) | Logs, uptime, review rhythm |
+| | [EMAIL-SPEC.md](07-operations/EMAIL-SPEC.md) | Sending and reading email |
+| | [NOTIFICATIONS-SPEC.md](07-operations/NOTIFICATIONS-SPEC.md) | Current WhatsApp sends and planned job templates |
+| 08-change-management | [DECISIONS.md](08-change-management/DECISIONS.md) | Dated decisions D-001 to D-019; removed files |
+| | [ROADMAP.md](08-change-management/ROADMAP.md) | Phases, findings A01 to A24 with status, deletion candidates |
+| 09-release | [LAUNCH-CHECKLIST.md](09-release/LAUNCH-CHECKLIST.md) | Launch verification matrix and checklist |
+| | [PRODUCTION-CHECK.md](09-release/PRODUCTION-CHECK.md) | Production checks around a release |
+| | [RELEASE-REPORT.md](09-release/RELEASE-REPORT.md) | Release decision and criteria |
+| Plans 2026 | [READ-ME-FIRST.md](Plans%202026/READ-ME-FIRST.md) and seven numbered files | Approved plan of record (read-only reference) |
 
-Outside this folder:
+Outside `docs/`:
 
 | File | Role |
 |---|---|
-| [../AGENTS.md](../AGENTS.md) | Shared agent entry: read order, commands, safety rules |
-| [../CLAUDE.md](../CLAUDE.md) | Claude Code project memory: essentials every session |
-| [../CODEX.md](../CODEX.md) | Codex adapter |
+| [../qa/](../qa/) | Audit evidence: functional, security, accessibility, performance, regression, UX, PWA |
+| [../CHANGELOG.md](../CHANGELOG.md) | Notable changes |
+| [../KNOWN-ISSUES.md](../KNOWN-ISSUES.md) | Open findings and issues |
+| [../AGENTS.md](../AGENTS.md), [../CLAUDE.md](../CLAUDE.md), [../CODEX.md](../CODEX.md) | Agent entry points |
 | [../README.md](../README.md) | Repository front page |
-| [../.agent/PROJECT.yml](../.agent/PROJECT.yml) | GEE OS routing and risk |
-| [../.agent/CURRENT-TASK.md](../.agent/CURRENT-TASK.md) | Current task contract and scope |
-| [../.agent/MCP-PROFILE.yml](../.agent/MCP-PROFILE.yml) | Integration authority |
-| [../scripts/staging/](../scripts/staging/) | Local staging: setup, seed, router and serve scripts ([OPERATIONS.md](OPERATIONS.md#local-staging)) |
-| [../.env.example](../.env.example) | Frontend environment variables (`VITE_API_BASE`) |
-| [../php-api/README.md](../php-api/README.md) | Server file notes. Its claim that no PHP is auto-deployed is stale (finding A19); [OPERATIONS.md](OPERATIONS.md#ci-and-deploy) is correct. |
+| [../.agent/PROJECT.yml](../.agent/PROJECT.yml), [../.agent/CURRENT-TASK.md](../.agent/CURRENT-TASK.md), [../.agent/MCP-PROFILE.yml](../.agent/MCP-PROFILE.yml) | GEE OS routing, current task, integration authority |
+| [../php-api/README.md](../php-api/README.md) | Server file notes |
+| [../scripts/staging/](../scripts/staging/) | Local staging scripts ([LOCAL-STAGING.md](07-operations/LOCAL-STAGING.md)) |
 | Source code | The evidence of what is built. Documentation is checked against it. |
 
 ## Confidence labels
 
 Statements carry one of four labels: **Verified** (checked in the repository, file and line cited), **Owner-confirmed** (stated by the owner, with the date), **Proposed** (agreed direction whose exact detail still needs the owner or a test), **Unknown** (needs the owner, the live server or a test). Runtime claims use PASS, FAIL, PARTIAL, NOT APPLICABLE, NOT TESTED or BLOCKED.
 
-## Superseded files
+## Sections marked N/A
 
-This file is superseded, kept for reference and a deletion candidate pending owner approval. It is not a live source for anything; do not act on it.
-
-| File | What it was | Replaced by |
-|---|---|---|
-| `GEE-OS.md` | GEE OS adoption note at version 0.9.0 with a provisional source map | This file and [../AGENTS.md](../AGENTS.md) |
-
-Deleted on 10 October 2026 with owner approval (still in Git history): `features.md`, `nav-map.md`, `seo-analytics.md`, `brief.json`, `HeritOS.html` and the root `../HeritOS.html`. They described a different stack (React with TypeScript, a Laravel API on a subdomain, eight roles, multicurrency, offline POS); their still-valid decisions live in [PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md) and [CONTENT-AND-SOCIAL.md](CONTENT-AND-SOCIAL.md).
-
-The root `DESIGN-SYSTEM.md` has been removed; [DESIGN.md](DESIGN.md) holds every fact from it that is still valid. The temporary `Plans 2026` folder was removed on 10 October 2026 after every section was mapped into these docs.
-
-## External references
-
-These informed the approved plan. They do not show that the app already meets them.
-
-| Source | Used for |
+| File | Reason |
 |---|---|
-| [getdesign registry](https://www.npmjs.com/package/getdesign?activeTab=code) | The Tesla style reference behind DESIGN.md |
-| [OWASP object-level authorisation](https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/) | Ownership checks on client, job, measurement and company records |
-| [OWASP authorisation](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html) | Consistent separation of owner, customer and company access |
-| [OWASP file upload](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html) | Private job photos and approved public images |
-| [OWASP REST security](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html) | Staging, session and error review |
-| [NDPC: Nigeria Data Protection Act](https://www.ndpc.gov.ng/ndp-act-2023/) and [NDPC FAQs](https://ndpc.gov.ng/faqs/) | Starting point for the Lagos privacy review; no compliance status asserted |
-| [ICO storage limitation](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/storage-limitation/) | Illustration of purpose-based retention only; not Nigerian authority |
-| [W3C reflow](https://www.w3.org/WAI/WCAG21/Understanding/reflow), [target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html), [animation from interactions](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html) | Responsive, touch-target and reduced-motion rules |
-| [Google Web Vitals](https://web.dev/articles/vitals) | LCP, INP and CLS targets |
-| [Google LocalBusiness data](https://developers.google.com/search/docs/appearance/structured-data/local-business) and [JavaScript structured data](https://developers.google.com/search/docs/appearance/structured-data/generate-structured-data-with-javascript) | Structured data and SPA metadata decisions |
-| [WhatsApp Business app](https://whatsappbusiness.com/products/business-app/), [Communities](https://faq.whatsapp.com/495856382464992), [privacy](https://faq.whatsapp.com/236979282604093) | Manual-first communication and optional Community |
-| [LinkedIn Page setup](https://www.linkedin.com/help/linkedin/answer/a543852/creating-a-linkedin-page) | Truthful company page draft |
-| [TikTok account types](https://support.tiktok.com/en/using-tiktok/growing-your-audience/switching-to-a-creator-or-business-account) | Business account and audio checks |
+| [04-pwa/SYNC-SPEC.md](04-pwa/SYNC-SPEC.md) | No offline queue or background sync; the approved plan keeps the PWA an offline shell and blocks writes offline (D-016) |
+
+Every other template section is filled; where a fact is not yet known it says Unknown or NOT TESTED rather than N/A.
+
+## Source map
+
+Where each section of the former flat files now lives (moved 10 October 2026, D-012).
+
+| Old file and section | New home |
+|---|---|
+| README.md: file table, confidence labels | This file |
+| README.md: superseded and deleted files | [DECISIONS.md](08-change-management/DECISIONS.md#files-removed-by-decision) |
+| README.md: external references | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md#external-references) |
+| GEE-OS.md: adoption note and source map | [DECISIONS.md](08-change-management/DECISIONS.md) D-019; this file |
+| PRODUCT.md: intro, confirmed business, product boundary | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md) |
+| PRODUCT.md: owner decisions | [DECISIONS.md](08-change-management/DECISIONS.md) D-001 to D-011, D-018 |
+| PRODUCT.md: services to confirm, feature priorities, each existing area, remaining owner decisions | [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md) |
+| PRODUCT.md: daily navigation | [UX-SPEC.md](03-design/UX-SPEC.md#daily-navigation-app) |
+| PRODUCT.md: journeys (steps and acceptance) | [USER-JOURNEYS.md](01-product/USER-JOURNEYS.md) |
+| PRODUCT.md: journey rules (measurements, appointments, stages, quotes, payments, company, feedback) | [BUSINESS-RULES.md](01-product/BUSINESS-RULES.md) |
+| PRODUCT.md: customer access mechanism | [AUTH-MODEL.md](05-security/AUTH-MODEL.md#customers) |
+| PRODUCT.md: communication templates | [NOTIFICATIONS-SPEC.md](07-operations/NOTIFICATIONS-SPEC.md) |
+| PRODUCT.md: superseded old-plan decisions | [DECISIONS.md](08-change-management/DECISIONS.md) D-017 |
+| ARCHITECTURE.md: runtime, endpoint pattern, route inventory, CMS to website links | [ARCHITECTURE.md](02-architecture/ARCHITECTURE.md) |
+| ARCHITECTURE.md: authentication and roles; access and session requirements | [AUTH-MODEL.md](05-security/AUTH-MODEL.md), [PERMISSIONS.md](05-security/PERMISSIONS.md), [USER-ROLES.md](01-product/USER-ROLES.md) |
+| ARCHITECTURE.md: private files and content safety | [SECURITY.md](05-security/SECURITY.md#private-files-and-content-safety) |
+| ARCHITECTURE.md: API inventory | [API-SPEC.md](02-architecture/API-SPEC.md) |
+| ARCHITECTURE.md: table inventory, codes and references, data model target | [DATA-MODEL.md](02-architecture/DATA-MODEL.md) |
+| ARCHITECTURE.md: integration boundaries | [INTEGRATIONS.md](02-architecture/INTEGRATIONS.md) |
+| DESIGN.md: principles, tokens, contrast, themes, typography, spacing, surfaces, motion, Tesla reference, deviations, history | [DESIGN-SYSTEM.md](03-design/DESIGN-SYSTEM.md) |
+| DESIGN.md: navigation, forms, status, data, modals | [UX-SPEC.md](03-design/UX-SPEC.md) |
+| DESIGN.md: controls (sizes, focus), responsive and accessibility checks, reduced motion | [ACCESSIBILITY.md](03-design/ACCESSIBILITY.md) |
+| DESIGN.md: writing in the interface; content and photography | [CONTENT.md](01-product/CONTENT.md) |
+| OPERATIONS.md: hosting, CI and deploy, server configuration, database and schema files, branches, environments, release checklist, rollback, troubleshooting | [DEPLOYMENT.md](07-operations/DEPLOYMENT.md) |
+| OPERATIONS.md: local setup, local staging | [LOCAL-STAGING.md](07-operations/LOCAL-STAGING.md) |
+| OPERATIONS.md: staging smoke-check results | [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md) |
+| OPERATIONS.md: checks table | [TEST-STRATEGY.md](06-quality/TEST-STRATEGY.md) |
+| OPERATIONS.md: backup and restore; runbook list | [BACKUP-RECOVERY.md](07-operations/BACKUP-RECOVERY.md) |
+| OPERATIONS.md: monitoring and incidents | [MONITORING.md](07-operations/MONITORING.md) |
+| OPERATIONS.md: launch verification matrix; post-release checks | [LAUNCH-CHECKLIST.md](09-release/LAUNCH-CHECKLIST.md), [PRODUCTION-CHECK.md](09-release/PRODUCTION-CHECK.md) |
+| OPERATIONS.md: privacy and Nigeria notes | [DATA-PRIVACY.md](05-security/DATA-PRIVACY.md) |
+| CONTENT-AND-SOCIAL.md: positioning, claims, site architecture, company hook, copy rules, photography, SEO and performance, analytics | [CONTENT.md](01-product/CONTENT.md) |
+| CONTENT-AND-SOCIAL.md: social identity, profiles, visual kit, publishing rhythm, conversion and moderation, setup acceptance | [SOCIAL.md](01-product/SOCIAL.md) |
+| ROADMAP.md: phases, batches, findings, deletion candidates | [ROADMAP.md](08-change-management/ROADMAP.md) |
+| ROADMAP.md: owner usability review | [qa/UX-AUDIT.md](../qa/UX-AUDIT.md) |
+| ROADMAP.md: release decision | [RELEASE-REPORT.md](09-release/RELEASE-REPORT.md) |
+| ROADMAP.md: baseline evidence | [TEST-STRATEGY.md](06-quality/TEST-STRATEGY.md#baseline-audit-record-10-october-2026) |
+
+## Plans 2026 coverage
+
+Every section of the plan of record has a live home. The plan itself is not edited, apart from the pointer at the top of READ-ME-FIRST.md.
+
+| Plan file: section | Live home |
+|---|---|
+| READ-ME-FIRST: recommendation | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md), [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md#product-promise) |
+| READ-ME-FIRST: confidence labels | This file |
+| READ-ME-FIRST: owner decisions; decisions to approve | [DECISIONS.md](08-change-management/DECISIONS.md) D-001 to D-011, D-018 |
+| READ-ME-FIRST: evidence in brief | [TEST-STRATEGY.md](06-quality/TEST-STRATEGY.md) |
+| 01: baseline and verdict | [ROADMAP.md](08-change-management/ROADMAP.md) |
+| 01: findings A01 to A24 | [ROADMAP.md](08-change-management/ROADMAP.md#findings) |
+| 01: keep, simplify or defer | [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md#what-happens-to-each-existing-area) |
+| 01: plan drift | [DECISIONS.md](08-change-management/DECISIONS.md) D-004, D-017 |
+| 01: immediate interpretation | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md#boundaries) |
+| 02: product boundary | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md#boundaries) |
+| 02: daily navigation | [UX-SPEC.md](03-design/UX-SPEC.md) |
+| 02: enquiry to delivery, clients and measurements, appointments, jobs and company orders, quotes and payments, delivery, communication | [USER-JOURNEYS.md](01-product/USER-JOURNEYS.md), [BUSINESS-RULES.md](01-product/BUSINESS-RULES.md) |
+| 02: reference-based customer access | [AUTH-MODEL.md](05-security/AUTH-MODEL.md#customers), [USER-JOURNEYS.md](01-product/USER-JOURNEYS.md#j-07-customer-access) |
+| 02: complete practical feature list | [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md#scope) |
+| 03: positioning, site architecture, company hook, content quality and photography, SEO and performance | [CONTENT.md](01-product/CONTENT.md) |
+| 03: service recommendations | [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md#services-to-confirm) |
+| 03: CMS links and publication | [ARCHITECTURE.md](02-architecture/ARCHITECTURE.md#cms-and-public-projection) |
+| 03: shared Tesla-based guide | [DESIGN-SYSTEM.md](03-design/DESIGN-SYSTEM.md), [UX-SPEC.md](03-design/UX-SPEC.md) |
+| 03: motion and responsive behaviour | [DESIGN-SYSTEM.md](03-design/DESIGN-SYSTEM.md#motion), [ACCESSIBILITY.md](03-design/ACCESSIBILITY.md) |
+| 03: acceptance | [ARCHITECTURE.md](02-architecture/ARCHITECTURE.md#cms-and-public-projection), [LAUNCH-CHECKLIST.md](09-release/LAUNCH-CHECKLIST.md) |
+| 04: principles | [DATA-PRIVACY.md](05-security/DATA-PRIVACY.md), [DATA-MODEL.md](02-architecture/DATA-MODEL.md) |
+| 04: record model | [DATA-MODEL.md](02-architecture/DATA-MODEL.md#target-record-model) |
+| 04: access and session requirements | [AUTH-MODEL.md](05-security/AUTH-MODEL.md), [PERMISSIONS.md](05-security/PERMISSIONS.md) |
+| 04: private files and CMS safety | [SECURITY.md](05-security/SECURITY.md#private-files-and-content-safety) |
+| 04: Nigeria privacy and operating policies | [DATA-PRIVACY.md](05-security/DATA-PRIVACY.md) |
+| 04: environments and deployment | [DEPLOYMENT.md](07-operations/DEPLOYMENT.md) |
+| 04: backups and recovery | [BACKUP-RECOVERY.md](07-operations/BACKUP-RECOVERY.md) |
+| 04: monitoring | [MONITORING.md](07-operations/MONITORING.md) |
+| 04: launch verification matrix | [LAUNCH-CHECKLIST.md](09-release/LAUNCH-CHECKLIST.md) |
+| 05: all sections | [SOCIAL.md](01-product/SOCIAL.md) |
+| 06: working contract | [DECISIONS.md](08-change-management/DECISIONS.md) D-007, D-011 |
+| 06: delivery in dependency order | [ROADMAP.md](08-change-management/ROADMAP.md#phases) |
+| 06: owner usability review | [qa/UX-AUDIT.md](../qa/UX-AUDIT.md) |
+| 06: release decision | [RELEASE-REPORT.md](09-release/RELEASE-REPORT.md) |
+| 06: worktree and branch audit | [DEPLOYMENT.md](07-operations/DEPLOYMENT.md#branches-worktrees-and-machines) |
+| 06: folder audit | [ARCHITECTURE.md](02-architecture/ARCHITECTURE.md#repository-layout) |
+| 06: proposed flat docs; post-approval migration | Superseded by D-012 ([DECISIONS.md](08-change-management/DECISIONS.md)) |
+| 06: remaining owner decisions | [PRODUCT-SPEC.md](01-product/PRODUCT-SPEC.md#remaining-owner-decisions) |
+| 07: confirmed owner context; external research | [PROJECT-CONTEXT.md](00-foundation/PROJECT-CONTEXT.md) |
+| 07: local coverage; verification record; limits | [TEST-STRATEGY.md](06-quality/TEST-STRATEGY.md) |
+| 07: old-plan decisions to retire | [DECISIONS.md](08-change-management/DECISIONS.md) D-017 |
+| 07: database table inventory | [DATA-MODEL.md](02-architecture/DATA-MODEL.md#table-inventory) |
+| 07: API source inventory | [API-SPEC.md](02-architecture/API-SPEC.md#endpoint-inventory) |
+| 07: application page inventory | [ARCHITECTURE.md](02-architecture/ARCHITECTURE.md#route-inventory) (the pre-A18 list stays in the plan file) |
+| TESLA-DESIGN-REFERENCE | Kept as reference; adopted values and deviations in [DESIGN-SYSTEM.md](03-design/DESIGN-SYSTEM.md#what-the-tesla-reference-contributes) |
