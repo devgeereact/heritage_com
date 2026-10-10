@@ -99,7 +99,9 @@ ALTER TABLE enquiries
   ADD COLUMN IF NOT EXISTS conversion_key VARCHAR(64) NULL AFTER job_id,
   ADD COLUMN IF NOT EXISTS converted_at   DATETIME NULL AFTER conversion_key,
   ADD COLUMN IF NOT EXISTS converted_by   INT UNSIGNED NULL AFTER converted_at,
+  ADD COLUMN IF NOT EXISTS request_key    VARCHAR(64) NULL AFTER converted_by,
   ADD UNIQUE KEY IF NOT EXISTS uniq_conversion_key (conversion_key),
+  ADD UNIQUE KEY IF NOT EXISTS uniq_enquiry_request_key (request_key),
   ADD KEY IF NOT EXISTS idx_follow_up (next_follow_up);
 
 -- Record what the status rename touches, then rename (only when there is any).
