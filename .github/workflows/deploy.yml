@@ -52,6 +52,15 @@ jobs:
           cp php-api/stats.php      dist/
           cp php-api/tailoring.php  dist/
           cp php-api/contact.php    dist/
+          # Phase 2 files. New in this repo, so no hand-managed server copy exists;
+          # tailoring.php and customers.php above need _domain.php and _jobs.php.
+          cp php-api/_domain.php     dist/
+          cp php-api/_jobs.php       dist/
+          cp php-api/today.php       dist/
+          cp php-api/enquiries.php   dist/
+          cp php-api/measurements.php dist/
+          cp php-api/quotes.php      dist/
+          cp php-api/ledger.php      dist/
       - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:   ${{ secrets.FTP_SERVER }}

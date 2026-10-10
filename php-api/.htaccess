@@ -1,6 +1,12 @@
 # HeritOS — SPA routing for the React build on cPanel (Apache).
 # Place this in the document root alongside index.html and the PHP files.
 
+# Shared PHP includes (_lib.php, _domain.php, _jobs.php ...) and config files
+# are loaded by the endpoints, never requested directly.
+<FilesMatch "^(_.*|config.*)\.php$">
+  Require all denied
+</FilesMatch>
+
 RewriteEngine On
 RewriteBase /
 
