@@ -92,23 +92,25 @@ if ($action === 'create' && method() === 'POST') {
   }
   $paid = ($payment === 'unpaid') ? 0 : $total;
 
-  // Next ORD-#### code.
-  $res = $conn->query('SELECT MAX(id) AS m FROM orders');
-  $next = (int)($res->fetch_assoc()['m'] ?? 0) + 1;
-  $code = 'ORD-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-
+  // Next ORD-#### code (shared sequence with store.php), retried on a duplicate;
+  // plus a random public_ref the customer uses to track the order.
   $stmt = $conn->prepare(
     'INSERT INTO orders (code, customer_id, customer_name, customer_phone, channel,
                          payment_method, total, paid, ship_address, notes, created_by)
      VALUES (?,?,?,?,?,?,?,?,?,?,?)'
   );
-  $stmt->bind_param(
-    'sissssddssi',
-    $code, $customerId, $customerName, $phone, $channel,
-    $payment, $total, $paid, $shipAddress, $notes, $user['id']
-  );
-  $stmt->execute();
-  $orderId = $conn->insert_id;
+  [$orderId, $code] = insert_with_code('orders', 'ORD', function ($code) use (
+    $conn, $stmt, $customerId, $customerName, $phone, $channel, $payment, $total, $paid, $shipAddress, $notes, $user
+  ) {
+    $stmt->bind_param(
+      'sissssddssi',
+      $code, $customerId, $customerName, $phone, $channel,
+      $payment, $total, $paid, $shipAddress, $notes, $user['id']
+    );
+    $stmt->execute();
+    return $conn->insert_id;
+  });
+  $publicRef = assign_public_ref('orders', $orderId);
 
   // Insert line items; deduct stock for variant-backed lines.
   $itemStmt = $conn->prepare(
@@ -164,7 +166,7 @@ if ($action === 'create' && method() === 'POST') {
   }
 
   audit($user['id'], 'order_create', 'order', $orderId, ['code' => $code, 'total' => $total]);
-  json(['id' => $orderId, 'code' => $code, 'total' => $total], 201);
+  json(['id' => $orderId, 'code' => $code, 'public_ref' => $publicRef, 'total' => $total], 201);
 }
 
 /* ---- STATUS -------------------------------------------------------------- */

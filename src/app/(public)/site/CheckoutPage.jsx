@@ -120,7 +120,7 @@ const CheckoutPage = () => {
     let live = true;
     heritApi.store.payVerify(verifyRef)
       .then((r) => { if (live) { setDone({ code: r.code, status: r.status, paid: r.ok }); clear(); } })
-      .catch(() => { if (live) setError('We could not confirm that payment. If you were charged, contact us with your order code.'); })
+      .catch(() => { if (live) setError('We could not confirm that payment. If you were charged, contact us with your order reference.'); })
       .finally(() => { if (live) setVerifying(false); });
     return () => { live = false; };
   }, [verifyRef]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -151,11 +151,11 @@ const CheckoutPage = () => {
           return;
         }
         // No gateway live yet — fall back to transfer instructions, order still placed.
-        setDone({ code: res.code, total: res.total, payment_method: 'transfer', fallback: true });
+        setDone({ code: res.code, ref: res.public_ref, total: res.total, payment_method: 'transfer', fallback: true });
         clear();
         return;
       }
-      setDone({ code: res.code, total: res.total, payment_method: payment });
+      setDone({ code: res.code, ref: res.public_ref, total: res.total, payment_method: payment });
       clear();
     } catch (e) {
       const msg = /failed to fetch|networkerror/i.test(e.message || '')
@@ -191,7 +191,10 @@ const CheckoutPage = () => {
             </span>
             <h1 className="hc-h2">Thank you{form.customer ? `, ${form.customer.split(' ')[0]}` : ''}.</h1>
             <p className="hc-lead" style={{ margin: '0.75rem auto 0' }}>
-              Your order <strong style={{ color: 'var(--primary)' }}>{done.code}</strong> is in.
+              Your order is in. Order reference <strong style={{ color: 'var(--primary)' }}>{done.ref || done.code}</strong>
+            </p>
+            <p style={{ color: 'var(--muted-foreground)', margin: '0.5rem auto 0' }}>
+              Keep this reference: you need it with your phone number to track your order.
             </p>
 
             <div className="hc-quote" style={{ textAlign: 'left', marginTop: '1.5rem', padding: '1.25rem' }}>
@@ -203,7 +206,7 @@ const CheckoutPage = () => {
                 <>
                   <p style={{ margin: 0 }}>{done.fallback ? 'Card payments are being set up — ' : ''}Pay <strong>{formatNgn(done.total)}</strong> by bank transfer to confirm:</p>
                   <p style={{ margin: '0.75rem 0 0', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', lineHeight: 1.7 }}>
-                    Herit Clothing<br />Send proof to <strong>hello@heritclothing.com</strong> or WhatsApp, quoting <strong>{done.code}</strong>. We&apos;ll share account details on contact.
+                    Herit Clothing<br />Send proof to <strong>hello@heritclothing.com</strong> or WhatsApp, quoting <strong>{done.ref || done.code}</strong>. We&apos;ll share account details on contact.
                   </p>
                 </>
               )}

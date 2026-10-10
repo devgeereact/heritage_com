@@ -288,11 +288,6 @@ if ($action === 'checkout' && method() === 'POST') {
     $referralCode = '';
   }
 
-  // Next ORD-#### code.
-  $res = $conn->query('SELECT MAX(id) AS m FROM orders');
-  $next = (int)($res->fetch_assoc()['m'] ?? 0) + 1;
-  $code = 'ORD-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-
   // COD counts as a promise to pay; card/transfer start unpaid until confirmed.
   $paymentMethod = $payment;                 // 'card' | 'transfer' | 'cod'
   $paid = 0;
@@ -309,14 +304,23 @@ if ($action === 'checkout' && method() === 'POST') {
   );
   $channel = 'web';
   $refCodeVal = $referralCode !== '' ? $referralCode : null;
-  $stmt->bind_param(
-    'sissssssddsssi',
-    $code, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
-    $paymentMethod, $total, $paid, $shipFull, $fullNotes,
-    $refCodeVal, $referrerId
-  );
-  $stmt->execute();
-  $orderId = $conn->insert_id;
+  // Next ORD-#### staff code (shared sequence with orders.php), retried on a
+  // duplicate; the customer gets a separate random public_ref to track with.
+  [$orderId, $code] = insert_with_code('orders', 'ORD', function ($code) use (
+    $conn, $stmt, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
+    $paymentMethod, $total, $paid, $shipFull, $fullNotes, $refCodeVal, $referrerId
+  ) {
+    $stmt->bind_param(
+      'sissssssddsssi',
+      $code, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
+      $paymentMethod, $total, $paid, $shipFull, $fullNotes,
+      $refCodeVal, $referrerId
+    );
+    $stmt->execute();
+    return $conn->insert_id;
+  });
+  $publicRef = assign_public_ref('orders', $orderId);
+  $trackRef = $publicRef ?? $code;
 
   // A completed order recovers any abandoned cart for this phone (best-effort).
   try {
@@ -388,13 +392,14 @@ if ($action === 'checkout' && method() === 'POST') {
     ? 'Pay on delivery.'
     : 'We will share payment details shortly.';
   $waMsg = "Hi {$name}, thank you for your order with Herit Clothing! 🌿\n"
-    . "Order {$code} · Total ₦" . number_format($total)
-    . ".\n{$payNote}\nTrack it anytime: https://heritclothing.com/track (code {$code}).";
+    . "Order reference {$trackRef} · Total ₦" . number_format($total)
+    . ".\n{$payNote}\nTrack it anytime: https://heritclothing.com/track (reference {$trackRef}).";
   wa_dispatch($phone, $waMsg, $customerId, 'order_confirmation');
 
   json([
     'ok' => true,
     'code' => $code,
+    'public_ref' => $publicRef,
     'order_id' => $orderId,
     'total' => $total,
     'goods' => $goods,
@@ -621,12 +626,14 @@ if ($action === 'save_cart' && method() === 'POST') {
 }
 
 /* ---- TRACK (public order status) ----------------------------------------- */
-/* A customer looks up their own order with code + phone. Phone must match (last
- * 9 digits, so +234/0 prefixes don't matter) so one can't browse others' orders. */
+/* A customer looks up their own order with its reference + phone. The reference
+ * is the random public_ref (or, while ALLOW_LEGACY_ORDER_CODE_LOOKUP is on, the
+ * old ORD- code). Phone must match (last 9 digits, so +234/0 prefixes don't
+ * matter) so one can't browse others' orders. */
 if ($action === 'track' && method() === 'GET') {
   $code = trim($_GET['code'] ?? '');
   $phone = trim($_GET['phone'] ?? '');
-  if ($code === '' || $phone === '') fail('Order code and phone are required');
+  if ($code === '' || $phone === '') fail('Order reference and phone are required');
 
   // Failed lookups are counted per IP in audit_log so code + phone pairs cannot
   // be guessed at speed. TRACK_MAX_PER_IP = 0 switches this off.
@@ -634,19 +641,15 @@ if ($action === 'track' && method() === 'GET') {
   throttle_enforce([[(int) cfg('TRACK_MAX_PER_IP', 20), 'track_fail_ip', $trackIpKey]],
     (int) cfg('LOGIN_THROTTLE_WINDOW', 900));
 
-  $stmt = $conn->prepare(
-    'SELECT id, code, customer_name, customer_phone, status, total, paid,
-            courier, tracking_ref, tracking_url, return_status, created_at
-       FROM orders WHERE code = ? AND deleted_at IS NULL LIMIT 1'
-  );
-  $stmt->bind_param('s', $code);
-  $stmt->execute();
-  $order = $stmt->get_result()->fetch_assoc();
+  $order = order_by_customer_ref($code,
+    'id, code, ' . (has_column('orders', 'public_ref') ? 'public_ref' : 'NULL AS public_ref') . ',
+     customer_name, customer_phone, status, total, paid,
+     courier, tracking_ref, tracking_url, return_status, created_at');
 
   $tail = fn($s) => substr(preg_replace('/\D/', '', (string)$s), -9);
   if (!$order || $tail($order['customer_phone']) === '' || $tail($order['customer_phone']) !== $tail($phone)) {
     audit(null, 'track_fail_ip', $trackIpKey);
-    fail('No order found for that code and phone.', 404);
+    fail('No order found for that reference and phone.', 404);
   }
 
   $items = [];
@@ -658,6 +661,7 @@ if ($action === 'track' && method() === 'GET') {
 
   json([
     'code' => $order['code'],
+    'public_ref' => $order['public_ref'],
     'customer_name' => $order['customer_name'],
     'status' => $order['status'],
     'total' => (float)$order['total'],

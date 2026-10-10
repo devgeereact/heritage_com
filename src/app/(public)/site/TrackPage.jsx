@@ -5,7 +5,7 @@ import heritApi from '@/helpers/heritApi';
 import SiteLayout from './SiteLayout';
 
 // Customer-facing order tracking. No login: a customer looks their order up with
-// the code from their confirmation + the phone they ordered with. store.php only
+// the reference from their confirmation + the phone they ordered with. store.php only
 // returns the order if the phone matches, so this can't be used to browse others'.
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
@@ -42,7 +42,7 @@ const TrackPage = () => {
       const res = await heritApi.store.track(code.trim(), phone.trim());
       setOrder(res);
     } catch (err) {
-      setError(err.message || 'No order found for that code and phone.');
+      setError(err.message || 'No order found for that reference and phone.');
     } finally { setBusy(false); }
   };
 
@@ -55,7 +55,7 @@ const TrackPage = () => {
         <div className="hc-container">
           <div className="hc-crumb"><Link to="/">Home</Link> / <span>Track order</span></div>
           <h1 className="hc-h1">Where&apos;s my order?</h1>
-          <p>Enter your order code and the phone number you used at checkout to see the latest.</p>
+          <p>Enter your order reference and the phone number you used at checkout to see the latest.</p>
         </div>
       </section>
 
@@ -63,8 +63,8 @@ const TrackPage = () => {
         <div className="hc-container" style={{ maxWidth: 720 }}>
           <form onSubmit={lookup} className="hc-card" style={{ padding: '1.5rem', display: 'grid', gap: '1rem' }}>
             <div className="hc-grid hc-grid--2" style={{ gap: '1rem' }}>
-              <label style={lbl}>Order code
-                <input style={field} placeholder="e.g. ORD-0042" value={code} onChange={(e) => setCode(e.target.value)} required />
+              <label style={lbl}>Order reference
+                <input style={field} placeholder="e.g. K7M2P9QX4R" value={code} onChange={(e) => setCode(e.target.value)} required />
               </label>
               <label style={lbl}>Phone number
                 <input style={field} placeholder="e.g. 0803…" value={phone} onChange={(e) => setPhone(e.target.value)} required />
@@ -80,7 +80,7 @@ const TrackPage = () => {
             <div className="hc-card mt-4" style={{ padding: '1.5rem' }}>
               <div className="d-flex justify-content-between align-items-start flex-wrap" style={{ gap: '.5rem' }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{order.code}</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{order.public_ref || order.code}</div>
                   <div className="text-muted small">Placed {order.placed_at}</div>
                 </div>
                 <div style={{ fontWeight: 700 }}>{naira(order.total)}</div>
@@ -135,7 +135,7 @@ const TrackPage = () => {
               )}
 
               <p className="mt-3 mb-0 small text-muted">
-                Questions? <Link to="/contact">Message us</Link> with your order code.
+                Questions? <Link to="/contact">Message us</Link> with your order reference.
               </p>
             </div>
           )}

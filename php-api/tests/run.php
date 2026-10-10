@@ -126,5 +126,24 @@ check('cors: lookalike host refused even when on', cors_origin_allowed('http://l
 check('cors: other origin refused', cors_origin_allowed('https://evil.test', $prod, true), false);
 check('cors: empty origin refused', cors_origin_allowed('', $prod, true), false);
 
+/* ---- public references and staff codes (A06) ----------------------------- */
+$refs = [];
+for ($i = 0; $i < 500; $i++) $refs[] = public_ref_generate();
+check('public_ref: length is 10', array_unique(array_map('strlen', $refs)), [10]);
+check('public_ref: only the unambiguous alphabet',
+  count(array_filter($refs, fn($r) => preg_match('/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{10}$/', $r) === 1)), 500);
+check('public_ref: no 0, O, 1, I or L ever appears', (bool) preg_match('/[0O1IL]/', implode('', $refs)), false);
+check('public_ref: 500 draws are all different', count(array_unique($refs)), 500);
+check('public_ref: alphabet has 31 characters', strlen(PUBLIC_REF_ALPHABET), 31);
+check('public_ref: normalise accepts a typed reference', public_ref_normalise(' k7m2-p9qx 4r '), 'K7M2P9QX4R');
+check('public_ref: normalise rejects an old ORD code', public_ref_normalise('ORD-0042'), '');
+check('public_ref: normalise rejects ambiguous characters', public_ref_normalise('K7M2P9QX4O'), '');
+check('public_ref: normalise rejects wrong length', public_ref_normalise('K7M2P9QX4'), '');
+check('seq_code: pads to four digits', seq_code('ORD', 7), 'ORD-0007');
+check('seq_code: keeps longer numbers', seq_code('HC', 12345), 'HC-12345');
+check('duplicate key: errno 1062 detected', is_duplicate_key(new mysqli_sql_exception('Duplicate entry', 1062)), true);
+check('duplicate key: other errors are not', is_duplicate_key(new mysqli_sql_exception('Deadlock', 1213)), false);
+check('duplicate key: non-mysqli exception is not', is_duplicate_key(new RuntimeException('x', 1062)), false);
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

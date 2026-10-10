@@ -39,11 +39,11 @@ const LoginCard = ({ onIn }) => {
     <div className="hc-card" style={{ padding: '1.75rem', maxWidth: 460, margin: '0 auto' }}>
       <h2 className="hc-h3" style={{ marginTop: 0 }}>Your account</h2>
       <p style={{ color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
-        Sign in with your phone and any of your order codes (from a confirmation or the email we sent).
+        Sign in with your phone and any of your order references (from your order confirmation).
       </p>
       <form onSubmit={submit} style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
         <label style={lbl}>Phone<input style={field} placeholder="080…" value={phone} onChange={(e) => setPhone(e.target.value)} required /></label>
-        <label style={lbl}>Order code<input style={{ ...field, textTransform: 'uppercase' }} placeholder="ORD-0042" value={code} onChange={(e) => setCode(e.target.value)} required /></label>
+        <label style={lbl}>Order reference<input style={{ ...field, textTransform: 'uppercase' }} placeholder="K7M2P9QX4R" value={code} onChange={(e) => setCode(e.target.value)} required /></label>
         <button type="submit" className="hc-btn hc-btn--primary" disabled={busy} style={{ border: 'none' }}>{busy ? 'Signing in…' : 'Sign in'}</button>
         {error && <p style={{ color: '#991b1b', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
       </form>
@@ -151,7 +151,7 @@ const Dashboard = ({ onOut }) => {
             <div key={o.code} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '0.85rem 1rem' }}>
               <div className="hc-flex" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
                 <div>
-                  <strong>{o.code}</strong> · <span style={{ color: statusColor(o.status), textTransform: 'capitalize', fontWeight: 600 }}>{o.status}</span>
+                  <strong>{o.public_ref || o.code}</strong> · <span style={{ color: statusColor(o.status), textTransform: 'capitalize', fontWeight: 600 }}>{o.status}</span>
                   <div style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)' }}>{String(o.created_at).slice(0, 10)} · {o.item_count} item{o.item_count === '1' ? '' : 's'} · {naira(o.total)}</div>
                   {o.return_status && o.return_status !== 'none' && <div style={{ fontSize: '0.8rem', color: '#b45309' }}>Return: {o.return_status}</div>}
                 </div>

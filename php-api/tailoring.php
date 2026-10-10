@@ -113,11 +113,8 @@ if ($action === 'create' && method() === 'POST') {
     $customerId = $conn->insert_id;
   }
 
-  // Generate the next HC-#### code.
-  $res = $conn->query('SELECT MAX(id) AS m FROM tailoring_orders');
-  $next = (int)($res->fetch_assoc()['m'] ?? 0) + 1;
-  $code = 'HC-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-
+  // Next HC-#### code (MAX(id)+1), retried with a fresh code if two staff
+  // create a job at the same moment; plus a random public_ref for the customer.
   $stmt = $conn->prepare(
     'INSERT INTO tailoring_orders
        (code, customer_id, garment_type, fabric, measurements, notes,
@@ -125,15 +122,20 @@ if ($action === 'create' && method() === 'POST') {
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
   );
   $stage = 'measure';
-  // Types: code s, customer i, garment s, fabric s, measurements s, notes s,
-  //        tailor i, stage s, price d, deposit d, due_date s, created_by i
-  $stmt->bind_param(
-    'sissssisddsi',
-    $code, $customerId, $garment, $fabric, $measurements, $notes,
-    $tailorId, $stage, $price, $deposit, $dueDate, $user['id']
-  );
-  $stmt->execute();
-  $orderId = $conn->insert_id;
+  [$orderId, $code] = insert_with_code('tailoring_orders', 'HC', function ($code) use (
+    $conn, $stmt, $customerId, $garment, $fabric, $measurements, $notes, $tailorId, $stage, $price, $deposit, $dueDate, $user
+  ) {
+    // Types: code s, customer i, garment s, fabric s, measurements s, notes s,
+    //        tailor i, stage s, price d, deposit d, due_date s, created_by i
+    $stmt->bind_param(
+      'sissssisddsi',
+      $code, $customerId, $garment, $fabric, $measurements, $notes,
+      $tailorId, $stage, $price, $deposit, $dueDate, $user['id']
+    );
+    $stmt->execute();
+    return $conn->insert_id;
+  });
+  $publicRef = assign_public_ref('tailoring_orders', $orderId);
 
   $stmt = $conn->prepare('INSERT INTO tailoring_events (order_id, stage, note, user_id) VALUES (?,?,?,?)');
   $openNote = 'Order created';
@@ -141,7 +143,7 @@ if ($action === 'create' && method() === 'POST') {
   $stmt->execute();
 
   audit($user['id'], 'tailoring_create', 'tailoring_order', $orderId, ['code' => $code]);
-  json(['id' => $orderId, 'code' => $code], 201);
+  json(['id' => $orderId, 'code' => $code, 'public_ref' => $publicRef], 201);
 }
 
 /* ---- ASSIGN / RESCHEDULE -------------------------------------------------- */
@@ -374,13 +376,15 @@ if ($action === 'group_create' && method() === 'POST') {
   if ($organiser === '') fail('Organiser name is required');
   if (!$members) fail('Add at least one member');
 
-  // Group code HCG-####.
-  $next = (int)($conn->query('SELECT MAX(id) AS m FROM tailoring_groups')->fetch_assoc()['m'] ?? 0) + 1;
-  $gcode = 'HCG-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
+  // Group code HCG-#### (MAX(id)+1, retried on a duplicate).
   $stmt = $conn->prepare('INSERT INTO tailoring_groups (code, organiser_name, organiser_phone, event, due_date, discount_pct, notes, created_by) VALUES (?,?,?,?,?,?,?,?)');
-  $stmt->bind_param('sssssdsi', $gcode, $organiser, $orgPhone, $event, $dueDate, $discount, $notes, $user['id']);
-  $stmt->execute();
-  $groupId = $conn->insert_id;
+  [$groupId, $gcode] = insert_with_code('tailoring_groups', 'HCG', function ($gcode) use (
+    $conn, $stmt, $organiser, $orgPhone, $event, $dueDate, $discount, $notes, $user
+  ) {
+    $stmt->bind_param('sssssdsi', $gcode, $organiser, $orgPhone, $event, $dueDate, $discount, $notes, $user['id']);
+    $stmt->execute();
+    return $conn->insert_id;
+  });
 
   // Create a tailoring order per member, group discount applied to each price.
   $made = 0;
@@ -408,17 +412,20 @@ if ($action === 'group_create' && method() === 'POST') {
       $customerId = $conn->insert_id;
     }
 
-    $hcNext = (int)($conn->query('SELECT MAX(id) AS m FROM tailoring_orders')->fetch_assoc()['m'] ?? 0) + 1;
-    $hcCode = 'HC-' . str_pad((string)$hcNext, 4, '0', STR_PAD_LEFT);
     $stage = 'measure'; $deposit = 0;
     $oi = $conn->prepare(
       'INSERT INTO tailoring_orders (code, customer_id, group_id, garment_type, fabric, measurements, notes, stage, price, deposit, due_date, created_by)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $mnote = 'Aso-ebi ' . $gcode . ($event !== '' ? ' · ' . $event : '');
-    $oi->bind_param('siisssssddsi', $hcCode, $customerId, $groupId, $garment, $fabric, $measurements, $mnote, $stage, $price, $deposit, $dueDate, $user['id']);
-    $oi->execute();
-    $oid = $conn->insert_id;
+    [$oid] = insert_with_code('tailoring_orders', 'HC', function ($hcCode) use (
+      $conn, $oi, $customerId, $groupId, $garment, $fabric, $measurements, $mnote, $stage, $price, $deposit, $dueDate, $user
+    ) {
+      $oi->bind_param('siisssssddsi', $hcCode, $customerId, $groupId, $garment, $fabric, $measurements, $mnote, $stage, $price, $deposit, $dueDate, $user['id']);
+      $oi->execute();
+      return $conn->insert_id;
+    });
+    assign_public_ref('tailoring_orders', $oid);
     $ev = $conn->prepare('INSERT INTO tailoring_events (order_id, stage, note, user_id) VALUES (?,?,?,?)');
     $en = 'Added to group ' . $gcode;
     $ev->bind_param('issi', $oid, $stage, $en, $user['id']);

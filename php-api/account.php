@@ -2,7 +2,8 @@
 /**
  * HeritOS — Customer self-service portal (public, customer-authenticated).
  *
- * Login is knowledge-based: phone + any of the customer's real order codes →
+ * Login is knowledge-based: phone + any of the customer's order references
+ * (random public_ref; old ORD- codes only while ALLOW_LEGACY_ORDER_CODE_LOOKUP) →
  * a random expiring token. No password, no SMS/OTP infra. (Upgrade path: send a
  * one-time code over WhatsApp via wa_dispatch and verify that instead.)
  *
@@ -44,7 +45,7 @@ if ($action === 'login' && method() === 'POST') {
   $b = body();
   $phone = trim($b['phone'] ?? '');
   $orderCode = strtoupper(trim($b['order_code'] ?? ''));
-  if ($phone === '' || $orderCode === '') fail('Enter your phone and an order code');
+  if ($phone === '' || $orderCode === '') fail('Enter your phone and an order reference');
 
   // Same audit_log throttle as staff login (auth.php): failures counted per IP
   // and per phone (hashed, so attempted numbers are not stored). 0 disables one.
@@ -63,11 +64,10 @@ if ($action === 'login' && method() === 'POST') {
     fail('We could not sign you in with that order code and phone', 404);
   };
 
-  // The order must exist, match the phone, and resolve to a customer.
-  $stmt = $conn->prepare('SELECT id, customer_id, customer_phone FROM orders WHERE UPPER(code) = ? AND deleted_at IS NULL LIMIT 1');
-  $stmt->bind_param('s', $orderCode);
-  $stmt->execute();
-  $o = $stmt->get_result()->fetch_assoc();
+  // The order must exist, match the phone, and resolve to a customer. The
+  // reference is the random public_ref; the old ORD- code is accepted only while
+  // ALLOW_LEGACY_ORDER_CODE_LOOKUP is on (default on during the transition).
+  $o = order_by_customer_ref($orderCode, 'id, customer_id, customer_phone');
   if (!$o || tail9($o['customer_phone']) === '' || tail9($o['customer_phone']) !== tail9($phone)) $loginFail();
 
   $customerId = (int)($o['customer_id'] ?: customer_id_by_phone($phone));
@@ -105,7 +105,7 @@ if ($action === 'me' && method() === 'GET') {
 if ($action === 'orders' && method() === 'GET') {
   $rows = [];
   $stmt = $conn->prepare(
-    "SELECT o.code, o.status, o.total, o.paid, o.created_at, o.return_status,
+    "SELECT o.code, " . (has_column('orders', 'public_ref') ? 'o.public_ref' : 'NULL AS public_ref') . ", o.status, o.total, o.paid, o.created_at, o.return_status,
             o.courier, o.tracking_url, COUNT(i.id) AS item_count
        FROM orders o LEFT JOIN order_items i ON i.order_id = o.id
       WHERE o.customer_id = ? AND o.deleted_at IS NULL

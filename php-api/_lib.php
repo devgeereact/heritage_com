@@ -576,3 +576,117 @@ function pay_check($provider, $resp, array $expect) {
   if ($minor === null || $minor < $wantMinor) return ['ok' => false, 'reason' => 'amount_mismatch'];
   return ['ok' => true, 'reason' => 'ok'];
 }
+
+/* ---- Staff codes and customer-facing public references (A06) ------------- */
+/* Staff codes (ORD-0042, HC-0042, HCG-0042) stay sequential because the team
+ * reads them aloud. Customers look orders up with a separate random public_ref,
+ * so knowing one code never lets anyone guess another order. */
+
+/** 31 characters with no 0/O or 1/I/L, so a reference survives being read out. */
+const PUBLIC_REF_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+const PUBLIC_REF_LENGTH = 10;
+
+/** A new random public reference (about 49 bits from random_int). */
+function public_ref_generate() {
+  $a = PUBLIC_REF_ALPHABET;
+  $max = strlen($a) - 1;
+  $out = '';
+  for ($i = 0; $i < PUBLIC_REF_LENGTH; $i++) $out .= $a[random_int(0, $max)];
+  return $out;
+}
+
+/** What a customer typed, upper-cased with spaces and dashes removed; '' unless
+ * it is a well-formed public reference. Pure. */
+function public_ref_normalise($s) {
+  $s = strtoupper(preg_replace('/[\s\-]+/', '', (string)$s));
+  return preg_match('/^[' . PUBLIC_REF_ALPHABET . ']{' . PUBLIC_REF_LENGTH . '}$/', $s) ? $s : '';
+}
+
+/** Staff code from a sequence number: seq_code('ORD', 7) → 'ORD-0007'. Pure. */
+function seq_code($prefix, $n) {
+  return $prefix . '-' . str_pad((string)(int)$n, 4, '0', STR_PAD_LEFT);
+}
+
+/** True when a mysqli exception is a duplicate-key error (errno 1062). */
+function is_duplicate_key($e) {
+  return $e instanceof mysqli_sql_exception && (int)$e->getCode() === 1062;
+}
+
+/** Does $table have $column? Cached per request. Lets CI-deployed endpoints keep
+ * working on a database that has not imported the newest schema file yet. */
+function has_column($table, $column) {
+  global $conn;
+  static $cache = [];
+  $key = $table . '.' . $column;
+  if (!array_key_exists($key, $cache)) {
+    $stmt = $conn->prepare('SELECT 1 FROM information_schema.COLUMNS
+                             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1');
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $cache[$key] = (bool)$stmt->get_result()->fetch_row();
+  }
+  return $cache[$key];
+}
+
+/**
+ * Insert a row whose staff code is the next MAX(id)+1, retrying with a fresh
+ * code when two inserts race for the same one (duplicate key, errno 1062).
+ * $insert($code) runs the INSERT and returns the new id. Returns [id, code].
+ */
+function insert_with_code($table, $prefix, callable $insert, $tries = 5) {
+  global $conn;
+  for ($attempt = 0; ; $attempt++) {
+    $next = (int)($conn->query("SELECT MAX(id) AS m FROM `$table`")->fetch_assoc()['m'] ?? 0) + 1 + $attempt;
+    $code = seq_code($prefix, $next);
+    try {
+      return [(int)$insert($code), $code];
+    } catch (mysqli_sql_exception $e) {
+      if (!is_duplicate_key($e) || $attempt >= $tries - 1) throw $e;
+    }
+  }
+}
+
+/** Give a row a random public_ref (retrying on the rare collision). Returns the
+ * reference, or null when the column does not exist yet (schema_phase17.sql). */
+function assign_public_ref($table, $id, $tries = 5) {
+  global $conn;
+  if (!has_column($table, 'public_ref')) return null;
+  $stmt = $conn->prepare("UPDATE `$table` SET public_ref = ? WHERE id = ? AND public_ref IS NULL");
+  for ($attempt = 0; ; $attempt++) {
+    $ref = public_ref_generate();
+    $id = (int)$id;
+    try {
+      $stmt->bind_param('si', $ref, $id);
+      $stmt->execute();
+      return $ref;
+    } catch (mysqli_sql_exception $e) {
+      if (!is_duplicate_key($e) || $attempt >= $tries - 1) throw $e;
+    }
+  }
+}
+
+/**
+ * Find a retail order for a customer-facing lookup. The random public_ref always
+ * works; the old sequential ORD- code works only while ALLOW_LEGACY_ORDER_CODE_LOOKUP
+ * is on (default on, so references already sent to customers keep working).
+ * $cols is a trusted column list. Returns the row or null.
+ */
+function order_by_customer_ref($input, $cols) {
+  global $conn;
+  $order = null;
+  $ref = public_ref_normalise($input);
+  if ($ref !== '' && has_column('orders', 'public_ref')) {
+    $stmt = $conn->prepare("SELECT $cols FROM orders WHERE public_ref = ? AND deleted_at IS NULL LIMIT 1");
+    $stmt->bind_param('s', $ref);
+    $stmt->execute();
+    $order = $stmt->get_result()->fetch_assoc() ?: null;
+  }
+  if (!$order && cfg('ALLOW_LEGACY_ORDER_CODE_LOOKUP', true)) {
+    $code = strtoupper(trim((string)$input));
+    $stmt = $conn->prepare("SELECT $cols FROM orders WHERE UPPER(code) = ? AND deleted_at IS NULL LIMIT 1");
+    $stmt->bind_param('s', $code);
+    $stmt->execute();
+    $order = $stmt->get_result()->fetch_assoc() ?: null;
+  }
+  return $order;
+}
