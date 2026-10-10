@@ -304,7 +304,7 @@ function measurement_template($tkey) {
 
 /** Decode a set row for output. */
 function measurement_set_view(array $s) {
-  $s['vals'] = json_decode((string)$s['vals'], true) ?: (object)[];
+  if (is_string($s['vals'])) $s['vals'] = json_decode($s['vals'], true) ?: (object)[];
   foreach (['id', 'customer_id', 'supersedes_id', 'approved_by', 'created_by'] as $k) {
     if (isset($s[$k])) $s[$k] = (int)$s[$k];
   }
@@ -451,4 +451,25 @@ function ledger_row_view(array $r) {
   $r['verified'] = (int)$r['verified'];
   $r['receipt_no'] = 'RCT-' . $r['id'];
   return $r;
+}
+
+/**
+ * Wrap a value object from an old measurement form (inches, 'legacy' template)
+ * into a measurement set without ever failing the caller's request: invalid or
+ * empty input returns null plus the field errors. Owner roles get an approved
+ * set; other roles and customers a pending one.
+ * Returns ['set' => row|null, 'warnings' => [], 'errors' => [], 'duplicate' => bool].
+ */
+function legacy_measure_to_set($customerId, $vals, $unit, $source, $approve, $userId, $requestKey = null) {
+  $tpl = measurement_template('legacy');
+  if (!$tpl || !is_array($vals)) return ['set' => null, 'warnings' => [], 'errors' => [], 'duplicate' => false];
+  $unit = in_array($unit, MEASUREMENT_UNITS, true) ? $unit : 'in';
+  $chk = measurement_clean($tpl['fields'], $vals, $unit);
+  if ($chk['errors'] || !$chk['clean']) return ['set' => null, 'warnings' => $chk['warnings'], 'errors' => $chk['errors'], 'duplicate' => false];
+  $r = measurement_create([
+    'customer_id' => $customerId, 'template_key' => 'legacy', 'unit' => $unit, 'vals' => $vals,
+    'request_key' => $requestKey ?? ('legacy-' . bin2hex(random_bytes(12))), 'source' => $source, 'approve' => $approve,
+    'notes' => 'Entered on the old measurement form',
+  ], $userId);
+  return $r + ['errors' => []];
 }

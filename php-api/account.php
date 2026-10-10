@@ -12,11 +12,13 @@
  *   GET  /account.php?action=orders        (Bearer)        → their orders
  *   GET  /account.php?action=order&code=…  (Bearer)        → one order + items
  *   POST /account.php?action=reorder&code=…(Bearer)        → items to re-add
- *   POST /account.php?action=measurements  (Bearer) {measurements}
+ *   POST /account.php?action=measurements  (Bearer) {measurements, unit?} → a PENDING
+ *        measurement set the owner reviews (BR-07, A10); the profile is not overwritten
  *   POST /account.php?action=return        (Bearer) {order_code, reason}
  *   GET  /account.php?action=referral      (Bearer)        → code + share link
  */
 require __DIR__ . '/_lib.php';
+require __DIR__ . '/_jobs.php';
 cors();
 
 $action = $_GET['action'] ?? 'me';
@@ -96,6 +98,7 @@ if ($action === 'me' && method() === 'GET') {
     'email' => $me['email'],
     'credit' => credit_balance($cid),
     'measurements' => $measurements,
+    'measurements_pending' => (bool)db_row("SELECT id FROM measurement_sets WHERE customer_id = ? AND source = 'customer' AND status = 'pending' LIMIT 1", 'i', $cid),
     'birthday' => $me['birthday'] ?? null,
     'referral_code' => $me['referral_code'] ?? null,
   ]);
@@ -164,12 +167,16 @@ if ($action === 'reorder' && method() === 'POST') {
 
 /* ---- MEASUREMENTS -------------------------------------------------------- */
 if ($action === 'measurements' && method() === 'POST') {
+  // A customer's measurements are a proposal: they wait for the owner's approval
+  // and never overwrite the approved profile or any job snapshot (BR-07, A10).
+  // The account form is labelled inches, so that is the default unit.
   $b = body();
-  $measurements = isset($b['measurements']) ? json_encode($b['measurements']) : null;
-  $stmt = $conn->prepare('UPDATE customers SET measurements = ? WHERE id = ?');
-  $stmt->bind_param('si', $measurements, $cid);
-  $stmt->execute();
-  json(['ok' => true]);
+  $vals = is_array($b['measurements'] ?? null) ? $b['measurements'] : [];
+  $unit = in_array($b['unit'] ?? '', ['cm', 'in'], true) ? $b['unit'] : 'in';
+  $r = legacy_measure_to_set($cid, $vals, $unit, 'customer', false, null);
+  if ($r['errors']) json(['error' => 'Some measurements need fixing', 'errors' => $r['errors']], 400);
+  if (!$r['set']) fail('Enter at least one measurement');
+  json(['ok' => true, 'pending' => true, 'message' => 'Thank you. We will check these before using them.']);
 }
 
 /* ---- RETURN REQUEST ------------------------------------------------------ */

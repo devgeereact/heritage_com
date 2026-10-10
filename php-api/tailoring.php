@@ -212,12 +212,27 @@ if ($action === 'create' && method() === 'POST') {
   json(['id' => $orderId, 'code' => $code, 'public_ref' => $publicRef, 'customer_id' => $customerId] + $extra, 201);
 }
 
-/** Hooks run after a job is created (legacy deposit and measurements). Extended in later phases. */
+/** After a job is created: the legacy deposit field and measurements from the old form. */
 function job_after_create($orderId, $customerId, array $b, $depositMinor, $user) {
-  if ($depositMinor > 0) {
-    $dec = minor_to_decimal($depositMinor);
-    db_exec('UPDATE tailoring_orders SET deposit = ? WHERE id = ?', 'si', $dec, $orderId);
+  $extra = [];
+  if (is_array($b['measurements'] ?? null) && $b['measurements']) {
+    $r = legacy_measure_to_set($customerId, $b['measurements'], $b['unit'] ?? 'in', 'owner', is_owner_role($user['role']), $user['id']);
+    if ($r['set']) {
+      $extra['measurement_set_id'] = $r['set']['id'];
+      if ($r['set']['status'] === 'approved') {
+        db_tx(function () use ($orderId, $r, $user) { job_attach_snapshot_tx(job_lock($orderId), $r['set'], $user['id']); });
+      }
+    }
+    if ($r['errors']) $extra['measurement_errors'] = $r['errors'];
+    if ($r['warnings']) $extra['measurement_warnings'] = $r['warnings'];
   }
+  if ($depositMinor > 0) $extra += job_record_legacy_payment($orderId, $depositMinor, $b, $user, 'Deposit recorded when the job was created');
+  return $extra;
+}
+
+/** Legacy deposit at creation (replaced by a ledger entry once job_payments exists). */
+function job_record_legacy_payment($orderId, $minor, array $b, $user, $note) {
+  db_exec('UPDATE tailoring_orders SET deposit = ? WHERE id = ?', 'si', minor_to_decimal($minor), $orderId);
   return [];
 }
 
@@ -352,18 +367,56 @@ function job_review_apply_tx(array $job, $outcome, $user, array $b) {
   job_event($job['id'], 'review', $job['job_stage'], 'Owner confirmed: still ready, not yet collected', ['outcome' => $outcome], 0, $user['id']);
 }
 
-/* ---- MEASUREMENTS (legacy) ----------------------------------------------- */
+/* ---- ATTACH MEASUREMENTS (job snapshot, BR-06) --------------------------- */
+/* {set_id, reason?}. The set must be approved and belong to the job's client.
+ * From in_production onwards a reason of 5+ characters is required and the
+ * event records the old and new set ids. Later profile changes never alter it. */
+if ($action === 'attach_measurements' && method() === 'POST') {
+  $b = body();
+  $setId = (int)($b['set_id'] ?? 0);
+  $reason = trim((string)($b['reason'] ?? ''));
+  $snap = db_tx(function () use ($id, $setId, $reason, $user) {
+    $job = job_lock($id);
+    if (!$job) tx_fail('Order not found', 404);
+    $set = db_row('SELECT * FROM measurement_sets WHERE id = ?', 'i', $setId);
+    if (!$set) tx_fail('Measurement set not found', 404);
+    return job_attach_snapshot_tx($job, $set, $user['id'], $reason);
+  });
+  audit($user['id'], 'tailoring_attach_measurements', 'tailoring_order', $id, ['set_id' => $setId]);
+  $row = db_row('SELECT lock_version, measurement_snapshot_at FROM tailoring_orders WHERE id = ?', 'i', $id);
+  json(['ok' => true, 'measurement_snapshot' => $snap, 'measurement_snapshot_at' => $row['measurement_snapshot_at'], 'lock_version' => (int)$row['lock_version']]);
+}
+
+/* ---- MEASUREMENTS (legacy form, kept for cached screens) ----------------- */
+/* {measurements, sync_customer, unit?}. Now creates a measurement set (template
+ * 'legacy', inches as the old form states). An owner's set is approved and
+ * attached to the job; a tailor's set waits for approval. The old JSON columns
+ * are still mirrored for this release so the old screen shows what was typed. */
 if ($action === 'measure' && method() === 'POST') {
   $b = body();
-  $measurements = isset($b['measurements']) ? json_encode($b['measurements']) : null;
+  $vals = is_array($b['measurements'] ?? null) ? $b['measurements'] : [];
   $syncCustomer = !empty($b['sync_customer']);
-  db_exec('UPDATE tailoring_orders SET measurements = ?, lock_version = lock_version + 1 WHERE id = ? AND deleted_at IS NULL', 'si', $measurements, $id);
-  if ($syncCustomer) {
-    $row = db_row('SELECT customer_id FROM tailoring_orders WHERE id = ?', 'i', $id);
-    if ($row) db_exec('UPDATE customers SET measurements = ? WHERE id = ?', 'si', $measurements, (int)$row['customer_id']);
+  $job = db_row('SELECT id, customer_id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $id);
+  if (!$job) fail('Order not found', 404);
+  $key = isset($b['request_key']) && $b['request_key'] !== '' ? body_request_key($b) : null;
+  $r = legacy_measure_to_set((int)$job['customer_id'], $vals, $b['unit'] ?? 'in', 'owner', $isOwner, $user['id'], $key);
+  if ($r['errors']) json(['error' => 'Some measurements need fixing', 'errors' => $r['errors']], 400);
+
+  $attached = false;
+  if ($r['set'] && $r['set']['status'] === 'approved') {
+    db_tx(function () use ($id, $r, $user) {
+      $j = job_lock($id);
+      $late = in_array($j['job_stage'], JOB_STAGES_PRODUCTION_ON, true);
+      job_attach_snapshot_tx($j, $r['set'], $user['id'], $late ? 'Updated on the job measurement form' : '');
+    });
+    $attached = true;
   }
-  audit($user['id'], 'tailoring_measure', 'tailoring_order', $id, ['sync' => $syncCustomer]);
-  json(['ok' => true]);
+  $json = $vals ? json_encode($vals) : null;
+  db_exec('UPDATE tailoring_orders SET measurements = ?, lock_version = lock_version + 1 WHERE id = ?', 'si', $json, $id);
+  if ($syncCustomer) db_exec('UPDATE customers SET measurements = ? WHERE id = ?', 'si', $json, (int)$job['customer_id']);
+  audit($user['id'], 'tailoring_measure', 'tailoring_order', $id, ['sync' => $syncCustomer, 'set_id' => $r['set']['id'] ?? null]);
+  json(['ok' => true, 'set_id' => $r['set']['id'] ?? null, 'set_status' => $r['set']['status'] ?? null,
+        'attached' => $attached, 'warnings' => $r['warnings']]);
 }
 
 /* ---- RECORD PAYMENT (legacy) --------------------------------------------- */

@@ -152,8 +152,15 @@ if ($action === 'create' && method() === 'POST') {
   json(['id' => $newId, 'client_ref' => client_ref_from_id($newId)] + $extra, 201);
 }
 
-/** Hook after a client is created (legacy measurements become a set in phase 19). */
-function client_after_create($customerId, array $b, $user) { return []; }
+/** After a client is created: measurements from the old form become a set (never fatal). */
+function client_after_create($customerId, array $b, $user) {
+  if (!is_array($b['measurements'] ?? null) || !$b['measurements']) return [];
+  $r = legacy_measure_to_set($customerId, $b['measurements'], $b['unit'] ?? 'in', 'owner', is_owner_role($user['role']), $user['id']);
+  // Mirror the old JSON column for this release so the old client screen still shows it.
+  db_exec('UPDATE customers SET measurements = ? WHERE id = ?', 'si', json_encode($b['measurements']), $customerId);
+  return array_filter(['measurement_set_id' => $r['set']['id'] ?? null, 'measurement_errors' => $r['errors'] ?: null,
+                       'measurement_warnings' => $r['warnings'] ?: null]);
+}
 
 /* ---- UPDATE -------------------------------------------------------------- */
 if ($action === 'update' && method() === 'POST') {
@@ -195,16 +202,20 @@ if ($action === 'birthdays' && method() === 'GET') {
   json($rows);
 }
 
-/* ---- MEASUREMENTS -------------------------------------------------------- */
+/* ---- MEASUREMENTS (legacy form, kept for cached screens) ----------------- */
+/* {measurements, unit?}. Creates a measurement set (template 'legacy', inches as
+ * the old form states): approved for owner roles, pending otherwise. The old
+ * JSON column is mirrored for this release.                                 */
 if ($action === 'measure' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
   $b = body();
-  $measurements = isset($b['measurements']) ? json_encode($b['measurements']) : null;
-  $stmt = $conn->prepare('UPDATE customers SET measurements=? WHERE id=? AND deleted_at IS NULL');
-  $stmt->bind_param('si', $measurements, $id);
-  $stmt->execute();
-  audit($user['id'], 'customer_measure', 'customer', $id);
-  json(['ok' => true]);
+  $vals = is_array($b['measurements'] ?? null) ? $b['measurements'] : [];
+  if (!db_row('SELECT id FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', $id)) fail('Customer not found', 404);
+  $key = isset($b['request_key']) && $b['request_key'] !== '' ? body_request_key($b) : null;
+  $r = legacy_measure_to_set($id, $vals, $b['unit'] ?? 'in', 'owner', $isOwner, $user['id'], $key);
+  if ($r['errors']) json(['error' => 'Some measurements need fixing', 'errors' => $r['errors']], 400);
+  db_exec('UPDATE customers SET measurements = ? WHERE id = ? AND deleted_at IS NULL', 'si', $vals ? json_encode($vals) : null, $id);
+  audit($user['id'], 'customer_measure', 'customer', $id, ['set_id' => $r['set']['id'] ?? null]);
+  json(['ok' => true, 'set_id' => $r['set']['id'] ?? null, 'set_status' => $r['set']['status'] ?? null, 'warnings' => $r['warnings']]);
 }
 
 fail('Unknown action', 404);
