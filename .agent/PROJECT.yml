@@ -1,7 +1,7 @@
 project:
   name: "heritage_com"
   type: "application"
-  lifecycle: "maintenance"
+  lifecycle: "recovery"
   risk: "production"
 
 gee_os:
@@ -16,18 +16,23 @@ gee_os:
     - "RELEASE-GATE"
 
 sources_of_truth:
-  project_memory: "CLAUDE.md, pending modularisation"
+  project_memory: "CLAUDE.md (short entry point)"
   product_overview: "README.md"
   implementation: "source tree and package.json"
-  detailed_documentation: "docs/"
+  detailed_documentation: "docs/ (PRODUCT, ARCHITECTURE, DESIGN, OPERATIONS, CONTENT-AND-SOCIAL, ROADMAP)"
   current_task: ".agent/CURRENT-TASK.md"
   integration_authority: ".agent/MCP-PROFILE.yml"
 
 exclusions:
-  - "feature work during the instruction-layer migration"
-  - "deletion or renaming during the first adoption wave"
-  - "remote fetch, pull, push, merge or rebase"
+  - "push, merge or rebase of main (pushing main deploys)"
   - "deployment, production mutation or external messages"
   - "secret copying or credential discovery"
+  - "schema migrations without an approved task contract"
+
+machines:
+  primary: mac-primary        # owns env files and secrets
+  secondary: ubuntu-build     # builds and tests published branches
+  code_transport: github      # small focused commits, pushed per verified batch
+  env_files: primary-only     # never committed, never copied between computers
 
 mcp_profile: ".agent/MCP-PROFILE.yml"
