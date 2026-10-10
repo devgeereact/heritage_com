@@ -4,6 +4,16 @@ on:
   push:
     branches: [ main ]        # change if your branch isn't main
 
+# Deploy gating: this job runs the same checks as ci.yml (lint, build, PHP
+# syntax and helper tests) itself, before the FTP step, rather than waiting on
+# the CI workflow through a `workflow_run` trigger. Folding the checks in was
+# chosen because it is the least likely to break deployment: the trigger stays
+# a plain push to main, so there is no dependency on the CI workflow's name, no
+# `workflow_run` quirk (it only fires from the default branch's copy of this
+# file, reports PR runs too, and needs head_sha pinning), and a failed check
+# simply stops the job before anything is uploaded. The cost is that lint and
+# build run twice on a push to main, which is a minute of CI time.
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,13 +21,27 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22    # matches ci.yml
       - run: npm ci
+      # Verify before anything ships. Any failure here ends the job before FTP.
+      - run: npm run lint
+      - name: PHP syntax check
+        run: |
+          for f in php-api/*.php php-api/tests/*.php; do
+            php -l "$f" || exit 1
+          done
+      - name: PHP helper tests
+        run: php php-api/tests/run.php
       - run: npm run build
       - name: Stage PHP API alongside React build
         # Copy server-side PHP endpoints into dist/ so the FTP step uploads them
         # to the doc root. config.php is server-only (gitignored); config.sample.php,
         # README.md, and schema.sql are dev-only and stay out of the upload.
+        #
+        # Only these nine files are deployed by CI; every other php-api/ endpoint
+        # is still uploaded by hand. Do not add to this list until the live doc
+        # root has been inventoried, because adding a file here overwrites the
+        # hand-managed copy on the server. See docs/OPERATIONS.md.
         run: |
           cp php-api/_lib.php       dist/
           cp php-api/api.php        dist/

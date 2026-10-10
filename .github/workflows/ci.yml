@@ -50,3 +50,16 @@ jobs:
       # produces, so a build that fails here is a deploy that would have shipped
       # a broken site.
       - run: npm run build
+
+      # The PHP API is the other half of every deploy, so check it here too.
+      # ubuntu-latest ships with PHP preinstalled, which is enough for a syntax
+      # check and the helper tests (no database, no network, no extensions).
+      - name: PHP syntax check
+        run: |
+          php --version
+          for f in php-api/*.php php-api/tests/*.php; do
+            php -l "$f" || exit 1
+          done
+
+      - name: PHP helper tests
+        run: php php-api/tests/run.php
