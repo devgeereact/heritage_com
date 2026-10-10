@@ -13,7 +13,7 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | A13 | P0 | Quality | Lint checks no JS/JSX files | JS/JSX config written and tested; owner to apply | Business owner | Blocked |
 | A20 | P0 | Operations | Backups and deployed config not certified | None | Business owner | Open |
 | A08 | P1 | Appointments | Calendar is demo data in browser memory; Appointments page is a placeholder. Backend built on `feat/phase3-appointments-portal` (staging API PASS); screens not built yet | Book outside the app | Business owner | Partly fixed (backend in code) |
-| A09 | P1 | Customer access | Tailoring clients cannot see their job | Owner shares status directly | Business owner | Open (Phase 3) |
+| A09 | P1 | Customer access | Tailoring clients cannot see their job in the live app; `portal.php` built on `feat/phase3-appointments-portal` (staging API PASS), screens not built | Owner shares status directly | Business owner | Partly fixed (backend in code) |
 | A12 | P1 | Website | Social links fall back to platform home pages | None | Business owner | Open (Phase 4) |
 | A15 | P1 | Security | Tokens in JS-readable cookie and localStorage | CORS gate (PR #6) | Business owner | Partly fixed; token storage Open |
 | A16 | P1 | PWA | Writes not blocked offline | None | Business owner | Open |

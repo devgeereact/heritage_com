@@ -19,7 +19,7 @@ Legal bases and periods are Proposed for owner and legal review; none is decided
 | Body measurements | Make garments | To decide (contract) | Owner, client proposals | Periodic review of inactive profiles (Proposed) | Owner only; never company organisers by default (BR-27) | Manual request workflow |
 | Reference images and job photos | Production, quality | To decide | Client, owner | Periodic review (Proposed) | Owner | Manual request workflow |
 | Payments and receipts | Accounting, disputes | To decide (legal obligation) | Owner | Statutory period, Unknown | Owner; gateway if one is enabled | Kept for the statutory period |
-| Messages and feedback | Service, quality | To decide | Client | Unknown | Owner | Manual request workflow |
+| Messages and feedback | Service, quality | To decide | Client | Unknown | Owner | Manual request workflow. Phase 3 branch: internal notes never reach the client; feedback keeps the consent wording the client saw |
 | Public reviews and portfolio photos | Marketing | Separate consent (BR-33) | Client | While published | Public | Withdraw consent, unpublish |
 | Marketing opt-in | Promotion | Consent, separate from service messages (BR-35) | Client | Until withdrawn | Owner | Unsubscribe |
 | Staff accounts and audit log | Security | To decide | Owner | Unknown | Owner | Not applicable |

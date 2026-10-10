@@ -13,7 +13,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 
 ## Endpoint inventory
 
-45 top-level PHP files on the Phase 3 branch: 38 endpoints, five shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (21 files on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
+47 top-level PHP files on the Phase 3 branch: 40 endpoints, five shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (23 files on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
 
 | File | Purpose | Server gate (file level) | Deployed by |
 |---|---|---|---|
@@ -30,6 +30,8 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `booking.php` | Public consultation requests and free slots (Phase 3), off until `public_booking_enabled` | Public, throttled | CI (Phase 3 branch) |
 | `_portal.php` | Customer sessions (hashed tokens, expiry, revocation, legacy tokens behind the flag) and the object-level job check (Phase 3) | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 3 branch) |
 | `access.php` | Verified customer access: start, verify, redeem an invite, logout; owner invites and revocation (Phase 3) | Public and customer session; `requests`, `invite`, `revoke` owner | CI (Phase 3 branch) |
+| `portal.php` | Customer portal over tailoring jobs and retail orders: job view, messages, change requests, appointment requests, measurement proposals, feedback (Phase 3) | Customer session; every lookup filtered by the signed-in client | CI (Phase 3 branch) |
+| `messages.php` | Job messages, change-request decisions and feedback moderation (Phase 3) | Owner | CI (Phase 3 branch) |
 | `today.php` | Daily worklist | Owner: super_admin, admin, manager | CI (Phase 2 branch) |
 | `enquiries.php` | Enquiry pipeline and conversion | super_admin, admin, manager, employee (convert owner only) | CI (Phase 2 branch) |
 | `measurements.php` | Templates and measurement sets | Workshop | CI (Phase 2 branch) |
@@ -115,7 +117,7 @@ Branch `feat/phase3-appointments-portal` (no PR yet). Verified on local staging,
 | `booking.php?action=slots&type=consultation&from&days` | GET | `days` at most 14 | `{timezone, type, slots:[{start, end}]}`; 503 while switched off | Public, `BOOKING_SLOTS_MAX_PER_IP` |
 | `booking.php?action=request` | POST | `type:'consultation'`, `start`, `name`, `phone` or `email`, `note`, `hp_url` (honeypot), `request_key` | 201 `{ok, message}` (a request, never an instant booking; also opens an enquiry); 422 `{reason}` for `outside_hours`, `too_soon`, `too_far`; 409 when taken; 503 while switched off | Public, `BOOKING_REQUEST_MAX_PER_IP` |
 | `tailoring.php?action=fitting&id` | POST | `fitting_date` or null (unchanged contract) | Adds `appointment_id`: the date is kept as an all-day confirmed fitting appointment, moved or cancelled with it | Workshop |
-| `today.php` | GET | | `appointments_today` now lists real appointments (`id, type, status, all_day, starts_at_local, ends_at_local, client_name, job_id, job_code, source`), plus `appointment_requests` | Owner |
+| `today.php` | GET | | `appointments_today` now lists real appointments (`id, type, status, all_day, starts_at_local, ends_at_local, client_name, job_id, job_code, source`), plus `appointment_requests`, `access_requests`, `messages_unread`, `change_requests` and `feedback_follow_up`, each `{count, items}` and empty until their schema exists | Owner |
 
 `availability` shape (every field may be empty, which means not set): `{weekly:{mon:[["09:00","13:00"],["14:00","18:00"]], ..., sun:[]}, buffer_min, min_notice_hours, horizon_days, step_min, durations:{consultation, fitting, collection}, request_hold_hours}`. Breaks are the gaps between a day's windows; closed dates and leave are blocks. A type can be requested only when there is a window, a duration for it, a horizon, a minimum notice, a buffer and a hold time.
 
@@ -132,6 +134,43 @@ Branch `feat/phase3-appointments-portal` (no PR yet). Verified on local staging,
 | `access.php?action=revoke` | POST | `customer_id` | `{ok, revoked}` ends every session of that client | Owner |
 
 Customer tokens are 48 hex characters sent as `Authorization: Bearer`; only their sha256 is stored. Sessions last `customer_session_days` (default 7). The token never goes in a URL; the only link-borne secret is the single-use invite.
+
+### Customer portal
+
+Every action needs a customer session. A job is addressed by its public reference (`ref`); another client's reference answers 404 `{"error":"Not found"}`, exactly like a missing one. Writes take a `request_key`; a repeat returns the first result with `duplicate:true`.
+
+| Action | Method | Request | Response |
+|---|---|---|---|
+| `portal.php?action=me` | GET | | `{name, first_name, email_masked, phone_masked, features:{quote_accept, measurements}, timezone, company:null}` |
+| `portal.php?action=jobs` | GET | | `{jobs:[{ref, description, garment_type, quantity, stage, stage_label, promised_date, event_date, unread}], orders:[{ref, status, total, item_count, created_at, courier, tracking_url}]}` |
+| `portal.php?action=job&ref` | GET | | `job_public_view()`: `ref, description, garment_type, quantity, stage, stage_label, promised_date, event_date, quantity_handed_over, appointments, quote, payment{agreed, paid_verified, balance, credit, receipts}, handovers, timeline`; plus `messages`, `change_requests`, `feedback`, `can{accept_quote, give_feedback, request_appointment, request_change}` and `feedback_wording{publish, photo}`. `quote.content_hash` appears only when portal acceptance is on and the quote is sent |
+| `portal.php?action=messages&ref` | GET | | `{ref, messages:[{id, from: you, herit or system, body, at, read}]}`; marks Herit's messages read |
+| `portal.php?action=message` | POST | `ref`, `body` (plain text, at most 2000), `request_key` | 201 `{ok, id, duplicate, messages}` |
+| `portal.php?action=change_requests&ref` | GET | | `{items:[{id, kind, status, details, address, requested_start, owner_response, price_effect, date_effect, created_at, decided_at}]}` |
+| `portal.php?action=change_request` | POST | `ref`, `kind` (`address`, `garment` or `other`), `details` (at most 1000), `address` (for `address`), `request_key` | 201 change request; 409 once the job is closed |
+| `portal.php?action=slots&type&from&days` | GET | `type` fitting, collection or consultation; `days` at most 14 | `{timezone, type, slots}` (independent of the public switch; empty until hours are set) |
+| `portal.php?action=appointment_request` | POST | `ref`, `type`, `start`, `note`, `request_key` | 201 `{duplicate, message, id, type, status:'requested', all_day, starts_at, ends_at}`; 422 or 409 as for public requests |
+| `portal.php?action=appointment_reschedule_request` | POST | `ref`, `appointment_id`, `start`, `reason`, `request_key` | 201 change request of kind `reschedule`; the owner applies it |
+| `portal.php?action=measurements` | GET | | 404 unless `portal_show_measurements` is on; then `{read_only:true, sets:[{template, template_key, unit, values, status, taken_at}]}` (own approved and pending sets) |
+| `portal.php?action=measurement_templates` | GET | | `{templates:[{key, label, fields}]}` (active, hidden fields left out) |
+| `portal.php?action=propose_measurements` | POST | `ref` (optional), `template_key`, `unit` (`cm` or `in`), `vals`, `note`, `request_key` | 201 `{ok, pending:true, duplicate, warnings, change_request_id}`: a pending set (plus a change request when `ref` is given); never touches an approved set or a job snapshot |
+| `portal.php?action=feedback` | POST | `ref`, `rating` (1 to 5, optional), `comment`, `contact_ok`, `publish_consent` (`no`, `anonymous`, `first_name`), `photo_consent`, `request_key` | 201; 409 before handover or when feedback exists; 400 `{errors}` |
+| `portal.php?action=quote_accept` | POST | `ref`, `quote_id`, `content_hash`, `confirm:true` | 403 unless `portal_quote_accept_enabled` is on; then `{ok, already}` (channel `portal`) |
+
+### Messages, change requests and feedback (owner)
+
+| Action | Method | Request | Response |
+|---|---|---|---|
+| `messages.php?action=inbox` | GET | | `{items:[{job_id, code, client_name, last_at, last_at_local, unread}], unread_total}` |
+| `messages.php?action=unread_count` | GET | | `{messages, change_requests, feedback_follow_up}` |
+| `messages.php?action=thread&job_id` | GET | | Every message, internal notes included, with `author_name`, `visibility`, `channel`, `delivery_status`, `read_by_owner_at`, `read_by_customer_at`, `created_at_local` |
+| `messages.php?action=post` | POST | `job_id`, `visibility` (`internal` or `client`), `channel` (client: `portal`, `whatsapp`, `email`, `phone`, `in_person`; internal is always `note`), `body`, `request_key` | 201 message; WhatsApp sends through `wa_dispatch()` (adds `wa_link` in fallback mode), email through `_mail.php`; `delivery_status` records `sent`, `failed`, `manual` or `na` |
+| `messages.php?action=mark_read` | POST | `job_id` | `{ok, marked}` |
+| `messages.php?action=change_requests[&status][&job_id]` | GET | `status` open (default), approved, declined, withdrawn or all | `{items}` with `payload` decoded, `code`, `job_stage`, `client_name` |
+| `messages.php?action=change_decide&id` | POST | `decision` (`approve` or `decline`), `response`, `price_effect` (signed amount), `date_effect` (YYYY-MM-DD), `override_reason` (reschedule only) | The decided request. After cutting starts, approving a measurement or garment change without a price or date effect answers 422 (BR-30). A reschedule is applied through the booking lock (409 on a clash). A measurement approval approves the pending set but leaves the job snapshot alone. The client sees a notice in the thread |
+| `messages.php?action=feedback_list[&follow_up]` | GET | | `{items}` with consents and the wording agreed to |
+| `messages.php?action=feedback_update&id` | POST | `follow_up` (`none`, `open`, `done`) | `{ok, follow_up}` |
+| `messages.php?action=feedback_publish&id` | POST | | 201 `{testimonial_id, status:'hidden'}` only with publication consent, a rating and a comment (else 409); never automatic (BR-33) |
 
 ### Phase 3 settings keys
 

@@ -31,6 +31,8 @@ Restock, abandoned-cart and broadcast messages are promotional; under the approv
 | Balance reminder | Client | To decide | Owner sends | Service message | Owner judgement | Failed shown to owner |
 | Feedback request | Client | To decide | After handover | Service message | One per job | Failed shown to owner |
 
+Job messages (Phase 3 branch): the owner writes in a job's thread with `messages.php`. A client message goes to the portal and, when chosen, also by WhatsApp (`wa_dispatch()`, wa.me fallback) or email (`_mail.php`); its `delivery_status` records `sent`, `failed`, `manual` or `na` separately from the message, so a failed send never removes it. Internal notes never leave the admin side. Change-request decisions add a system notice to the client thread. Nothing is sent automatically except the sign-in code ([Email](#email)).
+
 All need an owner check before bulk or promotional sending. Templates must never promise automatic sync of personal WhatsApp. Owner-visible list of failed notifications: [DEPLOYMENT.md](DEPLOYMENT.md#monitoring). Phase 2 sends no new automatic messages. Channels, timing, quiet periods and expiry for each template: Unknown until Phase 3 design.
 
 ## Email

@@ -4,7 +4,7 @@ This file owns the table and schema inventory, codes and references, the current
 
 ## Table inventory
 
-47 tables from the `CREATE TABLE` statements in `php-api/*.sql` on the Phase 3 branch (Verified 10 October 2026): 35 before Phase 2, six from `schema_phase19.sql` to `schema_phase22.sql`, four from `schema_phase23.sql` and two from `schema_phase24.sql`. This is the source inventory, not proof of what the live database contains.
+50 tables from the `CREATE TABLE` statements in `php-api/*.sql` on the Phase 3 branch (Verified 10 October 2026): 35 before Phase 2, six from `schema_phase19.sql` to `schema_phase22.sql`, and nine from `schema_phase23.sql` to `schema_phase25.sql`. This is the source inventory, not proof of what the live database contains.
 
 | Schema file | Creates | Also alters |
 |---|---|---|
@@ -33,6 +33,7 @@ This file owns the table and schema inventory, codes and references, the current
 | `schema_phase22.sql` | job_handovers | |
 | `schema_phase23.sql` | appointments, appointment_events, availability_blocks, booking_lock | settings default; old `fitting_date` values copied into appointments ([detail](#phase-3-tables-and-columns-schema_phase23-to-25)) |
 | `schema_phase24.sql` | customer_sessions, customer_access_challenges | settings defaults |
+| `schema_phase25.sql` | job_messages, job_change_requests, job_feedback | settings (proposed consent wording) |
 
 ## Codes and references
 
@@ -101,3 +102,4 @@ Owner of every entity: the business owner.
 |---|---|
 | `schema_phase23.sql` | `appointments`: type (`consultation`, `fitting`, `collection`), status (`requested`, `confirmed`, `completed`, `cancelled`, `no_show`, `expired`), `starts_at` and `ends_at` in UTC, `all_day`, `buffer_min`, client, job and enquiry links, contact fields, `source` (`owner`, `public`, `portal`, `migration`), `hold_expires_at`, `override_reason`, `notes_internal`, `client_note`, unique `request_key`. `appointment_events`: status and time changes with reason and actor. `availability_blocks`: closed dates and leave. `booking_lock`: one row locked by every reservation. Each job's `fitting_date` becomes an all-day fitting (`migr-fitting-<id>`): `confirmed` when today or later in Lagos, `completed` when earlier, `cancelled` when the job is cancelled; nothing is deleted. All-day appointments never block timed slots. Settings default `public_booking_enabled = 0`. |
 | `schema_phase24.sql` | `customer_sessions`: `token_hash` (sha256, unique), client, `created_via` (`legacy`, `code`, `invite`), UTC `expires_at`, `revoked_at`, `last_seen_at`, `ip`. `customer_access_challenges`: `challenge_hash` (sha256 of the challenge or invite), client (NULL for a decoy), channel (`email`, `manual`, `invite`), `code_hash` (HMAC), expiry, `used_at`, `attempts`, status (`pending`, `awaiting_owner`, `used`, `expired`, `locked`). The spec proposed new columns on `customer_tokens`; its raw `token` is the primary key, so a separate table keeps hashed sessions clean, and `customer_tokens` is read only for legacy tokens. `public_ref` already exists from `schema_phase17.sql`. Settings defaults `customer_session_days = 7`, `portal_quote_accept_enabled = 0`, `portal_show_measurements = 0`. |
+| `schema_phase25.sql` | `job_messages`: one thread per job; `author_type` (`owner`, `customer`, `system`), `visibility` (`internal` or `client`), `channel`, plain-text `body`, `delivery_status` (`na`, `queued`, `sent`, `failed`, `manual`), read times for owner and client, unique `request_key`. `job_change_requests`: kind (`reschedule`, `address`, `measurement`, `garment`, `other`), JSON `payload`, linked measurement set or appointment, status (`open`, `approved`, `declined`, `withdrawn`), owner response, signed `price_effect`, `date_effect`, decision time, unique `request_key`. `job_feedback`: one per job; optional rating, comment, `contact_ok`, `publish_consent` (`no`, `anonymous`, `first_name`), `photo_consent`, the publication and photo wording shown at the time, `follow_up` (`none`, `open`, `done`; ratings of 2 or less open one), `published_testimonial_id`. Proposed wording for `feedback_publish_wording` and `feedback_photo_wording`. |

@@ -126,4 +126,41 @@ $out['measurements_pending'] = [
                WHERE s.status = 'pending' ORDER BY s.id LIMIT " . TODAY_LIMIT)),
 ];
 
+// Phase 3: clients waiting for an invite, unread client messages, open change requests, feedback to follow up.
+$out['access_requests'] = has_table('customer_access_challenges') ? [
+  'count' => (int)db_row("SELECT COUNT(*) AS n FROM customer_access_challenges WHERE status = 'awaiting_owner' AND expires_at > UTC_TIMESTAMP()")['n'],
+  'items' => array_map(fn($r) => ['id' => (int)$r['id'], 'customer_id' => (int)$r['customer_id'], 'client_name' => $r['client_name'], 'created_at' => $r['created_at']],
+    db_rows("SELECT ch.id, ch.customer_id, c.name AS client_name, ch.created_at FROM customer_access_challenges ch JOIN customers c ON c.id = ch.customer_id
+              WHERE ch.status = 'awaiting_owner' AND ch.expires_at > UTC_TIMESTAMP() ORDER BY ch.id LIMIT " . TODAY_LIMIT)),
+] : $EMPTY;
+if (has_table('job_messages')) {
+  $out['messages_unread'] = [
+    'count' => (int)db_row("SELECT COUNT(*) AS n FROM job_messages WHERE author_type = 'customer' AND read_by_owner_at IS NULL")['n'],
+    'items' => array_map(fn($r) => ['job_id' => (int)$r['job_id'], 'job_code' => $r['code'], 'client_name' => $r['client_name'], 'unread' => (int)$r['unread'],
+      'last_at_local' => lagos_iso($r['last_ts'])],
+      db_rows("SELECT m.job_id, o.code, c.name AS client_name, COUNT(*) AS unread, MAX(m.created_at) AS last_at, UNIX_TIMESTAMP(MAX(m.created_at)) AS last_ts
+                 FROM job_messages m JOIN tailoring_orders o ON o.id = m.job_id JOIN customers c ON c.id = m.customer_id
+                WHERE m.author_type = 'customer' AND m.read_by_owner_at IS NULL
+             GROUP BY m.job_id, o.code, c.name ORDER BY last_at LIMIT " . TODAY_LIMIT)),
+  ];
+  $out['change_requests'] = [
+    'count' => (int)db_row("SELECT COUNT(*) AS n FROM job_change_requests WHERE status = 'open'")['n'],
+    'items' => array_map(fn($r) => ['id' => (int)$r['id'], 'job_id' => (int)$r['job_id'], 'job_code' => $r['code'], 'client_name' => $r['client_name'],
+      'kind' => $r['kind'], 'created_at' => $r['created_at']],
+      db_rows("SELECT r.id, r.job_id, o.code, c.name AS client_name, r.kind, r.created_at FROM job_change_requests r
+                 JOIN tailoring_orders o ON o.id = r.job_id JOIN customers c ON c.id = r.customer_id
+                WHERE r.status = 'open' ORDER BY r.id LIMIT " . TODAY_LIMIT)),
+  ];
+  $out['feedback_follow_up'] = [
+    'count' => (int)db_row("SELECT COUNT(*) AS n FROM job_feedback WHERE follow_up = 'open'")['n'],
+    'items' => array_map(fn($r) => ['id' => (int)$r['id'], 'job_id' => (int)$r['job_id'], 'job_code' => $r['code'], 'client_name' => $r['client_name'],
+      'rating' => $r['rating'] !== null ? (int)$r['rating'] : null, 'created_at' => $r['created_at']],
+      db_rows("SELECT f.id, f.job_id, o.code, c.name AS client_name, f.rating, f.created_at FROM job_feedback f
+                 JOIN tailoring_orders o ON o.id = f.job_id JOIN customers c ON c.id = f.customer_id
+                WHERE f.follow_up = 'open' ORDER BY f.id LIMIT " . TODAY_LIMIT)),
+  ];
+} else {
+  $out['messages_unread'] = $out['change_requests'] = $out['feedback_follow_up'] = $EMPTY;
+}
+
 json($out);
