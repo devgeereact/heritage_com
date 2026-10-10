@@ -12,7 +12,8 @@ const TYPES = [
   { v: 'general', l: 'General enquiry' },
 ];
 
-const empty = { name: '', phone: '', email: '', type: 'order', interest: '', message: '', company: '' };
+// website_url_confirm is the hidden honeypot; company is a real optional field.
+const empty = { name: '', phone: '', email: '', company: '', type: 'order', interest: '', message: '', website_url_confirm: '' };
 
 /**
  * Public enquiry form. Posts to the same PHP enquiries endpoint as the
@@ -80,6 +81,10 @@ const SiteContactForm = ({ defaultType }) => {
           <Form.Control type="email" value={form.email} onChange={set('email')} placeholder="you@email.com" />
         </Col>
         <Col xs={12}>
+          <label className="hc-label">Company or organisation (optional)</label>
+          <Form.Control value={form.company} onChange={set('company')} placeholder="For group or company orders" autoComplete="organization" />
+        </Col>
+        <Col xs={12}>
           <label className="hc-label">Piece or fabric in mind (optional)</label>
           <Form.Control value={form.interest} onChange={set('interest')} placeholder="e.g. Adire wrap dress, size M" />
         </Col>
@@ -90,8 +95,8 @@ const SiteContactForm = ({ defaultType }) => {
         </Col>
         {/* Honeypot — hidden from people, catches bots. */}
         <input
-          type="text" name="company" tabIndex={-1} autoComplete="off"
-          value={form.company} onChange={set('company')}
+          type="text" name="website_url_confirm" tabIndex={-1} autoComplete="off"
+          value={form.website_url_confirm} onChange={set('website_url_confirm')}
           style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
           aria-hidden="true"
         />

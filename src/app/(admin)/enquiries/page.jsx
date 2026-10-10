@@ -81,7 +81,10 @@ const EnquiriesPage = () => {
                 {rows.map((r) => (
                   <tr key={r.id}>
                     <td className="small text-nowrap">{r.created_at}</td>
-                    <td className="fw-semibold">{r.name}</td>
+                    <td>
+                      <div className="fw-semibold">{r.name}</div>
+                      {r.company && <div className="small text-muted">{r.company}</div>}
+                    </td>
                     <td className="small">
                       {r.phone && <div><IconifyIcon icon="solar:phone-bold" /> {r.phone}</div>}
                       {r.email && <div><IconifyIcon icon="solar:letter-bold" /> {r.email}</div>}

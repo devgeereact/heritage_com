@@ -2,9 +2,11 @@
 /**
  * HeritOS — public enquiries / contact form.
  *
- *   POST /contact.php                 (PUBLIC) {name, phone, email, type, interest,
- *                                              message, company?}  → {ok:true}
- *       `company` is a honeypot: if filled, silently drop (bots fill every field).
+ *   POST /contact.php                 (PUBLIC) {name, phone, email, company?, type,
+ *                                              interest, message, website_url_confirm?}
+ *                                              → {ok:true}
+ *       `website_url_confirm` is a hidden honeypot: if filled, silently drop (bots
+ *       fill every field). `company` is a real optional field (finding A11).
  *   GET  /contact.php?action=list     (STAFF)  → enquiries, newest first
  *   POST /contact.php?action=status&id=N (STAFF) {status} → new|contacted|closed
  *
@@ -22,12 +24,13 @@ $action = $_GET['action'] ?? '';
 if ($action === '' && method() === 'POST') {
   $b = body();
 
-  // Honeypot — real users never see/fill `company`.
-  if (trim($b['company'] ?? '') !== '') json(['ok' => true]);
+  // Honeypot: the field is hidden from people, so only bots fill it.
+  if (trim((string)($b['website_url_confirm'] ?? '')) !== '') json(['ok' => true]);
 
   $name = trim($b['name'] ?? '');
   $phone = trim($b['phone'] ?? '');
   $email = trim($b['email'] ?? '');
+  $company = trim((string)($b['company'] ?? ''));
   $type = in_array($b['type'] ?? '', $TYPES, true) ? $b['type'] : 'general';
   $interest = trim($b['interest'] ?? '');
   $message = trim($b['message'] ?? '');
@@ -36,11 +39,23 @@ if ($action === '' && method() === 'POST') {
   if ($phone === '' && $email === '') fail('Please leave a phone number or email so we can reply');
   if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) fail('That email address looks wrong');
   if (mb_strlen($name) > 160 || mb_strlen($message) > 4000) fail('That message is too long');
+  if (mb_strlen($company) > 160) fail('That company name is too long');
 
-  $stmt = $conn->prepare(
-    'INSERT INTO enquiries (name, phone, email, type, interest, message) VALUES (?,?,?,?,?,?)'
-  );
-  $stmt->bind_param('ssssss', $name, $phone, $email, $type, $interest, $message);
+  // `company` needs schema_phase17.sql; until it is imported the enquiry is still
+  // saved and the company name is kept in the message so nothing is lost.
+  if (has_column('enquiries', 'company')) {
+    $companyVal = $company !== '' ? $company : null;
+    $stmt = $conn->prepare(
+      'INSERT INTO enquiries (name, phone, email, company, type, interest, message) VALUES (?,?,?,?,?,?,?)'
+    );
+    $stmt->bind_param('sssssss', $name, $phone, $email, $companyVal, $type, $interest, $message);
+  } else {
+    if ($company !== '') $message = 'Company: ' . $company . "\n" . $message;
+    $stmt = $conn->prepare(
+      'INSERT INTO enquiries (name, phone, email, type, interest, message) VALUES (?,?,?,?,?,?)'
+    );
+    $stmt->bind_param('ssssss', $name, $phone, $email, $type, $interest, $message);
+  }
   $stmt->execute();
 
   json(['ok' => true], 201);
@@ -51,7 +66,8 @@ if ($action === 'list' && method() === 'GET') {
   require_auth(['super_admin', 'admin', 'manager', 'employee']);
   $rows = [];
   $res = $conn->query(
-    'SELECT id, name, phone, email, type, interest, message, status, created_at
+    'SELECT id, name, phone, email, ' . (has_column('enquiries', 'company') ? 'company' : 'NULL AS company') . ',
+            type, interest, message, status, created_at
        FROM enquiries ORDER BY id DESC LIMIT 500'
   );
   while ($res && $row = $res->fetch_assoc()) $rows[] = $row;
