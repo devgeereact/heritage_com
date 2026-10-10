@@ -4,10 +4,11 @@ name: CI
 # so the first thing to notice a broken build was the live site. Nothing ran on
 # a pull request at all.
 #
-# There is no typecheck job on purpose. tsconfig.json exists but src/ is 473
-# .js/.jsx files and zero .ts — a `tsc --noEmit` gate here would check nothing
-# and give false assurance. If this project ever moves to TypeScript, add it
-# then; see gakinz_com and ritagreen_os, which are TS and do gate on it.
+# There is no typecheck job on purpose. The project is JavaScript only (src/ has
+# no .ts files; jsconfig.json holds the editor path aliases), so a
+# `tsc --noEmit` gate here would check nothing and give false assurance. If
+# this project ever moves to TypeScript, add it then; see gakinz_com and
+# ritagreen_os, which are TS and do gate on it.
 
 on:
   pull_request:
@@ -63,3 +64,9 @@ jobs:
 
       - name: PHP helper tests
         run: php php-api/tests/run.php
+
+      # Documentation stays in step with the code (.claude/rules/docs-sync.md):
+      # fails on broken Markdown links or anchors, em dashes in live docs, and
+      # mentions of docs/ or qa/ paths that do not exist. Node only, no deps.
+      - name: Docs check
+        run: node scripts/check-docs.mjs
