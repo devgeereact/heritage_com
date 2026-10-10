@@ -1,6 +1,6 @@
 # Operations
 
-How to run, check, release and recover HeritOS. The most important fact first: **pushing to `main` deploys to production**, and local development talks to the live production API. Work on a branch, open a pull request, and never test against real client records.
+How to run, check, release and recover HeritOS. The most important fact first: **pushing to `main` deploys to production**. Local development talks to a local staging API with synthetic records, not production (A01, from `feat/phase1b-staging`). Work on a branch, open a pull request, and never test against real client records.
 
 ## Hosting
 
@@ -20,9 +20,26 @@ npm ci           # install exactly from package-lock.json
 npm run dev      # http://localhost:5112, strictPort: fails loudly if the port is taken
 ```
 
-There is no PHP or MySQL on the laptop. In development `API_BASE` is `https://heritclothing.com` (`src/context/constants.js`), so **every local session reads and writes production records** (finding A01). Until a staging API exists, do not create, edit or delete records from a local session unless the change is intended for production.
+In development `API_BASE` is `VITE_API_BASE` when set, otherwise the local staging API `http://127.0.0.1:8088` (`src/context/constants.js`). Start staging first (next section), or every request fails cleanly instead of touching production.
 
-The live server only accepts requests from a localhost origin while `ALLOW_LOCALHOST_CORS` is set to true in the server `config.php`. Default off (added on `feat/plans-2026-phase1`, A15). Switch it on by hand only while local development against the live API is genuinely needed, then switch it off again. Once that branch is deployed, `npm run dev` cannot reach the live API until the setting is on.
+Pointing development at production (`VITE_API_BASE=https://heritclothing.com` in `.env.local`) reads and writes real client records. Do that only with the owner's explicit agreement and for a specific reason. The live server also refuses localhost origins unless `ALLOW_LOCALHOST_CORS` is true in the server `config.php` (default off, A15); switch it on only for that session and off again afterwards. `.env.example` documents the variable.
+
+## Local staging
+
+A throwaway copy of the API and database on the laptop, with synthetic records only. Needs PHP 8.1+ with mysqli and a local MariaDB or MySQL server (verified with PHP 8.5 and MariaDB 12.3 on 10 October 2026).
+
+```bash
+npm run staging:setup     # build heritos_staging and seed it (drops and rebuilds by default)
+npm run staging:serve     # API on http://127.0.0.1:8088; leave running
+npm run dev               # second terminal: app on http://localhost:5112, talking to staging
+```
+
+- `scripts/staging/setup.sh` creates database `heritos_staging` and local user `heritos_local` with a new random password, writes the gitignored `php-api/config.local.php`, imports `schema.sql`, `schema_modules.sql` and `schema_phase2.sql` to the newest `schema_phaseN.sql` in numeric order, reports any file that raised an error (details in `scripts/staging/.logs/`), then runs `scripts/staging/seed.php`. `npm run staging:setup -- --keep` re-imports over the existing database instead of rebuilding it.
+- The admin connection defaults to `mariadb` as the current OS user. Set `HERITOS_DB_ADMIN` to another client command (for example `mysql -u root -p`) if that does not work.
+- Seed data: staff `staging-admin@example.test` (super_admin) and `tailor01@example.test`; eight clients `Test Client 01` to `08` with phones `08000000001` to `08000000008` and `@example.test` emails; seven tailoring jobs across every stage; three retail orders with public references; four enquiries (one with a company); two blog posts. The staging admin password is random and **printed once by setup**; it exists only in the local database. Run setup again for a new one. The accounts that `schema.sql` seeds on real-domain addresses are suspended with an unusable password, and its two sample clients are removed.
+- `scripts/staging/serve.sh` runs `php -S` through `scripts/staging/router.php`. The router maps `/name.php` to `php-api/name.php`, refuses `_lib.php` and every `config*.php`, and defines `HERITOS_STAGING` so `_lib.php` loads `config.local.php`. Production never defines that constant, so the live server keeps loading `config.php`.
+- Staging config: `GK_DEBUG` on, `ALLOW_LOCALHOST_CORS` on, `ALLOW_LEGACY_ORDER_CODE_LOOKUP` on, and no mail, WhatsApp, payment or AI credentials. WhatsApp falls back to logged wa.me links, payments to manual mode and AI to "not configured". PHP `mail()` is redirected to `scripts/staging/.logs/mail.log`. Only `weather.php` calls out (Open-Meteo, read-only).
+- Smoke checks run on 10 October 2026, all PASS: staff login (wrong password and the suspended real-domain account refused); tailoring list (7 seeded jobs, every stage) and create (returns `HC-` code and `public_ref`); group create; enquiry with company stored and shown to staff; honeypot submission accepted silently and not stored; order tracking by public reference, by old code with the legacy flag on, refused with the flag off and refused with the wrong phone; customer login by public reference; checkout returns a public reference; a forced `ORD-` collision retried to the next code; router refuses `config.local.php`, `config.php`, `_lib.php` and `config.sample.php`; CORS allows `http://localhost:5112`. Browser walkthrough of the app against staging: NOT TESTED.
 
 ## Checks
 
@@ -30,11 +47,11 @@ The live server only accepts requests from a localhost origin while `ALLOW_LOCAL
 |---|---|---|
 | `npm run build` | Vite production build to `dist/` | PASS on 10 Oct 2026; Sass deprecation and large-chunk warnings remain |
 | `npm run lint` | ESLint | The committed config matches only `.ts`/`.tsx`, so it checks none of the 473 JS/JSX files (A13). A JS/JSX config is written and tested (476 files, 0 errors, 194 warnings) but is waiting for the owner to apply it, because a local hook blocks agents from editing `eslint.config.js`. |
-| `php php-api/tests/run.php` | 56 pure helper checks for `_lib.php` (sanitiser, CORS decision, throttle maths, payments); no database or network | PASS on 10 Oct 2026 |
+| `php php-api/tests/run.php` | 70 pure helper checks for `_lib.php` (sanitiser, CORS decision, throttle maths, payments, public references and staff codes); no database or network | PASS on 10 Oct 2026 (`feat/phase1b-staging`) |
 | `php -l php-api/<file>.php` | PHP syntax | PASS for all 32 top-level files on 10 Oct 2026; not functional proof |
 | `npm run preview` | Serves the production build locally | The production build uses relative API paths, so it does not reach the live API |
 
-There is no frontend test script and no type check (JavaScript project). Critical flow tests need a staging environment first.
+There is no frontend test script and no type check (JavaScript project). Critical API flows can now be exercised against local staging (see Local staging); automated flow tests are still to be written.
 
 ## CI and deploy
 
@@ -56,6 +73,7 @@ Older notes said "deploys only push dist/" and php-api/README.md says no PHP is 
 - Tokens and throttling: `TOKEN_SECRET`, `TOKEN_TTL_DAYS`, `LOGIN_THROTTLE_WINDOW`, `LOGIN_MAX_PER_IP`, `LOGIN_MAX_PER_ACCOUNT`, `PIN_MAX_PER_IP`, `PIN_MAX_GLOBAL`.
 - Customer throttling (new): `CUSTOMER_LOGIN_MAX_PER_IP` (default 10), `CUSTOMER_LOGIN_MAX_PER_PHONE` (default 5), `TRACK_MAX_PER_IP` (default 20), all over `LOGIN_THROTTLE_WINDOW`. 0 switches a check off.
 - CORS: `CORS_ORIGIN`, and the new `ALLOW_LOCALHOST_CORS` (default off).
+- Customer references: `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (default true when unset). While true, tracking and customer sign-in also accept the old sequential `ORD-` code as well as the random public reference. Set it to false once customers have their public references (A06).
 - AI: `OPENROUTER_KEY`, `OR_MODEL`, `OR_MODELS`, `OR_REFERER`, `OR_TITLE`, `IMAGE_PROVIDER`, `OR_IMAGE_MODEL`, `OPENAI_IMAGE_KEY`, `STABILITY_KEY`. The old project memory recorded `OR_MODEL` as `anthropic/claude-sonnet-4.6` on the server; the sample default differs. The live value is Unknown from the repo.
 - Mail: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_FROM_NAME`, `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASS`. The mail host recorded previously is premium152.web-hosting.com. Blank `SMTP_HOST` falls back to PHP `mail()`; blank `IMAP_HOST` disables the inbox.
 - WhatsApp: `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_VERIFY_TOKEN`. Blank token means wa.me fallback mode. The webhook is `/whatsapp.php?action=webhook`.
@@ -67,7 +85,8 @@ Older notes said "deploys only push dist/" and php-api/README.md says no PHP is 
 
 - First install: import `php-api/schema.sql` in phpMyAdmin. It creates the foundation and module tables and seeds one `super_admin`, `dev@heritclothing.com`.
 - Where the full `schema.sql` aborts on a stale legacy table, import `schema_modules.sql` instead; it creates only the later-module tables.
-- Then apply `schema_phase2.sql` to `schema_phase16.sql` in numeric order (Proposed order: later phases alter tables created earlier). Which phases the live database has is Unknown.
+- Then apply `schema_phase2.sql` to `schema_phase17.sql` in numeric order (later phases alter tables created earlier). Local staging imports exactly this order without errors (10 October 2026). Which phases the live database has is Unknown.
+- `schema_phase17.sql` (from `feat/phase1b-staging`) adds `public_ref` to `orders` and `tailoring_orders` with a backfill and UNIQUE index, and `company` to `enquiries`. Import it before uploading the matching `store.php`, `account.php`, `orders.php` and `settings.php`. The CI-deployed `_lib.php`, `tailoring.php` and `contact.php` check for the new columns and keep working without them, so the merge itself does not depend on the import.
 - `users.php`, `mail.php` and `inbox.php` need no new tables.
 - `CREATE TABLE IF NOT EXISTS` does not upgrade existing columns, and re-running a file is not automatically safe. Record which versions are applied and their dependencies. Keep versioned SQL in `php-api/`.
 - Seed password: set it straight after import. Generate a hash locally with `php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_DEFAULT), PHP_EOL;'`, then run `UPDATE users SET password_hash = '<hash>' WHERE email = 'dev@heritclothing.com';`. Never commit or share the real password.
@@ -85,9 +104,9 @@ Full table and schema inventory: [ARCHITECTURE.md](ARCHITECTURE.md#table-invento
 
 ## Environments and staging
 
-Approved direction, not yet built:
+Status: local staging exists (see [Local staging](#local-staging)). Still to build:
 
-1. A non-production environment with synthetic clients and no real payment, email or WhatsApp actions. It shows its API URL, database and sender mode visibly before tests.
+1. A shared non-production environment with synthetic clients and no real payment, email or WhatsApp actions, which shows its API URL, database and sender mode visibly before tests. Local staging covers this on one laptop; the app does not yet show which API it is using.
 2. Compare required endpoint names and schema versions with the release manifest. Never copy `config.php` or discover credentials during a review.
 3. Make application and PHP release versions consistent. The release manifest lists every endpoint still in use and which are retired. Never glob-upload all files, schemas, tests or the sample config.
 4. Meaningful JS/JSX lint, PHP syntax and helper tests, and critical flow tests in CI.
@@ -163,4 +182,4 @@ Planning input, not a compliance certification.
 - **Endpoint errors on GET:** the table it queries does not exist; import the right schema file.
 - **Deploy fails:** open the Actions run. An `npm ci` failure usually means `package-lock.json` is out of step; an FTP auth failure means the three repository secrets do not match the FTP account.
 - **HTTPS warning:** SSL is still issuing; run cPanel > SSL/TLS Status > Run AutoSSL.
-- **Enquiries page shows an upload instruction:** the page currently tells the owner to upload contact.php and import the enquiries table (A17). It means the endpoint or table is missing on the server.
+- **Enquiries page says it could not load enquiries:** the request to `contact.php?action=list` failed (A17 replaced the old upload instruction with this plain message and a Retry button). The browser console has the technical detail. Usual causes: `contact.php` missing on the server, the `enquiries` table missing, or an expired session.

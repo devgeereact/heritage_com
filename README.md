@@ -13,10 +13,12 @@ The app and website behind [heritclothing.com](https://heritclothing.com), for a
 
 ```bash
 npm ci
-npm run dev      # http://localhost:5112
+npm run staging:setup   # once: local MariaDB/MySQL database with synthetic records
+npm run staging:serve   # local API on http://127.0.0.1:8088 (leave running)
+npm run dev             # http://localhost:5112, talking to the local staging API
 ```
 
-Development talks to the live production API. Read [docs/OPERATIONS.md](docs/OPERATIONS.md) before changing any data.
+Development no longer talks to production. Read [docs/OPERATIONS.md](docs/OPERATIONS.md#local-staging) for staging details and before changing any live data.
 
 ## Documentation
 

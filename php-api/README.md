@@ -26,7 +26,8 @@ and upload order are in [docs/OPERATIONS.md](../docs/OPERATIONS.md).
 - Visit `https://heritclothing.com/api.php` → should return a JSON array
   (the two seeded items, or `[]` once cleared).
 - The React app calls these through `API_BASE` (see `src/context/constants.js`):
-  dev → `https://heritclothing.com`, production → relative (same origin).
+  dev → `VITE_API_BASE`, defaulting to the local staging API on
+  `http://127.0.0.1:8088` (`npm run staging:serve`); production → relative (same origin).
 
 ## Seed login
 

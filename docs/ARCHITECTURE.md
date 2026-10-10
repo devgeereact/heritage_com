@@ -18,7 +18,7 @@ MySQL database (cPanel, phpMyAdmin)
 
 - **Frontend:** React 19, Vite, Bootstrap 5 and react-bootstrap, JavaScript only (no TypeScript files in src). Built on the Larkon React v2 admin kit (JS variant), transplanted into the repo root. Public site under `src/app/(public)/site`, admin under `src/app/(admin)`, auth and utility screens under `src/app/(other)`.
 - **API client:** `src/helpers/heritApi.js`, native `fetch`, adds `Authorization: Bearer <token>`, prefixes `API_BASE`.
-- **`API_BASE`** (`src/context/constants.js`): `import.meta.env.DEV ? 'https://heritclothing.com' : ''`. Development therefore reads and writes the live production API (finding A01). Production is same-origin.
+- **`API_BASE`** (`src/context/constants.js`): in development `import.meta.env.VITE_API_BASE`, defaulting to the local staging API `http://127.0.0.1:8088`; production builds are same-origin (`''`). Development no longer reaches production unless someone sets `VITE_API_BASE` to it on purpose (A01, see [OPERATIONS.md](OPERATIONS.md#local-staging)).
 - **Mock backend:** Larkon's axios `fake-backend` mocks only `POST /login` with demo users. It loads only in development (`src/App.jsx`) and no module calls axios.
 - **React never connects to MySQL.** Any data need means adding or extending a PHP endpoint and fetching it.
 - **Service worker** (`public/sw.js`): caches the shell and static files; never caches `.php` or `/api` (line 25). It is an offline shell, not offline job or payment storage (A16). Writes must be blocked while offline; no background sync until justified.
@@ -55,7 +55,7 @@ CORS: production is same-origin. Until now `_lib.php` reflected any `localhost` 
 
 | File | Purpose | Deployed by |
 |---|---|---|
-| `_lib.php` | Shared helpers: CORS, JSON, auth, audit, throttle, `cfg()`, coupon and referral helpers | CI |
+| `_lib.php` | Shared helpers: CORS, JSON, auth, audit, throttle, `cfg()`, coupon and referral helpers, staff codes and public references. Loads `config.local.php` instead of `config.php` only when the local staging router defines `HERITOS_STAGING` | CI |
 | `api.php` | Smoke test: `items` list (public) and insert (staff) | CI |
 | `auth.php` | Staff login, logout, me; email and PIN throttling | CI |
 | `ai.php` | OpenRouter text proxy, staff only | CI |
@@ -79,14 +79,15 @@ CORS: production is same-origin. Until now `_lib.php` reflected any `localhost` 
 | `payments.php` | Money in and out, cash position | Manual |
 | `referrals.php` | Referral codes and rewards | Manual |
 | `reviews.php` | Reviews, ratings and photo moderation | Manual |
-| `settings.php` | Channel toggles and store configuration | Manual |
+| `settings.php` | Channel toggles and store configuration, including `shop_enabled` | Manual |
 | `stock.php` | Stock adjustments | Manual |
-| `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking | Manual |
+| `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`) | Manual |
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | Manual |
 | `users.php` | Team and access: staff CRUD, last super_admin guard | Manual |
 | `weather.php` | Lagos forecast from Open-Meteo, no key (weather.php:23) | Manual |
 | `whatsapp.php` | WhatsApp threads, templates, Cloud API or wa.me fallback | Manual |
 | `config.sample.php` | Template for server-only `config.php` | Never deployed |
+| `config.local.php` | Local staging config written by `scripts/staging/setup.sh`; gitignored | Never deployed |
 
 ## Route inventory
 
@@ -94,13 +95,12 @@ From `src/routes/index.jsx`.
 
 | Group | Routes |
 |---|---|
-| Public site | `/`, `/about`, `/shop`, `/shop/:slug`, `/cart`, `/checkout`, `/gifting`, `/contact`, `/journal`, `/journal/:slug`, `/track`, `/account` |
-| Admin, business modules | `/dashboard`, `/tailoring`, `/tailoring/groups`, `/tailoring/:id`, `/catalogue`, `/catalogue/:id`, `/stock`, `/suppliers`, `/finance`, `/analytics`, `/marketing`, `/pos`, `/studio`, `/content`, `/channels`, `/team`, `/inbox`, `/whatsapp`, `/coupons`, `/loyalty`, `/engage`, `/reviews`, `/weather`, `/enquiries`, `/crm`, `/crm/:id`, `/sales`, `/sales/:id`, `/settings`, `/profile`, `/permissions` |
-| Admin, Larkon kit operational pages | `/apps/{chat,email,calendar,todo}`, `/products/*`, `/category/*`, `/inventory/{warehouse,received-orders}`, `/orders/*`, `/purchases/*`, `/attributes/*`, `/invoice/*`, `/role/*`, `/customer/*`, `/seller/*`, `/coupons/{coupons-list,coupons-add}`, `/review`, `/support/{help-center,faqs,privacy-policy}`, `/pages/{welcome,timeline,pricing,pages-404-alt}`, `/widgets` |
-| Admin, kit demo galleries | `/base-ui/*` (21 pages), `/advanced-ul/*` (5), `/charts/*` (16), `/forms/*` (11), `/icons/{boxicons,solaricons}`, `/maps/{google,vector}`, `/tables/{basic,gridjs}` |
-| Auth and utility | `/auth/{sign-in,sign-up,reset-pass,lock-screen}`, `/pages-404`, `/maintenance`, `/coming-soon`, `*` |
+| Public site | `/`, `/about`, `/shop`, `/shop/:slug`, `/cart`, `/checkout`, `/gifting`, `/contact`, `/journal`, `/journal/:slug`, `/track`, `/account`. Shop, cart and gifting links show in public navigation only while the `shop_enabled` setting is on (default off); the routes work by direct URL either way. |
+| Admin, business modules | `/dashboard`, `/tailoring`, `/tailoring/groups`, `/tailoring/:id`, `/catalogue`, `/catalogue/:id`, `/stock`, `/suppliers`, `/finance`, `/analytics`, `/marketing`, `/pos`, `/studio`, `/content`, `/channels`, `/team`, `/inbox`, `/whatsapp`, `/coupons`, `/loyalty`, `/engage`, `/reviews`, `/weather`, `/enquiries`, `/crm`, `/crm/:id`, `/sales`, `/sales/:id`, `/profile`, `/permissions` |
+| Admin, remaining Larkon kit pages | `/apps/calendar` (sample events in React state only, A08; replaced in Phase 3), `/settings` and `/review` (kit pages with no API calls, not in the menu; kept for now) |
+| Auth and utility | `/auth/{sign-in,sign-up,reset-pass,lock-screen}`, `/pages-404`, `/maintenance`, `/coming-soon` |
 
-Kit demo routes are hidden from the menu but reachable by URL for any signed-in role roles.js allows (A18). The calendar at `/apps/calendar` holds sample events in React state only (A08).
+Removed on 10 October 2026 (A18): the kit demo galleries (`/base-ui/*`, `/advanced-ul/*`, `/charts/*`, `/forms/*`, `/icons/*`, `/maps/*`, `/tables/*`, `/widgets`) and the kit operational pages no module used (`/apps/{chat,email,todo}`, `/products/*`, `/category/*`, `/inventory/*`, `/orders/*`, `/purchases/*`, `/attributes/*`, `/invoice/*`, `/role/*`, `/customer/*`, `/seller/*`, `/coupons/{coupons-list,coupons-add}`, `/support/*`, `/pages/*`), with their page folders and 14 components, hooks and contexts only they imported. `roles.js` lists only sections that still have routes. Production JavaScript fell from 4,985,796 to 1,553,500 bytes.
 
 ## Table inventory
 
@@ -125,8 +125,14 @@ Kit demo routes are hidden from the menu but reachable by URL for any signed-in 
 | `schema_phase14.sql` | wishlist_items | |
 | `schema_phase15.sql` | nps_responses | |
 | `schema_phase16.sql` | blog_posts, testimonials | |
+| `schema_phase17.sql` | | orders and tailoring_orders (`public_ref` CHAR(10), backfilled, UNIQUE), enquiries (`company`) |
 
-Codes: retail `ORD-` and tailoring `HC-` codes come from `MAX(id)+1` before insert. UNIQUE keys stop duplicates (a race fails the second insert), but the codes are sequential and guessable (A06). store.php and orders.php share one `ORD-` sequence.
+Codes and references (A06):
+
+- Staff codes stay sequential and readable: retail `ORD-`, tailoring `HC-` and group `HCG-` come from `MAX(id)+1`. `insert_with_code()` in `_lib.php` retries with a fresh code when an insert hits a duplicate key (errno 1062), up to five times. store.php and orders.php share one `ORD-` sequence.
+- Customers use a separate random `public_ref`: 10 characters from `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (no 0/O or 1/I/L), generated with `random_int` and UNIQUE on `orders` and `tailoring_orders`. `assign_public_ref()` sets it after insert and skips quietly if `schema_phase17.sql` is not imported yet. Rows that existed before the import get a SQL `RAND()` backfill, which is weaker.
+- Customer lookups (`store.php?action=track`, `account.php?action=login`) go through `order_by_customer_ref()`: the public reference always works; the old `ORD-` code works only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is true (default true, so references already sent to customers keep working). Both still need the matching phone and are throttled per IP.
+- The checkout confirmation, tracking page, customer portal and WhatsApp order confirmation show the public reference. Tailoring jobs carry one ready for Phase 3; no customer page shows it yet. Payment start and verification (`pay_init`, `pay_verify`) still use the staff code.
 
 ## Data model target
 
@@ -189,6 +195,6 @@ Workflow: edit draft > preview phone and desktop > review permissions and copy >
 
 Failure behaviour: show a clear unavailable message, the last verified public content where suitable, or omit optional sections. Never resurrect sample products, fabricated reviews or old offers when the API returns empty; a deliberately empty catalogue stays empty. Changed or unpublished content invalidates the relevant cache. No credentials, private IDs or internal notes in public JSON.
 
-Known gaps: `SiteLayout.jsx:24-31` falls back to platform home pages for Instagram, Facebook and TikTok and to `wa.me/234` for WhatsApp; Twitter and YouTube fall back to empty; LinkedIn is absent (A12). `contact.php` uses a field named `company` as a honeypot, so a real company field must use a different name (A11).
+Known gaps: `SiteLayout.jsx:24-31` falls back to platform home pages for Instagram, Facebook and TikTok and to `wa.me/234` for WhatsApp; Twitter and YouTube fall back to empty; LinkedIn is absent (A12). `contact.php` now uses the hidden field `website_url_confirm` as its honeypot, and `company` is a real optional field stored on `enquiries` and shown on the staff Enquiries page (A11). Until `schema_phase17.sql` is imported, the company name is kept in the message instead.
 
 Acceptance: change a service, phone number and social URL, publish, and confirm every public consumer uses the new value; unpublish a review or post and confirm no fallback recreates it; malicious HTML and URLs are rejected.

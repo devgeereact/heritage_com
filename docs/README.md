@@ -24,6 +24,8 @@ Outside this folder:
 | [../.agent/PROJECT.yml](../.agent/PROJECT.yml) | GEE OS routing and risk |
 | [../.agent/CURRENT-TASK.md](../.agent/CURRENT-TASK.md) | Current task contract and scope |
 | [../.agent/MCP-PROFILE.yml](../.agent/MCP-PROFILE.yml) | Integration authority |
+| [../scripts/staging/](../scripts/staging/) | Local staging: setup, seed, router and serve scripts ([OPERATIONS.md](OPERATIONS.md#local-staging)) |
+| [../.env.example](../.env.example) | Frontend environment variables (`VITE_API_BASE`) |
 | [../php-api/README.md](../php-api/README.md) | Server file notes. Its claim that no PHP is auto-deployed is stale (finding A19); [OPERATIONS.md](OPERATIONS.md#ci-and-deploy) is correct. |
 | Source code | The evidence of what is built. Documentation is checked against it. |
 

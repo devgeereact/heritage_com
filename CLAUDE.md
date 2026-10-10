@@ -25,7 +25,7 @@ Owner decisions of 10 October 2026 (men's tailoring scope, amber accent on a Tes
 
 1. **Never commit `config.php` or any secret.** It is gitignored and lives only on the server. Only `config.sample.php` is committed.
 2. **React never touches MySQL.** Any data need means adding or extending a PHP endpoint (the `_lib.php` pattern: auth, prepared statements, JSON, audit) and calling it through `src/helpers/heritApi.js`.
-3. **Use the `API_BASE` pattern** from `src/context/constants.js`: development calls `https://heritclothing.com`, production uses relative paths. This means **local development reads and writes live production data**. Do not create, edit or delete records locally unless the change is meant for production. The live API answers a localhost origin only while `ALLOW_LOCALHOST_CORS` is on in the server `config.php`.
+3. **Use the `API_BASE` pattern** from `src/context/constants.js`: development calls `VITE_API_BASE`, defaulting to the local staging API (`npm run staging:serve`, synthetic data); production uses relative paths. Never point development at production without the owner's agreement. The live API answers a localhost origin only while `ALLOW_LOCALHOST_CORS` is on in the server `config.php`.
 4. **Pushing `main` deploys.** Work on a feature branch, push the branch, open a pull request. Never push, merge or rebase `main` without explicit authority. Start with `git pull --ff-only`.
 5. **Cloudflare records stay grey cloud (DNS only)** so cPanel can issue SSL.
 6. **Roles are enforced on the server** with `require_auth($roles)`. `src/helpers/roles.js` only hides UI; never trust the client.

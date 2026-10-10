@@ -13,7 +13,8 @@ This existing project adopts the active shared GEE OS, minimum version 0.10.1. R
 ## Commands
 
 - Install: `npm ci`
-- Develop: `npm run dev` (port 5112). Development calls the live production API at heritclothing.com.
+- Staging: `npm run staging:setup` once, then `npm run staging:serve` (local API on 127.0.0.1:8088, synthetic data; see docs/OPERATIONS.md).
+- Develop: `npm run dev` (port 5112). Development calls the local staging API unless `VITE_API_BASE` says otherwise; never point it at production without the owner's agreement.
 - Build: `npm run build`
 - Lint: `npm run lint` (ESLint over JS/JSX; the JS/JSX config lands with `feat/plans-2026-phase1`, before which it matched only TS/TSX and linted nothing)
 - Test: `php php-api/tests/run.php` (pure PHP helper checks); `php -l` on changed PHP files. No frontend test script yet.
