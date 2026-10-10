@@ -1,6 +1,6 @@
 # UX Specification
 
-This file owns navigation, the screen-by-screen purpose and primary action, required states, and the form, data and modal patterns. Journeys behind each screen are in [USER-JOURNEYS.md](../01-product/USER-JOURNEYS.md); visual tokens in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md); public page content in [CONTENT.md](../01-product/CONTENT.md). Everything here is approved direction (Plans 2026, owner approval 10 October 2026); the current admin still uses the module menu listed in [ARCHITECTURE.md](../02-architecture/ARCHITECTURE.md#route-inventory).
+This file owns navigation, the screen-by-screen purpose and primary action, required states, and the form, data and modal patterns. Journeys behind each screen are in [USER-JOURNEYS.md](../01-product/USER-JOURNEYS.md); visual tokens in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md); public page content in [CONTENT.md](../01-product/CONTENT.md). Everything here is approved direction (Plans 2026, owner approval 10 October 2026). The daily navigation is built on `feat/phase2-daily-records`; see "As built" below.
 
 ## Daily navigation (app)
 
@@ -20,6 +20,17 @@ Core navigation: Today, Enquiries, Appointments, Clients, Jobs, Payments, Websit
 Purpose and primary action for the seven core screens come from the approved plan. Secondary actions, the per-screen state lists and the Settings row are Proposed, derived from the journeys, and need the owner's review in Phase 2.
 
 On a phone, show Today, Jobs, Appointments and More. The daily page answers "What do I need to do next?" without revenue charts or setup prompts. Desktop uses a predictable sidebar with a clear current location.
+
+### As built (Phase 2, `feat/phase2-daily-records`, 10 October 2026)
+
+- **Sidebar (laptop, 992px and wider):** DAILY: Today `/today`, Enquiries `/enquiries`, Appointments `/appointments`, Clients `/clients`, Jobs `/jobs`, Payments `/payments`, Website (`/content` for now). SETTINGS: Settings `/settings`. A collapsed **More tools** group holds Reports `/reports` (the old dashboard), Finance, Catalogue, Orders, Market Sales, Inventory, Suppliers, Marketing, Brand Studio, Analytics, Re-engagement, Loyalty and Gifts, Coupons, Reviews, Inbox, WhatsApp, Weather and Ops, Team and Access, Permissions, Store and Channels, and Profile. Nothing was removed.
+- **Phone (below 992px):** bottom bar with Today, Jobs, Appointments and More. More opens a bottom sheet with Enquiries, Clients, Payments, Website, Settings, More tools (opens the sidebar) and Sign out. Items follow the role rules. The sidebar closes after navigating and no longer opens by itself.
+- **Landing after sign-in:** owner roles go to Today; tailors to Jobs; employees to Enquiries; editors to Catalogue; sellers to WhatsApp. Sign-in returns to the deep link that was requested.
+- **Old URLs redirect** with their parameters and query: `/dashboard` to `/today`, `/tailoring` to `/jobs`, `/tailoring/groups` to `/jobs/groups`, `/tailoring/:id` to `/jobs/:id`, `/crm` to `/clients`, `/crm/:id` to `/clients/:id`.
+- **Detail pages:** `/enquiries/:id`, `/enquiries/:id/convert` (three-step wizard), `/clients/:id` (Jobs, Measurements, Payments for owners, Details; Messages disabled until Phase 3), `/clients/:id/measurements/new`, `/jobs/:id` (Overview, Measurements, Quote and Payments for owners, Handover, Timeline), `/print/:doc/:id` for quote, invoice, receipt and measurement sheet.
+- **Appointments** shows "Coming in the next update" until Phase 3; the old calendar route `/apps/calendar` is kept but not linked.
+- **Role parity (K-01):** each section opens only for roles that every endpoint the page needs accepts (`src/helpers/roles.js`). Tailors never see money tabs or amounts.
+- **Patterns used:** one amber primary action per screen with ink text; 16px inputs and 44px targets; persistent labels with help text; inline errors plus a summary; saving, saved and failed lines; typed values kept on failure; status chips as text, icon and colour; tabular figures for money; dates in Lagos time; modals only for short actions (add enquiry, add client, add job, record payment, approve or reject measurements, reverse an entry); measurement entry, conversion and settings are full pages.
 
 ## Public navigation
 
