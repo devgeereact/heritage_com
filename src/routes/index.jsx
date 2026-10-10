@@ -18,13 +18,10 @@ const Dashboard = lazy(() => import('@/app/(admin)/dashboard/page'));
 const Calendar = lazy(() => import('@/app/(admin)/apps/calendar/page'));
 
 // Pages Routes
-const ComingSoon = lazy(() => import('@/app/(other)/coming-soon/page'));
-const Maintenance = lazy(() => import('@/app/(other)/maintenance/page'));
 const NotFound = lazy(() => import('@/app/(other)/pages-404/page'));
 const Settings = lazy(() => import('@/app/(admin)/settings/page'));
 const Profile = lazy(() => import('@/app/(admin)/profile/page'));
 const Permissions = lazy(() => import('@/app/(admin)/permissions/page'));
-const Review = lazy(() => import('@/app/(admin)/review/page'));
 
 // Public site — multi-page marketing storefront (no auth, OtherLayout)
 const Home = lazy(() => import('@/app/(public)/site/HomePage'));
@@ -306,10 +303,6 @@ const customRoutes = [{
   name: 'Permissions',
   path: '/permissions',
   element: <Permissions />
-}, {
-  name: 'Review',
-  path: '/review',
-  element: <Review />
 }];
 export const authRoutes = [{
   name: 'Sign In',
@@ -331,19 +324,5 @@ export const authRoutes = [{
   name: '404 Error',
   path: '/pages-404',
   element: <NotFound />
-},
-//   {
-//     path: '*',
-//     name: 'not-found',
-//     element: <NotFound />,
-//   },
-{
-  name: 'Maintenance',
-  path: '/maintenance',
-  element: <Maintenance />
-}, {
-  name: 'Coming Soon',
-  path: '/coming-soon',
-  element: <ComingSoon />
 }];
 export const appRoutes = [...generalRoutes, ...appsRoutes, ...customRoutes];
