@@ -69,6 +69,16 @@ Frontend environment: `VITE_API_BASE` only, documented in `.env.example`; produc
 - Then apply `schema_phase2.sql` to `schema_phase17.sql` in numeric order (later phases alter tables created earlier). Local staging imports exactly this order without errors (10 October 2026). Which phases the live database has is Unknown.
 - `schema_phase17.sql` (from `feat/phase1b-staging`) adds `public_ref` to `orders` and `tailoring_orders` with a backfill and UNIQUE index, and `company` to `enquiries`. Import it before uploading the matching `store.php`, `account.php`, `orders.php` and `settings.php`. The CI-deployed `_lib.php`, `tailoring.php` and `contact.php` check for the new columns and keep working without them, so the merge itself does not depend on the import.
 - `users.php`, `mail.php` and `inbox.php` need no new tables.
+- **Phase 2 (`feat/phase2-daily-records`) must be done before merging to `main`.** The CI-deployed `tailoring.php`, `customers.php` and `contact.php` now require `_domain.php` and `_jobs.php` and read the new columns. In this order:
+  1. Take a full database backup.
+  2. Run the dry-run `SELECT`s at the top of each file and record the counts.
+  3. Import `schema_phase18.sql`, `schema_phase19.sql`, `schema_phase20.sql`, `schema_phase21.sql` and `schema_phase22.sql`, in that order. Each one is re-runnable; staging replays them over seeded data.
+  4. Upload by hand: `_domain.php`, `_jobs.php`, `today.php`, `enquiries.php`, `measurements.php`, `quotes.php`, `ledger.php`, `settings.php` and `account.php`.
+  5. Merge, which deploys `_lib.php`, `tailoring.php`, `customers.php`, `contact.php` and `stats.php`.
+  6. Re-import `schema_phase18.sql` once, to map any job that the old `tailoring.php` created between steps 3 and 5.
+  7. As the owner, call `ledger.php?action=recalc_all`.
+
+  Optionally add `_domain.php` and `_jobs.php` to the CI copy list in `deploy.yml`. They are new files, so no hand-managed copy can be overwritten. The router never serves files that start with `_`, but Apache will unless `.htaccess` blocks them, and they define functions only and produce no output.
 - `CREATE TABLE IF NOT EXISTS` does not upgrade existing columns, and re-running a file is not automatically safe. Record which versions are applied and their dependencies. Keep versioned SQL in `php-api/`.
 - Seed password: set it straight after import. Generate a hash locally with `php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_DEFAULT), PHP_EOL;'`, then run `UPDATE users SET password_hash = '<hash>' WHERE email = 'dev@heritclothing.com';`. Never commit or share the real password.
 - Smoke test: `https://heritclothing.com/api.php` returns a JSON array.

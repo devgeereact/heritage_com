@@ -72,3 +72,13 @@ Owner of every entity: the business owner.
 - Timestamps are stored unambiguously and displayed in Africa/Lagos. Money uses consistent decimal or minor-unit rules, never browser floats.
 - Migrations: versioned `php-api/schema_*.sql` files imported by hand; `CREATE TABLE IF NOT EXISTS` does not upgrade existing columns. Fixtures for staging come from `scripts/staging/seed.php` ([LOCAL-STAGING.md](../07-operations/LOCAL-STAGING.md)). Backup: [BACKUP-RECOVERY.md](../07-operations/BACKUP-RECOVERY.md).
 - Every row-level access rule must trace to a role or business rule ([PERMISSIONS.md](../05-security/PERMISSIONS.md)).
+
+## Phase 2 tables and columns (schema_phase18 to 22)
+
+| File | Change |
+|---|---|
+| `schema_phase18.sql` | `tailoring_orders`: `job_stage` (the legacy `stage` is mapped and still dual-written; `done` becomes `ready` with `stage_review = 1`), `event_date`, `next_action`, `next_action_date`, `quantity`, `description`, `fabric_source`, `enquiry_id`, `quote_id`, `paid_total`, `payment_state`, `handed_over_qty`, `lock_version`. `tailoring_events`: `stage` is widened to 30, and `kind`, `meta` and `public` are added. `customers`: `client_ref` (unique, `CL-00042`), `phone_tail9`, `company_name`, `preferred_contact`, `comm_notes`. `enquiries`: the pipeline statuses (`contacted` kept as an alias), `quantity`, `desired_date`, `next_follow_up`, `closed_reason`, `owner_notes`, `client_id`, `job_id`, `conversion_key` (unique), `converted_at`, `converted_by` and `request_key` (unique). Settings defaults. |
+| `schema_phase19.sql` | `measurement_templates`: five proposed templates plus a hidden `legacy` one. `measurement_sets`: immutable values; unit `cm`, `in` or `unknown`; statuses `pending`, `approved`, `superseded`, `rejected` and `imported_unverified`; `request_key` and `legacy_source` unique. Old JSON is imported once with unit `unknown`. Job snapshot columns `measurement_set_id`, `measurement_snapshot`, `measurement_snapshot_at` and `measurement_snapshot_by`. |
+| `schema_phase20.sql` | `quotes` (shown as `Q-{series}-v{version}`; unique `(series_id, version)` and `request_key`; `content_hash` frozen on send) and `quote_items`. |
+| `schema_phase21.sql` | `job_payments`: append-only and signed, with `request_key` and `reverses_id` unique. Opening entries come from the old deposit. `deposit` mirrors `paid_total` and is not capped. Retail `payments` stay separate. |
+| `schema_phase22.sql` | `job_handovers`: collection or delivery with quantity, checklist, `balance_at_handover` and a unique `request_key`. |
