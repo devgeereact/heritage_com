@@ -1,7 +1,6 @@
 // HeritOS API client — talks to the real PHP backend over fetch().
 //
-// Larkon's bundled axios `fake-backend` only mocks POST /login with demo users and loads
-// in development only (see App.jsx). Every real endpoint goes through this fetch client.
+// Every endpoint, sign-in included, goes through this fetch client.
 //
 // Dev hits the local staging API unless VITE_API_BASE says otherwise (constants.js);
 // production is same-origin.
