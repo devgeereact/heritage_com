@@ -21,7 +21,9 @@ const EnquiriesPage = () => {
       const list = await heritApi.contact.list();
       setRows(Array.isArray(list) ? list : []);
       setState('ready');
-    } catch {
+    } catch (e) {
+      // Technical detail stays in the console; the owner sees a plain message.
+      console.error('Enquiries failed to load:', e);
       setState('offline');
     }
   }, []);
@@ -58,9 +60,11 @@ const EnquiriesPage = () => {
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
 
       {state === 'offline' && (
-        <Alert variant="warning">
-          <strong>Enquiries offline.</strong> Upload <code>php-api/contact.php</code> + <code>config.php</code>
-          and import the <code>enquiries</code> table from <code>schema.sql</code>, then refresh.
+        <Alert variant="warning" className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span>We could not load enquiries just now. Please try again in a moment.</span>
+          <Button size="sm" variant="outline-dark" onClick={() => { setState('loading'); load(); }}>
+            Retry
+          </Button>
         </Alert>
       )}
 
