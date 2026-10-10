@@ -3,7 +3,8 @@
 // Larkon's bundled axios `fake-backend` only mocks POST /login with demo users and loads
 // in development only (see App.jsx). Every real endpoint goes through this fetch client.
 //
-// Dev hits the live API (CORS enabled in api.php); production is same-origin.
+// Dev hits the local staging API unless VITE_API_BASE says otherwise (constants.js);
+// production is same-origin.
 import { API_BASE } from '@/context/constants';
 
 /** Pull the Bearer token from the session cookie (set by useAuthContext). */

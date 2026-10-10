@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "staging:setup": "bash scripts/staging/setup.sh",
+    "staging:serve": "bash scripts/staging/serve.sh",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'"
   },
   "dependencies": {

@@ -31,3 +31,7 @@ config.php
 .env
 .env.*
 !.env.example
+
+# Local staging (scripts/staging): database config and logs, never committed
+php-api/config.local.php
+scripts/staging/.logs/

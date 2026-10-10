@@ -3,7 +3,10 @@
  * HeritOS — shared API helpers. Every endpoint does `require '_lib.php';`
  * (which itself requires config.php and gives us $conn).
  */
-require __DIR__ . '/config.php';
+// Local staging only: scripts/staging/router.php defines HERITOS_STAGING and
+// scripts/staging/setup.sh writes php-api/config.local.php (gitignored). The live
+// server never defines the constant, so it always loads config.php as before.
+require __DIR__ . ((defined('HERITOS_STAGING') && is_file(__DIR__ . '/config.local.php')) ? '/config.local.php' : '/config.php');
 
 // config.php connected with mysqli exceptions OFF (so a bad connection returns
 // clean JSON, not a fatal). Now that we're connected, turn them ON so any
