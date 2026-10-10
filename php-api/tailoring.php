@@ -10,6 +10,10 @@
  *   POST ?action=update&id=N             {lock_version, description, quantity, dates, next_action, ...}
  *   POST ?action=stage&id=N              {stage, note, force?, reason?} (new or legacy stage values)
  *   POST ?action=confirm_review&id=N     {outcome: ready}
+ *   POST ?action=attach_measurements&id=N {set_id, reason?}
+ *   POST ?action=measure&id=N            legacy form; now a measurement set
+ *   POST ?action=pay&id=N                legacy form; now a ledger entry (see ledger.php)
+ *   GET  ?action=document&id=N&doc=quote|invoice|receipt[&ref=]   printable data (owner roles)
  *   POST ?action=assign|fitting|costs|remind&id=N   (unchanged contracts)
  *   GET  ?action=group_list | group_get&id=N, POST ?action=group_create
  *
@@ -450,6 +454,70 @@ if ($action === 'pay' && method() === 'POST') {
   audit($user['id'], 'tailoring_pay', 'tailoring_order', $id, ['amount' => minor_to_decimal($minor), 'payment_id' => $extra['payment_id']]);
   json(['ok' => true, 'deposit' => (float)$o['paid_total'], 'balance' => (float)minor_to_decimal($t['balance']),
         'credit' => minor_to_decimal($t['credit']), 'payment_state' => $o['payment_state']] + $extra);
+}
+
+/* ---- PRINTABLE DOCUMENT DATA (owner roles) ------------------------------- */
+/* ?action=document&id=N&doc=quote|invoice|receipt[&ref=quoteId|paymentId]
+ * Everything is computed here so the print page only lays it out.
+ * Numbers: Q-{series}-v{n}, INV-{job code}, RCT-{payment id}.               */
+if ($action === 'document' && method() === 'GET') {
+  if (!$isOwner) fail('Forbidden', 403);
+  $doc = (string)($_GET['doc'] ?? '');
+  if (!in_array($doc, ['quote', 'invoice', 'receipt'], true)) fail('doc must be quote, invoice or receipt');
+  $ref = (int)($_GET['ref'] ?? 0);
+  $job = db_row("SELECT o.id, o.code, o.customer_id, o.garment_type, o.quantity, o.description, o.fabric, o.due_date, o.event_date,
+                        o.price, o.paid_total, o.payment_state, o.quote_id, o.job_stage, o.stage,
+                        c.name AS client_name, c.client_ref, c.phone AS client_phone, c.email AS client_email, c.company_name
+                   FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id WHERE o.id = ? AND o.deleted_at IS NULL", 'i', $id);
+  if (!$job) fail('Order not found', 404);
+  $business = [];
+  foreach (['store_name', 'business_phone', 'business_email', 'business_address', 'business_hours_text', 'deposit_policy_text'] as $k) {
+    $business[$k] = setting_get($k, null);
+  }
+  $entries = array_map('ledger_row_view', job_ledger($id));
+  $t = job_money($id, $job['price']);
+  $out = [
+    'doc' => $doc, 'issued_on' => lagos_today(), 'business' => $business,
+    'client' => ['id' => (int)$job['customer_id'], 'name' => $job['client_name'], 'client_ref' => $job['client_ref'],
+                 'phone' => $job['client_phone'], 'email' => $job['client_email'], 'company_name' => $job['company_name']],
+    'job' => ['id' => (int)$job['id'], 'code' => $job['code'], 'garment_type' => $job['garment_type'], 'quantity' => (int)$job['quantity'],
+              'description' => $job['description'], 'fabric' => $job['fabric'], 'due_date' => $job['due_date'], 'event_date' => $job['event_date'],
+              'stage_label' => JOB_STAGE_LABELS[job_stage_of($job)] ?? null],
+    'totals' => money_view($t, $job['price'], $job['payment_state']),
+  ];
+  $quoteFor = function ($qid) use ($id) {
+    $q = db_row('SELECT * FROM quotes WHERE id = ? AND (job_id = ? OR job_id IS NULL)', 'ii', (int)$qid, $id);
+    if (!$q) return null;
+    $q['number'] = quote_number($q['series_id'], $q['version']);
+    $q['items'] = db_rows('SELECT description, garment_type, qty, unit_price, line_total FROM quote_items WHERE quote_id = ? ORDER BY sort, id', 'i', (int)$q['id']);
+    unset($q['request_key']);
+    return $q;
+  };
+  if ($doc === 'quote') {
+    $qid = $ref ?: (int)$job['quote_id'];
+    if (!$qid) { $last = db_row('SELECT id FROM quotes WHERE job_id = ? ORDER BY id DESC LIMIT 1', 'i', $id); $qid = $last ? (int)$last['id'] : 0; }
+    $q = $qid ? $quoteFor($qid) : null;
+    if (!$q) fail('No quote for this job', 404);
+    $out['number'] = $q['number'];
+    $out['quote'] = $q;
+  } elseif ($doc === 'invoice') {
+    $out['number'] = 'INV-' . $job['code'];
+    $q = $job['quote_id'] ? $quoteFor($job['quote_id']) : null;
+    $out['lines'] = $q ? $q['items'] : [[
+      'description' => $job['description'] ?: ucfirst($job['garment_type']), 'garment_type' => $job['garment_type'],
+      'qty' => (string)$job['quantity'], 'unit_price' => null, 'line_total' => $job['price'],
+    ]];
+    $out['quote_number'] = $q['number'] ?? null;
+    $out['entries'] = $entries;
+  } else {
+    $entry = null;
+    foreach ($entries as $e) if ($e['id'] === $ref) $entry = $e;
+    if (!$entry) fail('Payment not found on this job (ref=payment id)', 404);
+    $entry['reversed'] = $entry['reversed_by_id'] !== null;
+    $out['number'] = 'RCT-' . $entry['id'];
+    $out['entry'] = $entry;
+  }
+  json($out);
 }
 
 /* ---- COSTS (per-project profitability) ----------------------------------- */

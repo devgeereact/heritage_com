@@ -14,9 +14,38 @@ cors();
 $STAFF = ['super_admin', 'admin', 'manager'];
 // shop_enabled: '1' shows the retail shop (Shop, Bag, Gifting) in public navigation;
 // anything else, or unset, hides it. The shop routes keep working by direct URL.
-$KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate', 'socials', 'shop_enabled'];
+$KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate', 'socials', 'shop_enabled',
+  // Phase 2 (owner decisions, 10 October 2026). Business profile for printed
+  // documents; quote defaults start empty so a quote shows only what the owner
+  // enters; recheck age defaults to 180 days; cash only is verified on entry.
+  'business_phone', 'business_email', 'business_address', 'business_hours_text',
+  'quote_default_terms', 'quote_validity_days', 'deposit_policy_text',
+  'measurement_recheck_days', 'payment_verified_methods'];
 // keys stored as JSON (object/array) rather than a plain string
-$JSON_KEYS = ['channels', 'socials'];
+$JSON_KEYS = ['channels', 'socials', 'payment_verified_methods'];
+
+/** Validate a Phase 2 setting; returns the value to store or fails. */
+function setting_validate($k, $val) {
+  switch ($k) {
+    case 'quote_validity_days':
+      if ($val === '' || $val === null) return '';
+      if (filter_var($val, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 365]]) === false) fail('Quote validity must be 1 to 365 days, or empty');
+      return (string)(int)$val;
+    case 'measurement_recheck_days':
+      if (filter_var($val, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 3650]]) === false) fail('Recheck age must be 1 to 3650 days');
+      return (string)(int)$val;
+    case 'payment_verified_methods':
+      $ok = ['cash', 'transfer', 'pos_card', 'gateway', 'other'];
+      if (!is_array($val) || array_diff($val, $ok)) fail('Verified methods must be a list from: ' . implode(', ', $ok));
+      return array_values(array_unique($val));
+    case 'business_email':
+      if ($val !== '' && $val !== null && !filter_var($val, FILTER_VALIDATE_EMAIL)) fail('Business email looks wrong');
+      return (string)$val;
+  }
+  if (in_array($k, ['business_phone', 'business_address', 'business_hours_text', 'quote_default_terms', 'deposit_policy_text'], true)
+      && mb_strlen((string)$val) > 5000) fail("$k is too long");
+  return $val;
+}
 
 $user = require_auth($STAFF);
 
@@ -39,7 +68,7 @@ if (method() === 'POST') {
   $saved = [];
   foreach ($KEYS as $k) {
     if (!array_key_exists($k, $b)) continue;
-    $val = $b[$k];
+    $val = setting_validate($k, $b[$k]);
     if (in_array($k, $JSON_KEYS, true) && is_array($val)) $val = json_encode($val);
     else $val = (string)$val;
     $stmt->bind_param('ssi', $k, $val, $user['id']);
