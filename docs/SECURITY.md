@@ -16,7 +16,7 @@ This file owns the threat picture, the baseline controls and their current state
 | Secrets outside client bundles, source and logs | `config.php` gitignored and server-only; FTP secrets in GitHub; only `VITE_*` values reach the browser (`.env.example`). Log contents NOT TESTED |
 | Server-side authorisation | `require_auth($roles)` in every staff endpoint ([API-SPEC.md](API-SPEC.md#endpoint-inventory)); object ownership for customers is not yet enforced everywhere (A03). Shared includes (`_*.php`) and `config*.php` are refused when requested directly by `php-api/.htaccess` (Phase 2 branch; the server copy is replaced by hand) |
 | Input validation and output encoding | Prepared statements throughout; blog HTML sanitised on save with an allowlist (`_lib.php:430-520`, `content.php:56`) (A04, PR #6; rendered-page check NOT TESTED) |
-| Rate limiting | Staff login and PIN; customer login and tracking since phase 1 (A03); public enquiry form uses a honeypot (`website_url_confirm`, A11) and no rate limit |
+| Rate limiting | Staff login and PIN; customer login and tracking since phase 1 (A03); public enquiry form uses a honeypot (`website_url_confirm`, A11) and no rate limit. Phase 3 branch: customer access start (per IP and per hashed reference), verify and invite redemption (per IP), and public slot reads and appointment requests (per IP), all through `throttle_enforce()` |
 | CORS | Same-origin in production; localhost allowed only when `ALLOW_LOCALHOST_CORS` is on (A15) |
 | CSRF | Bearer tokens in headers today; a cookie migration would need a deliberate CSRF design (see [Authentication](#authentication)) |
 | Headers, cookies, production settings | `GK_DEBUG` false in production; HTTPS through cPanel AutoSSL. Security headers: Unknown |
@@ -47,6 +47,14 @@ How staff and customers sign in, how sessions live and end, and the approved tar
 ### Customers
 
 **Current (Verified 10 October 2026, including PRs #6 to #9):** `account.php` issues a token stored in `customer_tokens`; React keeps it in localStorage as `herit_customer_token` (A15). Sign-in is phone plus an order reference. Since PRs #6 and #7 it is throttled per IP and per phone, returns one generic failure, and accepts the random public reference (A03, A06). The portal reads only retail `orders`, so tailoring clients cannot use it (A09). Since PR #9 a customer's measurement change becomes a pending proposal for the owner to approve instead of overwriting the record (A10).
+
+**Phase 3 branch (`feat/phase3-appointments-portal`, staging API checks PASS, 10 October 2026):** the approved target below is built on the server, screens to follow.
+
+- `access.php?action=start` takes a public reference plus the registered phone or email and always returns the same reply. A request that matches nobody stores a decoy row, so neither the reply nor the stored shape reveals a match. Response time can still differ when an email is sent; throttles limit probing.
+- On a match a single-use six-digit code (`random_int`) goes to the registered email through `_mail.php`; only its HMAC with `TOKEN_SECRET` is stored, with a 10 minute expiry and a 5 attempt lock. With no email, or when mail fails, the request waits for the owner, who sends a single-use invite link (24 hours) by hand.
+- A successful verify or invite issues a 48-hex session token; only its sha256 is stored in `customer_sessions`, with expiry (`customer_session_days`, default 7), `last_seen_at`, logout, logout everywhere and owner revocation.
+- Every portal lookup filters by the signed-in client; another client's reference answers exactly like a missing one (404). The portal's job view is an allowlist (`job_public_view()`), so notes, internal notes, costs, the tailor, the HC code, unverified payments and internal messages never leave the server. Company contacts are a Phase 5 hook in `portal_can_access_job()`.
+- The phone plus order code login stays only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on (D-021) and now issues the same hashed, expiring sessions.
 
 **Approved target (D-010):** a reference is a locator, not a password.
 
@@ -92,6 +100,6 @@ The server enforces staff access with `require_auth($roles)` in each endpoint; t
 
 Client and server lists used to disagree in four places (K-01: Tailoring, Catalogue, Content and Dashboard). On the Phase 2 branch each `roles.js` section lists only the roles that every endpoint the page needs accepts, using the same role groups as `php-api/_domain.php` (`ROLES_OWNER`, `ROLES_WORKSHOP`, `ROLES_ENQUIRY`, `ROLES_CLIENTS`). Verified from source; the tailor role was checked in the browser (no money shown, Today and Payments refused); other roles NOT TESTED. Tailors never receive money fields from the server.
 
-Customer access today: `account.php` checks the customer token but not yet the full ownership model above (A03, A09).
+Customer access today: `account.php` checks the customer token but not yet the full ownership model above (A03, A09). On the Phase 3 branch `portal.php` and `access.php` enforce it for tailoring jobs; cross-customer reference swapping on job, messages, change requests, feedback, measurements and appointment changes is refused with the missing-record reply (`e2e-phase3.sh` P1, C3e).
 
 Test allowed and forbidden cross-user and cross-role cases against the real data boundary before any release ([LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md)).

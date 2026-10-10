@@ -66,6 +66,8 @@ jobs:
           cp php-api/_mail.php       dist/
           cp php-api/appointments.php dist/
           cp php-api/booking.php     dist/
+          cp php-api/_portal.php     dist/
+          cp php-api/access.php      dist/
       - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:   ${{ secrets.FTP_SERVER }}

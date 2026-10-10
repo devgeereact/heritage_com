@@ -5,7 +5,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 ## Conventions
 
 - One PHP file per resource under `php-api/`, each `require '_lib.php'`. Operations are selected with `?action=` and the HTTP method; responses are JSON from `json()`, errors are `{"error": "..."}` with an HTTP status from `fail()` (`_lib.php:79-86`).
-- Auth: `Authorization: Bearer <token>` checked by `require_auth($roles)` (`_lib.php:119`). Staff tokens come from `auth.php`; customer tokens from `account.php`.
+- Auth: `Authorization: Bearer <token>` checked by `require_auth($roles)` (`_lib.php:119`). Staff tokens come from `auth.php`. Customer sessions come from `access.php` (verified) or the legacy `account.php` login, and are checked by `require_customer_session()` in `_portal.php` (Phase 3 branch).
 - Input: JSON body through `body()`; prepared statements only.
 - Throttling: staff email and PIN login; customer login and public tracking since PR #6 (A03). Limits are server settings ([DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
 - Idempotency: Phase 2 writes that must not repeat (enquiry conversion, measurement sets, quotes, ledger entries, handovers) take a `request_key`; a repeat returns the first result with `duplicate:true` ([BR-02 and BR-22](BUSINESS-RULES.md)). Job edits carry `lock_version` and answer 409 when stale.
@@ -13,7 +13,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 
 ## Endpoint inventory
 
-43 top-level PHP files on the Phase 3 branch: 37 endpoints, four shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (19 files on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
+45 top-level PHP files on the Phase 3 branch: 38 endpoints, five shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (21 files on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
 
 | File | Purpose | Server gate (file level) | Deployed by |
 |---|---|---|---|
@@ -28,6 +28,8 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `_mail.php` | Shared SMTP sender `mail_send_html()` (Phase 3 extraction from `mail.php`) | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 3 branch) |
 | `appointments.php` | Appointments, availability settings and blocked time (Phase 3) | Workshop read (tailors see times only); writes owner | CI (Phase 3 branch) |
 | `booking.php` | Public consultation requests and free slots (Phase 3), off until `public_booking_enabled` | Public, throttled | CI (Phase 3 branch) |
+| `_portal.php` | Customer sessions (hashed tokens, expiry, revocation, legacy tokens behind the flag) and the object-level job check (Phase 3) | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 3 branch) |
+| `access.php` | Verified customer access: start, verify, redeem an invite, logout; owner invites and revocation (Phase 3) | Public and customer session; `requests`, `invite`, `revoke` owner | CI (Phase 3 branch) |
 | `today.php` | Daily worklist | Owner: super_admin, admin, manager | CI (Phase 2 branch) |
 | `enquiries.php` | Enquiry pipeline and conversion | super_admin, admin, manager, employee (convert owner only) | CI (Phase 2 branch) |
 | `measurements.php` | Templates and measurement sets | Workshop | CI (Phase 2 branch) |
@@ -36,7 +38,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `stats.php` | Dashboard headline numbers in one call | super_admin, admin, manager, tailor, editor, employee | CI |
 | `tailoring.php` | Jobs: stages, measurements, payments wrapper, groups, handovers, documents | Workshop: super_admin, admin, manager, tailor (employee removed on the Phase 2 branch, K-01) | CI |
 | `contact.php` | Public enquiry submit plus the older staff enquiry list | Submit public; inbox super_admin, admin, manager, employee | CI |
-| `account.php` | Customer self-service portal | Customer token | Manual |
+| `account.php` | Customer self-service for retail orders; on the Phase 3 branch it uses the shared sessions, and its phone plus order code `login` and `measurements` actions answer only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on | Customer session | Manual |
 | `ai_image.php` | Text-to-image proxy | Any signed-in staff | Manual |
 | `analytics.php` | Read-only reports over live tables | super_admin, admin, manager | Manual |
 | `content.php` | Journal (blog) and testimonials CRUD | super_admin, admin, manager | Manual |
@@ -61,10 +63,11 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `config.sample.php` | Template for server-only `config.php` | Not an endpoint | Never deployed |
 | `config.local.php` | Local staging config written by `scripts/staging/setup.sh`; gitignored | Not an endpoint | Never deployed |
 
-Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`; every `booking.php` action (`config`, `slots`, `request`) on the Phase 3 branch. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
+Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`; every `booking.php` action (`config`, `slots`, `request`) and `access.php` `start`, `verify` and `redeem` on the Phase 3 branch. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
 
 ## Customer lookups and references
 
+- Verified customer access (Phase 3 branch) is the primary route: [Customer access](#customer-access) below. The older lookups that follow remain.
 - Customer lookups (`store.php?action=track`, `account.php?action=login`) go through `order_by_customer_ref()` in `_lib.php`: the random public reference always works; the old `ORD-` code works only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is true (default true, so references already sent to customers keep working). Both still need the matching phone and are throttled per IP.
 - The checkout confirmation, tracking page, customer portal and WhatsApp order confirmation show the public reference. Tailoring jobs carry one ready for Phase 3; no customer page shows it yet. Payment start and verification (`pay_init`, `pay_verify`) still use the staff code.
 - Code and reference formats are in [DATA-MODEL.md](DATA-MODEL.md#codes-and-references).
@@ -115,6 +118,20 @@ Branch `feat/phase3-appointments-portal` (no PR yet). Verified on local staging,
 | `today.php` | GET | | `appointments_today` now lists real appointments (`id, type, status, all_day, starts_at_local, ends_at_local, client_name, job_id, job_code, source`), plus `appointment_requests` | Owner |
 
 `availability` shape (every field may be empty, which means not set): `{weekly:{mon:[["09:00","13:00"],["14:00","18:00"]], ..., sun:[]}, buffer_min, min_notice_hours, horizon_days, step_min, durations:{consultation, fitting, collection}, request_hold_hours}`. Breaks are the gaps between a day's windows; closed dates and leave are blocks. A type can be requested only when there is a window, a duration for it, a horizon, a minimum notice, a buffer and a hold time.
+
+### Customer access
+
+| Endpoint and action | Method | Request | Response | Auth |
+|---|---|---|---|---|
+| `access.php?action=start` | POST | `reference` (public reference of a job or retail order), `contact` (registered phone or email), `hp_url` (honeypot) | Always 200 `{challenge, message}` with the same message whatever happened. On a match a single-use six-digit code goes to the registered email (10 minutes, 5 attempts); with no email, or when mail fails, the request waits for the owner | Public; `ACCESS_START_MAX_PER_IP` and `ACCESS_START_MAX_PER_REF` |
+| `access.php?action=verify` | POST | `challenge`, `code` | 200 `{token, expires_in_days, name}`; every failure (wrong, expired, reused, locked, unknown) 400 `{"error":"That code didn't work or has expired."}` | Public; `ACCESS_VERIFY_MAX_PER_IP` |
+| `access.php?action=redeem` | POST | `invite` (64 hex characters from the invite link, exchanged at once) | As `verify`; single use | Public; same throttle |
+| `access.php?action=logout`, `logout_all` | POST | | `{ok}`; `logout_all` adds `revoked` | Customer session |
+| `access.php?action=requests` | GET | | Clients waiting for an invite: `{count, items:[{id, customer_id, client_name, client_ref, phone_masked, has_email, created_at}]}` | Owner |
+| `access.php?action=invite` | POST | `customer_id` or `challenge_id` | 201 `{invite_url, expires_at_local, single_use, message_text, wa_link}`; the owner sends it by hand (`ACCESS_INVITE_HOURS`, default 24) | Owner |
+| `access.php?action=revoke` | POST | `customer_id` | `{ok, revoked}` ends every session of that client | Owner |
+
+Customer tokens are 48 hex characters sent as `Authorization: Bearer`; only their sha256 is stored. Sessions last `customer_session_days` (default 7). The token never goes in a URL; the only link-borne secret is the single-use invite.
 
 ### Phase 3 settings keys
 

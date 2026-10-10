@@ -2,23 +2,25 @@
 /**
  * HeritOS — Customer self-service portal (public, customer-authenticated).
  *
- * Login is knowledge-based: phone + any of the customer's order references
- * (random public_ref; old ORD- codes only while ALLOW_LEGACY_ORDER_CODE_LOOKUP) →
- * a random expiring token. No password, no SMS/OTP infra. (Upgrade path: send a
- * one-time code over WhatsApp via wa_dispatch and verify that instead.)
+ * Sign-in: the verified route is access.php (reference + registered contact,
+ * then a single-use code or an owner invite). The older knowledge-based login
+ * below (phone + order reference) is LEGACY: it answers only while
+ * ALLOW_LEGACY_ORDER_CODE_LOOKUP is on (default on until the owner switches it
+ * off) and now issues the same hashed, expiring session as access.php.
  *
- *   POST /account.php?action=login {phone, order_code}     → {token, name}
+ *   POST /account.php?action=login {phone, order_code}     → {token, name}   (legacy flag only)
  *   GET  /account.php?action=me            (Bearer)        → profile + credit
  *   GET  /account.php?action=orders        (Bearer)        → their orders
  *   GET  /account.php?action=order&code=…  (Bearer)        → one order + items
  *   POST /account.php?action=reorder&code=…(Bearer)        → items to re-add
  *   POST /account.php?action=measurements  (Bearer) {measurements, unit?} → a PENDING
- *        measurement set the owner reviews (BR-07, A10); the profile is not overwritten
+ *        measurement set the owner reviews (BR-07, A10); legacy flag only. The portal's
+ *        propose_measurements (portal.php) is the route for new clients
  *   POST /account.php?action=return        (Bearer) {order_code, reason}
  *   GET  /account.php?action=referral      (Bearer)        → code + share link
  */
 require __DIR__ . '/_lib.php';
-require __DIR__ . '/_jobs.php';
+require __DIR__ . '/_portal.php';
 cors();
 
 $action = $_GET['action'] ?? 'me';
@@ -26,24 +28,12 @@ $action = $_GET['action'] ?? 'me';
 /** Last 9 digits of a phone, for forgiving matches across +234 / 0 prefixes. */
 function tail9($p) { return substr(preg_replace('/\D/', '', (string)$p), -9); }
 
-/** Require a valid customer token; returns the customer row. */
-function require_customer() {
-  global $conn;
-  $tok = bearer();
-  if (!$tok) fail('Please sign in', 401);
-  $stmt = $conn->prepare(
-    'SELECT c.* FROM customer_tokens t JOIN customers c ON c.id = t.customer_id
-      WHERE t.token = ? AND t.expires_at > NOW() AND c.deleted_at IS NULL'
-  );
-  $stmt->bind_param('s', $tok);
-  $stmt->execute();
-  $c = $stmt->get_result()->fetch_assoc();
-  if (!$c) fail('Your session has expired — please sign in again', 401);
-  return $c;
-}
+/** Require a valid customer session (hashed session, or a legacy token while the flag is on). */
+function require_customer() { return require_customer_session(); }
 
 /* ---- LOGIN --------------------------------------------------------------- */
 if ($action === 'login' && method() === 'POST') {
+  if (!legacy_portal_login_enabled()) fail('Unknown action', 404);
   $b = body();
   $phone = trim($b['phone'] ?? '');
   $orderCode = strtoupper(trim($b['order_code'] ?? ''));
@@ -75,10 +65,13 @@ if ($action === 'login' && method() === 'POST') {
   $customerId = (int)($o['customer_id'] ?: customer_id_by_phone($phone));
   if (!$customerId) $loginFail();
 
-  $token = bin2hex(random_bytes(24));           // 48 chars
-  $stmt = $conn->prepare('INSERT INTO customer_tokens (token, customer_id, expires_at) VALUES (?,?, DATE_ADD(NOW(), INTERVAL 30 DAY))');
-  $stmt->bind_param('si', $token, $customerId);
-  $stmt->execute();
+  if (has_table('customer_sessions')) {
+    $token = customer_session_issue($customerId, 'legacy');   // hashed, expires after customer_session_days
+  } else {
+    // schema_phase24.sql not imported yet: the old raw token, as before.
+    $token = bin2hex(random_bytes(24));
+    db_exec('INSERT INTO customer_tokens (token, customer_id, expires_at) VALUES (?,?, DATE_ADD(NOW(), INTERVAL 30 DAY))', 'si', $token, $customerId);
+  }
 
   $name = $conn->query('SELECT name FROM customers WHERE id = ' . $customerId)->fetch_assoc()['name'] ?? '';
   json(['token' => $token, 'name' => $name]);
@@ -167,6 +160,9 @@ if ($action === 'reorder' && method() === 'POST') {
 
 /* ---- MEASUREMENTS -------------------------------------------------------- */
 if ($action === 'measurements' && method() === 'POST') {
+  // Legacy route only; new clients propose through portal.php. Either way the
+  // result is a pending proposal, never a direct overwrite (A10).
+  if (!legacy_portal_login_enabled()) fail('Unknown action', 404);
   // A customer's measurements are a proposal: they wait for the owner's approval
   // and never overwrite the approved profile or any job snapshot (BR-07, A10).
   // The account form is labelled inches, so that is the default unit.

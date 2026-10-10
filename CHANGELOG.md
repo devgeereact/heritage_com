@@ -10,9 +10,11 @@ Added
 
 - Pure Phase 3 rules in `_domain.php`: availability validation (empty means not set), Lagos slot windows, buffer-aware overlap, free slots, a slot check with reasons, appointment transitions, six-digit access codes stored only as an HMAC, challenge expiry and lockout, and `job_public_view()`, the allowlist projection the portal returns. 85 new helper tests (251 in total).
 - Appointments (A08): `schema_phase23.sql` (appointments, history, blocked time, the booking lock; old fitting dates become all-day fittings), `appointments.php` for the owner (list, requests, create with override reason, confirm, decline, reschedule with history, complete, no-show, cancel, availability and blocks) and public `booking.php` (config, slots, consultation requests that also open an enquiry), off until `public_booking_enabled`. Every reservation runs under one lock with buffers, blocks, minimum notice, horizon and request holds. `tailoring.php` keeps the job fitting date as an all-day fitting appointment; `today.php` lists real appointments and requests. Phase 3 settings keys in `settings.php` (D-021).
+- Verified customer access (A03): `schema_phase24.sql` (hashed `customer_sessions`, `customer_access_challenges`), `_portal.php` and `access.php`: reference plus registered contact, one generic reply, a single-use six-digit code by email (hashed, 10 minutes, 5 attempts), owner invite links when there is no email or mail fails, logout, logout everywhere and owner revocation, all throttled.
 
 Changed
 
+- `account.php` uses the shared hashed sessions; its phone plus order code login and old measurement form answer only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on, and the form still creates a pending proposal, never an overwrite (A10, D-021).
 - Quotes: acceptance moved from `quotes.php` into `quote_accept()` in `_jobs.php` so the portal can reuse it; behaviour unchanged (`e2e-phase2.sh` 48 of 48).
 - Mail: the SMTP client moved from `mail.php` into the shared include `_mail.php` with `mail_send_html()`, so other endpoints can send mail; `mail.php` is a thin endpoint over it and also audits failed sends. `_mail.php` is deployed by CI.
 

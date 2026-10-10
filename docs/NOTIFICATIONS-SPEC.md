@@ -35,7 +35,7 @@ All need an owner check before bulk or promotional sending. Templates must never
 
 ## Email
 
-- **Applicability:** Applicable, staff-initiated only. The app has no automatic transactional email today.
+- **Applicability:** Applicable. Staff-initiated sends, plus one automatic transactional email on the Phase 3 branch: the customer sign-in code from `access.php` (subject "Your Herit Clothing sign-in code", the code, its 10 minute expiry, and what to do if it was not requested). It goes only to the email already on the client record, never to an address typed in the request.
 - **Shared sender (Phase 3 branch):** `php-api/_mail.php` holds the SMTP client and `mail_send_html($to, $subject, $html, $opts)`, which returns `ok`, `status` (`sent` or `failed`), `message_id` and a generic `error` (detail only with `GK_DEBUG`). It never throws, refuses line breaks in header values, and audits each attempt as `mail_send` or `mail_send_failed` without the body. `mail.php` is now a thin endpoint over it, so other endpoints can send without running `mail.php`.
 - **Verified sender and reply addresses:** mailbox hello@heritclothing.com on the hosting mail server (recorded previously; the live `SMTP_FROM` value is Unknown). `mail.php` sends from `SMTP_FROM`, falling back to `SMTP_USER`, with display name `SMTP_FROM_NAME` (default "HeritOS") and `Reply-To` defaulting to the sender (`mail.php:36-46`). SPF, DKIM and DMARC for the domain: Unknown.
 - **Sending:** `POST /mail.php?action=send` with `to`, `subject`, `body` and optional `cc`, `reply_to`, `in_reply_to`, `references` for threading. Hand-rolled SMTP client in `_mail.php` (SSL 465, STARTTLS 587, AUTH LOGIN); blank `SMTP_HOST` falls back to PHP `mail()`. Every attempt is written to the audit log.

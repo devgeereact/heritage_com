@@ -23,6 +23,7 @@ Legal bases and periods are Proposed for owner and legal review; none is decided
 | Public reviews and portfolio photos | Marketing | Separate consent (BR-33) | Client | While published | Public | Withdraw consent, unpublish |
 | Marketing opt-in | Promotion | Consent, separate from service messages (BR-35) | Client | Until withdrawn | Owner | Unsubscribe |
 | Staff accounts and audit log | Security | To decide | Owner | Unknown | Owner | Not applicable |
+| Customer sessions and access attempts (Phase 3) | Secure portal access | To decide | Client, server | Sessions expire after `customer_session_days` (default 7); attempt rows hold hashes, IP and time, retention Unknown (Proposed: purge after 90 days) | Owner | Not applicable; codes and tokens are stored only as hashes |
 
 Never keep everything for ever, and never promise immediate deletion of records the law requires to remain.
 

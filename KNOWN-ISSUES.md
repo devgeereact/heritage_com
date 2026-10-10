@@ -8,7 +8,7 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 |---|---|---|---|---|---|---|
 | A01 | P0 | Environments | Local staging built (PR #7); no shared staging server | Use local staging only | Business owner | Partly fixed |
 | A02 | P0 | Deploy | 22 endpoints uploaded by hand; live versions Unknown | List manual uploads in every pull request and in [DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request) | Business owner | Open |
-| A03 | P0 | Customer access | Contact-channel verification not built | Throttle and generic errors (PR #6) | Business owner | Partly fixed; verification in Phase 3 |
+| A03 | P0 | Customer access | Contact-channel verification built on the server (`feat/phase3-appointments-portal`, staging API PASS); sign-in screens not built; legacy login stays while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on | Throttle and generic errors (PR #6) | Business owner | Partly fixed (backend in code) |
 | A07 | P0 | Website | Invented claims and offers still on the home page | None | Business owner | Open (Phase 4) |
 | A13 | P0 | Quality | Lint checks no JS/JSX files | JS/JSX config written and tested; owner to apply | Business owner | Blocked |
 | A20 | P0 | Operations | Backups and deployed config not certified | None | Business owner | Open |
