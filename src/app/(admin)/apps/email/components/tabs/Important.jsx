@@ -12,7 +12,7 @@ const Important = () => {
     fetchData();
   }, []);
   return <TabPane eventKey="Important" className="fade" role="tabpanel">
-      {!!emails?.length ? <EmailsList emails={emails} /> : <>
+      {emails?.length ? <EmailsList emails={emails} /> : <>
           <hr />
           <div className="text-center mt-2">
             <p className="mb-0">You don&apos;t have any starred emails.</p>

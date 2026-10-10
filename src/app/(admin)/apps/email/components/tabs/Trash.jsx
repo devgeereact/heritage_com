@@ -12,7 +12,7 @@ const Trash = () => {
     fetchData();
   }, []);
   return <TabPane eventKey="Trash" className="fade" role="tabpanel">
-      {!!emails?.length ? <>
+      {emails?.length ? <>
           <hr />
           <div className="text-center mt-2">
             <p className="mb-0">

@@ -12,7 +12,7 @@ const Sent = () => {
     fetchData();
   }, []);
   return <TabPane eventKey="Sent" className="fade" role="tabpanel">
-      {!!emails?.length ? <EmailsList emails={emails} sent /> : <>
+      {emails?.length ? <EmailsList emails={emails} sent /> : <>
           <hr />
           <div className="text-center mt-2">
             <p className="mb-0">You don&apos;t have any sent emails.</p>

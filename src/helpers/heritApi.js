@@ -6,8 +6,6 @@
 // Dev hits the live API (CORS enabled in api.php); production is same-origin.
 import { API_BASE } from '@/context/constants';
 
-const authSessionKey = '_LARKON_AUTH_KEY_';
-
 /** Pull the Bearer token from the session cookie (set by useAuthContext). */
 function token() {
   const m = document.cookie.match(/_LARKON_AUTH_KEY_=([^;]+)/);
