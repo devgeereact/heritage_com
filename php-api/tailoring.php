@@ -230,10 +230,27 @@ function job_after_create($orderId, $customerId, array $b, $depositMinor, $user)
   return $extra;
 }
 
-/** Legacy deposit at creation (replaced by a ledger entry once job_payments exists). */
+/**
+ * A payment from an old form (job creation deposit, legacy pay action) written
+ * to the ledger. The old forms do not say how the client paid, so the method is
+ * 'unknown' unless sent, and it waits for verification unless the method is in
+ * payment_verified_methods (default cash only). Returns response extras.
+ */
 function job_record_legacy_payment($orderId, $minor, array $b, $user, $note) {
-  db_exec('UPDATE tailoring_orders SET deposit = ? WHERE id = ?', 'si', minor_to_decimal($minor), $orderId);
-  return [];
+  $method = in_array($b['method'] ?? '', PAYMENT_METHODS, true) ? $b['method'] : 'unknown';
+  $key = isset($b['request_key']) && request_key_ok($b['request_key']) ? $b['request_key'] : 'srv-' . bin2hex(random_bytes(12));
+  [$row, $dup] = db_tx(function () use ($orderId, $minor, $method, $key, $note, $user) {
+    if (!job_lock($orderId)) tx_fail('Order not found', 404);
+    $r = ledger_insert_tx($orderId, ['kind' => 'payment', 'amount_minor' => $minor, 'method' => $method, 'note' => $note,
+      'request_key' => $key, 'verified' => payment_verified_on_entry($method, verified_methods())], $user['id']);
+    if (!$r[1]) {
+      job_recalc_money($orderId);
+      job_event($orderId, 'payment', null, 'Payment ₦' . number_format(intdiv($minor, 100)) . ' recorded' . ($r[0]['verified'] ? '' : ' (awaiting verification)'),
+        ['payment_id' => (int)$r[0]['id'], 'money' => true], 0, $user['id']);
+    }
+    return $r;
+  });
+  return ['payment_id' => (int)$row['id'], 'payment_verified' => (int)$row['verified'], 'payment_duplicate' => $dup];
 }
 
 /* ---- UPDATE (optimistic concurrency) ------------------------------------- */
@@ -419,24 +436,20 @@ if ($action === 'measure' && method() === 'POST') {
         'attached' => $attached, 'warnings' => $r['warnings']]);
 }
 
-/* ---- RECORD PAYMENT (legacy) --------------------------------------------- */
+/* ---- RECORD PAYMENT (legacy form, kept for cached screens) --------------- */
+/* {amount, method?, request_key?}. Now a ledger entry (see ledger.php). There
+ * is no cap at the price any more: an overpayment shows as credit (BR-24).  */
 if ($action === 'pay' && method() === 'POST') {
   if (!$isOwner) fail('Forbidden', 403);
   $b = body();
-  $amount = (float)($b['amount'] ?? 0);
-  if ($amount <= 0) fail('Amount must be positive');
-  $conn->begin_transaction();
-  try {
-    $row = db_row('SELECT price, deposit FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL FOR UPDATE', 'i', $id);
-    if (!$row) { $conn->rollback(); fail('Order not found', 404); }
-    $price = (float)$row['price'];
-    $newDeposit = (float)$row['deposit'] + $amount;
-    db_exec('UPDATE tailoring_orders SET deposit = ? WHERE id = ?', 'di', $newDeposit, $id);
-    job_event($id, 'payment', null, 'Payment ₦' . number_format($amount) . ' recorded', ['money' => true], 0, $user['id']);
-    $conn->commit();
-  } catch (Throwable $e) { $conn->rollback(); throw $e; }
-  audit($user['id'], 'tailoring_pay', 'tailoring_order', $id, ['amount' => $amount, 'deposit' => $newDeposit]);
-  json(['ok' => true, 'deposit' => $newDeposit, 'balance' => max(0, $price - $newDeposit)]);
+  $minor = money_to_minor($b['amount'] ?? null);
+  if ($minor === null || $minor <= 0) fail('Amount must be positive');
+  $extra = job_record_legacy_payment($id, $minor, $b, $user, 'Recorded on the job payment form');
+  $o = db_row('SELECT price, paid_total, payment_state FROM tailoring_orders WHERE id = ?', 'i', $id);
+  $t = job_money($id, $o['price']);
+  audit($user['id'], 'tailoring_pay', 'tailoring_order', $id, ['amount' => minor_to_decimal($minor), 'payment_id' => $extra['payment_id']]);
+  json(['ok' => true, 'deposit' => (float)$o['paid_total'], 'balance' => (float)minor_to_decimal($t['balance']),
+        'credit' => minor_to_decimal($t['credit']), 'payment_state' => $o['payment_state']] + $extra);
 }
 
 /* ---- COSTS (per-project profitability) ----------------------------------- */
