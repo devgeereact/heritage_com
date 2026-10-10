@@ -9,8 +9,8 @@ const ADMIN = ['super_admin', 'admin'];
 const MANAGE = ['super_admin', 'admin', 'manager'];
 
 // Section key (top-level menu key / first URL segment) → roles allowed.
-// Anything not listed defaults to ADMIN only, which declutters the kit's demo
-// sections for non-admin staff.
+// Anything not listed defaults to ADMIN only. The Larkon demo routes were
+// removed (A18), so every key here maps to a route that still exists.
 const SECTIONS = {
   dashboard: ALL,
   tailoring: ['super_admin', 'admin', 'manager', 'tailor'],
@@ -35,18 +35,12 @@ const SECTIONS = {
   sales: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
   profile: ALL,
 
-  // Larkon operational sections — managers and admins.
-  products: MANAGE, category: MANAGE, inventory: MANAGE, orders: MANAGE,
-  purchases: MANAGE, attributes: MANAGE, invoice: MANAGE,
   coupons: ['super_admin', 'admin', 'manager', 'editor'],
-  seller: MANAGE, customer: MANAGE, review: MANAGE, apps: MANAGE, support: MANAGE,
+  // Remaining Larkon kit pages (calendar until Phase 3, product review page).
+  review: MANAGE, apps: MANAGE,
 
   // Platform administration — admins only.
-  team: ADMIN, role: ADMIN, permissions: ADMIN, settings: ADMIN,
-
-  // Kit demo / component galleries — admins only.
-  'base-ui': ADMIN, 'advanced-ul': ADMIN, charts: ADMIN, maps: ADMIN,
-  forms: ADMIN, tables: ADMIN, icons: ADMIN, widgets: ADMIN, pages: ADMIN,
+  team: ADMIN, permissions: ADMIN, settings: ADMIN,
 };
 
 // Staff roles, in seniority order. 'customer' isn't a staff login.
