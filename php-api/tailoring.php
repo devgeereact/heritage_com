@@ -229,21 +229,40 @@ if ($action === 'pay' && method() === 'POST') {
   $amount = (float)($b['amount'] ?? 0);
   if ($amount <= 0) fail('Amount must be positive');
 
-  $row = $conn->query('SELECT price, deposit FROM tailoring_orders WHERE id = ' . (int)$id . ' AND deleted_at IS NULL')->fetch_assoc();
-  if (!$row) fail('Order not found', 404);
-  $price = (float)$row['price'];
-  $newDeposit = min((float)$row['deposit'] + $amount, $price > 0 ? $price : (float)$row['deposit'] + $amount);
+  // Read and update under a row lock so two payments recorded at once cannot
+  // both build on the same old deposit.
+  $conn->begin_transaction();
+  try {
+    $sel = $conn->prepare('SELECT price, deposit FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL FOR UPDATE');
+    $sel->bind_param('i', $id);
+    $sel->execute();
+    $row = $sel->get_result()->fetch_assoc();
+    if (!$row) { $conn->rollback(); fail('Order not found', 404); }
+    $price = (float)$row['price'];
+    $oldDeposit = (float)$row['deposit'];
+    // House rule unchanged: the deposit never goes above the price (when one is set).
+    $newDeposit = min($oldDeposit + $amount, $price > 0 ? $price : $oldDeposit + $amount);
+    $applied = round(max(0, $newDeposit - $oldDeposit), 2);
+    $notApplied = round($amount - $applied, 2);
 
-  $stmt = $conn->prepare('UPDATE tailoring_orders SET deposit = ? WHERE id = ?');
-  $stmt->bind_param('di', $newDeposit, $id);
-  $stmt->execute();
+    $stmt = $conn->prepare('UPDATE tailoring_orders SET deposit = ? WHERE id = ?');
+    $stmt->bind_param('di', $newDeposit, $id);
+    $stmt->execute();
 
-  $ev = $conn->prepare('INSERT INTO tailoring_events (order_id, stage, note, user_id) SELECT id, stage, ?, ? FROM tailoring_orders WHERE id = ?');
-  $payNote = 'Payment ₦' . number_format($amount) . ' recorded';
-  $ev->bind_param('sii', $payNote, $user['id'], $id);
-  $ev->execute();
+    // The timeline shows what actually reached the deposit, and any excess.
+    $ev = $conn->prepare('INSERT INTO tailoring_events (order_id, stage, note, user_id) SELECT id, stage, ?, ? FROM tailoring_orders WHERE id = ?');
+    $payNote = 'Payment ₦' . number_format($applied) . ' recorded'
+      . ($notApplied > 0 ? ' (₦' . number_format($notApplied) . ' over the price not applied)' : '');
+    $ev->bind_param('sii', $payNote, $user['id'], $id);
+    $ev->execute();
+    $conn->commit();
+  } catch (Throwable $e) {
+    $conn->rollback();
+    throw $e;
+  }
 
-  audit($user['id'], 'tailoring_pay', 'tailoring_order', $id, ['amount' => $amount, 'deposit' => $newDeposit]);
+  audit($user['id'], 'tailoring_pay', 'tailoring_order', $id,
+    ['amount' => $applied, 'requested' => $amount, 'deposit' => $newDeposit]);
   json(['ok' => true, 'deposit' => $newDeposit, 'balance' => max(0, $price - $newDeposit)]);
 }
 

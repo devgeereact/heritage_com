@@ -53,7 +53,7 @@ if ($action === 'blog_save' && method() === 'POST') {
   if ($title === '') fail('Title is required');
   $slug    = slugify($b['slug'] ?? '' ?: $title);
   $excerpt = trim($b['excerpt'] ?? '');
-  $bodyHtml= (string)($b['body'] ?? '');
+  $bodyHtml= sanitize_html((string)($b['body'] ?? ''));   // allowlist only; the storefront renders it as HTML
   $category= trim($b['category'] ?? '');
   $tile    = trim($b['tile'] ?? 'hc-tile-mixed');
   $tags    = trim($b['tags'] ?? '');
@@ -72,7 +72,8 @@ if ($action === 'blog_save' && method() === 'POST') {
                               tile=?, tags=?, status=?, author=?,
                               published_at = CASE WHEN ?='published' AND published_at IS NULL THEN NOW() ELSE published_at END
                             WHERE id=?");
-    $stmt->bind_param('sssssssssssi', $slug, $title, $excerpt, $bodyHtml, $category, $tile, $tags, $status, $author, $status, $id);
+    // 11 placeholders: nine SET strings, the status in the CASE, then the id.
+    $stmt->bind_param('ssssssssssi', $slug, $title, $excerpt, $bodyHtml, $category, $tile, $tags, $status, $author, $status, $id);
     $stmt->execute();
     audit($user['id'], 'blog_update', 'blog_posts', $id, ['status' => $status]);
     json(['ok' => true, 'id' => $id, 'slug' => $slug]);

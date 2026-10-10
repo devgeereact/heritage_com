@@ -43,48 +43,18 @@ $THROTTLE_LIMITS = [
   'pin_fail_all'    => (int) cfg('PIN_MAX_GLOBAL', 20),         // PIN login, every source combined
 ];
 
-function client_ip() {
-  return substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
-}
-
 /** Opaque per-account key: the email is hashed so attempted addresses are not stored. */
 function account_key($email) {
   return 'acct:' . substr(hash('sha256', (string)$email), 0, 32);
 }
 
-/** Timestamps of the newest failures for one action (optionally one entity) inside the window. */
-function recent_failures($action, $entity, $limit, $window) {
-  global $conn;
-  $limit = max(1, (int)$limit);
-  $sql = 'SELECT UNIX_TIMESTAMP(created_at) AS t FROM audit_log
-           WHERE action = ? AND created_at > (NOW() - INTERVAL ? SECOND)';
-  $types = 'si'; $args = [$action, (int)$window];
-  if ($entity !== null) { $sql .= ' AND entity = ?'; $types .= 's'; $args[] = $entity; }
-  $sql .= ' ORDER BY id DESC LIMIT ' . $limit;
-  $stmt = $conn->prepare($sql);
-  $stmt->bind_param($types, ...$args);
-  $stmt->execute();
-  $res = $stmt->get_result();
-  $times = [];
-  while ($row = $res->fetch_assoc()) $times[] = (int)$row['t'];
-  return $times;
-}
-
-/** $checks: [[limit key, audit action, entity or null], …]. Sends 429 if any limit is reached. */
+/** $checks: [[limit key, audit action, entity or null], …]. Sends 429 if any limit is reached.
+ * client_ip(), recent_failures() and throttle_enforce() live in _lib.php. */
 function throttle_guard(array $checks) {
-  global $conn, $THROTTLE_WINDOW, $THROTTLE_LIMITS;
-  $now = (int)($conn->query('SELECT UNIX_TIMESTAMP() AS n')->fetch_assoc()['n'] ?? time());
-  $wait = 0;
-  foreach ($checks as [$key, $action, $entity]) {
-    $limit = (int)($THROTTLE_LIMITS[$key] ?? 0);
-    if ($limit <= 0) continue;
-    $wait = max($wait, throttle_retry_after(recent_failures($action, $entity, $limit, $THROTTLE_WINDOW), $limit, $THROTTLE_WINDOW, $now));
-  }
-  if ($wait > 0) {
-    if (!headers_sent()) header('Retry-After: ' . $wait);
-    $mins = (int) ceil($wait / 60);
-    fail('Too many attempts. Try again in ' . $mins . ' minute' . ($mins === 1 ? '' : 's') . '.', 429);
-  }
+  global $THROTTLE_WINDOW, $THROTTLE_LIMITS;
+  $resolved = [];
+  foreach ($checks as [$key, $action, $entity]) $resolved[] = [(int)($THROTTLE_LIMITS[$key] ?? 0), $action, $entity];
+  throttle_enforce($resolved, $THROTTLE_WINDOW);
 }
 
 if ($action === 'login' && method() === 'POST') {

@@ -62,6 +62,9 @@ if ($action === 'blog' && method() === 'GET') {
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     if (!$row) fail('Post not found', 404);
+    // Sanitise on the way out too, so posts saved before content.php cleaned
+    // bodies are still safe to render as HTML.
+    $row['body'] = sanitize_html($row['body'] ?? '');
     $row['cat'] = $row['category'];
     $row['date'] = $row['published_at'] ? date('F Y', strtotime($row['published_at'])) : '';
     json(['post' => $row]);
@@ -625,6 +628,12 @@ if ($action === 'track' && method() === 'GET') {
   $phone = trim($_GET['phone'] ?? '');
   if ($code === '' || $phone === '') fail('Order code and phone are required');
 
+  // Failed lookups are counted per IP in audit_log so code + phone pairs cannot
+  // be guessed at speed. TRACK_MAX_PER_IP = 0 switches this off.
+  $trackIpKey = 'ip:' . client_ip();
+  throttle_enforce([[(int) cfg('TRACK_MAX_PER_IP', 20), 'track_fail_ip', $trackIpKey]],
+    (int) cfg('LOGIN_THROTTLE_WINDOW', 900));
+
   $stmt = $conn->prepare(
     'SELECT id, code, customer_name, customer_phone, status, total, paid,
             courier, tracking_ref, tracking_url, return_status, created_at
@@ -636,6 +645,7 @@ if ($action === 'track' && method() === 'GET') {
 
   $tail = fn($s) => substr(preg_replace('/\D/', '', (string)$s), -9);
   if (!$order || $tail($order['customer_phone']) === '' || $tail($order['customer_phone']) !== $tail($phone)) {
+    audit(null, 'track_fail_ip', $trackIpKey);
     fail('No order found for that code and phone.', 404);
   }
 

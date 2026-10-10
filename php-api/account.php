@@ -46,17 +46,32 @@ if ($action === 'login' && method() === 'POST') {
   $orderCode = strtoupper(trim($b['order_code'] ?? ''));
   if ($phone === '' || $orderCode === '') fail('Enter your phone and an order code');
 
+  // Same audit_log throttle as staff login (auth.php): failures counted per IP
+  // and per phone (hashed, so attempted numbers are not stored). 0 disables one.
+  $ipKey = 'ip:' . client_ip();
+  $phoneKey = 'phone:' . substr(hash('sha256', tail9($phone)), 0, 32);
+  throttle_enforce([
+    [(int) cfg('CUSTOMER_LOGIN_MAX_PER_IP', 10), 'cust_login_fail_ip', $ipKey],
+    [(int) cfg('CUSTOMER_LOGIN_MAX_PER_PHONE', 5), 'cust_login_fail_phone', $phoneKey],
+  ], (int) cfg('LOGIN_THROTTLE_WINDOW', 900));
+
+  // One message and status for every failure, so the reply never reveals
+  // whether a phone has an account or an order code exists.
+  $loginFail = function () use ($ipKey, $phoneKey) {
+    audit(null, 'cust_login_fail_ip', $ipKey);
+    audit(null, 'cust_login_fail_phone', $phoneKey);
+    fail('We could not sign you in with that order code and phone', 404);
+  };
+
   // The order must exist, match the phone, and resolve to a customer.
   $stmt = $conn->prepare('SELECT id, customer_id, customer_phone FROM orders WHERE UPPER(code) = ? AND deleted_at IS NULL LIMIT 1');
   $stmt->bind_param('s', $orderCode);
   $stmt->execute();
   $o = $stmt->get_result()->fetch_assoc();
-  if (!$o || tail9($o['customer_phone']) === '' || tail9($o['customer_phone']) !== tail9($phone)) {
-    fail('We could not match that order code and phone', 404);
-  }
+  if (!$o || tail9($o['customer_phone']) === '' || tail9($o['customer_phone']) !== tail9($phone)) $loginFail();
 
   $customerId = (int)($o['customer_id'] ?: customer_id_by_phone($phone));
-  if (!$customerId) fail('No account found for that phone', 404);
+  if (!$customerId) $loginFail();
 
   $token = bin2hex(random_bytes(24));           // 48 chars
   $stmt = $conn->prepare('INSERT INTO customer_tokens (token, customer_id, expires_at) VALUES (?,?, DATE_ADD(NOW(), INTERVAL 30 DAY))');

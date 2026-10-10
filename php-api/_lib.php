@@ -38,17 +38,27 @@ set_exception_handler(function ($e) use ($__debug) {
   exit;
 });
 
+/**
+ * May this Origin read our responses? Pure, no I/O. The configured CORS_ORIGIN
+ * always may. Any localhost/127.0.0.1 port (Vite auto-port) may only when
+ * $allowLocalhost is true, because otherwise any page on a visitor's own machine
+ * could call the live API with their credentials.
+ */
+function cors_origin_allowed($origin, $corsOrigin, $allowLocalhost) {
+  $origin = (string)$origin;
+  if ($origin === '') return false;
+  if ($origin === (string)$corsOrigin) return true;
+  return (bool)$allowLocalhost && (bool) preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin);
+}
+
 /** Emit just the CORS response headers (no OPTIONS short-circuit). */
 function cors_headers() {
   if (headers_sent()) return;
-  // Production is same-origin (no Origin header). In dev, Vite may pick any
-  // localhost port (auto-port), so reflect any localhost/127.0.0.1 origin, plus
-  // whatever CORS_ORIGIN is configured to. Anything else is not allowed.
+  // Production is same-origin (no Origin header). Localhost origins are only
+  // reflected while ALLOW_LOCALHOST_CORS is switched on in config.php (local
+  // `npm run dev` against the live API); unset means off.
   $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-  $allowed = $origin !== '' && (
-    $origin === CORS_ORIGIN ||
-    preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)
-  );
+  $allowed = cors_origin_allowed($origin, CORS_ORIGIN, cfg('ALLOW_LOCALHOST_CORS', false));
   header('Access-Control-Allow-Origin: ' . ($allowed ? $origin : CORS_ORIGIN));
   header('Vary: Origin');
   header('Access-Control-Allow-Credentials: true');
@@ -360,6 +370,146 @@ function throttle_retry_after(array $times, $limit, $window, $now) {
   $oldest = $times[$limit - 1];                    // the $limit-th newest failure
   $wait = $oldest + $window - $now;
   return $wait > 0 ? $wait : 0;
+}
+
+/* ---- Throttling with audit_log as the counter (shared by auth, account, store) */
+/* Failed attempts are written to audit_log (an existing table, so no migration
+ * and no writable folder on the host) and counted over a sliding window. */
+
+/** The client IP, as REMOTE_ADDR (the same value auth.php's issue_token() records). */
+function client_ip() {
+  return substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
+}
+
+/** Timestamps of the newest failures for one action (optionally one entity) inside the window. */
+function recent_failures($action, $entity, $limit, $window) {
+  global $conn;
+  $limit = max(1, (int)$limit);
+  $sql = 'SELECT UNIX_TIMESTAMP(created_at) AS t FROM audit_log
+           WHERE action = ? AND created_at > (NOW() - INTERVAL ? SECOND)';
+  $types = 'si'; $args = [$action, (int)$window];
+  if ($entity !== null) { $sql .= ' AND entity = ?'; $types .= 's'; $args[] = $entity; }
+  $sql .= ' ORDER BY id DESC LIMIT ' . $limit;
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param($types, ...$args);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $times = [];
+  while ($row = $res->fetch_assoc()) $times[] = (int)$row['t'];
+  return $times;
+}
+
+/**
+ * $checks: [[limit, audit action, entity or null], …]. Answers 429 with the usual
+ * {error} body and a Retry-After header if any limit is reached inside $window
+ * seconds. A limit of 0 or less switches that check off.
+ */
+function throttle_enforce(array $checks, $window) {
+  global $conn;
+  $window = (int)$window;
+  $now = (int)($conn->query('SELECT UNIX_TIMESTAMP() AS n')->fetch_assoc()['n'] ?? time());
+  $wait = 0;
+  foreach ($checks as [$limit, $action, $entity]) {
+    $limit = (int)$limit;
+    if ($limit <= 0) continue;
+    $wait = max($wait, throttle_retry_after(recent_failures($action, $entity, $limit, $window), $limit, $window, $now));
+  }
+  if ($wait > 0) {
+    if (!headers_sent()) header('Retry-After: ' . $wait);
+    $mins = (int) ceil($wait / 60);
+    fail('Too many attempts. Try again in ' . $mins . ' minute' . ($mins === 1 ? '' : 's') . '.', 429);
+  }
+}
+
+/* ---- HTML sanitising (blog bodies; rendered with dangerouslySetInnerHTML) -- */
+
+/** Tags kept as-is. Anything else is unwrapped (children kept) unless it is in SANITIZE_DROP. */
+const SANITIZE_TAGS = ['p', 'br', 'h2', 'h3', 'h4', 'strong', 'b', 'em', 'i', 'u', 'blockquote',
+  'ul', 'ol', 'li', 'a', 'img', 'figure', 'figcaption', 'hr', 'code', 'pre'];
+/** Tags removed together with everything inside them. */
+const SANITIZE_DROP = ['script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet',
+  'form', 'input', 'button', 'select', 'textarea', 'svg', 'math', 'template', 'noscript', 'link',
+  'meta', 'base', 'title', 'head'];
+/** Attributes kept per tag; every other attribute (on*, style, class, id …) is removed. */
+const SANITIZE_ATTRS = ['a' => ['href', 'title'], 'img' => ['src', 'alt', 'width', 'height']];
+
+/**
+ * Is this URL safe for href/src? http(s), protocol-relative and relative URLs
+ * pass; mailto: and tel: only when $allowMailTel. javascript:, data:, vbscript:
+ * and every other scheme fail. Control characters and spaces are ignored when
+ * reading the scheme, as browsers do ("java\tscript:" is still javascript:).
+ */
+function sanitize_url_ok($url, $allowMailTel) {
+  $probe = preg_replace('/[\x00-\x20\x7F]+/', '', (string)$url);
+  if ($probe === '') return false;
+  if (!preg_match('/^([a-z][a-z0-9+.\-]*):/i', $probe, $m)) return true;   // relative, no scheme
+  $scheme = strtolower($m[1]);
+  if ($scheme === 'http' || $scheme === 'https') return true;
+  return $allowMailTel && ($scheme === 'mailto' || $scheme === 'tel');
+}
+
+/**
+ * Allowlist sanitiser for rich text. Keeps basic prose tags, links and images,
+ * strips scripts, event handlers, styles and unsafe URLs, and returns a fragment
+ * (no html/body wrapper). Uses PHP's built-in DOM extension; if that is missing
+ * it fails closed to plain allowlisted tags with every attribute removed.
+ */
+function sanitize_html($html) {
+  $html = (string)$html;
+  if (function_exists('mb_scrub')) $html = mb_scrub($html, 'UTF-8');   // drop invalid UTF-8 bytes
+  if (trim($html) === '') return '';
+  if (!class_exists('DOMDocument')) return sanitize_html_fallback($html);
+
+  $doc = new DOMDocument('1.0', 'UTF-8');
+  $prevErrors = libxml_use_internal_errors(true);
+  // The meta charset makes libxml read the input as UTF-8 (its HTML default is
+  // Latin-1, which would mangle ₦ and accents).
+  $doc->loadHTML('<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>'
+    . $html . '</body></html>', LIBXML_NONET);
+  libxml_clear_errors();
+  libxml_use_internal_errors($prevErrors);
+
+  $body = $doc->getElementsByTagName('body')->item(0);
+  if (!$body) return '';
+  sanitize_node($body);
+  $out = '';
+  foreach ($body->childNodes as $child) $out .= $doc->saveHTML($child);
+  return $out;
+}
+
+/** Clean $node's children in place (recursive). */
+function sanitize_node(DOMNode $node) {
+  foreach (iterator_to_array($node->childNodes) as $child) {
+    if ($child instanceof DOMText) continue;                         // text (and CDATA) is safe as-is
+    if (!($child instanceof DOMElement)) { $node->removeChild($child); continue; }   // comments, PIs
+    $tag = strtolower($child->nodeName);
+    if (in_array($tag, SANITIZE_DROP, true)) { $node->removeChild($child); continue; }
+    sanitize_node($child);
+    if (!in_array($tag, SANITIZE_TAGS, true)) {                      // unknown tag: keep its cleaned children
+      while ($child->firstChild) $node->insertBefore($child->firstChild, $child);
+      $node->removeChild($child);
+      continue;
+    }
+    $keep = SANITIZE_ATTRS[$tag] ?? [];
+    foreach (iterator_to_array($child->attributes) as $attr) {
+      $name = strtolower($attr->nodeName);
+      $value = $attr->nodeValue;
+      $ok = in_array($name, $keep, true);
+      if ($ok && $name === 'href') $ok = sanitize_url_ok($value, true);
+      if ($ok && $name === 'src') $ok = sanitize_url_ok($value, false);
+      if ($ok && ($name === 'width' || $name === 'height')) $ok = (bool) preg_match('/^\d{1,4}$/', trim($value));
+      if (!$ok) $child->removeAttribute($attr->nodeName);
+    }
+    if ($tag === 'a' && $child->hasAttribute('href')) $child->setAttribute('rel', 'noopener noreferrer');
+  }
+}
+
+/** No DOM extension: drop dangerous blocks, keep allowlisted tags, strip all attributes. */
+function sanitize_html_fallback($html) {
+  $drop = implode('|', SANITIZE_DROP);
+  $html = preg_replace('#<(' . $drop . ')\b[^>]*>.*?</\1\s*>#is', '', $html);
+  $html = strip_tags($html, SANITIZE_TAGS);
+  return preg_replace('#<(/?)([a-z][a-z0-9]*)\b[^>]*>#i', '<$1$2>', $html);
 }
 
 /* ---- Payment verification (pure; store.php supplies the gateway reply) ---- */
