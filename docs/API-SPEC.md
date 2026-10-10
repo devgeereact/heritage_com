@@ -13,7 +13,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 
 ## Endpoint inventory
 
-40 top-level PHP files on the Phase 2 branch: 35 endpoints, three shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (16 files on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
+41 top-level PHP files on the Phase 3 branch: 35 endpoints, four shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (17 files on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
 
 | File | Purpose | Server gate (file level) | Deployed by |
 |---|---|---|---|
@@ -25,6 +25,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `customers.php` | Clients: search, match, duplicate warning, measurement sets | super_admin, admin, manager, tailor, employee (`ROLES_CLIENTS`) | CI |
 | `_domain.php` | Pure Phase 2 rules: role groups, kobo money, stage transitions, request keys | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 2 branch) |
 | `_jobs.php` | Phase 2 database helpers: jobs, clients, measurement sets, ledger | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 2 branch) |
+| `_mail.php` | Shared SMTP sender `mail_send_html()` (Phase 3 extraction from `mail.php`) | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 3 branch) |
 | `today.php` | Daily worklist | Owner: super_admin, admin, manager | CI (Phase 2 branch) |
 | `enquiries.php` | Enquiry pipeline and conversion | super_admin, admin, manager, employee (convert owner only) | CI (Phase 2 branch) |
 | `measurements.php` | Templates and measurement sets | Workshop | CI (Phase 2 branch) |
@@ -42,7 +43,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `export.php` | CSV export of orders, payments, expenses, customers | super_admin, admin, manager | Manual |
 | `inbox.php` | IMAP mailbox reader | super_admin, admin, manager, editor, employee | Manual |
 | `loyalty.php` | Store credit and gift cards | super_admin, admin, manager | Manual |
-| `mail.php` | SMTP sender | super_admin, admin, manager, editor, employee | Manual |
+| `mail.php` | Staff email send; a thin endpoint over `_mail.php` on the Phase 3 branch | super_admin, admin, manager, editor, employee | Manual |
 | `marketing.php` | Campaign planner | super_admin, admin, manager, editor | Manual |
 | `orders.php` | Staff retail orders and market (POS) sales | super_admin, admin, manager, seller, employee | Manual |
 | `payments.php` | Money in and out, cash position | super_admin, admin, manager | Manual |

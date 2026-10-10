@@ -4,6 +4,12 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### `feat/phase3-appointments-portal` (no PR yet), 10 October 2026
+
+Changed
+
+- Mail: the SMTP client moved from `mail.php` into the shared include `_mail.php` with `mail_send_html()`, so other endpoints can send mail; `mail.php` is a thin endpoint over it and also audits failed sends. `_mail.php` is deployed by CI.
+
 ### `chore/cleanup-docs-sync` (no PR yet), 10 October 2026
 
 Added
