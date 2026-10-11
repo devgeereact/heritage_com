@@ -2,7 +2,7 @@
 
 Status: working spec for the remaining build, written 10 October 2026 from the code at the time. Temporary: delete this file when Phase 5 is merged, after its decisions are recorded in [DECISIONS.md](DECISIONS.md).
 
-Already built on `feat/phase4-website`: section 4.1 to 4.3 (token layer, public components, motion) and the server side of 4.4 to 4.6 (CMS, uploads, public projection, sitemap). See [ROADMAP.md](ROADMAP.md) for live status; where this spec and the code differ, the code and ROADMAP win. Schema numbering below was planned before Phase 3 shipped as phases 23 to 25.
+Phase 4 is built on `feat/phase4-website` (11 October 2026): sections 4.1 to 4.10, with the deviations in [DECISIONS.md](DECISIONS.md) D-022 (pages use the CMS as built; no `schema_phase27.sql`) and `spa.php` left open (K-06). Phase 5 is next. See [ROADMAP.md](ROADMAP.md) for live status; where this spec and the code differ, the code and ROADMAP win. Schema numbering below was planned before Phase 3 shipped as phases 23 to 25.
 
 
 ## 0. Facts that shape the design
