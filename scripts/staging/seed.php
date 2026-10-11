@@ -12,6 +12,10 @@
  *   php scripts/staging/seed.php --phase3   Phase 3 extras: availability filled in for
  *                                           STAGING ONLY (production starts empty), a few
  *                                           appointments, messages and one change request
+ *   php scripts/staging/seed.php --phase4   Phase 4 website: a clearly marked staging business
+ *                                           profile, 3 services, 3 portfolio projects with
+ *                                           generated STAGING swatches (never photos), FAQs,
+ *                                           policies and two pages, all published
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
@@ -56,6 +60,7 @@ $conn->query("DELETE FROM customers WHERE id IN (SELECT id FROM ($sample) AS s)"
 
 if (in_array('--phase2', $argv, true)) { seed_phase2(); exit(0); }
 if (in_array('--phase3', $argv, true)) { seed_phase3(); exit(0); }
+if (in_array('--phase4', $argv, true)) { seed_phase4(); exit(0); }
 
 // Already seeded (setup.sh --keep)? Leave the synthetic records alone.
 if (q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()) {
@@ -251,4 +256,94 @@ function seed_phase3() {
       $p = json_encode(['details' => 'Synthetic: please deliver to my office', 'address' => 'Test Office 2, Lagos']));
   }
   echo "  Phase 3 extras: staging-only availability (Mon to Sat), 2 appointments on $day, 2 messages, 1 change request\n";
+}
+
+
+/**
+ * Phase 4 website content for STAGING ONLY. Every value says "Staging" or uses
+ * example.test, and the images are plain generated colour swatches labelled
+ * STAGING. Production starts with an empty profile and no content (empty means
+ * hidden). Goes through the same helpers as cms.php. Idempotent.
+ */
+function seed_phase4() {
+  require_once __DIR__ . '/../../php-api/_jobs.php';
+  require_once __DIR__ . '/../../php-api/_cms.php';
+  require_once __DIR__ . '/../../php-api/_media.php';
+  if (!has_table('cms_items')) { echo "  Phase 4: cms_items missing (schema_phase26.sql not imported); skipped.\n"; return; }
+  $admin = (int)q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()[0];
+
+  [$profile, $err] = profile_clean([
+    'business_name' => 'Herit Clothing (Staging)',
+    'business_phone' => '0800 000 0099',
+    'business_whatsapp' => '08000000099',
+    'business_email' => 'studio@example.test',
+    'business_address' => 'Staging Street 1, Staging Area',
+    'business_address_public' => '0',
+    'business_area_text' => 'Staging service area text',
+    'business_hours_text' => 'Staging hours: Monday to Friday',
+    'socials' => ['instagram' => 'https://www.instagram.com/staging.example', 'linkedin' => 'https://www.linkedin.com/company/staging-example'],
+    'journal_enabled' => '1',
+  ]);
+  if ($err) { fwrite(STDERR, "Phase 4 profile invalid: " . json_encode($err) . "\n"); exit(1); }
+  foreach ($profile as $k => $v) {
+    $val = $k === 'socials' ? json_encode($v, JSON_UNESCAPED_SLASHES) : (string)$v;
+    q('INSERT INTO settings (skey, svalue) VALUES (?,?) ON DUPLICATE KEY UPDATE svalue = VALUES(svalue)', 'ss', $k, $val);
+  }
+
+  if (q("SELECT id FROM cms_items WHERE entity = 'project' AND slug = 'staging-project-3'")->get_result()->fetch_row()) {
+    echo "  Phase 4 content already present (profile refreshed).\n";
+    return;
+  }
+  // A run that stopped part way leaves some items; this is the synthetic staging
+  // database, so start the website content again from empty.
+  $GLOBALS['conn']->query('DELETE FROM cms_items');
+
+  // Generated swatches: a flat colour with the word STAGING; never a photograph.
+  $swatch = function ($rgb, $label) use ($admin) {
+    $im = imagecreatetruecolor(1200, 900);
+    imagefill($im, 0, 0, imagecolorallocate($im, ...$rgb));
+    $ink = imagecolorallocate($im, 255, 255, 255);
+    imagestring($im, 5, 40, 40, 'STAGING', $ink);
+    imagestring($im, 5, 40, 70, $label, $ink);
+    $tmp = tempnam(sys_get_temp_dir(), 'hc-swatch');
+    imagejpeg($im, $tmp, 85);
+    [$id] = media_ingest($tmp, $admin, "Staging swatch: $label", 'Generated staging image');
+    @unlink($tmp);
+    return $id;
+  };
+
+  $item = function ($entity, $slug, array $data, $sort) use ($admin) {
+    [$clean, $err] = cms_clean($entity, $data);
+    $problems = $err ?: cms_publish_problems($entity, $clean, media_rows(cms_media_refs($clean)));
+    if ($problems) { fwrite(STDERR, "Phase 4 seed $entity/$slug not publishable: " . json_encode($problems) . "\n"); exit(1); }
+    $j = json_encode($clean, JSON_UNESCAPED_UNICODE);
+    q("INSERT INTO cms_items (entity, slug, status, sort, live, version, published_at, live_updated_at, created_by)
+       VALUES (?, ?, 'published', ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?)", 'ssisi', $entity, $slug, $sort, $j, $admin);
+  };
+
+  $services = [
+    ['staging-service-one', 'Staging Service One', 'Synthetic staging service summary.'],
+    ['staging-service-two', 'Staging Service Two', 'Synthetic staging service summary.'],
+    ['staging-service-three', 'Staging Service Three', 'Synthetic staging service summary.'],
+  ];
+  foreach ($services as $i => [$slug, $title, $sum]) {
+    $item('service', $slug, ['title' => $title, 'summary' => $sum, 'body' => '<p>Synthetic staging body.</p>',
+      'includes' => ['Staging item A', 'Staging item B'], 'price_note' => 'Staging price note'], ($i + 1) * 10);
+  }
+  $colours = [[120, 90, 60], [60, 80, 110], [90, 110, 70]];
+  foreach ([1, 2, 3] as $n) {
+    $mid = $swatch($colours[$n - 1], "Project $n");
+    $item('project', "staging-project-$n", ['title' => "Staging Project $n", 'summary' => 'Synthetic staging project.',
+      'garment' => 'Staging garment', 'fabric' => 'Staging fabric', 'service_slug' => $services[($n - 1) % 3][0],
+      'cover_media_id' => $mid, 'images' => [['media_id' => $mid, 'alt' => "Staging swatch for project $n", 'role' => 'front']],
+      'featured' => $n === 1, 'own_work' => true, 'consent_images' => true, 'consent_client' => false,
+      'consent_note' => 'Staging: generated swatch, own work'], $n * 10);
+  }
+  $item('faq', 'faq-staging-1', ['question' => 'Staging question one?', 'answer' => '<p>Synthetic staging answer.</p>', 'show_on_home' => true], 10);
+  $item('faq', 'faq-staging-2', ['question' => 'Staging question two?', 'answer' => '<p>Synthetic staging answer.</p>'], 20);
+  $item('policy', 'privacy', ['title' => 'Privacy (staging)', 'body' => '<p>Synthetic staging privacy text.</p>', 'effective_date' => '2026-10-11'], 10);
+  $item('policy', 'terms', ['title' => 'Terms (staging)', 'body' => '<p>Synthetic staging terms text.</p>'], 20);
+  $item('page', 'home', ['headline' => 'Staging home headline', 'intro' => 'Synthetic staging introduction.'], 10);
+  $item('page', 'about', ['headline' => 'Staging about headline', 'body' => '<p>Synthetic staging about text.</p>'], 20);
+  echo "  Phase 4 website: staging profile, 3 services, 3 projects (generated STAGING swatches), 2 FAQs, 2 policies, 2 pages\n";
 }

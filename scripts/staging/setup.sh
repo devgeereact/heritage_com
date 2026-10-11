@@ -55,7 +55,9 @@ TOKEN_SECRET="$(php -r 'echo bin2hex(random_bytes(24));')"
 echo "== Database $DB_NAME"
 if [ "$KEEP" -eq 0 ]; then
   "${ADMIN[@]}" -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
+  rm -rf "$ROOT/scripts/staging/.uploads"   # website images belong to the dropped database
 fi
+mkdir -p "$ROOT/scripts/staging/.uploads/site"
 "${ADMIN[@]}" -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 for HOST in localhost 127.0.0.1; do
   "${ADMIN[@]}" -e "CREATE USER IF NOT EXISTS '$DB_USER'@'$HOST' IDENTIFIED BY '$DB_PASS';
@@ -94,6 +96,11 @@ define('SITE_URL', 'http://localhost:5112');
 // staging router defined HERITOS_STAGING and HERITOS_ENV is 'staging'; the
 // production config.php never sets it.
 define('STAGING_ACCESS_CODE_LOG', '$LOG_DIR/access-codes.log');
+
+// Website images (Phase 4): written here, served by the staging router at
+// /uploads/site/. Gitignored. Production uses <doc root>/uploads/site.
+define('PUBLIC_UPLOAD_DIR', '$ROOT/scripts/staging/.uploads/site');
+define('MEDIA_MAX_MB', 8);
 
 // Left blank so staging can never send real messages or take payments:
 // WhatsApp falls back to logged wa.me links, payments to manual mode, AI to
@@ -150,6 +157,7 @@ for N in $(seq 18 99); do
 done
 php "$ROOT/scripts/staging/seed.php" --phase2
 php "$ROOT/scripts/staging/seed.php" --phase3
+php "$ROOT/scripts/staging/seed.php" --phase4
 
 echo
 if [ "${#FAILED[@]}" -gt 0 ]; then

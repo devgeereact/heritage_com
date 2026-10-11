@@ -27,4 +27,5 @@ echo "Mail is written to scripts/staging/.logs/mail.log. Ctrl+C to stop."
 exec php \
   -d "sendmail_path=cat >> '$LOG_DIR/mail.log'" \
   -d display_errors=0 \
+  -d upload_max_filesize=16M -d post_max_size=20M \
   -S "$HOST:$PORT" -t "$ROOT/php-api" "$ROOT/scripts/staging/router.php"

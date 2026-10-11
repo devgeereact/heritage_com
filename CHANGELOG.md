@@ -8,6 +8,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 Added
 
+- Staging: `seed.php --phase4` (a business profile marked Staging, three services, three portfolio projects with generated STAGING swatches, FAQs, policies, two pages), the router serves `/uploads/site/`, `/sitemap.xml` and `/robots.txt`, and `scripts/staging/e2e-phase4.sh` adds 62 checks (PASS on two runs).
 - Website CMS, server side: `schema_phase26.sql` (`media_assets`, `cms_items`), pure rules in `_cms.php` with 72 new helper tests (323 in total), `cms.php` for staff (services, portfolio projects, FAQs, privacy and terms, pages: draft, preview, publish, unpublish, one-step rollback, stable slugs, reorder; business profile; images), the public projection `site.php` (published content only, through whitelists; no drafts, consent records or client links) and `sitemap.php` at `/sitemap.xml` (A24).
 - Image uploads (`_media.php`): staff only, JPEG, PNG or WebP checked by content, 8 MB and 40 megapixels at most, re-encoded with GD so EXIF and GPS are dropped, 800 and 1600 pixel WebP plus a JPEG, random names, stored under `uploads/site/` whose `.htaccess` serves image names only and switches PHP off.
 - Business profile settings (name, phone, WhatsApp, email, address with a public switch, service area, hours text, socials including LinkedIn, journal switch), all empty by default; the public config omits empty facts and builds LocalBusiness JSON-LD only from facts that are set.
