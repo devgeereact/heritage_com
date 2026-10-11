@@ -9,7 +9,7 @@ import heritApi from '@/helpers/heritApi';
 const DELIVERY = [
   { key: 'lagos', label: 'Lagos delivery', note: 'Free over ₦25,000, else ₦2,500' },
   { key: 'nigeria', label: 'Rest of Nigeria', note: '₦4,500, tracked courier' },
-  { key: 'pickup', label: 'Pickup — Ajuwon Market', note: 'Collect from the studio, free' },
+  { key: 'pickup', label: 'Pickup', note: 'Collect from the studio, free' },
 ];
 const PAYMENT = [
   { key: 'card', label: 'Pay by card', icon: 'solar:card-bold', note: 'Secure card payment' },

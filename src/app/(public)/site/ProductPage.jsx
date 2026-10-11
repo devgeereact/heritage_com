@@ -76,12 +76,6 @@ const ProductPage = () => {
 
   return (
     <SiteLayout title={`${product.name} — ${product.fabric}`}>
-      <div className="hc-marquee">
-        <span>★ Free Lagos delivery over ₦25,000</span>
-        <span>★ Ships worldwide, tracked</span>
-        <span>★ 14-day returns</span>
-      </div>
-
       <section className="hc-section">
         <div className="hc-container">
           <div className="hc-crumb hc-mt-1" style={{ marginBottom: '1.5rem' }}>
@@ -110,9 +104,6 @@ const ProductPage = () => {
               <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '1.4rem', color: 'var(--primary)', marginTop: '0.75rem' }}>
                 {formatNgn(product.priceNgn)} <span style={{ color: 'var(--muted-foreground)', fontWeight: 400, fontSize: '0.95rem' }}>· approx ${product.priceUsd}</span>
               </div>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--muted-foreground)', marginTop: '0.3rem' }}>
-                Free Lagos delivery over ₦25,000
-              </p>
 
               <p className="hc-lead hc-mt-3">{product.short}</p>
 
@@ -163,13 +154,6 @@ const ProductPage = () => {
                   <IconifyIcon icon="solar:check-circle-bold" /> You&apos;re on the list — we&apos;ll message you when it&apos;s back.
                 </p>
               )}
-
-              {/* reassurance */}
-              <ul className="hc-check hc-mt-4">
-                <li><IconifyIcon icon="solar:check-circle-bold" /> Made in Lagos</li>
-                <li><IconifyIcon icon="solar:check-circle-bold" /> Ships worldwide, tracked</li>
-                <li><IconifyIcon icon="solar:check-circle-bold" /> 14-day returns on unworn items</li>
-              </ul>
 
               {/* the story — expandable */}
               <div className="hc-quote hc-mt-4" style={{ padding: '1.5rem' }}>

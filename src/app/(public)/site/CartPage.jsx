@@ -70,7 +70,7 @@ const CartPage = () => {
                   <span style={{ color: 'var(--muted-foreground)' }}>Calculated at checkout</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--muted-foreground)', marginTop: '0.75rem', lineHeight: 1.5 }}>
-                  Free Lagos delivery over ₦25,000. Pay by card, bank transfer or on delivery.
+                  Delivery and payment options are confirmed at checkout.
                 </p>
                 <Link to="/checkout" className="hc-btn hc-btn--primary hc-mt-3" style={{ width: '100%', justifyContent: 'center' }}>
                   <IconifyIcon icon="solar:lock-keyhole-minimalistic-bold" /> Checkout

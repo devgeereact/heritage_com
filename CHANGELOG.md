@@ -6,6 +6,10 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### `feat/phase4-website` (no PR yet), 11 October 2026
 
+Removed
+
+- Invented fallbacks (A07): the static products in `site/products.js` and the sample posts and testimonials in `site/content.js`. Empty or unreachable now means an empty list, and the pages show their empty state or hide the section. The shop pages lose the "Free Lagos delivery over ₦25,000", "Ships worldwide" and "14-day returns" claims and the Ajuwon Market pickup label.
+
 Changed
 
 - One design token layer (A23): `src/assets/tokens/` holds every colour once and emits `--hc-*` custom properties; Larkon's SCSS variables, `heritos-admin.css`, the Phase 2 `--hd-*` set and `portal.css` all read it. Admin primary buttons become amber with ink text, `.text-primary` uses the accessible amber text colour, and the warm shadows, glass topbar, gradients and mono uppercase labels are gone. The public site stays light whatever the admin theme is.
