@@ -67,6 +67,11 @@ const Marketing = lazy(() => import('@/app/(admin)/marketing/page'));
 const Pos = lazy(() => import('@/app/(admin)/pos/page'));
 const Studio = lazy(() => import('@/app/(admin)/studio/page'));
 const Content = lazy(() => import('@/app/(admin)/content/page'));
+const Website = lazy(() => import('@/app/(admin)/website/page'));
+const WebsiteProfile = lazy(() => import('@/app/(admin)/website/profile/page'));
+const WebsiteMedia = lazy(() => import('@/app/(admin)/website/media/page'));
+const WebsiteList = lazy(() => import('@/app/(admin)/website/list/page'));
+const WebsiteEdit = lazy(() => import('@/app/(admin)/website/edit/page'));
 const Channels = lazy(() => import('@/app/(admin)/channels/page'));
 const Weather = lazy(() => import('@/app/(admin)/weather/page'));
 const Team = lazy(() => import('@/app/(admin)/team/page'));
@@ -202,6 +207,7 @@ export const redirectRoutes = [
   { path: '/crm', to: '/clients' },
   { path: '/crm/:id', to: '/clients/:id' },
   { path: '/apps/calendar', to: '/appointments' },
+  { path: '/website/journal', to: '/content' },
 ].map((r) => ({ ...r, name: `Redirect ${r.path}`, element: <RedirectWithParams to={r.to} /> }));
 
 const generalRoutes = [{
@@ -300,6 +306,26 @@ const generalRoutes = [{
   path: '/content',
   name: 'Content',
   element: <Content />
+}, {
+  path: '/website',
+  name: 'Website',
+  element: <Website />
+}, {
+  path: '/website/profile',
+  name: 'Website profile',
+  element: <WebsiteProfile />
+}, {
+  path: '/website/media',
+  name: 'Website images',
+  element: <WebsiteMedia />
+}, {
+  path: '/website/:section',
+  name: 'Website section',
+  element: <WebsiteList />
+}, {
+  path: '/website/:section/:ref',
+  name: 'Website editor',
+  element: <WebsiteEdit />
 }, {
   path: '/channels',
   name: 'Store & Channels',

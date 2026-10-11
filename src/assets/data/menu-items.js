@@ -45,11 +45,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:wallet-money-bold-duotone',
   url: '/payments'
 }, {
-  // The website hub is the content page for now (Phase 4 builds the CMS).
-  key: 'content',
+  // Website CMS (Phase 4): pages, services, work, questions, policies, images, business details.
+  key: 'website',
   label: 'Website',
   icon: 'solar:global-bold-duotone',
-  url: '/content'
+  url: '/website'
 }, {
   key: 'setup',
   label: 'SETTINGS',
@@ -78,6 +78,7 @@ export const MENU_ITEMS = [{
     { key: 'loyalty', label: 'Loyalty & Gifts', icon: 'solar:gift-bold-duotone', url: '/loyalty' },
     { key: 'coupons', label: 'Coupons', icon: 'solar:ticket-sale-bold-duotone', url: '/coupons' },
     { key: 'reviews', label: 'Reviews', icon: 'solar:star-bold-duotone', url: '/reviews' },
+    { key: 'content', label: 'Journal & testimonials', icon: 'solar:notebook-bold-duotone', url: '/content' },
     { key: 'inbox', label: 'Inbox', icon: 'solar:letter-bold-duotone', url: '/inbox' },
     { key: 'whatsapp', label: 'WhatsApp', icon: 'mdi:whatsapp', url: '/whatsapp' },
     { key: 'weather', label: 'Weather & Ops', icon: 'solar:cloud-sun-bold-duotone', url: '/weather' },

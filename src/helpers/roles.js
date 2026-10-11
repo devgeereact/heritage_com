@@ -39,7 +39,8 @@ const SECTIONS = {
   analytics: MANAGE,                                                      // analytics.php
   marketing: ['super_admin', 'admin', 'manager', 'editor'],               // marketing.php
   studio: ALL,                                                            // ai.php, ai_image.php (any staff)
-  content: MANAGE,                                                        // content.php (Website)
+  website: ['super_admin', 'admin', 'manager', 'editor'],                 // cms.php (Website CMS); profile and policy publishing owner-only on the server
+  content: MANAGE,                                                        // content.php (journal and testimonials)
   channels: MANAGE,                                                       // settings.php
   weather: ['super_admin', 'admin', 'manager', 'seller', 'employee'],     // weather.php
   inbox: ['super_admin', 'admin', 'manager', 'editor', 'employee'],       // inbox.php, mail.php
@@ -74,7 +75,8 @@ export const ACCESS_MATRIX = [
   { key: 'clients', label: 'Clients' },
   { key: 'jobs', label: 'Jobs' },
   { key: 'payments', label: 'Payments' },
-  { key: 'content', label: 'Website' },
+  { key: 'website', label: 'Website' },
+  { key: 'content', label: 'Journal & testimonials' },
   { key: 'settings', label: 'Settings' },
   { key: 'reports', label: 'Reports' },
   { key: 'catalogue', label: 'Catalogue' },

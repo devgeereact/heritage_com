@@ -141,6 +141,24 @@ Branch `feat/phase4-website`, server only (the website screens are built separat
 
 NOT TESTED: the uploads `.htaccess` on the live Apache or LiteSpeed host, live PHP upload limits and GD build, the website screens in a browser, real photographs.
 
+## Phase 4 website pages and Website admin in the browser (11 October 2026)
+
+Branch `feat/phase4-website`, local staging (synthetic data), Vite dev server on 5112 against the staging API on 8088, Chromium driven through the Playwright MCP. Viewport about 390 to 430px wide (phone).
+
+| Journey | Result |
+|---|---|
+| Home from the CMS: hero headline from the published home page, services, work, owner note, questions, final action; nav shows only Services, Our work, About and Contact (the other pages are unpublished); title, description, canonical and LocalBusiness JSON-LD set; no sideways scroll | PASS |
+| `/services`, `/services/:slug` (what's included, pricing, related work, `Service` JSON-LD), `/work` and `/work/:slug` (image loads with alt text, width and height; facts list), `/company-orders`, `/about`, `/faqs` (4 grouped questions), `/privacy` (effective date in `<time>`), `/terms`, `/journal` and a post | PASS |
+| Unpublished `/how-it-works`, unknown `/services/nope` and `/journal/nope`: not-found page with `robots=noindex` | PASS |
+| Company brief: empty submit focuses the error summary with three linked errors; a filled brief is stored as a `wholesale` enquiry with company, quantity, role and fabric responsibility | PASS |
+| Contact with `?type=fitting&service=<slug>`: subject and service prefilled, five profile channels, stored as `fitting` (previously every subject was saved as `general`) | PASS |
+| Website admin as super_admin: hub shows published counts; create a service, save draft, preview in the frame ("Preview, not published" bar, draft list rendered), publish; `site.php` then serves the body with the list and the link | PASS |
+| Publishing a project with no images or consent is refused and the reasons are listed in plain words | PASS |
+| Business details: an Instagram link on another host is refused with a labelled error; the original value saves again | PASS |
+| Upload of a 3000 by 2000 photo: downscaled in the browser and stored at 2400 by 1600 | PASS |
+
+NOT TESTED: screen readers, desktop widths for the admin editor, the editor as the `editor` role (owner-only buttons hidden by role; the server enforces it), real photographs, dark theme on the new admin screens.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).
@@ -157,7 +175,7 @@ Proposed goals to test, not guaranteed outcomes: routine status and payment acti
 |---|---|---|---|---|---|---|
 | Enquiries error state | Any | Technical upload instruction shown to the owner (A17) | `enquiries/page.jsx:61-63` (audit) | Medium | Plain message and Retry | Fixed on `feat/phase1b-staging`; browser NOT TESTED |
 | Tailoring and Groups error states | Any | Same upload instruction pattern remains (K-02) | `tailoring/page.jsx:207-210`, `tailoring/groups/page.jsx:152` | Medium | Same fix as A17 | Fixed on `feat/phase2-daily-records`: plain message and Retry (`LoadError`); error state not rendered in the browser run |
-| Public home page | Mobile and desktop | Invented statistics, staff, testimonials and offers (A07) | HomePage.jsx:62-99, 218 | High | Remove in Phase 4 | Open |
+| Public home page | Mobile and desktop | Invented statistics, staff, testimonials and offers (A07) | HomePage.jsx:62-99, 218 | High | Remove in Phase 4 | Fixed on `feat/phase4-website`: Home shows published CMS content only; owner copy and photographs still to come |
 | Owner usability review | Phone | Not run | None | Unknown | Run after Phase 2 | NOT TESTED |
 | Rendered screens | 390px and 1280px | Phase 2 owner journey captured end to end | Headless Chromium screenshots, 10 Oct 2026 (agent scratchpad) | Unknown | Keep capturing per phase | PASS for the Phase 2 journey; other screens NOT TESTED |
 | Phone sidebar opened by itself | 390px | Every route change toggled the off-canvas sidebar, so in-page links and the new bottom bar opened it over the page and blocked taps | Browser run, 10 Oct 2026 | High | Close on navigation only | Fixed (`LeftSideBarToggle.jsx`) and re-run PASS |
