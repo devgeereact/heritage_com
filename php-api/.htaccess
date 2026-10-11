@@ -7,6 +7,16 @@
   Require all denied
 </FilesMatch>
 
+# API answers are never search results; the sitemap is the one exception.
+<IfModule mod_headers.c>
+  <FilesMatch "\.php$">
+    Header set X-Robots-Tag "noindex"
+  </FilesMatch>
+  <Files "sitemap.php">
+    Header unset X-Robots-Tag
+  </Files>
+</IfModule>
+
 RewriteEngine On
 RewriteBase /
 

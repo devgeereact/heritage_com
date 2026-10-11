@@ -88,3 +88,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: ./        # FTP account scoped to the heritage folder
+          # Setting exclude replaces the action's defaults, so they are repeated
+          # here. uploads/site/ holds the images cms.php writes on the server;
+          # excluding it means the sync never touches them (BUILD-SPEC 4.5).
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            uploads/site/**
