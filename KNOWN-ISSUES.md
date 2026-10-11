@@ -28,6 +28,7 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 |---|---|---|---|---|---|
 | A04 | P0 | Content safety | Server allowlist sanitiser (PR #6) | Helper tests PASS; rendered page NOT TESTED | In code |
 | A05 | P0 | Payments | Transaction (PR #6), then append-only ledger with request keys (PR #9) | Staging API PASS; concurrency NOT TESTED | In code |
+| K-05 | P1 | Messages | `messages.php?action=inbox` answered 500 on MariaDB (ordered by an expression over the `unread` aggregate alias); now orders by the aggregate itself (`feat/phase3-appointments-portal`) | Browser Messages inbox PASS; `e2e-phase3.sh` did not call `inbox` | In code |
 | A10 | P1 | Measurements | Dated measurement sets, owner approval, job snapshots (PR #9) | Staging API and browser PASS | In code |
 | A21 | P1 | Content | Blog UPDATE bind types (PR #6) | Source; browser save-then-edit NOT TESTED | In code |
 | K-01 | P2 | Permissions | `roles.js` sections match the server gates of the endpoints each page needs (PR #9) | Source; tailor role PASS in a browser; other roles NOT TESTED | In code |

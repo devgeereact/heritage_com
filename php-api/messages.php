@@ -54,7 +54,7 @@ if ($action === 'inbox' && method() === 'GET') {
                           SUM(m.author_type = 'customer' AND m.read_by_owner_at IS NULL) AS unread
                      FROM job_messages m JOIN tailoring_orders o ON o.id = m.job_id JOIN customers c ON c.id = m.customer_id
                  GROUP BY m.job_id, o.code, o.public_ref, c.name
-                 ORDER BY unread > 0 DESC, last_at DESC LIMIT 200");
+                 ORDER BY SUM(m.author_type = 'customer' AND m.read_by_owner_at IS NULL) > 0 DESC, MAX(m.created_at) DESC LIMIT 200");
   json(['items' => array_map(fn($r) => ['job_id' => (int)$r['job_id'], 'code' => $r['code'], 'client_name' => $r['client_name'],
     'last_at' => $r['last_at'], 'last_at_local' => lagos_iso($r['last_ts']), 'unread' => (int)$r['unread']], $rows),
     'unread_total' => array_sum(array_map(fn($r) => (int)$r['unread'], $rows))]);

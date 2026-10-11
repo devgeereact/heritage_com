@@ -14,6 +14,10 @@ Added
 - Customer portal, messages, change requests and feedback (A09): `schema_phase25.sql`, `portal.php` (job view through the allowlist projection, client-visible thread, change requests, fitting or collection requests and reschedule requests, measurement proposals, feedback with separate consents, quote acceptance behind a switch) and `messages.php` for the owner (inbox, threads with internal notes, delivery status, change-request decisions with price or date effect after cutting, feedback follow-up and consent-checked publishing). Today adds access requests, unread messages, open change requests and feedback follow-ups.
 - Staging: `seed.php --phase3` (staging-only availability, appointments, messages, a change request), a staging-only sign-in code log, and `scripts/staging/e2e-phase3.sh` with 93 checks (PASS on two runs).
 
+Fixed
+
+- `messages.php?action=inbox` answered 500 on MariaDB because it ordered by an expression over an aggregate alias (K-05).
+
 Changed
 
 - `account.php` uses the shared hashed sessions; its phone plus order code login and old measurement form answer only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on, and the form still creates a pending proposal, never an overwrite (A10, D-021).
