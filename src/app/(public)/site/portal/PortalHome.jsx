@@ -71,7 +71,7 @@ const PortalHome = ({ onSignedOut }) => {
                 )}
               </span>
               <span style={{ display: 'flex', gap: '.5rem', alignItems: 'center', flex: 'none' }}>
-                {j.unread > 0 && <span className="hp-chip" style={{ color: '#B45309' }}><IconifyIcon icon="solar:chat-unread-bold" aria-hidden="true" />{j.unread} new</span>}
+                {j.unread > 0 && <span className="hp-chip" style={{ color: 'var(--hc-warning)' }}><IconifyIcon icon="solar:chat-unread-bold" aria-hidden="true" />{j.unread} new</span>}
                 <IconifyIcon icon="solar:alt-arrow-right-linear" aria-hidden="true" />
               </span>
             </Link>

@@ -14,7 +14,7 @@ const Stars = ({ value, size = 16, onPick }) => (
     {[1, 2, 3, 4, 5].map((n) => (
       <IconifyIcon key={n} icon={n <= Math.round(value) ? 'solar:star-bold' : 'solar:star-linear'}
         onClick={onPick ? () => onPick(n) : undefined}
-        style={{ color: '#e0a200', fontSize: size }} />
+        style={{ color: 'var(--hc-accent)', fontSize: size }} />
     ))}
   </span>
 );
@@ -75,7 +75,7 @@ const ProductReviews = ({ slug, productName }) => {
 
       {done && (
         <div className="hc-card" style={{ padding: '1rem', marginTop: '1rem', background: 'var(--secondary)' }}>
-          <IconifyIcon icon="solar:check-circle-bold" style={{ color: '#16794a' }} /> Thank you! Your review is in — we&apos;ll publish it shortly{done.verified ? ' (verified purchase ✓)' : ''}.
+          <IconifyIcon icon="solar:check-circle-bold" style={{ color: 'var(--hc-success)' }} /> Thank you! Your review is in — we&apos;ll publish it shortly{done.verified ? ' (verified purchase ✓)' : ''}.
         </div>
       )}
 
@@ -92,7 +92,7 @@ const ProductReviews = ({ slug, productName }) => {
           <label style={lbl}>Headline<input style={field} value={form.title} onChange={set('title')} placeholder="Beautiful piece" /></label>
           <label style={lbl}>Your review<textarea rows={3} style={field} value={form.body} onChange={set('body')} /></label>
           <label style={lbl}>Photo URL (optional)<input style={field} value={form.photo_url} onChange={set('photo_url')} placeholder="https://…" /></label>
-          {err && <p style={{ color: '#991b1b', margin: 0, fontSize: '0.85rem' }}>{err}</p>}
+          {err && <p style={{ color: 'var(--hc-danger)', margin: 0, fontSize: '0.85rem' }}>{err}</p>}
           <div className="hc-flex" style={{ gap: '0.5rem' }}>
             <button type="submit" className="hc-btn hc-btn--primary" disabled={busy} style={{ border: 'none' }}>{busy ? 'Sending…' : 'Submit review'}</button>
             <button type="button" className="hc-btn hc-btn--ghost" onClick={() => setOpen(false)}>Cancel</button>
@@ -108,7 +108,7 @@ const ProductReviews = ({ slug, productName }) => {
               <div className="hc-flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
                 <Stars value={r.rating} />
                 <strong>{r.author_name}</strong>
-                {Number(r.verified) === 1 && <span style={{ fontSize: '0.72rem', color: '#16794a', fontWeight: 600 }}><IconifyIcon icon="solar:verified-check-bold" /> Verified</span>}
+                {Number(r.verified) === 1 && <span style={{ fontSize: '0.72rem', color: 'var(--hc-success)', fontWeight: 600 }}><IconifyIcon icon="solar:verified-check-bold" /> Verified</span>}
               </div>
               <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>{String(r.created_at).slice(0, 10)}</span>
             </div>
@@ -138,7 +138,7 @@ const ProductReviews = ({ slug, productName }) => {
           ))}
         </div>
         {qDone ? (
-          <p style={{ color: '#16794a', marginTop: '0.75rem' }}><IconifyIcon icon="solar:check-circle-bold" /> Thanks — we&apos;ll answer shortly.</p>
+          <p style={{ color: 'var(--hc-success)', marginTop: '0.75rem' }}><IconifyIcon icon="solar:check-circle-bold" /> Thanks — we&apos;ll answer shortly.</p>
         ) : (
           <form onSubmit={askQuestion} className="hc-card" style={{ padding: '1rem', marginTop: '1rem', display: 'grid', gap: '0.6rem' }}>
             <input style={field} placeholder="Your name" value={qForm.name} onChange={(e) => setQForm((f) => ({ ...f, name: e.target.value }))} />

@@ -13,7 +13,7 @@ import { signedIn, takeNotice } from './portal/session';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const MEASURE_FIELDS = ['neck', 'shoulder', 'chest', 'waist', 'hip', 'sleeve', 'length', 'thigh', 'trouser_length', 'ankle'];
-const statusColor = (s) => ({ delivered: '#16794a', shipped: '#262626', cancelled: '#9b8e83' }[s] || '#b45309');
+const statusColor = (s) => ({ delivered: 'var(--hc-success)', shipped: 'var(--hc-text)', cancelled: 'var(--hc-text-muted)' }[s] || 'var(--hc-warning)');
 
 const field = {
   width: '100%', padding: '0.7rem 0.85rem', border: '1.5px solid var(--border)',
@@ -124,7 +124,7 @@ const Dashboard = ({ onOut, embedded = false }) => {
                 <div>
                   <strong>{o.public_ref || o.code}</strong> · <span style={{ color: statusColor(o.status), textTransform: 'capitalize', fontWeight: 600 }}>{o.status}</span>
                   <div style={{ fontSize: '0.82rem', color: 'var(--muted-foreground)' }}>{String(o.created_at).slice(0, 10)} · {o.item_count} item{o.item_count === '1' ? '' : 's'} · {naira(o.total)}</div>
-                  {o.return_status && o.return_status !== 'none' && <div style={{ fontSize: '0.8rem', color: '#b45309' }}>Return: {o.return_status}</div>}
+                  {o.return_status && o.return_status !== 'none' && <div style={{ fontSize: '0.8rem', color: 'var(--hc-warning)' }}>Return: {o.return_status}</div>}
                 </div>
                 <div className="hc-flex hc-wrap" style={{ gap: '0.4rem', alignItems: 'flex-start' }}>
                   {o.tracking_url && <a href={o.tracking_url} target="_blank" rel="noreferrer" className="hc-btn hc-btn--ghost" style={{ fontSize: '0.8rem', padding: '0.4rem 0.7rem' }}>Track</a>}

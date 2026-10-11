@@ -43,6 +43,9 @@ const Work = lazy(() => import('@/app/(public)/site/WorkPage'));
 const WorkItem = lazy(() => import('@/app/(public)/site/WorkItemPage'));
 const HowItWorks = lazy(() => import('@/app/(public)/site/CmsPage').then((m) => ({ default: m.HowItWorksPage })));
 const CompanyOrders = lazy(() => import('@/app/(public)/site/CompanyOrdersPage'));
+const Faqs = lazy(() => import('@/app/(public)/site/FaqsPage'));
+const Privacy = lazy(() => import('@/app/(public)/site/PolicyPage').then((m) => ({ default: m.PrivacyPage })));
+const Terms = lazy(() => import('@/app/(public)/site/PolicyPage').then((m) => ({ default: m.TermsPage })));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
@@ -124,6 +127,18 @@ export const publicRoutes = [{
   path: '/company-orders',
   name: 'Company orders',
   element: <CompanyOrders />
+}, {
+  path: '/faqs',
+  name: 'Questions',
+  element: <Faqs />
+}, {
+  path: '/privacy',
+  name: 'Privacy',
+  element: <Privacy />
+}, {
+  path: '/terms',
+  name: 'Terms',
+  element: <Terms />
 }, {
   path: '/shop',
   name: 'Shop',

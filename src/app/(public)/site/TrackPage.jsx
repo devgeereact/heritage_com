@@ -64,7 +64,7 @@ const TrackPage = () => {
       <section className="hc-section">
         <div className="hc-container" style={{ maxWidth: 720 }}>
           {signedIn()
-            ? <p className="hp-notice" style={{ marginBottom: '1.5rem' }}>You are signed in. <Link to="/account" style={{ color: '#B45309', textDecoration: 'underline' }}>Open your orders</Link>.</p>
+            ? <p className="hp-notice" style={{ marginBottom: '1.5rem' }}>You are signed in. <Link to="/account" style={{ color: 'var(--hc-warning)', textDecoration: 'underline' }}>Open your orders</Link>.</p>
             : <AccessForm onSignedIn={() => navigate('/account')} />}
 
           <details className="mt-4" style={{ marginTop: '2rem' }}>
@@ -81,7 +81,7 @@ const TrackPage = () => {
             <button type="submit" className="hc-btn hc-btn--primary" disabled={busy}>
               {busy ? 'Looking…' : 'Track order'}
             </button>
-            {error && <p style={{ color: '#991b1b', margin: 0 }}><IconifyIcon icon="solar:danger-circle-bold" /> {error}</p>}
+            {error && <p style={{ color: 'var(--hc-danger)', margin: 0 }}><IconifyIcon icon="solar:danger-circle-bold" /> {error}</p>}
           </form>
 
           {order && (
@@ -95,7 +95,7 @@ const TrackPage = () => {
               </div>
 
               {cancelled ? (
-                <p className="mt-3" style={{ color: '#991b1b' }}><IconifyIcon icon="solar:close-circle-bold" /> This order was cancelled. Contact us if that&apos;s unexpected.</p>
+                <p className="mt-3" style={{ color: 'var(--hc-danger)' }}><IconifyIcon icon="solar:close-circle-bold" /> This order was cancelled. Contact us if that&apos;s unexpected.</p>
               ) : (
                 <ol style={{ listStyle: 'none', padding: 0, margin: '1.5rem 0 0' }}>
                   {PIPELINE.map((s, i) => {
@@ -105,8 +105,8 @@ const TrackPage = () => {
                       <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '.75rem', padding: '.4rem 0', opacity: done ? 1 : 0.4 }}>
                         <span style={{
                           width: 30, height: 30, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          background: done ? '#262626' : '#e9e1d8', color: done ? '#fff' : '#9b8e83',
-                          boxShadow: current ? '0 0 0 4px rgba(146, 64, 14,.18)' : 'none',
+                          background: done ? 'var(--hc-text)' : 'var(--hc-divider)', color: done ? 'var(--hc-surface)' : 'var(--hc-text-muted)',
+                          boxShadow: current ? '0 0 0 4px var(--hc-warning-tint)' : 'none',
                         }}><IconifyIcon icon={s.icon} /></span>
                         <span style={{ fontWeight: current ? 700 : 500 }}>{s.label}</span>
                       </li>
@@ -116,7 +116,7 @@ const TrackPage = () => {
               )}
 
               {order.tracking_ref && (
-                <div className="mt-3 p-3" style={{ background: '#faf5f0', borderRadius: 8 }}>
+                <div className="mt-3 p-3" style={{ background: 'var(--hc-surface-alt)', borderRadius: 8 }}>
                   <div className="small text-muted text-uppercase">Shipment</div>
                   <div><strong>{order.courier || 'Courier'}</strong> · {order.tracking_ref}</div>
                   {order.tracking_url && (

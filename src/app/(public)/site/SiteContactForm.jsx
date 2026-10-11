@@ -4,25 +4,36 @@ import { Field, ErrorSummary } from './ui/Field';
 import Button from './ui/Button';
 import Icon from './ui/Icon';
 
-const TYPES = [
-  { v: 'order', l: 'Question about an order' },
-  { v: 'product', l: 'Question about a piece' },
-  { v: 'custom', l: 'Made to measure or group order' },
-  { v: 'gifting', l: 'Gifting enquiry' },
-  { v: 'wholesale', l: 'Wholesale or stockist' },
-  { v: 'general', l: 'General enquiry' },
+/**
+ * Visitor-facing choices and the enquiry type contact.php stores for each
+ * (fitting, bespoke, wholesale or general; anything else would be saved as
+ * general). `shop` choices show only while the shop is on.
+ */
+export const ENQUIRY_TYPES = [
+  { v: 'fitting', l: 'A measurement appointment', type: 'fitting' },
+  { v: 'bespoke', l: 'A made-to-measure piece', type: 'bespoke' },
+  { v: 'company', l: 'A company or group order', type: 'wholesale' },
+  { v: 'order', l: 'An order already in progress', type: 'general' },
+  { v: 'gifting', l: 'Gifting', type: 'general', shop: true },
+  { v: 'general', l: 'Something else', type: 'general' },
 ];
 
 // website_url_confirm is the hidden honeypot; company is a real optional field.
-const empty = { name: '', phone: '', email: '', company: '', type: 'order', interest: '', message: '', website_url_confirm: '' };
+const empty = { name: '', phone: '', email: '', company: '', choice: 'general', interest: '', message: '', website_url_confirm: '' };
 
 /**
  * Public enquiry form (contact.php). Persistent labels, required stated in
  * text, an error summary that takes focus on a failed submit, and typed
- * values kept when sending fails.
+ * values kept when sending fails. `defaultType` preselects a choice
+ * (?type= on the contact page); `defaultInterest` fills the piece field
+ * (?service=). The acknowledgement follows BR-01: nothing is booked or
+ * priced until it is agreed.
  */
-const SiteContactForm = ({ defaultType }) => {
-  const [form, setForm] = useState({ ...empty, type: defaultType || empty.type });
+const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shopOn = false }) => {
+  const choices = ENQUIRY_TYPES.filter((t) => shopOn || !t.shop || t.v === defaultType);
+  const start = choices.some((t) => t.v === defaultType) ? defaultType : 'general';
+  const fresh = () => ({ ...empty, choice: start, interest: defaultInterest });
+  const [form, setForm] = useState(fresh);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
   const [errors, setErrors] = useState([]);
   const [sendError, setSendError] = useState('');
@@ -35,14 +46,26 @@ const SiteContactForm = ({ defaultType }) => {
     setSendError('');
     const found = [];
     if (!form.name.trim()) found.push({ id: 'cf-name', message: 'Enter your name.' });
-    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cf-phone', message: 'Enter a phone number or an email address so we can reply.' });
+    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cf-phone', message: 'Enter a phone number or an email address so I can reply.' });
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.push({ id: 'cf-email', message: 'Check the email address.' });
     setErrors(found);
     if (found.length) return;
     setStatus('sending');
+    const choice = ENQUIRY_TYPES.find((t) => t.v === form.choice) || ENQUIRY_TYPES[ENQUIRY_TYPES.length - 1];
+    const note = choice.type === 'general' && choice.v !== 'general' ? `About: ${choice.l}` : '';
     try {
-      await heritApi.contact.submit(form);
+      await heritApi.contact.submit({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        company: form.company.trim(),
+        type: choice.type,
+        interest: form.interest.trim(),
+        message: [note, form.message.trim()].filter(Boolean).join('\n'),
+        website_url_confirm: form.website_url_confirm,
+      });
       setStatus('sent');
-      setForm({ ...empty, type: defaultType || empty.type });
+      setForm(fresh());
     } catch (err) {
       setStatus('error');
       setSendError(err.message || 'Your message was not sent. Please try again.');
@@ -53,7 +76,10 @@ const SiteContactForm = ({ defaultType }) => {
     return (
       <div className="hc-success-panel" role="status">
         <h3><Icon name="check-circle" /> Message received</h3>
-        <p>Thank you. We will reply as soon as we can.</p>
+        <p>
+          Thank you, I have your message. I will reply {responseTime || 'as soon as I can'}.
+          Nothing is booked or priced until we agree it.
+        </p>
         <Button variant="secondary" className="hc-mt-3" onClick={() => setStatus('idle')}>Send another</Button>
       </div>
     );
@@ -65,23 +91,22 @@ const SiteContactForm = ({ defaultType }) => {
       {sendError && <p className="hc-form-error" role="alert">{sendError}</p>}
       <div className="hc-form-grid">
         <Field id="cf-name" label="Name" required value={form.name} onChange={set('name')} autoComplete="name" error={errorFor('cf-name')} />
-        <Field id="cf-type" label="What can we help with?" as="select" value={form.type} onChange={set('type')}>
-          {TYPES.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
+        <Field id="cf-type" label="What is it about?" as="select" value={form.choice} onChange={set('choice')}>
+          {choices.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
         </Field>
         <Field id="cf-phone" label="Phone or WhatsApp" type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel"
           help="A phone number or an email address is needed." error={errorFor('cf-phone')} />
-        <Field id="cf-email" label="Email" type="email" value={form.email} onChange={set('email')} autoComplete="email" />
-        <Field id="cf-company" label="Company or organisation (optional)" className="hc-field--full" value={form.company} onChange={set('company')} autoComplete="organization"
-          help="Only for group or company orders." />
+        <Field id="cf-email" label="Email" type="email" value={form.email} onChange={set('email')} autoComplete="email" error={errorFor('cf-email')} />
+        {form.choice === 'company' && (
+          <Field id="cf-company" label="Company or organisation (optional)" className="hc-field--full" value={form.company} onChange={set('company')} autoComplete="organization" />
+        )}
         <Field id="cf-interest" label="Piece or fabric in mind (optional)" className="hc-field--full" value={form.interest} onChange={set('interest')} />
         <Field id="cf-message" label="Message" as="textarea" rows={5} className="hc-field--full" value={form.message} onChange={set('message')}
-          help="The occasion, sizes, style and the date you need it by." />
-        {/* Honeypot: hidden from people, catches bots. */}
-        <input
-          type="text" name="website_url_confirm" tabIndex={-1} autoComplete="off"
-          value={form.website_url_confirm} onChange={set('website_url_confirm')}
-          className="hc-sr-only" aria-hidden="true"
-        />
+          maxLength={4000} help="The occasion, the style and the date you need it by." />
+        <div className="hc-hp" aria-hidden="true">
+          <label htmlFor="cf-hp">Leave this empty</label>
+          <input id="cf-hp" type="text" name="website_url_confirm" tabIndex={-1} autoComplete="off" value={form.website_url_confirm} onChange={set('website_url_confirm')} />
+        </div>
         <div className="hc-field--full">
           <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'}>
             {status === 'sending' ? 'Sending…' : 'Send enquiry'}

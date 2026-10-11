@@ -8,15 +8,21 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 Added
 
+- `/faqs` (grouped details, `FAQPage` JSON-LD), `/privacy` and `/terms` (effective date, owner-published) on the CMS. `npm run check:tokens` now also scans every JS/JSX file under `src/app/(public)` and runs inside `npm run lint`, so CI enforces it (A23).
 - Website pages on the CMS (BUILD-SPEC 4.7): `/services`, `/services/:slug` (with `Service` JSON-LD), `/work` (service filter chips), `/work/:slug` (gallery and facts), `/how-it-works` and `/company-orders` with the company brief form (posts to `contact.php` as a wholesale enquiry; D-022). Unpublished items show a noindex not-found page. The staff splash skips the new public paths.
 - Handoff for a second computer: remaining build spec in `docs/BUILD-SPEC.md`, the tested JS/JSX lint config in `scripts/lint/eslint.config.proposed.js` (A13), and a "Continue on another computer" section in `.agent/CURRENT-TASK.md`.
 - Public UI kit in `src/app/(public)/site/ui/` (Button, Section and SectionHead, Card, ServiceCard, WorkCard, Field and ErrorSummary, StatusChip, HcImage, Hero, Icon) and a motion layer: word-by-word headline mask reveal and image settle on the first home view per session, once-only fade-up reveals below the fold, the amber measure line under eyebrows, a filling step rule, growing link underlines and button press feedback, all static under reduced motion. New header (opaque, menu sheet with focus trap below 1024px) and footer that shows only filled-in business details and verified social links (A12). `npm run check:tokens` guards the stylesheets against raw colours (A23).
 
 Changed
 
+- About is the published CMS page (interim copy removed); Contact shows the CMS contact page, profile channels and an address only when marked public, prefills from `?type=` and `?service=`, and carries the LocalBusiness JSON-LD; the journal list and posts use the UI kit with a real not-found page and drop the "join the family" call to action. Track, account, checkout, product, reviews, gifting and portal inline colours moved to tokens.
 - Public site reads the website CMS (BUILD-SPEC 4.7): `heritApi.site.*` and `heritApi.cms.*`; `site/siteData.js` (cached `site.php` config, preview-aware loader for `?preview=1` with a staff session, image mapping); `useSeo` for title, description, canonical, Open Graph and JSON-LD; `useActions` for the two site actions. Home is built from published content (hero, services, company band, work, how it works, owner note, questions, final action), each section hidden while unpublished; header, footer and contact details come from the Website profile and published-content flags. CMS and journal HTML pass a browser allowlist (`safeHtml.js`) and `site.php` sanitises `body` and `answer` again on the way out. The journal follows `journal_enabled` (`site.php`).
 - JS/JSX lint is on (A13): `eslint.config.js` lints `src/**/*.{js,jsx}`, `public/sw.js` and the root config files, and `npm run lint` reports 0 errors. The proposed copy in `scripts/lint/` is removed. `site/ui/Card.jsx` binds its `as` prop to a local so the rule sees it used.
 - `site.css` rebuilt on the tokens: white and light-ash surfaces, thin dividers, Source Serif 4 headings at weight 500, Inter body; fabric pattern tiles, dark bands, shadows and the Tack Stitch leftovers are gone. Home, About and Contact use the UI kit; the contact form no longer needs react-bootstrap.
+
+Fixed
+
+- Contact form subjects (`order`, `product`, `custom`, `gifting`) were not types `contact.php` accepts, so every enquiry was stored as `general`; each subject now maps to `fitting`, `bespoke`, `wholesale` or `general` (the subject is kept in the message). Gifting page text was white on a light surface after the dark band was removed.
 
 Removed
 

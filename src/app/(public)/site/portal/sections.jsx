@@ -175,7 +175,7 @@ export const AppointmentsSection = ({ job, guard, onChanged }) => {
         <div><button type="button" className="hp-btn" onClick={() => { setMode({ kind: 'new' }); setSlot(null); setSt({}); }}>Ask for an appointment</button></div>
       )}
       {mode && (
-        <div className="hp-card hp-stack" style={{ background: '#fff' }}>
+        <div className="hp-card hp-stack" style={{ background: 'var(--hc-surface)' }}>
           <h3>{mode.kind === 'move' ? `Move your ${(APPT_TYPE_LABELS[mode.appt.type] || '').toLowerCase()}` : 'Ask for an appointment'}</h3>
           {mode.kind === 'new' && (
             <div className="hp-field">
@@ -252,7 +252,7 @@ export const MeasurementsSection = ({ job, showOwn, guard }) => {
       ))}
       {!open && <div><button type="button" className="hp-btn" onClick={() => { setOpen(true); setSt({}); }}>Send new measurements for review</button></div>}
       {open && (
-        <form onSubmit={submit} noValidate className="hp-card hp-stack" style={{ background: '#fff' }}>
+        <form onSubmit={submit} noValidate className="hp-card hp-stack" style={{ background: 'var(--hc-surface)' }}>
           <h3>New measurements, for review</h3>
           <p className="hp-notice">These go to Herit to check. They are not used for your order until we have checked them and told you.</p>
           {templates.length === 0 && <p className="hp-help" role="status">Loading…</p>}

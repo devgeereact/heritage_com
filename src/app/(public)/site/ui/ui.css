@@ -387,10 +387,6 @@
 .hc-gallery figcaption { margin-top: var(--hc-space-2); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
 .hc-gallery .hc-img { border-radius: var(--hc-radius-card); overflow: hidden; }
 
-/* Two-column layout for detail pages (content beside a facts aside). */
-.hc-split { display: grid; gap: var(--hc-space-7); }
-@media (min-width: 1024px) { .hc-split { grid-template-columns: 7fr 5fr; align-items: start; } }
-
 /* Radio list for forms. */
 .hc-radios { border: 0; padding: 0; margin: 0; display: grid; gap: var(--hc-space-2); }
 .hc-radios legend { font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); color: var(--hc-text); margin-bottom: var(--hc-space-2); padding: 0; }

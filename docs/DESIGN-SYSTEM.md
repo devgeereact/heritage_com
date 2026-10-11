@@ -166,7 +166,7 @@ Built in `src/app/(public)/site/ui/` (barrel `ui/index.js`), styled in `ui/ui.cs
 | CMS blocks (`site/cmsBlocks.jsx`) | `Rich` (CMS rich text through `safeHtml()`), `PageHead` (h1, intro, optional hero image), `RichSection`, loading, not-found (noindex) and error pages, `MoreLink`. Empty content renders nothing |
 | `useSeo` (`site/seo/useSeo.js`) | Title ("{Page} \| Herit Clothing", Home "Herit Clothing \| Men's tailoring in Lagos"), description, canonical, Open Graph (absolute image URL), Twitter card, robots and one JSON-LD block; restores defaults on unmount. Called once by `SiteLayout` from its `title`, `seo` and `noindex` props; preview mode is always noindex |
 
-Older page markup (`.hc-card`, `.hc-product`, `.hc-journal-card`, `.hc-chip`, `.hc-table` and so on) is restyled on the tokens in `site.css`; fabric pattern tiles, the marquee, slider, counter, team and logo strip styles are gone. `npm run check:tokens` (`scripts/check-tokens.mjs`) fails if `site.css`, `ui.css`, `portal.css`, `heritos-admin.css` or `herit-daily.css` holds a raw colour.
+Older page markup (`.hc-card`, `.hc-product`, `.hc-journal-card`, `.hc-chip`, `.hc-table` and so on) is restyled on the tokens in `site.css`; fabric pattern tiles, the marquee, slider, counter, team and logo strip styles are gone. `npm run check:tokens` (`scripts/check-tokens.mjs`, also run by `npm run lint` and so in CI) fails if `site.css`, `ui.css`, `portal.css`, `heritos-admin.css`, `herit-daily.css` or any JS/JSX file under `src/app/(public)` holds a raw colour; inline styles use `var(--hc-*)`.
 
 ## Icon and image direction
 

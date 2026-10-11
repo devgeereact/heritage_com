@@ -150,7 +150,7 @@ const ProductPage = () => {
                 </div>
               )}
               {notifyDone && (
-                <p style={{ fontSize: '0.8rem', color: '#16794a', marginTop: '0.4rem' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--hc-success)', marginTop: '0.4rem' }}>
                   <IconifyIcon icon="solar:check-circle-bold" /> You&apos;re on the list — we&apos;ll message you when it&apos;s back.
                 </p>
               )}

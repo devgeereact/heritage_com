@@ -186,7 +186,7 @@ const CheckoutPage = () => {
       <SiteLayout title="Order received">
         <section className="hc-section"><div className="hc-container" style={{ maxWidth: '40rem' }}>
           <div className="hc-card hc-text-center" style={{ padding: '3rem 2rem' }}>
-            <span className="hc-card-ico" style={{ margin: '0 auto 1rem', background: 'var(--primary)', color: '#fff' }}>
+            <span className="hc-card-ico" style={{ margin: '0 auto 1rem', background: 'var(--hc-accent)', color: 'var(--hc-on-accent)' }}>
               <IconifyIcon icon="solar:check-circle-bold" />
             </span>
             <h1 className="hc-h2">Thank you{form.customer ? `, ${form.customer.split(' ')[0]}` : ''}.</h1>
@@ -318,7 +318,7 @@ const CheckoutPage = () => {
                     {couponBusy ? '…' : 'Apply'}
                   </button>
                 </div>
-                {couponErr && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{couponErr}</p>}
+                {couponErr && <p style={{ color: 'var(--hc-danger)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{couponErr}</p>}
               </div>
             ) : (
               <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', padding: '0.5rem 0.7rem', background: 'var(--secondary)', borderRadius: 8 }}>
@@ -336,7 +336,7 @@ const CheckoutPage = () => {
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyGift(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyGift} disabled={!gift.trim()} style={{ whiteSpace: 'nowrap' }}>Apply</button>
                 </div>
-                {giftErr && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{giftErr}</p>}
+                {giftErr && <p style={{ color: 'var(--hc-danger)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{giftErr}</p>}
               </div>
             ) : (
               <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', padding: '0.5rem 0.7rem', background: 'var(--secondary)', borderRadius: 8 }}>
@@ -360,13 +360,13 @@ const CheckoutPage = () => {
             </div>
 
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Subtotal</span><span>{formatNgn(subtotal)}</span></div>
-            {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}
+            {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: 'var(--hc-success)' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Delivery</span><span>{shipping === 0 ? 'Free' : formatNgn(shipping)}</span></div>
-            {giftApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Gift card</span><span>−{formatNgn(giftApplied)}</span></div>}
-            {creditApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Store credit</span><span>−{formatNgn(creditApplied)}</span></div>}
+            {giftApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: 'var(--hc-success)' }}><span>Gift card</span><span>−{formatNgn(giftApplied)}</span></div>}
+            {creditApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: 'var(--hc-success)' }}><span>Store credit</span><span>−{formatNgn(creditApplied)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', marginTop: '0.8rem', fontWeight: 700, fontSize: '1.1rem' }}><span>Total</span><span style={{ color: 'var(--primary)' }}>{formatNgn(total)}</span></div>
 
-            {error && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.85rem', marginTop: '1rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--hc-danger)', fontSize: '0.85rem', marginTop: '1rem' }}>{error}</p>}
 
             <button onClick={placeOrder} disabled={busy} className="hc-btn hc-btn--primary hc-mt-3" style={{ width: '100%', justifyContent: 'center', cursor: busy ? 'wait' : 'pointer', border: 'none', opacity: busy ? 0.7 : 1 }}>
               <IconifyIcon icon={busy ? 'solar:refresh-bold' : 'solar:lock-keyhole-minimalistic-bold'} />
