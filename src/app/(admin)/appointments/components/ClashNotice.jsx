@@ -1,5 +1,5 @@
 import { Alert, Form } from 'react-bootstrap';
-import { PROBLEM_LABELS } from './TimeChooser';
+import { PROBLEM_LABELS } from './time';
 
 /** 409 can_override: say what clashes and ask for a reason before booking anyway. */
 const ClashNotice = ({ clash, reason, onReason, idPrefix }) => {

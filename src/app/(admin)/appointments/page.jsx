@@ -72,8 +72,8 @@ const AppointmentsPage = () => {
     <button type="button" className="hd-row w-100 text-start bg-transparent border-0 border-top" onClick={() => setOpenId(a.id)}>
       <span className="tnum fw-semibold flex-none" style={{ minWidth: '4.5rem' }}>{a.all_day ? 'All day' : fmtTime(a.starts_at_local)}</span>
       <span className="hd-row-main">
-        <span className="hd-row-title d-block text-truncate">{APPT_TYPE_LABELS[a.type] || a.type}{a.client_name || a.contact_name ? ` · ${a.client_name || a.contact_name}` : ''}</span>
-        <span className="hd-row-sub d-block text-truncate">{a.all_day ? 'Whole day' : `until ${fmtTime(a.ends_at_local)}`}{a.job_code ? ` · ${a.job_code}` : ''}</span>
+        <span className="hd-row-title d-block text-truncate">{a.client_name || a.contact_name || APPT_TYPE_LABELS[a.type] || a.type}</span>
+        <span className="hd-row-sub d-block text-truncate">{APPT_TYPE_LABELS[a.type] || a.type} · {a.all_day ? 'whole day' : `until ${fmtTime(a.ends_at_local)}`}{a.job_code ? ` · ${a.job_code}` : ''}</span>
       </span>
       <ApptChip status={a.status} />
       <IconifyIcon icon="solar:alt-arrow-right-linear" aria-hidden="true" className="text-muted flex-none" />
@@ -144,12 +144,14 @@ const AppointmentsPage = () => {
           {items && listDays.map((d) => {
             const list = byDay(d);
             return (
-              <Card key={d} className="hd-card mb-3" as="section" aria-labelledby={`day-${d}`}>
+              <Card key={d} className={`hd-card ${view === 'week' ? 'mb-2' : 'mb-3'}`} as="section" aria-labelledby={`day-${d}`}>
                 <Card.Header className="py-2 d-flex justify-content-between align-items-center">
                   <h2 id={`day-${d}`} className="h6 mb-0">{fmtDay(d, { withYear: view === 'day' })}{d === today ? ' · Today' : ''}</h2>
-                  <span className="hd-count" aria-label={`${list.length} appointments`}>{list.length}</span>
+                  {list.length === 0 && view === 'week'
+                    ? <span className="small text-muted">Nothing booked</span>
+                    : <span className="hd-count" aria-label={`${list.length} appointments`}>{list.length}</span>}
                 </Card.Header>
-                {list.length === 0 ? (
+                {list.length === 0 && view === 'week' ? null : list.length === 0 ? (
                   <Card.Body className="text-muted py-3">
                     Nothing booked.{isOwner && view === 'day' && <> <Button variant="link" className="p-0 align-baseline" onClick={() => setCreating(true)}>Book an appointment</Button>.</>}
                   </Card.Body>

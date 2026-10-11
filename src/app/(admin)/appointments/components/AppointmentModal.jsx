@@ -5,7 +5,8 @@ import heritApi from '@/helpers/heritApi';
 import { APPT_STATUS_LABELS, APPT_TYPE_LABELS, fmtTime, fmtUtc, fmtWhen } from '@/helpers/format';
 import { ApptChip } from '@/components/herit/StatusChip';
 import SaveState from '@/components/herit/SaveState';
-import TimeChooser, { emptyTime, timeBody } from './TimeChooser';
+import TimeChooser from './TimeChooser';
+import { emptyTime, timeBody } from './time';
 import ClashNotice from './ClashNotice';
 
 const SOURCE = { owner: 'Booked by staff', public: 'Requested on the website', portal: 'Requested in the client portal', migration: 'From a fitting date' };

@@ -88,6 +88,40 @@ Branch `feat/phase3-appointments-portal`, backend only (no screens yet). Fresh `
 
 Not covered: screens (not built), real email delivery, real WhatsApp sends, `ALLOW_LEGACY_ORDER_CODE_LOOKUP` switched off, and two devices in a browser.
 
+## Phase 3 journeys in the browser (11 October 2026)
+
+Branch `feat/phase3-appointments-portal`, screens built. Environment: `npm run dev` against local staging on 127.0.0.1:8088, synthetic records, headless Chromium through Playwright, timezone Africa/Lagos. Five separate browser contexts (owner, public visitor, client A, a feedback client, client B), so the owner and clients act as separate devices. The owner signed in through the real form; clients signed in through `/track` with the code read from the staging-only code log. The journey script and its JSON results were kept in the agent scratchpad (not in the repository). Each width used different clients, so the two runs did not share records.
+
+| Step | 390px | 1280px | Notes |
+|---|---|---|---|
+| Owner saves availability: an out-of-range gap shows the server's 400 next to the field; then saves and switches public requests on | PASS | PASS | |
+| Public `/book`: Book appointment in the nav (desktop), free times by day in Lagos time, inline "Enter your name", "This is a request" notice, "Request sent, not yet confirmed" | PASS | PASS | Honeypot left empty |
+| Owner confirms the request from the Requests tab | PASS | PASS | Status `confirmed` in the database |
+| Owner moves it to 23:00 today: clash shown (outside hours), reason to book anyway, history shows the move and reason | PASS | PASS | 409 `can_override`, then 200 |
+| Today, Appointments today lists it | PASS | PASS | |
+| Client A: `/track`, reference plus email, "Check your email", six-digit code (numeric keyboard, one-time-code autofill), lands on `/account` | PASS | PASS | |
+| Client A sends a message and a garment change request | PASS | PASS | |
+| Owner: Today Unread messages, bell badge (desktop), Messages inbox with "new"; replies to the client and adds an internal note in the job's Messages tab | PASS | PASS | |
+| Client A sees the reply and not the internal note | PASS | PASS | |
+| Owner approves the change request without an effect: the 422 "Cutting has started" shows in place; with price effect 0 it is approved | PASS | PASS | Job in production |
+| A handed-over client leaves feedback: rating 2, comment, separate publish and photo choices with the owner's wording | PASS | PASS | |
+| Owner sees it under Messages, Feedback; Add to testimonials (hidden); Mark followed up | PASS | PASS | |
+| Owner creates an access link from client details: WhatsApp link and message text | PASS | PASS | |
+| Client B opens the invite link: portal opens and the invite leaves the URL | PASS | PASS | |
+| Client B opens client A's job URL: "We could not find that order" | PASS | PASS | 404 from the server |
+| Owner signs client B out everywhere: client B's next page shows "Your sign-in has ended" and the access form | PASS | PASS | 401 cleared the token |
+| Older shop-order tracking (reference plus phone) under `/track` still works | PASS | PASS | |
+| Public requests switched off: `/book` says "Online booking is not open yet" and the nav link is gone | PASS | PASS | |
+| No horizontal scroll on `/appointments`, `/messages`, `/settings`, `/book`, `/account/jobs/:ref` | PASS | PASS | |
+
+Console: React's development warning about `UNSAFE_componentWillMount` from `react-helmet` (as in Phase 2), and the failed-request lines for the responses the journey provoked on purpose (400 availability, 409 clash, 422 change decision, 404 other client's job, 401 after revocation). No other errors.
+
+Found and fixed during the run: `messages.php?action=inbox` answered 500 on MariaDB because it sorted by an expression over an aggregate alias (K-05).
+
+Also run on the same branch: `npm run build` exit 0; `npm run lint` exit 0 (lints no JS/JSX, A13); the tested JS/JSX config, run over `src` from a temporary copy, reports no errors and, among the changed files, only the existing `react-refresh` warnings in `routes/index.jsx`; `php php-api/tests/run.php` 251 PASS; `e2e-phase3.sh` 93 of 93 and `e2e-phase2.sh` 48 of 48 on a fresh `staging:setup` (see [TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results)).
+
+NOT TESTED: real email delivery of codes and replies; WhatsApp sends; real phones and screen readers; the dark theme on the new screens; widths other than 390 and 1280; quote acceptance in the portal (switch off by default) and the measurements view (switch off); a tailor's read-only Appointments view in the browser; `ALLOW_LEGACY_ORDER_CODE_LOOKUP` off.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

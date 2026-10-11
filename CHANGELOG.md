@@ -13,6 +13,11 @@ Added
 - Verified customer access (A03): `schema_phase24.sql` (hashed `customer_sessions`, `customer_access_challenges`), `_portal.php` and `access.php`: reference plus registered contact, one generic reply, a single-use six-digit code by email (hashed, 10 minutes, 5 attempts), owner invite links when there is no email or mail fails, logout, logout everywhere and owner revocation, all throttled.
 - Customer portal, messages, change requests and feedback (A09): `schema_phase25.sql`, `portal.php` (job view through the allowlist projection, client-visible thread, change requests, fitting or collection requests and reschedule requests, measurement proposals, feedback with separate consents, quote acceptance behind a switch) and `messages.php` for the owner (inbox, threads with internal notes, delivery status, change-request decisions with price or date effect after cutting, feedback follow-up and consent-checked publishing). Today adds access requests, unread messages, open change requests and feedback follow-ups.
 - Staging: `seed.php --phase3` (staging-only availability, appointments, messages, a change request), a staging-only sign-in code log, and `scripts/staging/e2e-phase3.sh` with 93 checks (PASS on two runs).
+- Appointments screens (A08), 11 October 2026: the Appointments page (week strip, day and week lists, request queue, booking with free times or a typed time and an override reason on a clash, move with a reason, confirm, decline, complete, no-show, cancel, history, blocked time) and Availability and Client portal sections in Settings, with the server's per-field errors.
+- Messages screens (A09): `/messages` (conversations, change requests, feedback), a Messages tab on each job with client replies and clearly marked internal notes, change-request decisions showing the 422 after cutting, feedback follow-up and consent-checked publishing; the bell counts unread client messages.
+- Customer access screens (A03, A09): the two-step access form on `/track` and `/account`, owner access links (WhatsApp link and copyable message) from Today and client details, sign out everywhere, invite links exchanged at once and taken out of the URL, and the client portal at `/account/jobs/:ref` (progress, messages, appointment and reschedule requests, change requests, payments, quote acceptance behind its switch, measurements and proposals for review, feedback with separate consents).
+- Public `/book`: consultation requests from free times in Lagos time, clearly a request; linked in the public navigation only while requests are switched on and ready.
+- Today: real appointments today, plus appointment requests, unread messages, change requests, clients waiting for an access link and feedback to follow up.
 
 Fixed
 
@@ -20,9 +25,17 @@ Fixed
 
 Changed
 
+- The customer token is kept in sessionStorage instead of localStorage and cleared on any 401 (A15, partly).
+- `/track` keeps the shop-order lookup under "Tracking a shop order?"; `/account` keeps the shop extras only while the shop is switched on.
+- Messages joins the daily navigation (sidebar and the phone More sheet).
+
 - `account.php` uses the shared hashed sessions; its phone plus order code login and old measurement form answer only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on, and the form still creates a pending proposal, never an overwrite (A10, D-021).
 - Quotes: acceptance moved from `quotes.php` into `quote_accept()` in `_jobs.php` so the portal can reuse it; behaviour unchanged (`e2e-phase2.sh` 48 of 48).
 - Mail: the SMTP client moved from `mail.php` into the shared include `_mail.php` with `mail_send_html()`, so other endpoints can send mail; `mail.php` is a thin endpoint over it and also audits failed sends. `_mail.php` is deployed by CI.
+
+Removed
+
+- The Larkon `/apps/calendar` demo (A08, A18): its route, seven files and `SelectFormInput.jsx`, and the packages only it used, the seven `@fullcalendar/*` packages and `react-select`. The old URL redirects to `/appointments`. The disabled Messages tab on client details.
 
 ### `chore/cleanup-docs-sync` (no PR yet), 10 October 2026
 

@@ -12,7 +12,7 @@ Evidence for performance. Targets: [docs/CONTENT.md](../docs/CONTENT.md#seo-and-
 | Largest content rendering (LCP) | 2.5s | Not measured | NOT TESTED | None | Lab check of the public home page in Phase 4 |
 | Interaction delay (INP) | 200ms | Not measured | NOT TESTED | None | Lab check of forms |
 | Layout stability (CLS) | 0.1 | Not measured | NOT TESTED | None | Lab check |
-| Production JavaScript | None agreed | 1,550,879 bytes in 109 files; `dist` 2,592 KB (was 10,212 KB after A18 and 15,396 KB before it; JS was 4,985,796 bytes in 259 files before A18) | Recorded | `npm run build`, 10 Oct 2026, `chore/cleanup-docs-sync` after unused packages, images, fonts and style partials were removed | Large-chunk warning remains (the calendar chunk is 364 KB until Phase 3); measure the public initial load |
+| Production JavaScript | None agreed | 1,550,879 bytes in 109 files; `dist` 2,592 KB (was 10,212 KB after A18 and 15,396 KB before it; JS was 4,985,796 bytes in 259 files before A18) | Recorded | `npm run build`, 10 Oct 2026, `chore/cleanup-docs-sync` after unused packages, images, fonts and style partials were removed | Large-chunk warning remains; measure the public initial load. On `feat/phase3-appointments-portal`, 11 Oct 2026, with the Phase 3 screens added and the calendar packages gone: 1,296,727 bytes in 115 files, `dist` 2,364 KB |
 
 Inspect image and font weight, script cost, caching, critical rendering, interaction delay and layout stability. A slow-network enquiry or booking must stay clear and recoverable.
 

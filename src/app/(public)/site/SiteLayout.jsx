@@ -7,6 +7,7 @@ import { roleHome } from '@/helpers/roles';
 import { heritApi } from '@/helpers/heritApi';
 import { useCart } from './cart';
 import { useStoreConfig, useShopEnabled } from './storeConfig';
+import { useBookingEnabled } from './bookingConfig';
 import logoDark from '@/assets/images/logo-dark.svg';
 import logoLight from '@/assets/images/logo-light.svg';
 import './site.css';
@@ -47,6 +48,7 @@ const SiteNav = () => {
   const { count } = useCart();
   const { isAuthenticated, user } = useAuthContext();
   const shopOn = useShopEnabled();
+  const bookOn = useBookingEnabled();
   const dash = roleHome(user?.role);
   useEffect(() => { setOpen(false); }, [pathname]);
 
@@ -74,6 +76,9 @@ const SiteNav = () => {
               {n.label}
             </Link>
           ))}
+          {bookOn && (
+            <Link to="/book" className={`hc-nav-link ${isActive('/book') ? 'is-active' : ''}`}>Book appointment</Link>
+          )}
           <Link to="/account" className="hc-nav-icon" aria-label="Your account">
             <IconifyIcon icon="solar:user-circle-linear" />
             <span className="hc-nav-icon-label">Account</span>

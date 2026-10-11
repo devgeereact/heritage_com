@@ -12,6 +12,7 @@ import SaveState from '@/components/herit/SaveState';
 import MeasurementSetList from '@/components/herit/MeasurementSetList';
 import { PaymentChip, StageChip } from '@/components/herit/StatusChip';
 import NewOrderModal from '@/app/(admin)/tailoring/components/NewOrderModal';
+import ClientAccessCard from '@/components/herit/ClientAccessCard';
 
 const OWNER = ['super_admin', 'admin', 'manager'];
 const WORKSHOP = [...OWNER, 'tailor'];
@@ -100,9 +101,11 @@ const ClientDetailPage = () => {
         {tabs.map((t) => (
           <Nav.Item key={t}><Nav.Link eventKey={t} role="tab" aria-selected={t === tab}>{TAB_LABEL[t]}</Nav.Link></Nav.Item>
         ))}
-        <Nav.Item><Nav.Link disabled title="Coming in the next update">Messages</Nav.Link></Nav.Item>
       </Nav>
 
+      {tab === 'jobs' && isOwner && c.jobs.length > 0 && (
+        <p className="small text-muted">Messages with the client are on each job&apos;s Messages tab.</p>
+      )}
       {tab === 'jobs' && (
         <Card className="hd-card">
           {c.jobs.length === 0 ? <Card.Body className="text-muted">No jobs yet. Add the first job for {c.name}.</Card.Body> : c.jobs.map((j) => (
@@ -137,6 +140,7 @@ const ClientDetailPage = () => {
         </Card>
       )}
 
+      {tab === 'details' && isOwner && <ClientAccessCard client={c} />}
       {tab === 'details' && (
         <Card className="hd-card">
           <Card.Body>

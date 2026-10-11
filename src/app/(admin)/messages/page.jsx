@@ -16,10 +16,9 @@ const FOLLOW = { none: 'No follow-up', open: 'Follow up', done: 'Followed up' };
 
 const FeedbackCard = ({ f, onChanged }) => {
   const [save, setSave] = useState({ state: null, error: '' });
-  const [msg, setMsg] = useState('');
-  const run = async (fn, done) => {
+  const run = async (fn) => {
     setSave({ state: 'saving', error: '' });
-    try { await fn(); setSave({ state: 'saved', error: '' }); setMsg(done); onChanged(); }
+    try { await fn(); setSave({ state: 'saved', error: '' }); onChanged(); }
     catch (e) { setSave({ state: 'failed', error: e.message }); }
   };
   const canPublish = f.publish_consent !== 'no' && f.rating && (f.comment || '').trim() && !f.published_testimonial_id;
@@ -44,12 +43,11 @@ const FeedbackCard = ({ f, onChanged }) => {
         </ul>
         {f.published_testimonial_id && <p className="small mb-2">Added to testimonials (hidden until you show it under <Link to="/content">Website</Link>).</p>}
         <div className="d-flex flex-wrap gap-2 align-items-center">
-          {f.follow_up === 'open' && <Button variant="primary" onClick={() => run(() => heritApi.messages.feedbackUpdate(f.id, 'done'), 'Marked as followed up')}>Mark followed up</Button>}
-          {f.follow_up === 'none' && <Button variant="outline-secondary" onClick={() => run(() => heritApi.messages.feedbackUpdate(f.id, 'open'), 'Marked for follow-up')}>Needs follow-up</Button>}
-          {canPublish && <Button variant="outline-secondary" onClick={() => run(() => heritApi.messages.feedbackPublish(f.id), 'Added to testimonials as hidden')}>Add to testimonials</Button>}
+          {f.follow_up === 'open' && <Button variant="primary" onClick={() => run(() => heritApi.messages.feedbackUpdate(f.id, 'done'))}>Mark followed up</Button>}
+          {f.follow_up === 'none' && <Button variant="outline-secondary" onClick={() => run(() => heritApi.messages.feedbackUpdate(f.id, 'open'))}>Needs follow-up</Button>}
+          {canPublish && <Button variant="outline-secondary" onClick={() => run(() => heritApi.messages.feedbackPublish(f.id))}>Add to testimonials</Button>}
           {!canPublish && !f.published_testimonial_id && <span className="small text-muted">{f.publish_consent === 'no' ? 'Cannot be published: no permission.' : 'Needs a rating and a comment to publish.'}</span>}
           <SaveState state={save.state} error={save.error} />
-          {msg && save.state === 'saved' && <span className="small visually-hidden">{msg}</span>}
         </div>
       </Card.Body>
     </Card>

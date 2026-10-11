@@ -21,7 +21,7 @@ This file owns how HeritOS is checked: the risk priorities, the commands and the
 | `bash scripts/staging/e2e-phase3.sh` | Phase 3 API journeys: appointments, public requests, customer access, portal isolation, messages, change requests, feedback ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#phase-3-api-checks-on-staging-10-october-2026)) | PASS, 93 of 93 on two runs after a fresh `staging:setup`, 10 Oct 2026 (`feat/phase3-appointments-portal`) |
 | `node scripts/check-docs.mjs` | Broken Markdown links and anchors, em dashes in live docs, mentions of missing `docs/` or `qa/` paths | PASS on 10 Oct 2026; runs in CI |
 | `npm run preview` | Serves the production build locally | The production build uses relative API paths, so it does not reach the live API |
-| Browser journeys | Playwright against `npm run dev` and local staging at 390px and 1280px | Phase 2 owner journey PASS, 10 Oct 2026; scripts kept outside the repository ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md)) |
+| Browser journeys | Playwright against `npm run dev` and local staging at 390px and 1280px | Phase 2 owner journey PASS, 10 Oct 2026; Phase 3 owner, public and client journeys PASS (23 steps at each width), 11 Oct 2026 ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#phase-3-journeys-in-the-browser-11-october-2026)); scripts kept outside the repository |
 
 There is no committed frontend test script and no type check (JavaScript project). CI runs lint, the build, PHP syntax, helper tests and the documentation check on every pull request to `main`; the deploy job repeats lint, PHP checks and the build ([DEPLOYMENT.md](DEPLOYMENT.md#ci-and-deploy)).
 

@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
+import './portal/portal.css';
 import SiteLayout from './SiteLayout';
+import AccessForm from './portal/AccessForm';
+import { signedIn } from './portal/session';
 
-// Customer-facing order tracking. No login: a customer looks their order up with
-// the reference from their confirmation + the phone they ordered with. store.php only
-// returns the order if the phone matches, so this can't be used to browse others'.
+// Track your job: the verified two-step access form (reference plus contact, then
+// an emailed code) opens the client portal. The older shop-order lookup (reference
+// plus phone through store.php, which only answers when the phone matches) stays
+// below for retail orders.
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
@@ -29,6 +33,7 @@ const PIPELINE = [
 ];
 
 const TrackPage = () => {
+  const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [phone, setPhone] = useState('');
   const [order, setOrder] = useState(null);
@@ -53,17 +58,23 @@ const TrackPage = () => {
     <SiteLayout title="Track your order">
       <section className="hc-pagehead">
         <div className="hc-container">
-          <div className="hc-crumb"><Link to="/">Home</Link> / <span>Track order</span></div>
-          <h1 className="hc-h1">Where&apos;s my order?</h1>
-          <p>Enter your order reference and the phone number you used at checkout to see the latest.</p>
+          <div className="hc-crumb"><Link to="/">Home</Link> / <span>Track your order</span></div>
+          <h1 className="hc-h1">Track your order</h1>
+          <p>See where your order is, message us and ask for a fitting.</p>
         </div>
       </section>
 
       <section className="hc-section">
         <div className="hc-container" style={{ maxWidth: 720 }}>
+          {signedIn()
+            ? <p className="hp-notice" style={{ marginBottom: '1.5rem' }}>You are signed in. <Link to="/account" style={{ color: '#B45309', textDecoration: 'underline' }}>Open your orders</Link>.</p>
+            : <AccessForm onSignedIn={() => navigate('/account')} />}
+
+          <details className="mt-4" style={{ marginTop: '2rem' }}>
+            <summary style={{ cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center', fontWeight: 600 }}>Tracking a shop order? Use its reference and phone</summary>
           <form onSubmit={lookup} className="hc-card" style={{ padding: '1.5rem', display: 'grid', gap: '1rem' }}>
             <div className="hc-grid hc-grid--2" style={{ gap: '1rem' }}>
-              <label style={lbl}>Order reference
+              <label style={lbl}>Shop order reference
                 <input style={field} placeholder="e.g. K7M2P9QX4R" value={code} onChange={(e) => setCode(e.target.value)} required />
               </label>
               <label style={lbl}>Phone number
@@ -139,6 +150,7 @@ const TrackPage = () => {
               </p>
             </div>
           )}
+          </details>
         </div>
       </section>
     </SiteLayout>

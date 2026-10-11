@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
 import SiteLayout from './SiteLayout';
 import { getProduct, loadCatalogue } from './products';
 import { useCart } from './cart';
+import { useShopEnabled } from './storeConfig';
+import AccessForm from './portal/AccessForm';
+import PortalHome from './portal/PortalHome';
+import { useRedeemInvite } from './portal/useRedeemInvite';
+import { signedIn, takeNotice } from './portal/session';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const MEASURE_FIELDS = ['neck', 'shoulder', 'chest', 'waist', 'hip', 'sleeve', 'length', 'thigh', 'trouser_length', 'ankle'];
@@ -17,45 +22,10 @@ const field = {
 };
 const lbl = { fontFamily: 'var(--font-mono)', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)' };
 
-/* ---- Login ---------------------------------------------------------------*/
-const LoginCard = ({ onIn }) => {
-  const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setBusy(true); setError('');
-    try {
-      const r = await heritApi.portal.login(phone.trim(), code.trim());
-      heritApi.portal.setToken(r.token);
-      onIn(r.name);
-    } catch (err) { setError(err.message || 'Could not sign you in'); }
-    finally { setBusy(false); }
-  };
-
-  return (
-    <div className="hc-card" style={{ padding: '1.75rem', maxWidth: 460, margin: '0 auto' }}>
-      <h2 className="hc-h3" style={{ marginTop: 0 }}>Your account</h2>
-      <p style={{ color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
-        Sign in with your phone and any of your order references (from your order confirmation).
-      </p>
-      <form onSubmit={submit} style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-        <label style={lbl}>Phone<input style={field} placeholder="080…" value={phone} onChange={(e) => setPhone(e.target.value)} required /></label>
-        <label style={lbl}>Order reference<input style={{ ...field, textTransform: 'uppercase' }} placeholder="K7M2P9QX4R" value={code} onChange={(e) => setCode(e.target.value)} required /></label>
-        <button type="submit" className="hc-btn hc-btn--primary" disabled={busy} style={{ border: 'none' }}>{busy ? 'Signing in…' : 'Sign in'}</button>
-        {error && <p style={{ color: '#991b1b', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
-      </form>
-      <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
-        Just want to track one order? <Link to="/track" style={{ color: 'var(--primary)' }}>Track an order</Link>.
-      </p>
-    </div>
-  );
-};
-
 /* ---- Dashboard -----------------------------------------------------------*/
-const Dashboard = ({ onOut }) => {
+// Shop extras (store credit, reorder, returns, wishlist, birthday, referral) over
+// account.php, which shares the customer session. Shown only while the shop is on.
+const Dashboard = ({ onOut, embedded = false }) => {
   const navigate = useNavigate();
   const { add } = useCart();
   const [me, setMe] = useState(null);
@@ -71,8 +41,8 @@ const Dashboard = ({ onOut }) => {
     try {
       const [m, o, w] = await Promise.all([heritApi.portal.me(), heritApi.portal.orders(), heritApi.portal.wishlist().catch(() => [])]);
       setMe(m); setOrders(Array.isArray(o) ? o : []); setWishlist(Array.isArray(w) ? w : []); setMeas(m.measurements || {}); setBd(m.birthday || '');
-    } catch { onOut(); }
-  }, [onOut]);
+    } catch { if (embedded) setMe(false); else onOut(); }
+  }, [onOut, embedded]);
 
   const removeWish = async (slug) => {
     try { await heritApi.portal.wishlistToggle(slug); setWishlist((w) => w.filter((x) => x.product_slug !== slug)); }
@@ -120,17 +90,18 @@ const Dashboard = ({ onOut }) => {
   const loadReferral = async () => { try { setReferral(await heritApi.portal.referral()); } catch { /* ignore */ } };
   useEffect(() => { loadReferral(); }, []);
 
+  if (me === false) return null;
   if (!me) return <div className="hc-text-center" style={{ padding: '3rem' }}>Loading…</div>;
 
   return (
     <div style={{ display: 'grid', gap: '1.5rem' }}>
-      <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+      {!embedded && <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <h2 className="hc-h3" style={{ margin: 0 }}>Hi {String(me.name || '').split(' ')[0] || 'there'} 👋</h2>
           <p style={{ color: 'var(--muted-foreground)', margin: '0.2rem 0 0' }}>{me.phone}</p>
         </div>
         <button onClick={onOut} className="hc-btn hc-btn--ghost" style={{ cursor: 'pointer' }}>Sign out</button>
-      </div>
+      </div>}
 
       {msg && <div className="hc-card" style={{ padding: '0.75rem 1rem', background: 'var(--secondary)' }}>{msg}</div>}
 
@@ -144,7 +115,7 @@ const Dashboard = ({ onOut }) => {
 
       {/* Orders */}
       <div className="hc-card" style={{ padding: '1.25rem' }}>
-        <h3 className="hc-h4" style={{ marginTop: 0 }}>Your orders</h3>
+        <h3 className="hc-h4" style={{ marginTop: 0 }}>{embedded ? 'Shop orders: reorder and returns' : 'Your orders'}</h3>
         {orders.length === 0 && <p style={{ color: 'var(--muted-foreground)' }}>No orders yet.</p>}
         <div style={{ display: 'grid', gap: '0.75rem' }}>
           {orders.map((o) => (
@@ -245,23 +216,42 @@ const Dashboard = ({ onOut }) => {
 };
 
 /* ---- Page ----------------------------------------------------------------*/
+/**
+ * Client area (/account): the two-step access form until signed in, then the
+ * portal. An invite link (?invite=…) is exchanged at once and removed from the URL.
+ */
 const AccountPage = () => {
-  const [signedIn, setSignedIn] = useState(!!heritApi.portal.token());
+  const [params] = useSearchParams();
+  const inviteParam = params.get('invite');
+  const [signed, setSigned] = useState(signedIn());
+  const [notice, setNotice] = useState(() => takeNotice());
+  const shopOn = useShopEnabled();
+  const onInvite = useCallback((ok) => {
+    if (ok) { setSigned(true); setNotice(''); } else setNotice('That link has expired or was already used. Use your reference and we will email you a code, or ask Herit for a new link.');
+  }, []);
+  const inviteState = useRedeemInvite(inviteParam && /^[0-9a-f]{64}$/.test(inviteParam) ? inviteParam : null, onInvite);
+  const onSignedOut = useCallback((msg) => { setSigned(false); setNotice(msg || ''); }, []);
 
   return (
-    <SiteLayout title="Your account">
+    <SiteLayout title="Your orders">
       <section className="hc-pagehead">
         <div className="hc-container">
-          <div className="hc-crumb"><Link to="/">Home</Link> / <span>Account</span></div>
-          <h1 className="hc-h1">Your account</h1>
-          <p>Orders, measurements, store credit and your referral code — all in one place.</p>
+          <div className="hc-crumb"><Link to="/">Home</Link> / <span>Your orders</span></div>
+          <h1 className="hc-h1">Your orders</h1>
+          <p>See where your order is, message us, ask for a fitting or a change, and leave feedback.</p>
         </div>
       </section>
       <section className="hc-section">
         <div className="hc-container" style={{ maxWidth: 820 }}>
-          {signedIn
-            ? <Dashboard onOut={() => { heritApi.portal.logout(); setSignedIn(false); }} />
-            : <LoginCard onIn={() => setSignedIn(true)} />}
+          {inviteState === 'working' && <p role="status">Opening your orders…</p>}
+          {inviteState !== 'working' && (signed
+            ? (
+              <>
+                <PortalHome onSignedOut={onSignedOut} />
+                {shopOn && <div style={{ marginTop: '1.5rem' }}><Dashboard embedded onOut={() => onSignedOut('')} /></div>}
+              </>
+            )
+            : <AccessForm notice={notice} onSignedIn={() => { setSigned(true); setNotice(''); }} />)}
         </div>
       </section>
     </SiteLayout>

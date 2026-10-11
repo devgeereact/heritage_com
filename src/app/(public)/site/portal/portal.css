@@ -1,0 +1,57 @@
+/* Phase 3 public pages (book, access, client portal). Scoped under .hp inside
+   the public .hc theme; Phase 4 replaces this with the single token layer. */
+.hc .hp { color: #171A20; }
+.hc .hp-card { background: #fff; border: 1px solid #D0D1D2; border-radius: 12px; padding: 1.25rem; }
+.hc .hp-stack { display: grid; gap: 1rem; }
+.hc .hp-field { display: grid; gap: .35rem; }
+.hc .hp-field > label, .hc .hp-label { font-weight: 600; font-size: 1rem; color: #171A20; }
+.hc .hp-help { font-size: .9rem; color: #5C5E62; margin: 0; }
+.hc .hp-input {
+  width: 100%; min-height: 48px; padding: .65rem .85rem; font: inherit; font-size: 16px; color: #171A20;
+  background: #fff; border: 1px solid #8E8E8E; border-radius: 4px;
+}
+.hc textarea.hp-input { min-height: 96px; }
+.hc .hp-input:focus-visible, .hc .hp-check input:focus-visible, .hc .hp-choice:focus-within { outline: 2px solid #171A20; outline-offset: 2px; }
+.hc .hp-input[aria-invalid="true"] { border-color: #991B1B; }
+.hc .hp-error { color: #991B1B; font-size: .95rem; margin: 0; }
+.hc .hp-ok { color: #15803D; }
+.hc .hp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 48px; padding: .6rem 1.25rem;
+  border-radius: 4px; border: 1px solid #171A20; background: transparent; color: #171A20; font: inherit; font-weight: 600; cursor: pointer;
+  transition: background-color .2s, border-color .2s;
+}
+.hc .hp-btn--primary { background: #F59E0B; border-color: #F59E0B; color: #171A20; }
+.hc .hp-btn--primary:hover { background: #D97706; border-color: #D97706; }
+.hc .hp-btn:hover:not(.hp-btn--primary) { background: #F4F4F4; }
+.hc .hp-btn:disabled { opacity: .6; cursor: not-allowed; }
+.hc .hp-btn:focus-visible { outline: 2px solid #171A20; outline-offset: 2px; }
+.hc .hp-link { color: #B45309; text-decoration: underline; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; min-height: 44px; }
+.hc .hp a.hp-link { display: inline-flex; align-items: center; }
+.hc .hp-check { display: flex; gap: .6rem; align-items: flex-start; min-height: 44px; padding: .25rem 0; }
+.hc .hp-check input { width: 1.4rem; height: 1.4rem; margin-top: .1rem; flex: none; accent-color: #171A20; }
+.hc .hp-slots { display: flex; flex-wrap: wrap; gap: .5rem; }
+.hc .hp-slot { min-height: 44px; min-width: 5rem; padding: .5rem .75rem; border: 1px solid #8E8E8E; border-radius: 4px; background: #fff; color: #171A20; font: inherit; cursor: pointer; font-variant-numeric: tabular-nums; }
+.hc .hp-slot[aria-pressed="true"] { background: #171A20; border-color: #171A20; color: #fff; }
+.hc .hp-slot:focus-visible { outline: 2px solid #171A20; outline-offset: 2px; }
+.hc .hp-steps { display: flex; gap: .5rem; list-style: none; padding: 0; margin: 0 0 1rem; font-size: .9rem; color: #5C5E62; flex-wrap: wrap; }
+.hc .hp-steps li[aria-current="step"] { color: #171A20; font-weight: 700; border-bottom: 3px solid #F59E0B; }
+.hc .hp-notice { border-left: 4px solid #B45309; background: #FFFBEB; padding: .85rem 1rem; border-radius: 4px; }
+.hc .hp-notice--ok { border-left-color: #15803D; background: #F0FDF4; }
+.hc .hp-row { display: flex; justify-content: space-between; gap: .75rem; align-items: center; padding: .85rem 0; border-top: 1px solid #D0D1D2; color: #171A20; min-height: 44px; }
+.hc .hp-row:first-child { border-top: 0; }
+.hc .hp-muted { color: #5C5E62; }
+.hc .hp-chip { display: inline-flex; gap: .3rem; align-items: center; font-size: .875rem; font-weight: 600; }
+.hc .hp-msg { border: 1px solid #D0D1D2; border-radius: 8px; padding: .6rem .8rem; margin-bottom: .6rem; max-width: 36rem; }
+.hc .hp-msg--you { margin-left: auto; border-left: 4px solid #F59E0B; }
+.hc .hp-msg--herit { border-left: 4px solid #171A20; }
+.hc .hp-msg--system { background: #F4F4F4; }
+.hc .hp-msg-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.hc .hp-dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem 1rem; margin: 0; }
+.hc .hp-dl dt { font-weight: 400; color: #5C5E62; }
+.hc .hp-dl dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hc .hp-toc { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+.hc .hp-code { letter-spacing: .3em; font-size: 1.4rem; font-variant-numeric: tabular-nums; text-align: center; max-width: 14rem; }
+.hc .hp-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.hc .hp h2 { font-size: 1.35rem; margin: 0 0 .5rem; }
+.hc .hp h3 { font-size: 1.1rem; margin: 0 0 .5rem; }
+@media (max-width: 575px) { .hc .hp-card { padding: 1rem; } .hc .hp-btn { width: 100%; } }

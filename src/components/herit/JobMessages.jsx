@@ -62,7 +62,7 @@ const JobMessages = ({ jobId, onRead }) => {
           const internal = m.visibility === 'internal';
           const cls = internal ? 'hd-msg--internal' : m.author_type === 'customer' ? 'hd-msg--client-in' : m.author_type === 'system' ? 'hd-msg--system' : 'hd-msg--client-out';
           return (
-            <article key={m.id} className={`hd-msg ${cls}`} aria-label={internal ? 'Internal note' : 'Message'}>
+            <article key={m.id} className={`hd-msg ${cls}`}>
               <div className="hd-msg-meta">
                 {internal ? (
                   <strong className="text-uppercase small"><IconifyIcon icon="solar:lock-keyhole-minimalistic-bold" aria-hidden="true" /> Internal note, client cannot see this</strong>

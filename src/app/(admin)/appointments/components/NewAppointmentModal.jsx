@@ -5,7 +5,8 @@ import newRequestKey from '@/helpers/requestKey';
 import { APPT_TYPE_LABELS, GARMENT_LABELS } from '@/helpers/format';
 import ClientPicker from '@/components/herit/ClientPicker';
 import ErrorSummary from '@/components/herit/ErrorSummary';
-import TimeChooser, { emptyTime, timeBody } from './TimeChooser';
+import TimeChooser from './TimeChooser';
+import { emptyTime, timeBody } from './time';
 import ClashNotice from './ClashNotice';
 
 const fresh = (preset = {}) => ({
