@@ -13,6 +13,7 @@ Added
 
 Changed
 
+- Public site reads the website CMS (BUILD-SPEC 4.7): `heritApi.site.*` and `heritApi.cms.*`; `site/siteData.js` (cached `site.php` config, preview-aware loader for `?preview=1` with a staff session, image mapping); `useSeo` for title, description, canonical, Open Graph and JSON-LD; `useActions` for the two site actions. Home is built from published content (hero, services, company band, work, how it works, owner note, questions, final action), each section hidden while unpublished; header, footer and contact details come from the Website profile and published-content flags. CMS and journal HTML pass a browser allowlist (`safeHtml.js`) and `site.php` sanitises `body` and `answer` again on the way out. The journal follows `journal_enabled` (`site.php`).
 - JS/JSX lint is on (A13): `eslint.config.js` lints `src/**/*.{js,jsx}`, `public/sw.js` and the root config files, and `npm run lint` reports 0 errors. The proposed copy in `scripts/lint/` is removed. `site/ui/Card.jsx` binds its `as` prop to a local so the rule sees it used.
 - `site.css` rebuilt on the tokens: white and light-ash surfaces, thin dividers, Source Serif 4 headings at weight 500, Inter body; fabric pattern tiles, dark bands, shadows and the Tack Stitch leftovers are gone. Home, About and Contact use the UI kit; the contact form no longer needs react-bootstrap.
 

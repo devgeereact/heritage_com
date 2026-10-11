@@ -1,80 +1,171 @@
 import SiteLayout from './SiteLayout';
+import heritApi from '@/helpers/heritApi';
 import { useCatalogue, formatNgn } from './products';
 import { useBlog, useTestimonials } from './content';
 import { useShopEnabled } from './storeConfig';
-import { useBookingEnabled } from './bookingConfig';
+import { useBusiness } from './business';
+import { useSiteConfig, useSiteResource, previewItem, toImage, clip, loadSiteConfig } from './siteData';
+import useActions from './ui/useActions';
 import Hero from './ui/Hero';
 import { Section, SectionHead } from './ui/Section';
-import { Card } from './ui/Card';
-import { Lookbook, ProcessSteps, Testimonials, JournalGrid, ClosingAction } from './sections';
+import { ServiceCard, WorkCard } from './ui/Card';
+import HcImage from './ui/HcImage';
+import Icon from './ui/Icon';
+import { MoreLink, Rich } from './cmsBlocks';
+import { Lookbook, Testimonials, JournalGrid, ClosingAction } from './sections';
 
-// Page copy is interim: the CMS and the owner's approved wording replace it
-// (docs/CONTENT.md). Nothing here states numbers, people, offers or reach
-// that the owner has not confirmed (A07).
-const SERVICES = [
-  { title: 'Made to measure', desc: 'Your fabric or ours, cut to your measurements and fitted before it is finished.', to: '/contact', cta: 'Request a fitting' },
-  { title: 'Group and family orders', desc: 'Matching pieces for weddings and celebrations, planned around your date.', to: '/contact', cta: 'Ask about a group order' },
-  { title: 'Ready to wear', desc: 'Pieces in heritage fabrics, when they are in stock.', to: '/shop', cta: 'See the pieces', shop: true },
-  { title: 'Gifting', desc: 'A piece chosen and wrapped for someone else.', to: '/gifting', cta: 'Explore gifting', shop: true },
-];
+/** A published page, or null when it is not published (asked only when the config lists it). */
+const pageOrNull = (key, published) => (!published.includes(key) ? Promise.resolve(null)
+  : heritApi.site.page(key).then((r) => r?.page || null).catch((e) => {
+    if (e?.status === 404) return null;
+    throw e;
+  }));
 
-const STEPS = [
-  { title: 'Discuss', desc: 'Tell us what you want to make, for which occasion and by when.' },
-  { title: 'Measure', desc: 'We take your measurements at an agreed appointment.' },
-  { title: 'Agree the quote', desc: 'You see the price and the timing before any cutting starts.' },
-  { title: 'Sew and fit', desc: 'The piece is made and fitted, with adjustments where needed.' },
-  { title: 'Collect or deliver', desc: 'Collect it, or arrange delivery.' },
-];
+/**
+ * Home and the three pages it previews (company, how it works, about). In
+ * preview mode the home page itself comes from its draft; the rest stays
+ * published, as visitors would see it.
+ */
+const loadHome = async (preview) => {
+  const published = (await loadSiteConfig()).pages || [];
+  const [home, company, how, about] = await Promise.all([
+    heritApi.site.home(),
+    pageOrNull('company', published),
+    pageOrNull('how_it_works', published),
+    pageOrNull('about', published),
+  ]);
+  const page = preview ? await previewItem('page', { key: 'home' }) : home?.page || null;
+  return { ...home, page, company, how, about };
+};
 
+/**
+ * Home (BUILD-SPEC 4.7). Sections in a fixed order, each hidden while its
+ * content is unpublished or empty: hero, services, company band, our work,
+ * how it works, owner note, reviews, questions, final action. The hero and
+ * the final action always show; without a published home page the hero is
+ * text only, with the business name as its headline.
+ */
 const HomePage = () => {
-  const { products } = useCatalogue();
+  const cfg = useSiteConfig();
+  const business = useBusiness();
+  const { primary, secondary } = useActions();
+  const res = useSiteResource(() => loadHome(false), () => loadHome(true));
   const shopOn = useShopEnabled();
-  const bookOn = useBookingEnabled();
+  const { products } = useCatalogue();
   const quotes = useTestimonials();
   const journal = useBlog(3);
+
+  const d = res.data || {};
+  const page = d.page;
+  const services = d.services || [];
+  const work = d.work || [];
+  const faqs = d.faqs || [];
+  const aboutImg = toImage(d.about?.hero);
+  const proof = [business.area, business.hours].filter(Boolean).join(' · ');
   const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4);
-  const primary = bookOn
-    ? { to: '/book', label: 'Book an appointment' }
-    : { to: '/contact', label: 'Request an appointment' };
 
   return (
-    <SiteLayout>
+    <SiteLayout
+      seo={{
+        home: true,
+        description: page?.seo_description || clip(page?.intro),
+        image: page?.hero?.url,
+        jsonld: cfg?.jsonld || undefined,
+      }}
+    >
       <Hero
-        eyebrow="Herit Clothing, Lagos"
-        title="Heritage, tailored for now."
-        lead="Clothing in heritage fabrics, cut to fit the way you live. Tell us what you want to make and we will talk through the fabric, fit and finish before any work begins."
-        primary={primary}
-        secondary={{ to: '/track', label: 'Track your job' }}
+        title={page?.headline || business.name}
+        lead={page?.intro}
+        primary={{ to: primary.to, label: primary.label }}
+        secondary={secondary}
+        note={proof || undefined}
+        image={toImage(page?.hero)}
       />
 
-      <Section tone="alt">
-        <SectionHead eyebrow="What we make" title="Made with care, one piece at a time." />
-        <div className="hc-grid hc-grid--2">
-          {SERVICES.filter((s) => shopOn || !s.shop).map((s) => (
-            <Card key={s.title} title={s.title} to={s.to} linkLabel={s.cta}>{s.desc}</Card>
-          ))}
-        </div>
-      </Section>
+      {page?.body && (
+        <Section>
+          <Rich html={page.body} />
+        </Section>
+      )}
 
-      <ProcessSteps
-        eyebrow="How it works"
-        title="From first conversation to the finished piece."
-        steps={STEPS}
-      />
+      {services.length > 0 && (
+        <Section tone="alt" labelledBy="home-services">
+          <SectionHead id="home-services" eyebrow="Services" title="What I make" />
+          <div className="hc-grid hc-grid--3">
+            {services.map((s) => (
+              <ServiceCard key={s.slug} image={toImage(s.hero)} title={s.title} summary={s.summary} to={`/services/${s.slug}`} />
+            ))}
+          </div>
+          <MoreLink to="/services">All services</MoreLink>
+        </Section>
+      )}
+
+      {d.company && (
+        <Section labelledBy="home-company">
+          <SectionHead id="home-company" eyebrow="Company orders" title={d.company.headline} lead={d.company.intro || undefined}>
+            <MoreLink to="/company-orders">How company orders work</MoreLink>
+          </SectionHead>
+        </Section>
+      )}
+
+      {work.length > 0 && (
+        <Section tone="alt" labelledBy="home-work">
+          <SectionHead id="home-work" eyebrow="Our work" title="Recent pieces" />
+          <div className="hc-grid hc-grid--3">
+            {work.map((w) => (
+              <WorkCard key={w.slug} image={toImage(w.cover)} title={w.title} meta={[w.garment, w.fabric].filter(Boolean).join(' · ')} to={`/work/${w.slug}`} />
+            ))}
+          </div>
+          <MoreLink to="/work">See all work</MoreLink>
+        </Section>
+      )}
+
+      {d.how && (
+        <Section labelledBy="home-how">
+          <SectionHead id="home-how" eyebrow="How it works" title={d.how.headline} lead={d.how.intro || undefined}>
+            <MoreLink to="/how-it-works">The steps in full</MoreLink>
+          </SectionHead>
+        </Section>
+      )}
+
+      {d.about && (
+        <Section tone="alt" labelledBy="home-about">
+          <div className={`hc-pagetop ${aboutImg ? 'hc-pagetop--media' : ''}`.trim()}>
+            <SectionHead id="home-about" eyebrow="About" title={d.about.headline} lead={d.about.intro || undefined}>
+              <MoreLink to="/about">More about me</MoreLink>
+            </SectionHead>
+            {aboutImg && <HcImage {...aboutImg} sizes="(min-width: 1024px) 58vw, 100vw" ratio="4 / 3" />}
+          </div>
+        </Section>
+      )}
 
       {shopOn && (
         <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />
       )}
 
-      <Testimonials eyebrow="In their words" title="What clients say." quotes={quotes} />
+      <Testimonials eyebrow="In their words" title="What clients say" quotes={quotes} />
 
-      <JournalGrid eyebrow="Journal" title="Notes from the workroom." posts={journal} />
+      {faqs.length > 0 && (
+        <Section labelledBy="home-faqs">
+          <SectionHead id="home-faqs" eyebrow="Questions" title="Before you ask" />
+          <div className="hc-faq-list">
+            {faqs.map((f) => (
+              <details key={f.id} className="hc-faq">
+                <summary>{f.question} <Icon name="chevron-down" /></summary>
+                <div className="hc-faq-a"><Rich html={f.answer} /></div>
+              </details>
+            ))}
+          </div>
+          {cfg?.nav?.faqs && <MoreLink to="/faqs">All questions</MoreLink>}
+        </Section>
+      )}
+
+      <JournalGrid eyebrow="Journal" title="Notes from the workroom" posts={journal} />
 
       <ClosingAction
-        title="Ready to start?"
-        text="Send a short note about what you want to make. We reply with the next step."
-        primary={primary}
-        secondary={{ to: '/about', label: 'About Herit' }}
+        title="Tell me what you want to make."
+        primary={{ to: primary.to, label: primary.label }}
+        secondary={secondary}
       />
     </SiteLayout>
   );

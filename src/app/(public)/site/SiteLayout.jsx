@@ -1,27 +1,42 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { DEFAULT_PAGE_TITLE } from '@/context/constants';
+import { Link, useLocation } from 'react-router-dom';
 import SiteHeader from './SiteHeader';
 import SiteFooter from './SiteFooter';
 import useReveal from './ui/useReveal';
+import useSeo from './seo/useSeo';
+import { usePreviewMode, useSiteConfig } from './siteData';
 import './site.css';
 import './ui/ui.css';
 
 /**
  * Shared shell for every public page: skip link, sticky header, main and
- * footer. Sets the document title, scopes the `.hc` theme (always light),
- * resets scroll on navigation and runs the once-only section reveals.
+ * footer. Sets the page metadata (useSeo), scopes the `.hc` theme (always
+ * light), resets scroll on navigation and runs the once-only section reveals.
+ *
+ * `title` names the page; `seo` adds {description, image, jsonld, type,
+ * home}; `noindex` keeps private pages (track, account, checkout) and
+ * not-found answers out of search. Preview mode (?preview=1 with a staff
+ * session) shows a fixed bar and is always noindex.
  */
-const SiteLayout = ({ title, children }) => {
+const SiteLayout = ({ title, seo = {}, noindex = false, children }) => {
   const { pathname } = useLocation();
+  const cfg = useSiteConfig();
+  const preview = usePreviewMode();
   // Reset scroll before the reveal hook measures what is below the fold.
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   const revealRef = useReveal([pathname]);
 
-  useEffect(() => {
-    document.title = title ? `${title} | Herit Clothing` : 'Herit Clothing';
-    return () => { document.title = DEFAULT_PAGE_TITLE; };
-  }, [title]);
+  useSeo({
+    title: seo.title || title,
+    home: seo.home,
+    description: seo.description,
+    image: seo.image,
+    type: seo.type,
+    jsonld: seo.jsonld,
+    path: pathname,
+    siteUrl: cfg?.site_url,
+    noindex: noindex || preview,
+  });
 
   // Capture a referral code (?ref=CODE) and campaign attribution (?utm_source /
   // ?utm_campaign) from the landing URL so they survive browse → checkout.
@@ -40,6 +55,12 @@ const SiteLayout = ({ title, children }) => {
   return (
     <div className="hc hc-page">
       <a className="hc-skip" href="#main">Skip to main content</a>
+      {preview && (
+        <div className="hc-preview-bar" role="status">
+          <span>Preview, not published. Visitors see the published version.</span>
+          <Link to={pathname}>Leave preview</Link>
+        </div>
+      )}
       <SiteHeader />
       <main id="main" tabIndex={-1} ref={revealRef}>{children}</main>
       <SiteFooter />

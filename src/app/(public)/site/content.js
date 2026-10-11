@@ -1,41 +1,58 @@
 /**
- * Storefront content: the public Blog (Journal) and curated Testimonials.
- * Live source: store.php (published rows). There is no static fallback: empty
+ * Storefront content: the public Journal and curated testimonials.
+ * Journal: site.php (published posts, and only while journal_enabled is on).
+ * Testimonials: store.php (published rows). There is no static fallback: empty
  * or unreachable means an empty list, and the page hides the section (A07).
  */
 import { useEffect, useState } from 'react';
 import heritApi from '@/helpers/heritApi';
 
-const withTo = (p) => ({ ...p, to: `/journal/${p.slug}` });
+const dateText = (iso) => {
+  if (!iso) return '';
+  const d = new Date(String(iso).replace(' ', 'T') + 'Z');
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+/** site.php journal post -> the shape the journal pages use. */
+const toPost = (p) => ({
+  slug: p.slug, title: p.title, excerpt: p.excerpt || '', body: p.body,
+  cat: p.category || '', author: p.author || '', date: dateText(p.published_at),
+  iso: p.published_at ? String(p.published_at).slice(0, 10) : '', to: `/journal/${p.slug}`,
+});
 
 let POSTS_CACHE = null;
 let TESTI_CACHE = null;
 
-/** React hook: live published posts; empty until (and unless) the API returns some. */
-export function useBlog(limit = 24) {
-  const [posts, setPosts] = useState(POSTS_CACHE || []);
+/** React hook: published posts ({posts, ready, enabled}); empty while the journal is off. */
+export function useJournal(limit = 24) {
+  const [state, setState] = useState(POSTS_CACHE ? { ...POSTS_CACHE, ready: true } : { posts: [], enabled: false, ready: false });
   useEffect(() => {
     let live = true;
-    heritApi.store.blog(limit)
+    heritApi.site.journal()
       .then((r) => {
-        const list = Array.isArray(r?.posts) ? r.posts : [];
-        const next = list.map(withTo);
+        const next = { posts: (Array.isArray(r?.items) ? r.items : []).map(toPost), enabled: r?.enabled === true };
         POSTS_CACHE = next;
-        if (live) setPosts(next);
+        if (live) setState({ ...next, ready: true });
       })
-      .catch(() => {});
+      .catch(() => { if (live) setState({ posts: [], enabled: false, ready: true }); });
     return () => { live = false; };
-  }, [limit]);
-  return posts;
+  }, []);
+  return { ...state, posts: state.posts.slice(0, limit) };
 }
 
-/** React hook: a single published post by slug; null when missing. */
+/** React hook: published posts only (the list), for sections that just need posts. */
+export function useBlog(limit = 24) {
+  return useJournal(limit).posts;
+}
+
+/** React hook: a single published post by slug; null when missing or the journal is off. */
 export function useBlogPost(slug) {
   const [state, setState] = useState({ post: null, ready: false });
   useEffect(() => {
     let live = true;
-    heritApi.store.blogPost(slug)
-      .then((r) => { if (live) setState({ post: r?.post || null, ready: true }); })
+    setState({ post: null, ready: false });
+    heritApi.site.journalPost(slug)
+      .then((r) => { if (live) setState({ post: r?.post ? toPost(r.post) : null, ready: true }); })
       .catch(() => { if (live) setState({ post: null, ready: true }); });
     return () => { live = false; };
   }, [slug]);

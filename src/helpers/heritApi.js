@@ -87,6 +87,20 @@ async function crequest(path, { method = 'GET', body } = {}) {
 }
 
 const post = (path, body) => request(path, { method: 'POST', body: body || {} });
+/** Multipart upload with the staff token (the browser sets the boundary). */
+async function upload(path, file, fields = {}) {
+  const form = new FormData();
+  form.append('file', file);
+  Object.entries(fields).forEach(([k, v]) => { if (v !== undefined && v !== null) form.append(k, v); });
+  const headers = {};
+  const t = token();
+  if (t) headers.Authorization = `Bearer ${t}`;
+  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: form });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw apiError(res.status, data);
+  return data;
+}
+
 const pub = (path, body) => request(path, body ? { method: 'POST', body, auth: false } : { auth: false });
 const cpost = (path, body) => crequest(path, { method: 'POST', body: body || {} });
 const enc = encodeURIComponent;
@@ -522,6 +536,39 @@ export const heritApi = {
     setToken: (t) => setCustomerToken(t),
     logout: () => clearCustomerToken(),
     token: () => customerToken(),
+  },
+
+  // Public website projection (site.php; published content only, no sign-in)
+  site: {
+    config: () => pub('/site.php?action=config'),
+    home: () => pub('/site.php?action=home'),
+    page: (key) => pub(`/site.php?action=page&key=${enc(key)}`),
+    services: () => pub('/site.php?action=services'),
+    service: (slug) => pub(`/site.php?action=service&slug=${enc(slug)}`),
+    work: (service) => pub(`/site.php?action=work${qs({ service })}`),
+    workItem: (slug) => pub(`/site.php?action=work_item&slug=${enc(slug)}`),
+    faqs: (home) => pub(`/site.php?action=faqs${home ? '&home=1' : ''}`),
+    policy: (key) => pub(`/site.php?action=policy&key=${enc(key)}`),
+    journal: () => pub('/site.php?action=journal'),
+    journalPost: (slug) => pub(`/site.php?action=journal_post&slug=${enc(slug)}`),
+  },
+
+  // Website CMS (cms.php; owner roles and editor). Entities: service, project, faq, policy, page.
+  cms: {
+    list: (entity) => request(`/cms.php?action=list&entity=${enc(entity)}`),
+    get: (entity, { id, key } = {}) => request(`/cms.php?action=get&entity=${enc(entity)}${qs({ id, key })}`),
+    saveDraft: (entity, body) => request(`/cms.php?action=save_draft&entity=${enc(entity)}`, { method: 'POST', body }),
+    preview: (entity, id) => request(`/cms.php?action=preview&entity=${enc(entity)}&id=${enc(id)}`),
+    publish: (entity, id, confirmLeak = false) =>
+      request(`/cms.php?action=publish&entity=${enc(entity)}&id=${enc(id)}`, { method: 'POST', body: confirmLeak ? { confirm_leak: true } : {} }),
+    act: (action, entity, id) => request(`/cms.php?action=${enc(action)}&entity=${enc(entity)}&id=${enc(id)}`, { method: 'POST', body: {} }),
+    reorder: (entity, ids) => request(`/cms.php?action=reorder&entity=${enc(entity)}`, { method: 'POST', body: { ids } }),
+    mediaList: () => request('/cms.php?action=media_list'),
+    mediaUpload: (file, fields = {}) => upload('/cms.php?action=media_upload', file, fields),
+    mediaUpdate: (id, data) => request(`/cms.php?action=media_update&id=${enc(id)}`, { method: 'POST', body: data }),
+    mediaDelete: (id) => request(`/cms.php?action=media_delete&id=${enc(id)}`, { method: 'POST', body: {} }),
+    profileGet: () => request('/cms.php?action=profile_get'),
+    profileSave: (data) => request('/cms.php?action=profile_save', { method: 'POST', body: data }),
   },
 
   // Generic escape hatches for feature modules

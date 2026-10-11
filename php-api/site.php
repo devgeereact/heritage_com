@@ -78,7 +78,12 @@ function site_project($entity, array $rows) {
   $ids = [];
   foreach ($rows as $r) $ids = array_merge($ids, cms_media_refs($r['data']));
   $media = media_rows($ids);
-  return array_map(fn($r) => cms_public($entity, $r, $r['data'], $media, media_base_url()), $rows);
+  return array_map(function ($r) use ($entity, $media) {
+    $p = cms_public($entity, $r, $r['data'], $media, media_base_url());
+    // Rich text was cleaned on save; clean it again on the way out (defence in depth).
+    foreach (['body', 'answer'] as $k) if (isset($p[$k]) && $p[$k] !== '') $p[$k] = sanitize_html($p[$k]);
+    return $p;
+  }, $rows);
 }
 
 function site_page($key) {

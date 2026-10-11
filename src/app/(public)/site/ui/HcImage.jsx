@@ -15,7 +15,7 @@ const HcImage = ({ src, avif, webp, alt, width, height, sizes = '100vw', ratio, 
       sizes={avif || webp ? sizes : undefined}
       loading={priority ? 'eager' : 'lazy'}
       decoding={priority ? 'sync' : 'async'}
-      fetchpriority={priority ? 'high' : undefined}
+      fetchPriority={priority ? 'high' : undefined}
       className={imgClassName || undefined}
     />
   );

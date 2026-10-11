@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import { useBlog, useBlogPost } from './content';
+import safeHtml from './safeHtml';
 
 const BlogPostPage = () => {
   const { slug } = useParams();
@@ -44,7 +45,8 @@ const BlogPostPage = () => {
         <div className="hc-container" style={{ maxWidth: 760 }}>
           <div className={`hc-tile ${post.tile || 'hc-tile-mixed'}`} style={{ aspectRatio: '16 / 9', marginBottom: '2.5rem' }} />
           {post.excerpt && <p className="hc-lead" style={{ marginBottom: '1.5rem' }}>{post.excerpt}</p>}
-          <div className="hc-prose" dangerouslySetInnerHTML={{ __html: post.body || '' }} />
+          {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml -- allowlisted by safeHtml() */}
+          <div className="hc-prose" dangerouslySetInnerHTML={{ __html: safeHtml(post.body) }} />
           <div className="hc-mt-4">
             <Link to="/journal" className="hc-card-link"><IconifyIcon icon="solar:arrow-left-linear" /> All stories</Link>
           </div>

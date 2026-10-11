@@ -1,25 +1,24 @@
-import { createContext, useContext } from 'react';
 import { useStoreConfig } from './storeConfig';
+import { useSiteConfig } from './siteData';
 
 /**
- * Public business details for the header, footer and contact page.
- * Every field is optional: an empty field is simply not shown. Today they
- * come from store.php?action=config (store name and the socials saved in
- * Settings); the CMS business profile will provide them through
- * <BusinessContext.Provider value={...}> without changing the components.
+ * Public business details for the header, footer and contact page. Every
+ * field is optional: an empty field is not shown.
  *
- * Social links are shown only when the saved URL is https and on the
- * platform's own domain (no fallbacks to platform home pages, A12).
+ * Source: the business profile in site.php?action=config (Website > Profile).
+ * The server already drops empty facts and re-checks every social link (https
+ * on the platform's own host, WhatsApp only as wa.me/<digits>, A12). If the
+ * server has no site.php yet, the older store.php config is used with the same
+ * checks applied here.
  */
-export const BusinessContext = createContext(null);
-
-const SOCIAL_HOSTS = {
+const SOCIALS = {
   instagram: { label: 'Instagram', hosts: ['instagram.com'] },
   facebook: { label: 'Facebook', hosts: ['facebook.com', 'fb.com'] },
   tiktok: { label: 'TikTok', hosts: ['tiktok.com'] },
-  linkedin: { label: 'LinkedIn', hosts: ['linkedin.com'] },
+  x: { label: 'X', hosts: ['x.com', 'twitter.com'] },
   youtube: { label: 'YouTube', hosts: ['youtube.com', 'youtu.be'] },
-  twitter: { label: 'X', hosts: ['x.com', 'twitter.com'], icon: 'x' },
+  linkedin: { label: 'LinkedIn', hosts: ['linkedin.com'] },
+  whatsapp: { label: 'WhatsApp', hosts: ['wa.me'] },
 };
 
 const hostOk = (url, hosts) => {
@@ -31,36 +30,56 @@ const hostOk = (url, hosts) => {
   } catch { return false; }
 };
 
-/** wa.me link from a WhatsApp URL or number; empty when it is not usable. */
-const whatsappUrl = (v) => {
-  const s = String(v || '').trim();
-  if (!s) return '';
-  if (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(s)) {
-    const digits = s.replace(/\D/g, '');
-    return digits.length >= 8 ? s : '';
-  }
-  const digits = s.replace(/\D/g, '');
-  return digits.length >= 8 ? `https://wa.me/${digits}` : '';
+const social = (platform, url) => {
+  const d = SOCIALS[platform];
+  return d && hostOk(url, d.hosts) ? { key: platform, label: d.label, icon: platform, url } : null;
 };
 
-export const verifiedSocials = (socials) =>
-  Object.entries(SOCIAL_HOSTS)
-    .map(([key, d]) => ({ key, label: d.label, icon: d.icon || key, url: String(socials?.[key] || '').trim() }))
-    .filter((s) => s.url && hostOk(s.url, SOCIAL_HOSTS[s.key].hosts));
+/** wa.me link from a WhatsApp URL or number; empty when it is not usable. */
+const whatsappUrl = (v) => {
+  const digits = String(v || '').replace(/\D/g, '');
+  if (digits.length < 8 || digits.length > 15) return '';
+  return `https://wa.me/${digits}`;
+};
 
-export const businessFromConfig = (cfg) => ({
-  name: (cfg?.store_name || '').trim() || 'Herit Clothing',
-  area: (cfg?.area || '').trim(),
-  hours: (cfg?.hours || '').trim(),
-  phone: (cfg?.phone || '').trim(),
-  whatsapp: whatsappUrl(cfg?.whatsapp || cfg?.socials?.whatsapp),
-  email: (cfg?.email || '').trim(),
-  socials: verifiedSocials(cfg?.socials),
-});
+/** From site.php config (already checked on the server). */
+export const businessFromSite = (cfg) => {
+  const b = cfg?.business || {};
+  return {
+    name: b.name || 'Herit Clothing',
+    area: b.area || '',
+    hours: b.hours_text || '',
+    address: b.address || '',
+    phone: b.phone || '',
+    whatsapp: b.whatsapp_url || '',
+    email: b.email || '',
+    socials: (cfg?.socials || []).map((s) => social(s.platform, s.url)).filter(Boolean)
+      .filter((s) => s.key !== 'whatsapp' || s.url !== b.whatsapp_url),
+  };
+};
 
-/** Business details from context when provided, else from the store config. */
+/** From the older store.php config, with the same link checks. */
+export const businessFromStore = (cfg) => {
+  const socials = cfg?.socials || {};
+  return {
+    name: (cfg?.store_name || '').trim() || 'Herit Clothing',
+    area: (cfg?.area || '').trim(),
+    hours: (cfg?.hours || '').trim(),
+    address: '',
+    phone: (cfg?.phone || '').trim(),
+    whatsapp: whatsappUrl(cfg?.whatsapp || socials.whatsapp),
+    email: (cfg?.email || '').trim(),
+    socials: Object.keys(SOCIALS).filter((k) => k !== 'whatsapp')
+      .map((k) => social(k, String(socials[k] || (k === 'x' ? socials.twitter : '') || '').trim()))
+      .filter(Boolean),
+  };
+};
+
+/** Business details for public pages; empty fields until the config arrives. */
 export const useBusiness = () => {
-  const provided = useContext(BusinessContext);
-  const cfg = useStoreConfig();
-  return provided || businessFromConfig(cfg);
+  const site = useSiteConfig();
+  const store = useStoreConfig();
+  if (site && !site.failed) return businessFromSite(site);
+  if (site?.failed && store) return businessFromStore(store);
+  return businessFromSite(null);
 };

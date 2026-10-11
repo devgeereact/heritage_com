@@ -351,3 +351,54 @@
   [data-reveal="pending"] { opacity: 1; transform: none; }
   .hc-btn:active { transform: none; }
 }
+
+/* ---------------------------------------------------------- CMS pages (Phase 4) */
+
+/* Preview of unpublished drafts: fixed, above the header, never in the published site. */
+.hc-preview-bar {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; flex-wrap: wrap; gap: var(--hc-space-3); align-items: center; justify-content: center;
+  min-height: var(--hc-touch); padding: var(--hc-space-2) var(--hc-gutter);
+  background: var(--hc-warning-tint); color: var(--hc-text);
+  border-bottom: 1px solid var(--hc-divider);
+  font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium);
+}
+.hc-preview-bar a { color: var(--hc-text); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Page header for CMS pages: heading block beside an optional image. */
+.hc-pagetop { display: grid; gap: var(--hc-space-6); align-items: center; }
+@media (min-width: 1024px) {
+  .hc-pagetop--media { grid-template-columns: 5fr 7fr; gap: var(--hc-space-8); }
+}
+.hc-pagetop .hc-head { margin-bottom: 0; }
+
+/* Facts list (garment, fabric) and the "what's included" list. */
+.hc-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--hc-space-2) var(--hc-space-5); margin: 0; }
+.hc-facts dt { color: var(--hc-text-muted); font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); }
+.hc-facts dd { margin: 0; color: var(--hc-text); }
+.hc-checklist { list-style: none; padding: 0; display: grid; gap: var(--hc-space-3); max-width: var(--hc-measure); }
+.hc-checklist li { display: flex; gap: var(--hc-space-3); align-items: flex-start; }
+.hc-checklist li > .hc-icon { flex: 0 0 auto; margin-top: 0.2em; color: var(--hc-text); }
+
+/* Project gallery: figures in a responsive grid; the first image spans wider on desktop. */
+.hc-gallery { display: grid; gap: var(--hc-space-4); grid-template-columns: 1fr; margin: 0; }
+@media (min-width: 768px) { .hc-gallery { grid-template-columns: repeat(2, 1fr); } }
+.hc-gallery figure { margin: 0; }
+.hc-gallery figcaption { margin-top: var(--hc-space-2); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
+.hc-gallery .hc-img { border-radius: var(--hc-radius-card); overflow: hidden; }
+
+/* Two-column layout for detail pages (content beside a facts aside). */
+.hc-split { display: grid; gap: var(--hc-space-7); }
+@media (min-width: 1024px) { .hc-split { grid-template-columns: 7fr 5fr; align-items: start; } }
+
+/* Radio list for forms. */
+.hc-radios { border: 0; padding: 0; margin: 0; display: grid; gap: var(--hc-space-2); }
+.hc-radios legend { font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); color: var(--hc-text); margin-bottom: var(--hc-space-2); padding: 0; }
+.hc-radio { display: flex; gap: var(--hc-space-3); align-items: center; min-height: var(--hc-touch); cursor: pointer; }
+.hc-radio input { width: 20px; height: 20px; accent-color: var(--hc-text); flex: 0 0 auto; }
+
+/* Honeypot: out of sight and out of the accessibility tree; only bots fill it. */
+.hc-hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
+
+/* Loading and empty states. */
+.hc-state { padding: var(--hc-section-y) 0; color: var(--hc-text-muted); }

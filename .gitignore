@@ -42,3 +42,6 @@ scripts/staging/.logs/
 scripts/staging/.uploads/
 php-api/uploads/
 public/uploads/site/
+
+# Playwright MCP snapshots and logs (local only)
+.playwright-mcp/

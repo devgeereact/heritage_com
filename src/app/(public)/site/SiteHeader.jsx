@@ -2,16 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from './cart';
 import { useShopEnabled } from './storeConfig';
-import { useBookingEnabled } from './bookingConfig';
+import { useSiteNav } from './siteData';
+import useActions from './ui/useActions';
 import Button from './ui/Button';
 import Icon from './ui/Icon';
 import logoDark from '@/assets/images/logo-dark.svg';
 
-// `shop` items show only while the retail shop is switched on (settings.shop_enabled).
+// Each link shows only while its page has published content (site.php config
+// `nav` flags); the shop links only while the retail shop is switched on.
 const NAV = [
+  { to: '/services', label: 'Services', flag: 'services' },
+  { to: '/company-orders', label: 'Companies', flag: 'company' },
+  { to: '/work', label: 'Our work', flag: 'work' },
+  { to: '/how-it-works', label: 'How it works', flag: 'how_it_works' },
+  { to: '/about', label: 'About', flag: 'about' },
   { to: '/shop', label: 'Shop', shop: true },
-  { to: '/gifting', label: 'Gifting', shop: true },
-  { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ];
 
@@ -25,17 +30,16 @@ const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname ==
 const SiteHeader = () => {
   const { pathname } = useLocation();
   const shopOn = useShopEnabled();
-  const bookOn = useBookingEnabled();
+  const nav = useSiteNav();
+  const { primary: action } = useActions();
   const { count } = useCart();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const toggleRef = useRef(null);
   const sheetRef = useRef(null);
 
-  const links = NAV.filter((n) => shopOn || !n.shop);
-  const primary = bookOn
-    ? { to: '/book', label: 'Book an appointment' }
-    : { to: '/contact', label: 'Request an appointment' };
+  const links = NAV.filter((n) => (n.shop ? shopOn : !n.flag || nav[n.flag] === true));
+  const primary = { to: action.to, label: action.short };
 
   useEffect(() => { setOpen(false); }, [pathname]);
 
