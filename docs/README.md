@@ -25,6 +25,7 @@ Documentation follows the GEE OS "Standard application" profile: one flat `docs/
 | [NOTIFICATIONS-SPEC.md](NOTIFICATIONS-SPEC.md) | WhatsApp sends, planned job templates, email |
 | [ROADMAP.md](ROADMAP.md) | Phases with status, findings A01 to A24 with status, deletion candidates |
 | [DECISIONS.md](DECISIONS.md) | Dated decisions D-001 onwards; files removed by decision |
+| [BUILD-SPEC.md](BUILD-SPEC.md) | Temporary: remaining build spec for Phase 4 pages and admin Website area, and Phase 5. Delete when Phase 5 merges |
 | [Plans 2026/](Plans%202026/READ-ME-FIRST.md) | Approved plan of record (read-only) |
 
 Outside `docs/`:
