@@ -74,6 +74,9 @@
 @media (max-width: 599px) {
   .hc-actions { flex-direction: column; align-items: stretch; }
   .hc-actions .hc-btn { width: 100%; }
+  /* Long labels ("Request a measurement appointment") wrap instead of
+     pushing the column past a 320px screen. */
+  .hc-btn { white-space: normal; text-align: center; padding-block: var(--hc-space-2); }
 }
 
 /* ---------------------------------------------------------- measure line */
@@ -118,7 +121,7 @@
 
 /* ---------------------------------------------------------- hero */
 .hc-hero { padding: clamp(40px, 8vw, 112px) 0 var(--hc-section-y); }
-.hc-hero-grid { display: grid; gap: var(--hc-space-6); align-items: center; }
+.hc-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--hc-space-6); align-items: center; }
 .hc-hero-copy { max-width: 40rem; }
 .hc-hero-eyebrow { margin-bottom: var(--hc-space-5); }
 .hc-hero-title {

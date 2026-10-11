@@ -37,3 +37,22 @@ Chromium (Playwright 1.63) against `npm run dev` with local staging, `feat/phase
 | Forbidden-claims pattern (HERIT10, 1200+, 18 countries, 98%, staff names, Free Lagos delivery, worldwide, Ajuwon) and "undefined", `[owner`, `{{` | PASS |
 | Images have alt, width and height | PASS (the logo is the only image) |
 | Screen reader, 200% zoom, real phones | NOT TESTED |
+
+## Phase 4 CMS pages, 11 October 2026
+
+Branch `feat/phase4-website`, local staging, Chromium through the Playwright MCP. Routes: `/`, `/services`, a service, `/work`, a project, `/company-orders`, `/about`, `/contact`, `/faqs`, `/privacy`, `/terms`, `/journal`, `/track`, `/book`, `/how-it-works` (unpublished: not-found page). Widths 320, 390, 768, 1024 and 1440px (75 page loads).
+
+| Check | Result |
+|---|---|
+| No element wider than the viewport (measured per element, because `.hc` clips horizontal overflow and would hide it from a scroll-width test) | FAIL at 320px on Home: the hero button label "Request a measurement appointment" did not wrap and pushed the hero to 352px, clipped. Fixed (buttons wrap below 600px; hero grid column `minmax(0, 1fr)`); re-run PASS at all five widths, the wrapped button 56px tall |
+| Header, footer and form controls at least 44px tall; inputs 52px | PASS |
+| Exactly one `h1` in `main` | PASS |
+| No text in amber `#F59E0B` | PASS |
+| Every image has alt, width and height | PASS |
+| No request to api.iconify.design | PASS (0) |
+| Forbidden-claims pattern (BUILD-SPEC 4.11) and `undefined`, `[owner`, `{{` absent | PASS; the detector was proved by injecting a claim |
+| Reduced motion: no running animations on Home | PASS (0) |
+| Keyboard focus visible | PASS (2px solid outline) |
+| Admin screens `robots=noindex, nofollow`; public pages indexable | PASS |
+
+NOT TESTED: screen readers, 200% zoom, the empty-CMS run from BUILD-SPEC 4.11 (Home with nothing published), real photographs.

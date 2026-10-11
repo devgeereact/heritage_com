@@ -24,6 +24,7 @@ Changed
 
 Fixed
 
+- At 320px the Home hero was clipped to 352px by a button label that would not wrap; public buttons now wrap below 600px and the hero grid column cannot grow past the screen ([qa/ACCESSIBILITY-AUDIT.md](qa/ACCESSIBILITY-AUDIT.md#phase-4-cms-pages-11-october-2026)).
 - Contact form subjects (`order`, `product`, `custom`, `gifting`) were not types `contact.php` accepts, so every enquiry was stored as `general`; each subject now maps to `fitting`, `bespoke`, `wholesale` or `general` (the subject is kept in the message). Gifting page text was white on a light surface after the dark band was removed.
 
 Removed
