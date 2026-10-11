@@ -70,6 +70,17 @@ jobs:
           cp php-api/access.php      dist/
           cp php-api/portal.php      dist/
           cp php-api/messages.php    dist/
+          # Phase 4 files (website CMS). New, so no hand-managed server copy exists.
+          # public/uploads/.htaccess reaches dist/uploads/ through the Vite build.
+          cp php-api/_cms.php        dist/
+          cp php-api/_media.php      dist/
+          cp php-api/cms.php         dist/
+          cp php-api/site.php        dist/
+          cp php-api/sitemap.php     dist/
+      # The FTP action records what it uploaded in .ftp-deploy-sync-state.json on
+      # the server and only ever deletes files listed there that have gone from
+      # dist/. Website images in uploads/site/ are written by cms.php on the
+      # server, never uploaded by this step, so a deploy never deletes them.
       - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:   ${{ secrets.FTP_SERVER }}

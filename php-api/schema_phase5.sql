@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS coupon_redemptions (
   KEY idx_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed the welcome offer (footer newsletter promises HERIT10) + a free-ship code.
-INSERT IGNORE INTO coupons (code, type, value, min_spend, description) VALUES
-  ('HERIT10',  'percent',   10, 0,     'Welcome offer — 10% off your first order'),
-  ('FREESHIP', 'free_ship', 0,  25000, 'Free delivery on orders over ₦25,000');
+-- No codes are seeded: offers exist only when the owner creates them in Coupons
+-- (owner decision, 10 October 2026: nothing invented). schema_phase26.sql switches
+-- off the HERIT10 and FREESHIP codes earlier versions of this file seeded.

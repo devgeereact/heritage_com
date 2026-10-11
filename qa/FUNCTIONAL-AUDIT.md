@@ -122,6 +122,25 @@ Also run on the same branch: `npm run build` exit 0; `npm run lint` exit 0 (lint
 
 NOT TESTED: real email delivery of codes and replies; WhatsApp sends; real phones and screen readers; the dark theme on the new screens; widths other than 390 and 1280; quote acceptance in the portal (switch off by default) and the measurements view (switch off); a tailor's read-only Appointments view in the browser; `ALLOW_LEGACY_ORDER_CODE_LOOKUP` off.
 
+## Phase 4 API checks on staging (11 October 2026)
+
+Branch `feat/phase4-website`, server only (the website screens are built separately). Fresh `npm run staging:setup` (27 schema files, no errors, Phase 2 to 4 migrations replayed, `seed.php --phase4`), then `bash scripts/staging/e2e-phase4.sh` twice: 62 of 62 PASS each time. `e2e-phase2.sh` 48 of 48 and `e2e-phase3.sh` 93 of 93 PASS on the same database; `php php-api/tests/run.php` 323 of 323.
+
+| Area | Checks | Result |
+|---|---|---|
+| Public config | Staging facts only, private address hidden, checked socials, JSON-LD without ratings, ETag 304 | PASS |
+| Business profile | Phone change reaches the public config; http, look-alike host, `javascript:` and short wa.me links refused (also through `settings.php`); editor refused | PASS |
+| Draft and publish | Draft 404 publicly and absent from the sitemap; preview 401 without staff; publish visible and in the sitemap; a second draft leaves v1 public; v2 publish keeps the earlier version; rollback restores v1; slug locked; published item not deletable; unpublish gives 404 and leaves the sitemap and list | PASS |
+| Rich text | Script, `onclick`, `onerror`, `javascript:` and iframe stripped in the draft and the public FAQ; placeholder text blocks publishing (422) | PASS |
+| Uploads | PHP renamed `.jpg` 415; 13 MB 413; no token 401; JPEG with PHP appended re-encoded without it; EXIF Make and GPS present in the source and absent from every served variant; random hex names; 800 and 1600 WebP plus a JPEG; `/uploads/site/evil.php` 404 with no output; repeat upload recognised | PASS |
+| Portfolio | Publish refused without consent and alt text (422); phone number in public text needs confirmation (409); consented project public without consent or client fields; image in use cannot be deleted | PASS |
+| Roles | Editor reads the CMS but cannot unpublish a policy (403); tailor has no CMS access (403) | PASS |
+| Projection | No `draft`, `prev`, `live`, consent, client, customer, staff or file-hash fields across ten public answers; unpublished page and unknown policy 404; POST 405 | PASS |
+| Sitemap and robots | `application/xml`, parses, lists published items only, no admin or portal paths; journal entries follow `journal_enabled`; robots served with the sitemap line and admin and portal disallows | PASS |
+| Invented offers | Catalogue `free_ship_over` null; a slug from the removed fallback list refused at checkout; seeded HERIT10 and FREESHIP switched off | PASS |
+
+NOT TESTED: the uploads `.htaccess` on the live Apache or LiteSpeed host, live PHP upload limits and GD build, the website screens in a browser, real photographs.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

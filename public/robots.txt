@@ -1,43 +1,54 @@
-# Herit Clothing — storefront is indexable; the admin app, auth and
-# private/transactional surfaces are not.
+# Herit Clothing: the public website is indexable; the admin app, sign-in,
+# the client portal and private or transactional pages are not.
 User-agent: *
 Allow: /
 
-# Auth + private customer surfaces
+# Sign-in, client portal and private customer pages
 Disallow: /auth
 Disallow: /account
+Disallow: /access
+Disallow: /track
 Disallow: /cart
 Disallow: /checkout
-Disallow: /track
+Disallow: /*?preview=
 
-# Admin / operations app (staff-only, client-rendered)
+# Admin and operations app (staff only)
+Disallow: /today
+Disallow: /enquiries
+Disallow: /appointments
+Disallow: /messages
+Disallow: /clients
+Disallow: /jobs
+Disallow: /tailoring
+Disallow: /payments
+Disallow: /website
+Disallow: /settings
+Disallow: /reports
+Disallow: /print
 Disallow: /dashboard
-Disallow: /sales
-Disallow: /orders
-Disallow: /products
+Disallow: /crm
 Disallow: /catalogue
-Disallow: /category
-Disallow: /attributes
-Disallow: /inventory
 Disallow: /stock
 Disallow: /suppliers
-Disallow: /purchases
-Disallow: /crm
-Disallow: /customer
 Disallow: /finance
-Disallow: /invoice
 Disallow: /analytics
 Disallow: /marketing
-Disallow: /studio
 Disallow: /pos
-Disallow: /inbox
-Disallow: /enquiries
-Disallow: /tailoring
-Disallow: /reviews
+Disallow: /sales
+Disallow: /studio
+Disallow: /content
 Disallow: /channels
-Disallow: /settings
-Disallow: /permissions
-Disallow: /role
+Disallow: /team
+Disallow: /inbox
+Disallow: /whatsapp
+Disallow: /coupons
+Disallow: /loyalty
+Disallow: /engage
+Disallow: /reviews
+Disallow: /weather
 Disallow: /profile
+Disallow: /permissions
+Disallow: /apps
+Disallow: /pages-404
 
 Sitemap: https://heritclothing.com/sitemap.xml

@@ -9,6 +9,7 @@
  * Admins / managers only.
  */
 require __DIR__ . '/_lib.php';
+require __DIR__ . '/_cms.php';
 cors();
 
 $STAFF = ['super_admin', 'admin', 'manager'];
@@ -25,12 +26,21 @@ $KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate'
   // sessions last 7 days; the consent wording starts as proposed text.
   // Availability itself is saved through appointments.php (validated there).
   'public_booking_enabled', 'portal_quote_accept_enabled', 'portal_show_measurements', 'customer_session_days',
-  'feedback_publish_wording', 'feedback_photo_wording'];
+  'feedback_publish_wording', 'feedback_photo_wording',
+  // Phase 4 business profile (PROFILE_KEYS in _cms.php; all empty by default,
+  // empty means hidden on the public site). Validated by profile_clean(), the
+  // same rules cms.php?action=profile_save uses.
+  'business_name', 'business_whatsapp', 'business_address_public', 'business_area_text', 'journal_enabled'];
 // keys stored as JSON (object/array) rather than a plain string
 $JSON_KEYS = ['channels', 'socials', 'payment_verified_methods', 'availability'];
 
 /** Validate a Phase 2 setting; returns the value to store or fails. */
 function setting_validate($k, $val) {
+  if (in_array($k, PROFILE_KEYS, true)) {
+    [$clean, $errors] = profile_clean([$k => $val]);
+    if ($errors) fail(implode('; ', array_map(fn($f, $m) => "$f: $m", array_keys($errors), $errors)));
+    return $clean[$k];
+  }
   switch ($k) {
     case 'quote_validity_days':
       if ($val === '' || $val === null) return '';
@@ -87,6 +97,11 @@ if (method() === 'POST') {
     $stmt->bind_param('ssi', $k, $val, $user['id']);
     $stmt->execute();
     $saved[] = $k;
+  }
+  if (array_intersect($saved, PROFILE_KEYS)) {
+    // The public site caches on this number (site.php ETag).
+    $conn->query("INSERT INTO settings (skey, svalue) VALUES ('site_rev', '1')
+                  ON DUPLICATE KEY UPDATE svalue = CAST(svalue AS UNSIGNED) + 1");
   }
   audit($user['id'], 'settings_update', 'settings', null, ['keys' => $saved]);
   json(['ok' => true, 'saved' => $saved]);

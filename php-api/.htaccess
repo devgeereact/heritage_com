@@ -10,6 +10,9 @@
 RewriteEngine On
 RewriteBase /
 
+# The XML sitemap is built from published website content (Phase 4).
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
 # Let real files and the PHP API resolve directly.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

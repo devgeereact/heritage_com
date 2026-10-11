@@ -35,3 +35,10 @@ config.php
 # Local staging (scripts/staging): database config and logs, never committed
 php-api/config.local.php
 scripts/staging/.logs/
+
+# Website images uploaded through cms.php (Phase 4). They live only on the server
+# (<doc root>/uploads/site) or in local staging; never committed. The folder's
+# .htaccess (public/uploads/.htaccess) is committed and shipped with the build.
+scripts/staging/.uploads/
+php-api/uploads/
+public/uploads/site/

@@ -11,27 +11,20 @@
  *                                                else {provider:'manual'}
  *   GET  /store.php?action=pay_verify&reference=… → confirm payment, mark paid
  *
- * Prices are authoritative HERE — never trusted from the browser. The catalogue
- * mirrors the storefront product list until the live products table is wired to
- * the public site. Orders land in the same `orders` table the admin queue reads,
+ * Prices are authoritative HERE, never trusted from the browser, and come only
+ * from published rows of the products table. Orders land in the same `orders` table the admin queue reads,
  * with channel='web'.
  */
 require __DIR__ . '/_lib.php';
+require __DIR__ . '/_cms.php';
 cors();
 
-/* Server-side catalogue: slug → [name, fabric, price NGN]. Single source of
- * truth for what a piece costs, so the total can't be tampered client-side. */
-$CATALOGUE = [
-  'everyday-shirt-ankara'  => ['Everyday Shirt',  'Ankara',          18500],
-  'signature-shirt-adire'  => ['Signature Shirt', 'Adire',           24000],
-  'wrap-dress-adire'       => ['Wrap Dress',      'Adire',           32000],
-  'two-piece-set-ankara'   => ['Two-Piece Set',   'Ankara',          45000],
-  'heritage-set-asooke'    => ['Heritage Set',    'Aso-Oke',         68000],
-  'heritage-accessory'     => ['Headwrap / Tie',  'Mixed',            6500],
-];
-
-$FREE_SHIP_OVER = 25000;          // free Lagos delivery threshold (NGN)
-$LAGOS_SHIP     = 2500;           // flat Lagos delivery under the threshold
+/* Prices come only from the published `products` table. There is no built-in
+ * fallback list and no free-delivery threshold: offers exist only when the owner
+ * sets them up (owner decision, 10 October 2026: nothing invented). The two flat
+ * delivery rates below are unchanged; the retail shop stays hidden from public
+ * navigation unless `shop_enabled` is on. */
+$LAGOS_SHIP     = 2500;           // flat Lagos delivery
 $NG_SHIP        = 4500;           // rest of Nigeria
 
 $action = $_GET['action'] ?? 'catalogue';
@@ -46,7 +39,13 @@ if ($action === 'config' && method() === 'GET') {
   $shopEnabled = false;   // retail shop hidden from public navigation unless switched on
   $res = $conn->query("SELECT skey, svalue FROM settings WHERE skey IN ('socials','store_name','shop_enabled')");
   while ($res && $row = $res->fetch_assoc()) {
-    if ($row['skey'] === 'socials') { $d = json_decode($row['svalue'], true); if (is_array($d)) $socials = $d; }
+    // Only links that pass the platform allowlist (https, the platform's own
+    // host, an account path) are returned; anything else is left out (A12).
+    if ($row['skey'] === 'socials') {
+      $d = json_decode($row['svalue'], true);
+      foreach (socials_public(is_array($d) ? $d : []) as $sp) $socials[$sp['platform']] = $sp['url'];
+      if (isset($socials['x'])) $socials['twitter'] = $socials['x'];   // older footer key
+    }
     if ($row['skey'] === 'store_name') $storeName = (string)$row['svalue'];
     if ($row['skey'] === 'shop_enabled') $shopEnabled = (string)$row['svalue'] === '1';
   }
@@ -103,7 +102,7 @@ if ($action === 'testimonials' && method() === 'GET') {
 
 /* ---- CATALOGUE ----------------------------------------------------------- */
 /* Serves the live products table (published pieces), shaped for the storefront.
- * Falls back to the curated $CATALOGUE only if nothing is published yet. */
+ * Nothing published means an empty list; there is no fallback catalogue. */
 if ($action === 'catalogue' && method() === 'GET') {
   $out = [];
   $res = $conn->query(
@@ -130,13 +129,8 @@ if ($action === 'catalogue' && method() === 'GET') {
       'sizes' => $row['sizes'] ? explode(',', $row['sizes']) : [], 'stock' => (int)$row['stock'],
     ];
   }
-  // Nothing published — hand back the curated fallback so the shop is never bare.
-  if (!$out) {
-    foreach ($CATALOGUE as $slug => [$name, $fabric, $price]) {
-      $out[] = ['slug' => $slug, 'name' => $name, 'fabric' => $fabric, 'price_ngn' => $price, 'priceNgn' => $price];
-    }
-  }
-  json(['products' => $out, 'free_ship_over' => $FREE_SHIP_OVER]);
+  // free_ship_over stays in the reply as null for older clients; there is no offer.
+  json(['products' => $out, 'free_ship_over' => null]);
 }
 
 /* ---- CHECKOUT ------------------------------------------------------------ */
@@ -159,8 +153,8 @@ if ($action === 'checkout' && method() === 'POST') {
   if (!$reqItems) fail('Your basket is empty');
 
   // Resolve every line against the LIVE products table (authoritative pricing +
-  // real variant stock). Unknown-in-DB slugs fall back to the curated list so
-  // legacy links keep working. Never trust the client's price.
+  // real variant stock). A slug that is not a published product is refused.
+  // Never trust the client's price.
   $items = [];
   $goods = 0;
   $prodStmt = $conn->prepare("SELECT id, name, fabric, base_price, one_of_a_kind, care FROM products WHERE slug = ? AND deleted_at IS NULL AND published = 1 LIMIT 1");
@@ -187,11 +181,6 @@ if ($action === 'checkout' && method() === 'POST') {
       $sku = $v ? $v['sku'] : $slug . '-' . strtolower($size);
       $items[] = ['label' => $label, 'sku' => $sku, 'qty' => $qty, 'unit_price' => $price, 'variant_id' => $v ? (int)$v['id'] : null];
       $goods += $qty * $price;
-    } elseif (isset($CATALOGUE[$slug])) {
-      [$pname, $fabric, $price] = $CATALOGUE[$slug];
-      $label = $pname . ' · ' . $fabric . ' · ' . $size;
-      $items[] = ['label' => $label, 'sku' => $slug . '-' . strtolower($size), 'qty' => $qty, 'unit_price' => $price, 'variant_id' => null];
-      $goods += $qty * $price;
     } else {
       fail('Unknown item: ' . $slug);
     }
@@ -199,7 +188,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Shipping.
   $ship = 0;
-  if ($delivery === 'lagos')   $ship = $goods >= $FREE_SHIP_OVER ? 0 : $LAGOS_SHIP;
+  if ($delivery === 'lagos')   $ship = $LAGOS_SHIP;
   if ($delivery === 'nigeria') $ship = $NG_SHIP;
 
   // Resolve the customer up front — link by phone, or create a CRM record for a

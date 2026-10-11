@@ -6,12 +6,20 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### `feat/phase4-website` (no PR yet), 11 October 2026
 
+Added
+
+- Website CMS, server side: `schema_phase26.sql` (`media_assets`, `cms_items`), pure rules in `_cms.php` with 72 new helper tests (323 in total), `cms.php` for staff (services, portfolio projects, FAQs, privacy and terms, pages: draft, preview, publish, unpublish, one-step rollback, stable slugs, reorder; business profile; images), the public projection `site.php` (published content only, through whitelists; no drafts, consent records or client links) and `sitemap.php` at `/sitemap.xml` (A24).
+- Image uploads (`_media.php`): staff only, JPEG, PNG or WebP checked by content, 8 MB and 40 megapixels at most, re-encoded with GD so EXIF and GPS are dropped, 800 and 1600 pixel WebP plus a JPEG, random names, stored under `uploads/site/` whose `.htaccess` serves image names only and switches PHP off.
+- Business profile settings (name, phone, WhatsApp, email, address with a public switch, service area, hours text, socials including LinkedIn, journal switch), all empty by default; the public config omits empty facts and builds LocalBusiness JSON-LD only from facts that are set.
+
 Removed
 
+- Server-side invented offers and fallbacks (A07, A22): `store.php` loses the free Lagos delivery threshold and the built-in fallback catalogue (checkout refuses any slug that is not a published product; `free_ship_over` is now null); `schema_phase5.sql` no longer seeds HERIT10 and FREESHIP, and `schema_phase26.sql` switches those codes off where they were never used.
 - Invented fallbacks (A07): the static products in `site/products.js` and the sample posts and testimonials in `site/content.js`. Empty or unreachable now means an empty list, and the pages show their empty state or hide the section. The shop pages lose the "Free Lagos delivery over ₦25,000", "Ships worldwide" and "14-day returns" claims and the Ajuwon Market pickup label.
 
 Changed
 
+- Social links (A12): `store.php?action=config`, `site.php` and `settings.php` accept and return only `https://` links on each platform's own host with an account path, and WhatsApp only as `https://wa.me/<digits>`; fallbacks and home-page links are left out. `robots.txt` now covers every current admin and portal path and points at the new sitemap.
 - One design token layer (A23): `src/assets/tokens/` holds every colour once and emits `--hc-*` custom properties; Larkon's SCSS variables, `heritos-admin.css`, the Phase 2 `--hd-*` set and `portal.css` all read it. Admin primary buttons become amber with ink text, `.text-primary` uses the accessible amber text colour, and the warm shadows, glass topbar, gradients and mono uppercase labels are gone. The public site stays light whatever the admin theme is.
 
 ### `feat/phase3-appointments-portal` (no PR yet), 10 October 2026

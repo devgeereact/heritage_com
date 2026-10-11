@@ -434,5 +434,8 @@ check('testimonial name: anonymous', testimonial_name('anonymous', 'Ada Obi'), '
 check('testimonial name: first name only', testimonial_name('first_name', 'Ada Obi'), 'Ada');
 check('testimonial name: no consent never publishes', testimonial_name('no', 'Ada Obi'), null);
 
+/* ---- Phase 4: website CMS (_cms.php) --------------------------------------- */
+require __DIR__ . '/cms_cases.php';
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

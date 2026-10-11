@@ -12,17 +12,17 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | A07 | P0 | Website | Invented claims and offers still on the home page | None | Business owner | Open (Phase 4) |
 | A13 | P0 | Quality | Lint checks no JS/JSX files | JS/JSX config written and tested; owner to apply | Business owner | Blocked |
 | A20 | P0 | Operations | Backups and deployed config not certified | None | Business owner | Open |
-| A12 | P1 | Website | Social links fall back to platform home pages | None | Business owner | Open (Phase 4) |
+| A12 | P1 | Website | Server refuses and hides unverified social links (`feat/phase4-website`); the footer still has its own fallbacks | None | Business owner | Partly fixed (in code) |
 | A15 | P1 | Security | Staff token in a JS-readable cookie; customer token moves to sessionStorage on `feat/phase3-appointments-portal` | CORS gate (PR #6) | Business owner | Partly fixed; staff token storage Open |
 | A16 | P1 | PWA | Writes not blocked offline | None | Business owner | Open |
-| A22 | P2 | Promotions | HERIT10 has no first-order check | Resolved when A07 removes the offer | Business owner | Open |
-| A24 | P2 | SEO | No sitemap; robots.txt points at a missing one | None | Business owner | Open (Phase 4) |
 | K-04 | P2 | Auth | `/auth/reset-pass` shows a form whose submit does nothing (`ResetPassword.jsx:33`, `handleSubmit(() => {})`); there is no recovery endpoint | Owner password reset by hash in phpMyAdmin ([DEPLOYMENT.md](docs/DEPLOYMENT.md#database-and-schema-files)) | Business owner | Open; owner recovery is launch core ([SECURITY.md](docs/SECURITY.md#staff)) |
 
 ## Fixed in code, awaiting merge and deploy
 
 | ID | Severity | Area | Fix | Evidence | Status |
 |---|---|---|---|---|---|
+| A22 | P2 | Promotions | HERIT10 and FREESHIP no longer seeded; switched off where unused (`schema_phase26.sql`, `feat/phase4-website`) | Staging check PASS | In code |
+| A24 | P2 | SEO | `sitemap.php` at `/sitemap.xml`, published content only; robots.txt rewritten (`feat/phase4-website`) | Staging check PASS; live `.htaccess` rewrite NOT TESTED | In code |
 | A04 | P0 | Content safety | Server allowlist sanitiser (PR #6) | Helper tests PASS; rendered page NOT TESTED | In code |
 | A05 | P0 | Payments | Transaction (PR #6), then append-only ledger with request keys (PR #9) | Staging API PASS; concurrency NOT TESTED | In code |
 | A08 | P1 | Appointments | Real appointments, availability, requests and blocked time; the demo calendar retired (`feat/phase3-appointments-portal`) | Staging API and browser PASS at 390px and 1280px | In code |

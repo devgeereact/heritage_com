@@ -13,7 +13,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 
 ## Endpoint inventory
 
-47 top-level PHP files on the Phase 3 branch: 40 endpoints, five shared includes and two config files (Verified 10 October 2026). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (23 files on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
+52 top-level PHP files on the Phase 4 branch: 43 endpoints, seven shared includes and two config files (Verified 11 October 2026; 47 on the Phase 3 branch). "Server gate" is the role list passed to the file-level `require_auth()` call; individual actions may narrow it further, which is NOT TESTED. "CI" means `deploy.yml` copies it to the server on every push to `main` (28 files on the Phase 4 branch, 23 on the Phase 3 branch, 16 on the Phase 2 branch, nine before it); "Manual" means it reaches the server only by hand upload, so its live version is Unknown (A02).
 
 | File | Purpose | Server gate (file level) | Deployed by |
 |---|---|---|---|
@@ -32,6 +32,11 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `access.php` | Verified customer access: start, verify, redeem an invite, logout; owner invites and revocation (Phase 3) | Public and customer session; `requests`, `invite`, `revoke` owner | CI (Phase 3 branch) |
 | `portal.php` | Customer portal over tailoring jobs and retail orders: job view, messages, change requests, appointment requests, measurement proposals, feedback (Phase 3) | Customer session; every lookup filtered by the signed-in client | CI (Phase 3 branch) |
 | `messages.php` | Job messages, change-request decisions and feedback moderation (Phase 3) | Owner | CI (Phase 3 branch) |
+| `_cms.php` | Pure Phase 4 website rules: field schemas, sanitising, slugs, social link allowlist, business profile validation, publish checks, the draft, publish and rollback state machine, the public whitelist projections, JSON-LD, sitemap XML, upload type and image width plan | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 4 branch) |
+| `_media.php` | Phase 4 image ingest: type check, GD re-encode (metadata stripped), WebP and JPEG variants with random names | Not an endpoint; direct requests refused by `.htaccess` | CI (Phase 4 branch) |
+| `cms.php` | Website CMS: services, portfolio, FAQs, policies, pages (draft, preview, publish, unpublish, rollback), images, business profile (Phase 4) | super_admin, admin, manager, editor; policy publishing and the profile owner only | CI (Phase 4 branch) |
+| `site.php` | Public website projection: published content only (Phase 4) | Public, GET only | CI (Phase 4 branch) |
+| `sitemap.php` | XML sitemap of published public pages, served at `/sitemap.xml` (Phase 4) | Public | CI (Phase 4 branch) |
 | `today.php` | Daily worklist | Owner: super_admin, admin, manager | CI (Phase 2 branch) |
 | `enquiries.php` | Enquiry pipeline and conversion | super_admin, admin, manager, employee (convert owner only) | CI (Phase 2 branch) |
 | `measurements.php` | Templates and measurement sets | Workshop | CI (Phase 2 branch) |
@@ -55,9 +60,9 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `payments.php` | Money in and out, cash position | super_admin, admin, manager | Manual |
 | `referrals.php` | Referral codes and rewards | super_admin, admin, manager | Manual |
 | `reviews.php` | Reviews, ratings and photo moderation | super_admin, admin, manager, editor | Manual |
-| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings | super_admin, admin, manager | Manual |
+| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php` | super_admin, admin, manager | Manual |
 | `stock.php` | Stock adjustments | super_admin, admin, manager, employee | Manual |
-| `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`) | Public | Manual |
+| `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`). On the Phase 4 branch there is no fallback catalogue or free-delivery threshold, and `config` returns only social links that pass the allowlist | Public | Manual |
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | super_admin, admin, manager | Manual |
 | `users.php` | Team and access: staff CRUD, last super_admin guard | Management super_admin, admin; self actions any staff | Manual |
 | `weather.php` | Lagos forecast from Open-Meteo, no key (weather.php:23) | super_admin, admin, manager, seller, employee | Manual |
@@ -65,7 +70,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `config.sample.php` | Template for server-only `config.php` | Not an endpoint | Never deployed |
 | `config.local.php` | Local staging config written by `scripts/staging/setup.sh`; gitignored | Not an endpoint | Never deployed |
 
-Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`; every `booking.php` action (`config`, `slots`, `request`) and `access.php` `start`, `verify` and `redeem` on the Phase 3 branch. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
+Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`; every `booking.php` action (`config`, `slots`, `request`) and `access.php` `start`, `verify` and `redeem` on the Phase 3 branch; every `site.php` action and `sitemap.php` on the Phase 4 branch. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
 
 ## Customer lookups and references
 
@@ -183,3 +188,86 @@ Every action needs a customer session. A job is addressed by its public referenc
 | `portal_show_measurements` | `0` | `settings.php` |
 | `feedback_publish_wording`, `feedback_photo_wording` | Proposed wording (`schema_phase25.sql`), at most 1000 characters | `settings.php` |
 
+
+## Phase 4 website CMS and public projection
+
+Branch `feat/phase4-website` (no PR yet). Verified on local staging, 11 October 2026, by `scripts/staging/e2e-phase4.sh` ([LOCAL-STAGING.md](LOCAL-STAGING.md#end-to-end-checks)). Tables: [DATA-MODEL.md](DATA-MODEL.md#phase-4-tables-schema_phase26). Every write takes a JSON body except `media_upload` (multipart). Times are UTC `DATETIME` strings.
+
+### Content model
+
+Entities: `service`, `project` (portfolio), `faq`, `policy` (keys `privacy`, `terms`) and `page` (keys `home`, `about`, `how_it_works`, `company`, `services_intro`, `contact`). Each item keeps a public `live` copy, an unpublished `draft` and one earlier version (`prev`). Saving a draft never changes the public site. Publishing copies the draft to live and keeps the old live copy; rolling back swaps live and the earlier version, so a second rollback undoes the first. Unpublishing hides the item and keeps its content. An item that was ever published is never deleted (unpublish it), and its slug never changes.
+
+Fields (`data` in `save_draft`; required ones are checked only at publish):
+
+| Entity | Fields |
+|---|---|
+| `service` | `title` (required, 120), `summary` (300), `body` (rich text), `includes` (up to 12 lines of 160), `price_note` (255), `hero_media_id`, `seo_title` (70), `seo_description` (170) |
+| `project` | `title` (required), `summary`, `body`, `garment`, `fabric` (120), `service_slug`, `cover_media_id`, `images` ([{`media_id`, `alt`, `role`: front, back, detail, process or other}], up to 24), `featured`, `seo_title`, `seo_description`; private, never public: `own_work`, `consent_images`, `consent_client`, `consent_note` (255), `client_id` |
+| `faq` | `question` (required, 255), `answer` (required, rich text), `category` (40), `show_on_home` |
+| `policy` | `title` (required), `body` (required, rich text), `effective_date` (YYYY-MM-DD) |
+| `page` | `headline` (required, 160), `intro` (600), `body` (rich text), `hero_media_id`, `seo_title`, `seo_description` |
+
+Rich text goes through `sanitize_html()` on save (scripts, event handlers, styles, iframes and unsafe URLs removed). Publish is refused (422 `{problems}`) when a required field is empty; any public text holds `[owner`, `{{`, `lorem`, `TODO` or `TBC`; an image is missing, deleted or has alt text under five characters (the per-image `alt` overrides the image's own); or, for a project, there is no image, no image consent, or no client consent on work that is not the business's own. A project whose public text looks like a phone number, email address or staff code answers 409 `{warnings}` until it is published again with `confirm_leak:true`.
+
+### `cms.php` (staff)
+
+| Action | Method | Request | Response | Roles |
+|---|---|---|---|---|
+| `list&entity=E` | GET | | `{items:[{id, entity, slug, key?, status, sort, version, title, has_draft, has_prev, slug_locked, published_at, live_updated_at, draft_updated_at, updated_at}], keys?}` (`keys` lists the fixed page or policy keys) | CMS |
+| `get&entity=E&id=N` or `&key=K` | GET | | `{item}`: the list fields plus `live`, `draft` and `editable` (draft if any, else live) | CMS |
+| `save_draft&entity=E` | POST | `{id?, key? (page, policy), slug? (service, project), sort?, data:{…}}`. Without `id` it creates the item (service and project slug from `slug` or the title); a page or policy is found or created by `key` | 201 created or 200 `{ok, item}`; 400 `{errors}` per field; 409 `{code:'slug_taken'}` or `{code:'slug_locked'}` | CMS |
+| `preview&entity=E&id=N` | GET | | `{entity, status, has_draft, preview, problems}`: `preview` is exactly the public shape built from the draft (or live) | CMS |
+| `publish&entity=E&id=N` | POST | `{confirm_leak?}` | `{ok, item}`; 422 `{problems}`; 409 `{warnings}` or `{code}` (`nothing_to_publish`, `no_changes`) | CMS; policy owner only |
+| `unpublish`, `rollback`, `discard_draft`, `delete` (`&entity=E&id=N`) | POST | | `{ok, item}` (`delete`: `{ok}`); 409 `{code}`: `not_published`, `no_previous_version`, `no_draft`, `published_once` | CMS; policy `unpublish` and `rollback` owner only |
+| `reorder&entity=E` | POST | `{ids:[…]}` in the new order | `{ok}` | CMS |
+| `media_list` | GET | | `{items:[media], max_mb}`; media: `{id, width, height, alt_text, caption, bytes, created_at, in_use, public:{url, srcset:[{url, width, type}], width, height, alt}}` | CMS |
+| `media_upload` | POST multipart | `file`, `alt_text?`, `caption?` | 201 `{ok, duplicate:false, media}`; the same file again 200 `{duplicate:true}`; 413 over `MEDIA_MAX_MB`; 415 not JPEG, PNG or WebP by content; 501 without GD | CMS |
+| `media_update&id=N` | POST | `{alt_text?, caption?}` (250 each) | `{ok, media}` | CMS |
+| `media_delete&id=N` | POST | | `{ok}` (soft delete); 409 while a live or draft item uses it | CMS |
+| `profile_get` | GET | | `{profile:{business_name, business_phone, business_whatsapp, business_email, business_address, business_address_public, business_area_text, business_hours_text, socials:{platform:url}, journal_enabled}, missing:[keys]}` | CMS |
+| `profile_save` | POST | Any profile keys | `{ok, saved, profile}`; 400 `{errors}` (for example `socials.instagram`) | Owner |
+
+CMS roles are super_admin, admin, manager and editor; owner roles are super_admin, admin and manager. Every write is audited (`website_*` actions). Publishing, unpublishing, rollback, reorder, image text changes and profile saves bump the `site_rev` setting.
+
+Social links: `instagram`, `facebook`, `tiktok`, `x` (`twitter` is read as `x`), `youtube` and `linkedin` must be `https://` on that platform's own host or a subdomain of it, with an account path, no credentials and no port; `whatsapp` must be exactly `https://wa.me/<8 to 15 digits>` (a bare number is converted). Anything else is refused on save and left out of public output. `business_whatsapp` is stored as international digits (a Nigerian `0…` number becomes `234…`).
+
+### `site.php` (public, GET only)
+
+Answers carry an ETag (304 on a match) and `Cache-Control: public, max-age=60, stale-while-revalidate=300`, so an unpublish can take up to a minute to disappear from a browser cache. Missing, unpublished or unknown items answer 404 `{error}`. Image URLs are root-relative (`/uploads/site/…`); in development, prefix the API base.
+
+| Action | Response |
+|---|---|
+| `config` | `{business:{name?, phone?, whatsapp?, whatsapp_url?, email?, address? (only when business_address_public is 1), area?, hours_text?}, socials:[{platform, url}], nav:{services, work, faqs, about, how_it_works, company, contact, journal, privacy, terms, book, shop}, pages:[published page keys], booking_enabled, site_url, jsonld (LocalBusiness or null), rev}`. Empty facts are omitted; `jsonld` is null without a business name and never has ratings |
+| `home` | `{page (home page or null), services (up to 6), work (up to 6, featured first), faqs (up to 4 with show_on_home)}` |
+| `page&key=K` | `{page:{key, headline, intro, body, hero, seo_title, seo_description, updated_at}}` |
+| `services` | `{intro (services_intro page or null), items:[service]}`; service: `{slug, title, summary, body, includes, price_note, hero, seo_title, seo_description, published_at, updated_at}` |
+| `service&slug=S` | `{service, work:[up to 6 projects with this service_slug]}` |
+| `work[&service=S]` | `{items:[project]}`; project: `{slug, title, summary, body, garment, fabric, service_slug, cover, images:[image + role], featured, seo_title, seo_description, published_at, updated_at}` |
+| `work_item&slug=S` | `{item:project}` |
+| `faqs[&home=1]` | `{items:[{id, question, answer, category, show_on_home}]}` |
+| `policy&key=privacy\|terms` | `{policy:{key, title, body, effective_date, updated_at}}` |
+| `journal` | `{enabled, items:[{slug, title, excerpt, category, author, published_at}]}`; empty while `journal_enabled` is off |
+| `journal_post&slug=S` | `{post:{slug, title, excerpt, body (sanitised), category, author, published_at}}`; 404 while the journal is off |
+
+Images (`hero`, `cover`, `images[]`): `{url (JPEG fallback), srcset:[{url, width, type:'image/webp'}], width, height, alt, caption?}`, or null.
+
+### `sitemap.php`
+
+`GET /sitemap.xml` (rewrite in `.htaccess`; the staging router does the same) returns `application/xml`. It lists `/` and `/contact` always; `/book` while public requests are on and ready; `/services`, `/work` and `/faqs` when something is published under them; each published page (`/about`, `/how-it-works`, `/company-orders`, `/contact`, `/services` for the intro), policy (`/privacy`, `/terms`), service (`/services/<slug>`) and project (`/work/<slug>`) with `lastmod`; and `/journal` with `/journal/<slug>` for published posts while `journal_enabled` is on. Absolute URLs use `SITE_URL`. These paths are the React routes the public site must serve.
+
+### Phase 4 settings keys
+
+All start empty (or `0`); empty means hidden on the public site. Saved by `cms.php?action=profile_save` or `settings.php`, both through `profile_clean()`.
+
+| Key | Rule |
+|---|---|
+| `business_name` | Up to 120 characters; needed for the JSON-LD |
+| `business_phone` | Digits, spaces, brackets, hyphens, optional leading `+` |
+| `business_whatsapp` | International digits; public as `whatsapp_url` `https://wa.me/<digits>` |
+| `business_email` | A valid address |
+| `business_address`, `business_address_public` | Up to 300 characters; shown publicly only when `business_address_public` is `1` (default `0`) |
+| `business_area_text` | Service area, up to 300 characters |
+| `business_hours_text` | Up to 300 characters |
+| `socials` | `{platform: url}`, rules above |
+| `journal_enabled` | `0` or `1` (default `0`): the journal list, posts and sitemap entries |
+| `site_rev` | Counter bumped on every public change; read-only |
