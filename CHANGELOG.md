@@ -6,6 +6,18 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### `feat/phase4-website` (no PR yet), 11 October 2026
 
+Added
+
+- Public UI kit in `src/app/(public)/site/ui/` (Button, Section and SectionHead, Card, ServiceCard, WorkCard, Field and ErrorSummary, StatusChip, HcImage, Hero, Icon) and a motion layer: word-by-word headline mask reveal and image settle on the first home view per session, once-only fade-up reveals below the fold, the amber measure line under eyebrows, a filling step rule, growing link underlines and button press feedback, all static under reduced motion. New header (opaque, menu sheet with focus trap below 1024px) and footer that shows only filled-in business details and verified social links (A12). `npm run check:tokens` guards the stylesheets against raw colours (A23).
+
+Changed
+
+- `site.css` rebuilt on the tokens: white and light-ash surfaces, thin dividers, Source Serif 4 headings at weight 500, Inter body; fabric pattern tiles, dark bands, shadows and the Tack Stitch leftovers are gone. Home, About and Contact use the UI kit; the contact form no longer needs react-bootstrap.
+
+Removed
+
+- Invented public content (A07): the home marquee, three-slide hero with worldwide shipping and ₦18,500, stats, the four named staff, the press logo strip, the HERIT10 newsletter and offers, "Free Lagos delivery over ₦25,000", Ajuwon Market and "shipped worldwide" in the footer, About and Contact, the social fallback URLs, and the Contact page's map, shipping table and FAQ answers until the owner confirms them. Swiper is no longer imported (the package stays in `package.json`).
+
 Performance
 
 - Admin CSS kept off public routes: layouts are lazy and each loads its own CSS (`PublicLayout` tokens only; `AuthLayout` and `AdminLayout` Bootstrap, Larkon and `heritos-admin.css`). Public home initial CSS fell from 63.0 KB to 6.5 KB gzip and JS from 155.7 KB to 107.4 KB gzip ([qa/PERFORMANCE-AUDIT.md](qa/PERFORMANCE-AUDIT.md)).

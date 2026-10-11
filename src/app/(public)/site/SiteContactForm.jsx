@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Row, Col, Form, Spinner } from 'react-bootstrap';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
+import { Field, ErrorSummary } from './ui/Field';
+import Button from './ui/Button';
+import Icon from './ui/Icon';
 
 const TYPES = [
   { v: 'order', l: 'Question about an order' },
   { v: 'product', l: 'Question about a piece' },
-  { v: 'custom', l: 'Custom / aso-ebi request' },
+  { v: 'custom', l: 'Made to measure or group order' },
   { v: 'gifting', l: 'Gifting enquiry' },
-  { v: 'wholesale', l: 'Wholesale / stockist' },
+  { v: 'wholesale', l: 'Wholesale or stockist' },
   { v: 'general', l: 'General enquiry' },
 ];
 
@@ -16,24 +17,27 @@ const TYPES = [
 const empty = { name: '', phone: '', email: '', company: '', type: 'order', interest: '', message: '', website_url_confirm: '' };
 
 /**
- * Public enquiry form. Posts to the same PHP enquiries endpoint as the
- * old landing form, but wears the new `.hc` theme classes.
+ * Public enquiry form (contact.php). Persistent labels, required stated in
+ * text, an error summary that takes focus on a failed submit, and typed
+ * values kept when sending fails.
  */
 const SiteContactForm = ({ defaultType }) => {
   const [form, setForm] = useState({ ...empty, type: defaultType || empty.type });
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState([]);
+  const [sendError, setSendError] = useState('');
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const errorFor = (id) => errors.find((e) => e.id === id)?.message;
 
   const submit = async (e) => {
     e.preventDefault();
-    setError('');
-    if (!form.name.trim()) { setError('Please tell us your name.'); return; }
-    if (!form.phone.trim() && !form.email.trim()) {
-      setError('Leave a phone number or email so we can reply.');
-      return;
-    }
+    setSendError('');
+    const found = [];
+    if (!form.name.trim()) found.push({ id: 'cf-name', message: 'Enter your name.' });
+    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cf-phone', message: 'Enter a phone number or an email address so we can reply.' });
+    setErrors(found);
+    if (found.length) return;
     setStatus('sending');
     try {
       await heritApi.contact.submit(form);
@@ -41,74 +45,51 @@ const SiteContactForm = ({ defaultType }) => {
       setForm({ ...empty, type: defaultType || empty.type });
     } catch (err) {
       setStatus('error');
-      setError(err.message || 'Could not send. Please try WhatsApp or email.');
+      setSendError(err.message || 'Your message was not sent. Please try again.');
     }
   };
 
   if (status === 'sent') {
     return (
-      <div className="hc-form-done">
-        <IconifyIcon icon="solar:check-circle-bold" />
-        <h4>Message received</h4>
-        <p>Thank you — you&apos;re officially family. We aim to reply within one business day.</p>
-        <button className="hc-btn hc-btn--ghost hc-mt-3" onClick={() => setStatus('idle')}>
-          Send another
-        </button>
+      <div className="hc-success-panel" role="status">
+        <h3><Icon name="check-circle" /> Message received</h3>
+        <p>Thank you. We will reply as soon as we can.</p>
+        <Button variant="secondary" className="hc-mt-3" onClick={() => setStatus('idle')}>Send another</Button>
       </div>
     );
   }
 
   return (
-    <Form onSubmit={submit} className="hc-form" noValidate>
-      {error && <div className="hc-form-error">{error}</div>}
-      <Row className="g-3">
-        <Col md={6}>
-          <label className="hc-label">Name</label>
-          <Form.Control value={form.name} onChange={set('name')} placeholder="Your name" />
-        </Col>
-        <Col md={6}>
-          <label className="hc-label">What can we help with?</label>
-          <Form.Select value={form.type} onChange={set('type')}>
-            {TYPES.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
-          </Form.Select>
-        </Col>
-        <Col md={6}>
-          <label className="hc-label">Phone / WhatsApp</label>
-          <Form.Control value={form.phone} onChange={set('phone')} placeholder="+234..." />
-        </Col>
-        <Col md={6}>
-          <label className="hc-label">Email</label>
-          <Form.Control type="email" value={form.email} onChange={set('email')} placeholder="you@email.com" />
-        </Col>
-        <Col xs={12}>
-          <label className="hc-label">Company or organisation (optional)</label>
-          <Form.Control value={form.company} onChange={set('company')} placeholder="For group or company orders" autoComplete="organization" />
-        </Col>
-        <Col xs={12}>
-          <label className="hc-label">Piece or fabric in mind (optional)</label>
-          <Form.Control value={form.interest} onChange={set('interest')} placeholder="e.g. Adire wrap dress, size M" />
-        </Col>
-        <Col xs={12}>
-          <label className="hc-label">Message</label>
-          <Form.Control as="textarea" rows={4} value={form.message} onChange={set('message')}
-            placeholder="Tell us about the occasion, size, style and timing." />
-        </Col>
-        {/* Honeypot — hidden from people, catches bots. */}
+    <form onSubmit={submit} noValidate>
+      <ErrorSummary errors={errors} />
+      {sendError && <p className="hc-form-error" role="alert">{sendError}</p>}
+      <div className="hc-form-grid">
+        <Field id="cf-name" label="Name" required value={form.name} onChange={set('name')} autoComplete="name" error={errorFor('cf-name')} />
+        <Field id="cf-type" label="What can we help with?" as="select" value={form.type} onChange={set('type')}>
+          {TYPES.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
+        </Field>
+        <Field id="cf-phone" label="Phone or WhatsApp" type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel"
+          help="A phone number or an email address is needed." error={errorFor('cf-phone')} />
+        <Field id="cf-email" label="Email" type="email" value={form.email} onChange={set('email')} autoComplete="email" />
+        <Field id="cf-company" label="Company or organisation (optional)" className="hc-field--full" value={form.company} onChange={set('company')} autoComplete="organization"
+          help="Only for group or company orders." />
+        <Field id="cf-interest" label="Piece or fabric in mind (optional)" className="hc-field--full" value={form.interest} onChange={set('interest')} />
+        <Field id="cf-message" label="Message" as="textarea" rows={5} className="hc-field--full" value={form.message} onChange={set('message')}
+          help="The occasion, sizes, style and the date you need it by." />
+        {/* Honeypot: hidden from people, catches bots. */}
         <input
           type="text" name="website_url_confirm" tabIndex={-1} autoComplete="off"
           value={form.website_url_confirm} onChange={set('website_url_confirm')}
-          style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
-          aria-hidden="true"
+          className="hc-sr-only" aria-hidden="true"
         />
-        <Col xs={12}>
-          <button type="submit" className="hc-btn hc-btn--primary hc-btn--block" disabled={status === 'sending'}>
-            {status === 'sending'
-              ? <><Spinner size="sm" /> Sending…</>
-              : <><IconifyIcon icon="solar:plain-bold" /> Send enquiry</>}
-          </button>
-        </Col>
-      </Row>
-    </Form>
+        <div className="hc-field--full">
+          <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'}>
+            {status === 'sending' ? 'Sending…' : 'Send enquiry'}
+          </Button>
+          <p className="hc-field-help hc-mt-2" aria-live="polite">{status === 'sending' ? 'Sending your message.' : ''}</p>
+        </div>
+      </div>
+    </form>
   );
 };
 

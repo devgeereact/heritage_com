@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import heritApi from '@/helpers/heritApi';
 import './portal/portal.css';
 import SiteLayout from './SiteLayout';
@@ -14,12 +14,9 @@ import { signedIn } from './portal/session';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
-const field = {
-  width: '100%', padding: '0.7rem 0.85rem', border: '1.5px solid var(--border)',
-  borderRadius: 8, fontSize: '0.95rem', background: 'var(--background)', color: 'var(--foreground)',
-  fontFamily: 'inherit', marginTop: '0.35rem',
-};
-const lbl = { fontFamily: 'var(--font-mono)', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)' };
+// Inputs use the shared .hc-input style (16px text, 48px tall).
+const field = { marginTop: '0.35rem' };
+const lbl = { fontSize: 'var(--hc-text-sm)', fontWeight: 'var(--hc-w-medium)', color: 'var(--hc-text)' };
 
 // The fulfilment pipeline as the customer should understand it. 'cancelled' and
 // the return states are handled separately below.
@@ -75,10 +72,10 @@ const TrackPage = () => {
           <form onSubmit={lookup} className="hc-card" style={{ padding: '1.5rem', display: 'grid', gap: '1rem' }}>
             <div className="hc-grid hc-grid--2" style={{ gap: '1rem' }}>
               <label style={lbl}>Shop order reference
-                <input style={field} placeholder="e.g. K7M2P9QX4R" value={code} onChange={(e) => setCode(e.target.value)} required />
+                <input className="hc-input" style={field} placeholder="e.g. K7M2P9QX4R" value={code} onChange={(e) => setCode(e.target.value)} required />
               </label>
               <label style={lbl}>Phone number
-                <input style={field} placeholder="e.g. 0803…" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                <input className="hc-input" style={field} placeholder="e.g. 0803…" value={phone} onChange={(e) => setPhone(e.target.value)} required />
               </label>
             </div>
             <button type="submit" className="hc-btn hc-btn--primary" disabled={busy}>

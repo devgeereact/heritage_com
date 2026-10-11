@@ -125,14 +125,49 @@ IBM Plex Mono is no longer loaded (Phase 4); codes use the system monospace (`--
 
 ## Motion
 
-- UI actions: about 180 to 250ms. The current curve is `cubic-bezier(.2,.7,.2,1)`. Optional section reveals: 300 to 400ms. The Tesla reference uses about 330ms, which is acceptable where it helps, but the app puts immediate feedback first.
-- Public hero: one real image, or a short optional muted clip with a poster. A gentle opacity change with an 8 to 12px entrance is enough.
-- Never: autoplay hero carousel as the main explanation, scroll hijacking, cursor effects, large parallax, forced viewport-height text clipping, continuously moving tickers, animated statistics without a source, animation during measurement entry or amount editing.
-- Content is visible without JavaScript animation. Reduced-motion rules: [ACCESSIBILITY.md](ACCESSIBILITY.md#reduced-motion).
+Built on `feat/phase4-website` (`src/app/(public)/site/ui/ui.css`, `Hero.jsx`, `useReveal.js`); dependency-free, CSS plus one small hook. Restrained and purposeful: it marks the first view and the user's own actions, nothing moves on its own afterwards.
+
+| Element | Motion | Timing |
+|---|---|---|
+| Home hero headline | Each word rises out of a mask (`translateY(110%)` to 0); opacity stays 1, so the text is one readable string | 700ms `--hc-ease-emph`, 80ms start, 40ms stagger, capped at 12 words |
+| Hero eyebrow, lead, actions, note | Fade up 10px | 360ms at 0, 380, 460 and 540ms |
+| Hero photograph (when one exists) | Settles from `scale(1.04)` to 1 while a light-ash curtain lifts; the image is painted from the first frame so LCP is not delayed | 1200ms image, 700ms curtain from 120ms |
+| Hero run rule | First home view per session only (`sessionStorage.hc_hero_seen`); later views and `animate={false}` are static | |
+| Section content | `data-reveal` items that start below the fold fade up 12px on first view (IntersectionObserver, once); up to four entering together stagger 60ms; a 3s safety net reveals anything already passed | 360ms `--hc-ease` |
+| Measure line | A 1px by 48px amber rule under each eyebrow draws from the left when its heading block reveals; the signature detail | 480ms |
+| How it works | The vertical rule between numbered steps fills amber as each step reveals (triggered, not scroll-linked) | 600ms |
+| Links | Header links: a 1px underline grows from the left on hover and marks the current page; body links thicken from 1px to 2px | 200ms |
+| Buttons | Colour-only hover; press scales to 0.98 | 330ms colour, 80 to 180ms press |
+| Mobile menu | Sheet fades in with an 8px drop | 200ms |
+| Header | 1px divider fades in after 8px of scroll | 330ms |
+
+- Content is never hidden without JavaScript: only items `useReveal` marks `pending` are hidden, and only when they start below the fold, so nothing on screen at load flashes.
+- `prefers-reduced-motion: reduce` removes every animation and transition on public pages (verified: `document.getAnimations().length` is 0 on home, about, contact, track and book, 11 October 2026); the hero curtain is not drawn.
+- Admin: 180 to 250ms colour transitions and a 0.98 button press; the old card lift and settle-in animation are gone.
+- Never: autoplay carousels, scroll hijacking, parallax, cursor effects, tickers or marquees, counters, forced viewport-height text clipping, animation during measurement entry or amount editing.
+
+## Public components
+
+Built in `src/app/(public)/site/ui/` (barrel `ui/index.js`), styled in `ui/ui.css`, tokens only. No new dependencies.
+
+| Component | Contract |
+|---|---|
+| `Button` (`.hc-btn`) | 48px tall, `0 24px`, 4px radius, Inter 500 16px. `primary` amber with ink text, hover `#D97706`; `secondary` light ash with ink text, ink border on hover; `quiet` ink text link with a 4px underline offset. Disabled uses `aria-disabled`. `Actions` holds at most two and stacks them full width below 600px. Older class names `--ghost`, `--light` and `--onfill` render as secondary |
+| `Section`, `SectionHead` | Section on white or `tone="alt"` light ash, `--hc-section-y` padding; heading block with eyebrow, measure line, serif title and lead |
+| `Card`, `ServiceCard`, `WorkCard` | Flat on light ash, 12px radius, no shadows. Service: 3:2 image, serif title, summary, quiet link. Work: 4:5 image, title, muted fabric or fit line, the whole card one link |
+| `Field`, `ErrorSummary` | Label above (14px, 500), "(required)" in text, help below in muted text, 16px input 48px tall with a 1px `#8E8E8E` border and a 2px ink focus outline; inline error in `#991B1B` with an icon via `aria-invalid` and `aria-describedby`; the summary links to fields and takes focus |
+| `StatusChip` | 28px pill, 13px 500, icon plus text on the status tint pair |
+| `HcImage` | Reserved aspect ratio, AVIF and WebP `srcset` when present, required `alt`, `priority` for the one hero image (eager, high priority), lazy and async otherwise |
+| `Hero` | Text beside the photograph from 1024px (columns 1 to 5 and 6 to 12), above it below; never text on the photo, so no scrim. Text-only until real photography exists |
+| `Icon` | About 60 inline stroke SVGs (24px grid, 1.75 stroke, `currentColor`, decorative unless `label` is given); older Iconify names map to them |
+| Header (`SiteHeader.jsx`) | Sticky, opaque white, 64px; wordmark, links, quiet "Track your job", primary "Book an appointment" (or "Request an appointment" while booking is off). Below 1024px a Menu button opens a sheet with 56px rows and Book and Track pinned at the bottom (a recorded deviation: the links do not fit at 768px) |
+| Footer (`SiteFooter.jsx`) | Light ash, four columns, each shown only when it has content: business name, area and hours; phone, WhatsApp and email; explore links; policies. Verified social links only (https on the platform's own domain). Bottom row "© year name" and a small staff link. Details come from `useBusiness()` (`site/business.js`: store config today, the CMS profile through `BusinessContext` later) |
+
+Older page markup (`.hc-card`, `.hc-product`, `.hc-journal-card`, `.hc-chip`, `.hc-table` and so on) is restyled on the tokens in `site.css`; fabric pattern tiles, the marquee, slider, counter, team and logo strip styles are gone. `npm run check:tokens` (`scripts/check-tokens.mjs`) fails if `site.css`, `ui.css`, `portal.css`, `heritos-admin.css` or `herit-daily.css` holds a raw colour.
 
 ## Icon and image direction
 
-- Icons: one existing icon family, consistent stroke and size. Icons accompany labels for important tasks, never replace them.
+- Icons: one family per surface, consistent stroke and size: the bundled `Icon` set on public pages, Iconify (Solar) in the admin. Icons accompany labels for important tasks, never replace them.
 - Images: real garment and workshop photography only ([CONTENT.md](CONTENT.md#photography)).
 
 ## What the Tesla reference contributes
@@ -160,7 +195,8 @@ The reference came from `npx getdesign@latest add tesla` and is kept at [docs/Pl
 | 32 to 40px buttons | 44px preferred, 48px primary form controls | Touch usability |
 | 100vh sections, one message per screen | 40px phone, 72 to 96px desktop section spacing; no forced viewport-height clipping | Content must reflow and stay readable |
 | Auto-advancing hero carousel | One real image or optional muted clip | Carousels hide the explanation |
-| Transparent navigation over the hero | Opaque header when imagery reduces contrast | Contrast |
+| Transparent navigation over the hero | Opaque white header always | Contrast |
+| Navigation collapses below 768px | Collapses below 1024px | The links and two actions do not fit at 768px |
 | Frosted glass navigation | Not used | No glass layers |
 | Placeholder text `#8E8E8E` | Placeholders and help text `#5C5E62`; `#8E8E8E` only for control borders | `#8E8E8E` is 3.28:1, too low for text |
 | Persistent "Ask a question" chat bar | Not used | No live chat infrastructure (deferred) |

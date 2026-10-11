@@ -28,7 +28,7 @@ Owner-confirmed 10 October 2026 (D-003): none of these are real, and all are rem
 | "10% off your first piece, code HERIT10" | HomePage.jsx:96, 218; the coupon has no first-order check (A22) |
 | Sample blog posts and static products priced ₦18,500 to ₦68,000 | Fallbacks in site/products.js:19-84 |
 
-They are replaced with the owner's own story and real finished work. Avoid invented years of experience, team members, customer counts, delivery countries, discounts, performance percentages and client logos. Future offers follow [BR-34](BUSINESS-RULES.md).
+Status, 11 October 2026: removed from the public pages and fallbacks on `feat/phase4-website` (A07); the interim page copy states no numbers, people, offers or reach. They are replaced with the owner's own story and real finished work. Avoid invented years of experience, team members, customer counts, delivery countries, discounts, performance percentages and client logos. Future offers follow [BR-34](BUSINESS-RULES.md).
 
 ## Site architecture
 

@@ -52,7 +52,9 @@ Built on `feat/phase3-appointments-portal`, 11 October 2026. Browser journeys at
 
 ## Public navigation
 
-Services, Our work, How it works, About, Contact, with a Book appointment button and a quieter Track your job link. The mobile menu shows both actions; navigation collapses to a menu below 768px. The header gains an opaque background whenever imagery would reduce text contrast. Page-by-page content: [CONTENT.md](CONTENT.md#site-architecture).
+Services, Our work, How it works, About, Contact, with a Book appointment button and a quieter Track your job link. The mobile menu shows both actions; navigation collapses to a menu below 1024px (six links do not fit at 768px). The header is always opaque. Page-by-page content: [CONTENT.md](CONTENT.md#site-architecture).
+
+As built (`feat/phase4-website`, 11 October 2026): the header shows About and Contact (plus Shop and Gifting while the shop is on), Track your job, and the primary button: Book an appointment while online requests are open, otherwise Request an appointment (to `/contact`). The bag appears only while the shop is on. Staff sign in moved to the footer. Services, Our work and How it works pages come with the CMS pages. Footer columns show only filled-in business details, the explore links and, once published, policies.
 
 ## Required states
 
