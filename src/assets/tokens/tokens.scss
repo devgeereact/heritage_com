@@ -1,0 +1,30 @@
+// Emits the HeritOS tokens as CSS custom properties.
+// :root holds everything (light first). Admin dark mode remaps colours only.
+// .hc (the public site wrapper) redeclares the light colours so the public
+// site (and printed documents) always stay light, whatever the admin theme is.
+@use 'sass:map';
+@import 'tokens-map';
+
+@mixin hc-colours($map) {
+  @each $name, $value in $map {
+    --hc-#{$name}: #{$value};
+  }
+}
+
+:root {
+  @include hc-colours($hc-light);
+  @each $name, $value in $hc-scale {
+    --hc-#{$name}: #{$value};
+  }
+  --hc-shadow-overlay: 0 8px 24px #{$hc-overlay-shadow};
+}
+
+html[data-bs-theme='dark'] {
+  @include hc-colours($hc-dark);
+}
+
+.hc,
+.hd-print {
+  @include hc-colours($hc-light);
+  color-scheme: light;
+}

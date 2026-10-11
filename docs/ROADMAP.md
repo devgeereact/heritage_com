@@ -60,7 +60,7 @@ From the 10 October 2026 audit, every row re-checked by file and line. Evidence 
 | A20 | P0 | No server access used | Backups, private storage, deployed config and schema cannot be certified from the repo | Approved read-only environment review plus a restore exercise | Open |
 | A21 | P1 | content.php:71-75 | Blog UPDATE binds 11 values with a 12-character type string; editing an existing post throws | Fix the type string; save-then-edit regression check | Fixed in code (PR #6): the UPDATE binds 11 values with an 11-character type string. Save-then-edit check in a browser NOT TESTED |
 | A22 | P2 | HomePage.jsx:96, 218; _lib.php:201-233 | HERIT10 advertised as first piece only, but `coupon_eval` has no first-order check | Moot once removed; enforce if a first-order offer returns | Open (resolved by A07) |
-| A23 | P2 | old DESIGN-SYSTEM.md:16-17; site.css; heritos-admin.css | Tack Stitch documented but never implemented; two separate token sets (a third, `--hd-*`, came with Phase 2) | Retire the rule; merge token sets into one layer | Rule retired (D-004); token merge Open (Phase 4) |
+| A23 | P2 | old DESIGN-SYSTEM.md:16-17; site.css; heritos-admin.css | Tack Stitch documented but never implemented; two separate token sets (a third, `--hd-*`, came with Phase 2) | Retire the rule; merge token sets into one layer | Rule retired (D-004); token merge in code on `feat/phase4-website` (one `--hc-*` layer; rendered dark mode not verified) |
 | A24 | P2 | public/ | robots.txt exists; no sitemap | Sitemap for public pages in the website phase | Open (Phase 4); robots.txt already points at the missing sitemap ([CONTENT.md](CONTENT.md#seo-and-performance)) |
 
 ## Deletion candidates awaiting owner approval

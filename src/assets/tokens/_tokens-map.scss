@@ -1,0 +1,111 @@
+// HeritOS design tokens: the only file allowed to hold colour values.
+// tokens.scss emits these as --hc-* custom properties; the Larkon SCSS
+// variables (scss/config/_variables.scss) read the same maps, so a colour
+// change happens once (A23). Contract and measured contrast: docs/DESIGN-SYSTEM.md.
+
+// Light colours (the public site is always light; the admin starts light).
+$hc-light: (
+  'surface':        #FFFFFF,
+  'surface-alt':    #F4F4F4,
+  'text':           #171A20,
+  'text-body':      #393C41,
+  'text-muted':     #5C5E62,
+  'divider':        #D0D1D2,
+  'control-border': #8E8E8E,
+  'accent':         #F59E0B,
+  'accent-hover':   #D97706,
+  'on-accent':      #171A20,
+  'accent-text':    #B45309,
+  'focus':          #171A20,
+  'success':        #15803D,
+  'success-tint':   #F0FDF4,
+  'warning':        #B45309,
+  'warning-tint':   #FFFBEB,
+  'danger':         #991B1B,
+  'danger-tint':    #FEF2F2,
+  'pending':        #5C5E62,
+  'pending-tint':   #F4F4F4,
+);
+
+// Admin dark mode remaps colour tokens only (not verified on rendered pages).
+// The amber fill and its dark button text stay the same.
+$hc-dark: (
+  'surface':        #1C1A17,
+  'surface-alt':    #262320,
+  'text':           #FFFBEB,
+  'text-body':      #E7E1D6,
+  'text-muted':     #C9C2B5,
+  'divider':        #3A352E,
+  'control-border': #7A736A,
+  'accent-text':    #F59E0B,
+  'focus':          #FFFBEB,
+  'success':        #4ADE80,
+  'success-tint':   #14261A,
+  'warning':        #F59E0B,
+  'warning-tint':   #2B2112,
+  'danger':         #FCA5A5,
+  'danger-tint':    #2C1717,
+  'pending':        #C9C2B5,
+  'pending-tint':   #262320,
+);
+
+// Shadow colour for overlays (dropdowns and dialogs only).
+$hc-overlay-shadow: rgba(23, 26, 32, 0.12);
+
+// Everything that is not colour.
+$hc-scale: (
+  'font-sans':  ('"Inter"', system-ui, -apple-system, '"Segoe UI"', Roboto, sans-serif),
+  'font-serif': ('"Source Serif 4"', Georgia, serif),
+  'font-mono':  (ui-monospace, SFMono-Regular, Menlo, Consolas, monospace),
+
+  'text-xs':   0.8125rem,
+  'text-sm':   0.875rem,
+  'text-base': 1rem,
+  'text-md':   1.125rem,
+  'text-lg':   1.25rem,
+  'text-xl':   1.5rem,
+  'text-2xl':  1.75rem,
+  'text-3xl':  2rem,
+  'text-4xl':  2.5rem,
+  'text-hero': clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem),
+
+  'lh-body':    1.6,
+  'lh-heading': 1.2,
+  'lh-hero':    1.08,
+
+  'w-regular':  400,
+  'w-medium':   500,
+  'w-semibold': 600,
+
+  'space-1': 4px,
+  'space-2': 8px,
+  'space-3': 12px,
+  'space-4': 16px,
+  'space-5': 24px,
+  'space-6': 32px,
+  'space-7': 48px,
+  'space-8': 64px,
+  'space-9': 96px,
+  'section-y': clamp(40px, 7vw, 96px),
+
+  'container': 1200px,
+  'measure':   65ch,
+  'gutter':    clamp(16px, 4vw, 32px),
+  'header-h':  64px,
+
+  'radius-control': 4px,
+  'radius-card':    12px,
+  'radius-chip':    999px,
+
+  'touch':     44px,
+  'control-h': 48px,
+
+  'dur-press':   180ms,
+  'dur-ui':      200ms,
+  'dur-color':   330ms,
+  'dur-reveal':  360ms,
+  'dur-hero':    700ms,
+  'ease':         cubic-bezier(0.2, 0, 0, 1),
+  'ease-emph':    cubic-bezier(0.16, 1, 0.3, 1),
+  'ease-curtain': cubic-bezier(0.65, 0, 0.35, 1),
+);

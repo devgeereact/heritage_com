@@ -1,323 +1,174 @@
 /* ============================================================
-   HeritOS — admin polish layer.
-   Loaded after app.scss to lift every admin page at once without
-   forking Larkon: warm surfaces, soft brand shadows, editorial
-   table headers, amber focus rings. Uses standard Bootstrap classes
-   so it propagates everywhere; no per-page edits.
+   HeritOS admin layer, loaded after app.scss on admin and auth routes only.
+   Every value comes from the shared --hc-* tokens (src/assets/tokens), so
+   light and dark both follow one token change (A23). Flat surfaces, thin
+   dividers, no decorative shadows or gradients, ink focus rings.
+   Contract: docs/DESIGN-SYSTEM.md.
    ============================================================ */
+
+/* Legacy aliases, kept for one release so stray references still resolve. */
 :root {
-  --herit-primary: #262626;
-  --herit-primary-dark: #171717;
-  --herit-accent: #F59E0B;
-  --herit-accent-dark: #D97706;
-  --herit-border: #e8e3db;
-  --herit-surface: #FFFBEB;
-  --herit-bg: #FFFFFF;
-  --herit-ink: #1a1714;
-  --herit-ink-muted: #6b655e;
-
-  /* Legacy aliases (kept so any stray references resolve to the new brand) */
-  --herit-maroon: var(--herit-primary);
-  --herit-maroon-dark: var(--herit-primary-dark);
-  --herit-gold: var(--herit-accent);
-  --herit-paper: var(--herit-surface);
+  --herit-primary: var(--hc-text);
+  --herit-primary-dark: var(--hc-text);
+  --herit-accent: var(--hc-accent);
+  --herit-accent-dark: var(--hc-accent-hover);
+  --herit-border: var(--hc-divider);
+  --herit-surface: var(--hc-surface-alt);
+  --herit-bg: var(--hc-surface);
+  --herit-ink: var(--hc-text);
+  --herit-ink-muted: var(--hc-text-muted);
+  --herit-maroon: var(--hc-text);
+  --herit-maroon-dark: var(--hc-text);
+  --herit-gold: var(--hc-accent);
+  --herit-paper: var(--hc-surface-alt);
 }
 
-/* Dark mode tokens — espresso-rooted backdrop, accent gold for emphasis.
-   Keeps text legible (≥AA contrast) and makes focus rings visible on dark. */
-html[data-bs-theme="dark"] {
-  --herit-surface: #1C1A17;        /* primary surface — espresso paper */
-  --herit-bg: #262320;             /* elevated cards */
-  --herit-border: #3A352E;         /* raised espresso hairline */
-  --herit-ink: #FFFBEB;            /* warm off-white text */
-  --herit-ink-muted: #C9C2B5;      /* desaturated warm-grey, still AA */
-  --herit-primary: #F59E0B;        /* in dark mode the accent becomes the active color */
-  --herit-primary-dark: #D97706;
-  --herit-accent: #F59E0B;
-}
+/* ---- amber is a fill, never text on light surfaces ---------------------- */
+.text-primary,
+.link-primary { color: var(--hc-accent-text) !important; }
 
-/* ---- surfaces ------------------------------------------------------------ */
+/* ---- surfaces: flat cards with a thin divider --------------------------- */
 .card {
-  border: 1px solid var(--herit-border);
-  border-radius: 0.7rem;
-  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 6px 20px -10px rgba(146, 64, 14, 0.14);
-  transition: box-shadow 0.18s ease, transform 0.18s ease;
-}
-/* lift only cards that are meant to be interactive (links / clickable rows) */
-a .card:hover,
-.card.card-hover:hover {
-  box-shadow: 0 2px 4px rgba(28, 25, 23, 0.06), 0 14px 32px -12px rgba(146, 64, 14, 0.22);
+  border: 1px solid var(--hc-divider);
+  border-radius: var(--hc-radius-card);
+  box-shadow: none;
 }
 .card .card-header {
   background: transparent;
-  border-bottom: 1px solid var(--herit-border);
-  font-weight: 600;
+  border-bottom: 1px solid var(--hc-divider);
+  font-weight: var(--hc-w-semibold);
 }
+.row > [class*="col"] > .card { height: 100%; }
+.card { display: flex; flex-direction: column; }
+.card > .card-body { flex: 1 1 auto; }
+.card-title, h5.card-title { letter-spacing: 0; }
 
-/* ---- page heading (the HeritOS module pages use h4 + muted lead) --------- */
+/* ---- page headings: Inter 600, sentence case ---------------------------- */
 main .container-fluid > .d-flex h4,
 main .container-fluid > h4.mb-1 {
-  font-family: "Source Serif 4", Georgia, serif;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--hc-font-sans);
+  font-weight: var(--hc-w-semibold);
+  letter-spacing: 0;
 }
+main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 { margin-bottom: var(--hc-space-5) !important; }
+main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 p.text-muted { margin-top: var(--hc-space-1); }
 
-/* ---- tables: editorial mono headers -------------------------------------- */
+/* ---- tables: Inter 600 13px, sentence case ------------------------------ */
 .table > thead th,
 .table-light > tr > th {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #8a807a;
-  font-weight: 600;
+  font-family: var(--hc-font-sans);
+  font-size: var(--hc-text-xs);
+  font-weight: var(--hc-w-semibold);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--hc-text-muted);
 }
-.table > tbody > tr { transition: background 0.12s ease; }
+.table > tbody > tr { transition: background-color var(--hc-dur-ui) var(--hc-ease); }
 
-/* ---- forms: amber focus ------------------------------------------------- */
+/* ---- forms: ink focus, 1px control border ------------------------------- */
+.form-control,
+.form-select { border-color: var(--hc-control-border); }
 .form-control:focus,
 .form-select:focus,
 .form-check-input:focus {
-  border-color: var(--herit-primary);
-  box-shadow: 0 0 0 0.2rem rgba(146, 64, 14, 0.18);
+  border-color: var(--hc-focus);
+  box-shadow: 0 0 0 1px var(--hc-focus);
 }
 .form-check-input:checked {
-  background-color: var(--herit-primary);
-  border-color: var(--herit-primary);
-}
-html[data-bs-theme="dark"] .form-control:focus,
-html[data-bs-theme="dark"] .form-select:focus,
-html[data-bs-theme="dark"] .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(245, 158, 11, 0.25);
+  background-color: var(--hc-text);
+  border-color: var(--hc-text);
 }
 
-/* ---- buttons: consistent radius + a touch of lift ------------------------ */
-.btn { border-radius: 0.5rem; }
+/* ---- buttons: 4px radius, colour-only hover, short press ---------------- */
+.btn {
+  border-radius: var(--hc-radius-control);
+  transition: background-color var(--hc-dur-color) var(--hc-ease), border-color var(--hc-dur-color) var(--hc-ease), color var(--hc-dur-color) var(--hc-ease), transform var(--hc-dur-press) var(--hc-ease);
+}
+.btn:active { transform: scale(0.98); }
 .btn-primary {
-  --bs-btn-bg: #262626;
-  --bs-btn-border-color: #262626;
-  --bs-btn-hover-bg: #171717;
-  --bs-btn-hover-border-color: #171717;
-  --bs-btn-active-bg: #171717;
-  --bs-btn-color: #FFFFFF;
-  --bs-btn-hover-color: #FFFFFF;
-  --bs-btn-active-color: #FFFFFF;
-}
-/* In dark mode, primary inverts to accent gold on amber — text stays dark for AA contrast */
-html[data-bs-theme="dark"] .btn-primary {
-  --bs-btn-bg: #F59E0B;
-  --bs-btn-border-color: #F59E0B;
-  --bs-btn-hover-bg: #D97706;
-  --bs-btn-hover-border-color: #D97706;
-  --bs-btn-active-bg: #D97706;
-  --bs-btn-color: #1A1714;
-  --bs-btn-hover-color: #1A1714;
-  --bs-btn-active-color: #1A1714;
+  --bs-btn-bg: var(--hc-accent);
+  --bs-btn-border-color: var(--hc-accent);
+  --bs-btn-color: var(--hc-on-accent);
+  --bs-btn-hover-bg: var(--hc-accent-hover);
+  --bs-btn-hover-border-color: var(--hc-accent-hover);
+  --bs-btn-hover-color: var(--hc-on-accent);
+  --bs-btn-active-bg: var(--hc-accent-hover);
+  --bs-btn-active-border-color: var(--hc-accent-hover);
+  --bs-btn-active-color: var(--hc-on-accent);
+  --bs-btn-disabled-bg: var(--hc-surface-alt);
+  --bs-btn-disabled-border-color: var(--hc-surface-alt);
+  --bs-btn-disabled-color: var(--hc-text-muted);
+  font-weight: var(--hc-w-medium);
 }
 
-/* ---- badges: slightly softer, monospace numerals where used ------------- */
-.badge { font-weight: 600; letter-spacing: 0.02em; }
+/* ---- badges: soft pill -------------------------------------------------- */
+.badge { border-radius: var(--hc-radius-chip); padding: 0.32em 0.7em; font-weight: var(--hc-w-semibold); }
 
-/* ---- sidebar active item: a warm rail ----------------------------------- */
-.leftside-menu .side-nav .side-nav-item .side-nav-link.active,
-.side-nav-link.active {
-  position: relative;
-}
+/* ---- readable muted text and quiet fills -------------------------------- */
+.text-muted { color: var(--hc-text-muted) !important; }
+.bg-light { background-color: var(--hc-surface-alt) !important; }
 
-/* ---- scrollbars: quiet, on-brand ---------------------------------------- */
-* { scrollbar-color: #C9C2B5 transparent; }
+/* ---- scrollbars --------------------------------------------------------- */
+* { scrollbar-color: var(--hc-divider) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #C9C2B5; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
-::-webkit-scrollbar-thumb:hover { background: #A89F8C; background-clip: content-box; }
-html[data-bs-theme="dark"] * { scrollbar-color: #3A352E transparent; }
-html[data-bs-theme="dark"] ::-webkit-scrollbar-thumb { background: #3A352E; background-clip: content-box; }
-html[data-bs-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #4A443B; background-clip: content-box; }
+::-webkit-scrollbar-thumb { background: var(--hc-divider); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--hc-control-border); background-clip: content-box; }
 
-/* ============================================================
-   Dashboard polish + global a11y / motion (added in rebrand).
-   Equal cards, classic motion, readable text, keyboard focus.
-   ============================================================ */
-
-/* ---- equal-height cards: any card in a grid row fills its column --------- */
-.row > [class*="col"] > .card { height: 100%; }
-/* cards that hold a header + body still distribute naturally */
-.card { display: flex; flex-direction: column; }
-.card > .card-body { flex: 1 1 auto; }
-
-/* ---- classic, smooth motion: gentle lift on every card ------------------- */
-.card {
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
-  will-change: transform;
-}
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 6px rgba(26, 23, 20, 0.06), 0 16px 36px -14px rgba(146, 64, 14, 0.20);
-}
-html[data-bs-theme="dark"] .card:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 16px 36px -14px rgba(245, 158, 11, 0.18);
-}
-/* one-time settle-in so the grid feels composed, not snapped */
-@keyframes herit-card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.card { animation: herit-card-in 0.4s cubic-bezier(.2,.8,.2,1) both; }
-
-/* ---- readable text: warm, higher-contrast muted -------------------------- */
-.text-muted { color: #6b655e !important; }
-html[data-bs-theme="dark"] .text-muted { color: #C9C2B5 !important; }
-small, .small { font-size: 0.82rem; }
-.card-title, h5.card-title { letter-spacing: -0.005em; }
-
-/* ---- KPI tiles: numbers carry weight, labels stay quiet ----------------- */
-.card h4 { letter-spacing: -0.01em; }
-
-/* ---- progress / meter bars (workshop snapshot etc.) --------------------- */
-.bg-light { background-color: #FFFBEB !important; }
-html[data-bs-theme="dark"] .bg-light { background-color: #262320 !important; }
-
-/* ============================================================
-   ACCESSIBILITY
-   ============================================================ */
-
-/* keyboard focus: a clear amber ring on everything interactive (gold on dark).
-   :focus-visible only — mouse users don't see it, keyboard users always do. */
-a:focus-visible,
-button:focus-visible,
-.btn:focus-visible,
-.nav-link:focus-visible,
-.side-nav-link:focus-visible,
-.page-link:focus-visible,
-.dropdown-item:focus-visible,
-[tabindex]:focus-visible,
-summary:focus-visible {
-  outline: 2px solid var(--herit-primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-/* never strip focus silently */
-:focus-visible { outline-color: var(--herit-primary); }
-
-/* skip-link target support + visible skip link if present */
-.visually-hidden-focusable:focus,
-.visually-hidden-focusable:focus-within {
-  position: fixed; top: 0.5rem; left: 0.5rem; z-index: 1080;
-  width: auto; height: auto; padding: 0.5rem 1rem;
-  background: var(--herit-primary); color: #fff; border-radius: 0.5rem;
-}
-html[data-bs-theme="dark"] .visually-hidden-focusable:focus,
-html[data-bs-theme="dark"] .visually-hidden-focusable:focus-within {
-  background: var(--herit-accent); color: #1A1714;
-}
-
-/* respect reduced-motion: kill entrance + lift animations */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-  .card:hover { transform: none; }
-}
-
-/* ============================================================
-   POSH LAYER — editorial topbar, gold-rail sidebar, magazine
-   page headings. Pure CSS, applies to every admin module.
-   ============================================================ */
-
-/* ---- Topbar: warm glass with brand hairline ---------------------------- */
+/* ---- topbar: opaque surface with a 1px divider -------------------------- */
 .topbar {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: saturate(160%) blur(12px);
-  -webkit-backdrop-filter: saturate(160%) blur(12px);
-  border-bottom: 1px solid var(--herit-border);
-  position: relative;
+  background: var(--hc-surface);
+  border-bottom: 1px solid var(--hc-divider);
 }
-.topbar::after {
-  content: "";
-  position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--herit-accent) 30%, var(--herit-accent) 70%, transparent);
-  opacity: 0.55;
-  pointer-events: none;
-}
-html[data-bs-theme="dark"] .topbar {
-  background: rgba(20, 17, 46, 0.78);
-}
-
-/* topbar title: serif, no shouting */
 .topbar .topbar-button.fw-bold.text-uppercase {
-  font-family: "Source Serif 4", Georgia, serif;
-  font-weight: 600;
+  font-family: var(--hc-font-sans);
+  font-weight: var(--hc-w-semibold);
   text-transform: none !important;
-  letter-spacing: -0.01em;
-  font-size: 1.15rem;
-  color: var(--herit-ink);
+  letter-spacing: 0;
+  font-size: var(--hc-text-lg);
+  color: var(--hc-text);
 }
-html[data-bs-theme="dark"] .topbar .topbar-button.fw-bold.text-uppercase { color: var(--herit-ink); }
-
-/* topbar search: softer pill, brand focus */
 .topbar .app-search .form-control {
-  background: var(--herit-surface);
+  background: var(--hc-surface-alt);
   border-color: transparent;
-  border-radius: 999px;
+  border-radius: var(--hc-radius-chip);
   padding-left: 2.4rem;
-  font-size: 0.88rem;
 }
-.topbar .app-search .form-control:focus {
-  background: #fff;
-  border-color: var(--herit-primary);
-}
-html[data-bs-theme="dark"] .topbar .app-search .form-control { background: #262320; color: var(--herit-ink); }
-html[data-bs-theme="dark"] .topbar .app-search .form-control:focus { background: #1C1A17; }
+.topbar .app-search .form-control:focus { background: var(--hc-surface); border-color: var(--hc-focus); }
 .topbar .app-search .search-widget-icon { left: 0.85rem; opacity: 0.65; }
-
-/* topbar icon buttons: quiet hover */
 .topbar .topbar-button {
-  border-radius: 0.5rem;
-  transition: background 0.18s ease, color 0.18s ease;
+  border-radius: var(--hc-radius-control);
+  transition: background-color var(--hc-dur-ui) var(--hc-ease), color var(--hc-dur-ui) var(--hc-ease);
 }
-.topbar .topbar-button:hover { background: var(--herit-surface); color: var(--herit-primary); }
-html[data-bs-theme="dark"] .topbar .topbar-button:hover { background: #262320; color: var(--herit-accent); }
+.topbar .topbar-button:hover { background: var(--hc-surface-alt); color: var(--hc-text); }
 
-/* ---- Sidebar: editorial rail with gold active-state -------------------- */
+/* ---- sidebar: flat rail, amber marks the active item only --------------- */
 .leftside-menu, .main-nav {
-  background: linear-gradient(180deg, #FFFFFF, var(--herit-surface));
-  border-right: 1px solid var(--herit-border);
+  background: var(--hc-surface);
+  border-right: 1px solid var(--hc-divider);
 }
-html[data-bs-theme="dark"] .leftside-menu,
-html[data-bs-theme="dark"] .main-nav {
-  background: linear-gradient(180deg, #1C1A17, #141210);
-  border-right-color: #3A352E;
-}
-
 .logo-box {
   padding: 1.25rem 1.5rem 1rem;
-  border-bottom: 1px solid var(--herit-border);
+  border-bottom: 1px solid var(--hc-divider);
 }
-html[data-bs-theme="dark"] .logo-box { border-bottom-color: #3A352E; }
-
-/* nav items: warm hover, gold left-rail on active */
 .side-nav-item .side-nav-link,
 .leftside-menu .side-nav .side-nav-item .side-nav-link {
   position: relative;
-  border-radius: 0.5rem;
+  border-radius: var(--hc-radius-control);
   margin: 0.1rem 0.65rem;
   padding-left: 1rem;
-  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  transition: background-color var(--hc-dur-ui) var(--hc-ease), color var(--hc-dur-ui) var(--hc-ease);
 }
 .side-nav-link:hover,
 .leftside-menu .side-nav .side-nav-item .side-nav-link:hover {
-  background: rgba(146, 64, 14, 0.06);
-  color: var(--herit-primary);
-}
-html[data-bs-theme="dark"] .side-nav-link:hover,
-html[data-bs-theme="dark"] .leftside-menu .side-nav .side-nav-item .side-nav-link:hover {
-  background: rgba(245, 158, 11, 0.08);
-  color: var(--herit-accent);
+  background: var(--hc-surface-alt);
+  color: var(--hc-text);
 }
 .side-nav-link.active,
 .leftside-menu .side-nav .side-nav-item .side-nav-link.active {
-  background: rgba(146, 64, 14, 0.08);
-  color: var(--herit-primary);
-  font-weight: 600;
+  background: var(--hc-surface-alt);
+  color: var(--hc-text);
+  font-weight: var(--hc-w-semibold);
 }
 .side-nav-link.active::before,
 .leftside-menu .side-nav .side-nav-item .side-nav-link.active::before {
@@ -328,83 +179,81 @@ html[data-bs-theme="dark"] .leftside-menu .side-nav .side-nav-item .side-nav-lin
   bottom: 0.4rem;
   width: 3px;
   border-radius: 2px;
-  background: var(--herit-accent);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  background: var(--hc-accent);
 }
-html[data-bs-theme="dark"] .side-nav-link.active,
-html[data-bs-theme="dark"] .leftside-menu .side-nav .side-nav-item .side-nav-link.active {
-  background: rgba(245, 158, 11, 0.12);
-  color: var(--herit-accent);
-}
-
-/* sidebar section labels: editorial mono */
 .side-nav-title, .menu-title {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--herit-ink-muted);
+  font-family: var(--hc-font-sans);
+  font-size: var(--hc-text-xs);
+  font-weight: var(--hc-w-semibold);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--hc-text-muted);
   padding: 1.25rem 1.5rem 0.5rem;
-  opacity: 0.7;
 }
 
-/* ---- Page heading: magazine spread look -------------------------------- */
-main .container-fluid > .d-flex.justify-content-between h4.mb-1,
-main .container-fluid > h4.mb-1 {
-  font-family: "Source Serif 4", Georgia, serif;
-  font-weight: 600;
-  font-size: clamp(1.4rem, 2vw, 1.75rem);
-  letter-spacing: -0.015em;
-  position: relative;
-  display: inline-block;
-  padding-bottom: 0.15rem;
-}
-main .container-fluid > .d-flex.justify-content-between h4.mb-1::after,
-main .container-fluid > h4.mb-1::after {
-  content: "";
-  position: absolute;
-  left: 0; bottom: -0.3rem;
-  width: 2rem; height: 2px;
-  background: var(--herit-accent);
-  border-radius: 2px;
-}
-/* breathing room under page heading rows */
-main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 { margin-bottom: 1.5rem !important; padding-bottom: 0.5rem; }
-main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 p.text-muted { margin-top: 0.4rem; font-size: 0.92rem; }
-
-/* ---- Quiet refinements ------------------------------------------------- */
-/* primary buttons get a touch of editorial weight on hover */
-.btn-primary { font-weight: 600; letter-spacing: 0.01em; }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -8px rgba(146, 64, 14, 0.45); }
-html[data-bs-theme="dark"] .btn-primary:hover { box-shadow: 0 8px 20px -8px rgba(245, 158, 11, 0.5); }
-
-/* nav-link pills inside .nav-tabs (used by suppliers, finance, etc.) */
+/* ---- tabs and dropdowns ------------------------------------------------- */
 .nav-tabs .nav-link {
   border: 0;
-  color: var(--herit-ink-muted);
-  font-weight: 500;
+  color: var(--hc-text-muted);
+  font-weight: var(--hc-w-medium);
   padding: 0.6rem 1rem;
-  border-radius: 0.4rem 0.4rem 0 0;
+  border-radius: var(--hc-radius-control) var(--hc-radius-control) 0 0;
+  text-decoration: none;
 }
 .nav-tabs .nav-link.active {
-  color: var(--herit-primary);
+  color: var(--hc-text);
   background: transparent;
-  border-bottom: 2px solid var(--herit-accent);
-  font-weight: 600;
+  border-bottom: 2px solid var(--hc-accent);
+  font-weight: var(--hc-w-semibold);
 }
-html[data-bs-theme="dark"] .nav-tabs .nav-link.active { color: var(--herit-accent); }
-
-/* dropdown menus: rounded, soft shadow, brand hover */
 .dropdown-menu {
-  border: 1px solid var(--herit-border);
-  border-radius: 0.7rem;
-  box-shadow: 0 12px 36px -14px rgba(146, 64, 14, 0.28);
+  border: 1px solid var(--hc-divider);
+  border-radius: var(--hc-radius-card);
+  box-shadow: var(--hc-shadow-overlay);
   padding: 0.4rem;
 }
-.dropdown-item { border-radius: 0.4rem; padding: 0.5rem 0.75rem; }
-.dropdown-item:hover, .dropdown-item:focus { background: var(--herit-surface); color: var(--herit-primary); }
-html[data-bs-theme="dark"] .dropdown-item:hover,
-html[data-bs-theme="dark"] .dropdown-item:focus { background: #262320; color: var(--herit-accent); }
+.dropdown-item { border-radius: var(--hc-radius-control); padding: 0.5rem 0.75rem; text-decoration: none; }
+.dropdown-item:hover, .dropdown-item:focus { background: var(--hc-surface-alt); color: var(--hc-text); }
 
-/* badge: keep mono numerics, soft pill */
-.badge { border-radius: 999px; padding: 0.32em 0.7em; }
+/* Navigation-style links keep no underline; body-copy links are underlined
+   (Bootstrap $link-decoration) so they are not distinguished by colour alone. */
+.nav-link, .btn, .dropdown-item, .page-link, .list-group-item-action, .topbar a, .main-nav a, .logo-box a { text-decoration: none; }
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+/* 2px ink focus ring (cream on dark). :focus-visible only. */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.side-nav-link:focus-visible,
+.page-link:focus-visible,
+.dropdown-item:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--hc-focus);
+  outline-offset: 2px;
+  border-radius: var(--hc-radius-control);
+  box-shadow: none;
+}
+:focus-visible { outline-color: var(--hc-focus); }
+
+.visually-hidden-focusable:focus,
+.visually-hidden-focusable:focus-within {
+  position: fixed; top: 0.5rem; left: 0.5rem; z-index: 1080;
+  width: auto; height: auto; padding: 0.5rem 1rem;
+  background: var(--hc-text); color: var(--hc-surface); border-radius: var(--hc-radius-control);
+}
+
+/* Reduced motion: no transitions or animations. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:active { transform: none; }
+}

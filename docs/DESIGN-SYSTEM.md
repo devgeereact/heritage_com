@@ -2,7 +2,7 @@
 
 This is the single design contract for the HeritOS app and the public website. It owns principles, tokens and measured contrast, typography, spacing, surfaces, control styling, motion, the Tesla reference and every deviation from it. Screen behaviour, forms and navigation are in [UX-SPEC.md](UX-SPEC.md); keyboard, focus, touch-target, reduced-motion and test-width rules are in [ACCESSIBILITY.md](ACCESSIBILITY.md); copy and photography rules are in [CONTENT.md](CONTENT.md).
 
-The direction, approved by the owner on 10 October 2026 (D-002), is a restrained Tesla-style layout led by real photography, with Herit amber `#F59E0B` as the only accent. The code does not match this yet: the rebuild is Phase 4 of [ROADMAP.md](ROADMAP.md). Until then this file describes the target and records what is implemented today.
+The direction, approved by the owner on 10 October 2026 (D-002), is a restrained Tesla-style layout led by real photography, with Herit amber `#F59E0B` as the only accent. The rebuild is Phase 4 of [ROADMAP.md](ROADMAP.md). The token layer, public components and motion are built on `feat/phase4-website`; page content and the CMS follow.
 
 Contrast figures are calculated from token values with the WCAG formula on 10 October 2026. They are not measurements of rendered pages. Visual quality and cross-device behaviour are NOT TESTED until screenshots and device checks exist ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
 
@@ -58,33 +58,35 @@ The Tesla reference has no semantic colours; working forms need them. Status alw
 | Error, overdue, danger | `#991B1B` (already in site.css) | 8.31:1 |
 | Pending, neutral | `#5C5E62` | 6.5:1 |
 
-### Implemented today
+### Tokens as built (Phase 4, `feat/phase4-website`)
 
-Two separate token sets hold the same brand values and must merge into one layer, so that a colour change happens once (finding A23):
+One token layer replaces the four separate sets (A23). Verified in code, 11 October 2026:
 
-- Public site: `src/app/(public)/site/site.css:10-41`, scoped under `.hc` (`--accent`, `--primary`, `--background`, `--font-*`, `--shadow-*`, radius `0.625rem`). Its header comment still describes an old "deep indigo, warm gold" palette; the values are amber and ink.
-- Admin: `src/assets/scss/config/_variables.scss` plus the `--herit-*` CSS variables in `src/assets/scss/heritos-admin.css`, loaded after `app.scss`.
-- PWA manifest and icons: `background_color` `#FFFFFF`, `theme_color` ink `#171A20`, and the needle H monogram (ink with amber crossbar) as favicon, Apple touch and PWA icons (commit f1e8960, K-03).
-- Phase 2 shared components in `src/components/herit/` (for example `PageHeader`, `StatusChip`, `LoadError`) use their own `--hd-*` custom properties in `herit-daily.css` (ink, muted, amber, divider, status colours), a third token set until the Phase 4 merge into one layer (A23). Phase 3 adds shared components there: `SlotPicker` (free times by Lagos day), `JobMessages` (thread and compose; internal notes use the alternate surface, a dashed border and a lock label), `ChangeRequestCard`, `InviteModal`, `ClientAccessCard`, and the `ApptChip` and `ChangeChip` status chips; `herit-daily.css` gains the week strip (`.hd-week`) and message styles (`.hd-msg`).
-- Phase 3 public pages (`/book`, the access form and the client portal) use `src/app/(public)/site/portal/portal.css`, scoped under `.hc .hp`, with the target palette written as literal values: amber primary button with `#171A20` text, `#B45309` links, 16px inputs with a `#8E8E8E` border and 48px height, 44px choices, `#991B1B` errors. A fourth set of values until the Phase 4 merge (A23); it does not restyle the rest of the public site.
+- `src/assets/tokens/_tokens-map.scss` holds every colour value once, as Sass maps (`$hc-light`, `$hc-dark`) plus `$hc-scale` for type, spacing, layout, radius, controls and motion. It is the only file that should contain hex values.
+- `src/assets/tokens/tokens.scss` emits them as `--hc-*` custom properties on `:root`, remaps the colours under `html[data-bs-theme="dark"]`, and redeclares the light colours on `.hc` (the public wrapper) and `.hd-print` with `color-scheme: light`, so the public site and printed documents always stay light.
+- Admin: Larkon's `scss/config/_variables.scss`, `_variables-dark.scss` and `_theme-mode.scss` read the same maps (`$primary` amber with `$color-contrast-dark` ink and `$min-contrast-ratio: 4.5`, so `.btn-primary` is amber with ink text; ink `$secondary`/`$dark`; graphite body; Tesla neutrals for the greys; ink focus ring; `#B45309` underlined links; 4px control and 12px card radius; system monospace). `heritos-admin.css` is rewritten on `var(--hc-*)`: flat cards, no warm shadows or glass, Inter 600 sentence-case table headers and page headings, a 3px amber rail on the active sidebar item only, and `.text-primary`/`.link-primary` set to `--hc-accent-text` (amber as text fails contrast). `--herit-*` remain as aliases for one release.
+- Phase 2 and 3: `--hd-*` in `src/components/herit/herit-daily.css` are aliases of `--hc-*`; `portal.css` uses `--hc-*` directly.
 
-| Current token | Light | Dark | Target |
-|---|---|---|---|
-| `--herit-surface` | `#FFFBEB` cream | `#1C1A17` espresso | `#FFFFFF` / `#F4F4F4` |
-| `--herit-bg` | `#FFFFFF` paper | `#262320` raised | `#FFFFFF` |
-| `--herit-primary` | `#262626` ink | `#F59E0B` | `#171A20` |
-| `--herit-accent` | `#F59E0B` | `#F59E0B` | `#F59E0B` |
-| `--herit-accent-dark` | `#D97706` | `#D97706` | `#D97706` (hover) |
-| `--herit-border` | `#E8E3DB` | `#3A352E` | `#D0D1D2` / `#8E8E8E` |
-| `--herit-ink-muted` | `#6B655E` | `#C9C2B5` | `#5C5E62` |
+| Group | Tokens |
+|---|---|
+| Colour | `--hc-surface` `#FFFFFF`, `--hc-surface-alt` `#F4F4F4`, `--hc-text` `#171A20`, `--hc-text-body` `#393C41`, `--hc-text-muted` `#5C5E62`, `--hc-divider` `#D0D1D2`, `--hc-control-border` `#8E8E8E`, `--hc-accent` `#F59E0B`, `--hc-accent-hover` `#D97706`, `--hc-on-accent` `#171A20`, `--hc-accent-text` `#B45309`, `--hc-focus` `#171A20` |
+| Status (text / tint) | `--hc-success` `#15803D` / `--hc-success-tint` `#F0FDF4`; `--hc-warning` `#B45309` / `#FFFBEB`; `--hc-danger` `#991B1B` / `#FEF2F2`; `--hc-pending` `#5C5E62` / `#F4F4F4` |
+| Font | `--hc-font-sans` (Inter, then system UI), `--hc-font-serif` (Source Serif 4, Georgia), `--hc-font-mono` (system monospace) |
+| Type scale | `--hc-text-xs` 13px, `-sm` 14px, `-base` 16px, `-md` 18px, `-lg` 20px, `-xl` 24px, `-2xl` 28px, `-3xl` 32px, `-4xl` 40px, `--hc-text-hero` `clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem)` |
+| Leading and weight | `--hc-lh-body` 1.6, `--hc-lh-heading` 1.2, `--hc-lh-hero` 1.08; `--hc-w-regular` 400, `--hc-w-medium` 500, `--hc-w-semibold` 600 |
+| Spacing | `--hc-space-1` to `--hc-space-9`: 4, 8, 12, 16, 24, 32, 48, 64, 96px; `--hc-section-y` `clamp(40px, 7vw, 96px)` |
+| Layout | `--hc-container` 1200px, `--hc-measure` 65ch, `--hc-gutter` `clamp(16px, 4vw, 32px)`, `--hc-header-h` 64px |
+| Radius and controls | `--hc-radius-control` 4px, `--hc-radius-card` 12px, `--hc-radius-chip` 999px; `--hc-touch` 44px, `--hc-control-h` 48px |
+| Motion | `--hc-dur-press` 180ms, `--hc-dur-ui` 200ms, `--hc-dur-color` 330ms, `--hc-dur-reveal` 360ms, `--hc-dur-hero` 700ms; `--hc-ease` `cubic-bezier(0.2, 0, 0, 1)`, `--hc-ease-emph` `cubic-bezier(0.16, 1, 0.3, 1)`, `--hc-ease-curtain` `cubic-bezier(0.65, 0, 0.35, 1)` |
+| Elevation | `--hc-shadow-overlay` `0 8px 24px rgba(23, 26, 32, 0.12)`, dropdowns and dialogs only |
 
-Legacy brand ladder still present in code: Heritage Brown `#92400E`, Earth `#78350F` (old text-on-amber colour), espresso `#1A1714`. These retire with the warm shadows unless a functional need appears. Legacy aliases `--herit-maroon` and `--herit-gold` point at the current tokens and can go once nothing references them.
+Status tint pairs are calculated at 4.8:1 or better; they still need measuring on rendered pages. The PWA manifest already uses `background_color` `#FFFFFF` and `theme_color` `#171A20` (commit f1e8960, K-03). Legacy values (Heritage Brown `#92400E`, Earth `#78350F`, espresso `#1A1714`, cream `#FFFBEB` as a surface) are gone from the admin layer; cream survives only as the warning tint and as dark-mode text.
 
-Rules for tokens: components inherit tokens and never hard-code a hex. After the merge, a rebrand is a single token-file change.
+Rules for tokens: components inherit tokens and never hard-code a hex. A rebrand is a change to `_tokens-map.scss` only.
 
 ### Themes
 
-Deliver and test a clear light theme first. The admin dark theme exists today (espresso `#1C1A17` surface, `#262320` raised, `#3A352E` border, cream `#FFFBEB` text, muted `#C9C2B5`, amber becomes the primary colour while button text stays dark). Calculated: cream on espresso 16.74:1, muted on espresso 9.81:1, amber on espresso 8.08:1. It stays supported only if verified on rendered pages; do not double the polishing work during the rebuild. The old claim that both themes pass WCAG AA had no runtime evidence and is withdrawn.
+Light is built and tested first. The public site is always light: `.hc` redeclares the light colours, and the public layout keeps `data-bs-theme` off the page while a public route is open (see [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)). Admin dark mode remaps only the colour tokens (`$hc-dark`: surface `#1C1A17`, surface-alt `#262320`, text `#FFFBEB`, body `#E7E1D6`, muted `#C9C2B5`, divider `#3A352E`, control border `#7A736A`, accent text and status warning `#F59E0B`, success `#4ADE80`, danger `#FCA5A5`); the amber fill and its ink button text stay the same. Calculated: cream on espresso 16.74:1, muted on espresso 9.81:1, amber on espresso 8.08:1. Dark mode is not verified on rendered pages beyond the Today and Jobs screenshots recorded in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md); the old claim that both themes pass WCAG AA is withdrawn.
 
 ## Typography
 
