@@ -14,7 +14,7 @@ This file owns how HeritOS is checked: the risk priorities, the commands and the
 | Command | What it does | Status |
 |---|---|---|
 | `npm run build` | Vite production build to `dist/` | PASS on 10 Oct 2026 (`chore/cleanup-docs-sync`); Sass deprecation and large-chunk warnings remain |
-| `npm run lint` | ESLint | Exit 0, but the committed config matches only `.ts`/`.tsx`, so it checks none of the JS/JSX files (A13). A JS/JSX config is written and tested (476 files, 0 errors, 194 warnings) and waits for the owner to apply it, because a local hook blocks agents from editing `eslint.config.js`. Result: FAIL (coverage) |
+| `npm run lint` | ESLint | Lints `src/**/*.{js,jsx}` (browser globals, JSX, react-hooks, react-refresh), `public/sw.js` (service worker globals) and the root `*.js` config files (Node). Must exit 0 with 0 errors; warnings are allowed. Result on `feat/phase4-website`, 11 October 2026: PASS, 0 errors, 69 `react-refresh/only-export-components` warnings (A13) |
 | `php php-api/tests/run.php` | 251 pure checks for `_lib.php` and `_domain.php` (sanitiser, CORS decision, throttle maths, payments, references and codes, kobo money, stage transitions, request keys; on the Phase 3 branch also availability validation, Lagos slot windows, buffers, blocks, minimum notice, horizon, access-code hashing and expiry, and the portal projection's exact key set); no database or network | PASS on 10 Oct 2026 (251 passed, 0 failed, `feat/phase3-appointments-portal`); PASS on 11 Oct 2026 with the Phase 4 website checks in `php-api/tests/cms_cases.php` (slugs, social and WhatsApp links, profile, JSON-LD, sanitising, publish rules, the draft, publish and rollback state machine, projection key sets, sitemap XML, upload types, image widths): 323 passed, 0 failed (`feat/phase4-website`) |
 | `php -l` on `php-api/*.php` and `php-api/tests/*.php` | PHP syntax | PASS for all 48 files on 10 Oct 2026 (`feat/phase3-appointments-portal`); PASS for all 54 files on 11 Oct 2026 (`feat/phase4-website`); not functional proof |
 | `bash scripts/staging/e2e-phase2.sh` | Phase 2 API journeys against local staging ([LOCAL-STAGING.md](LOCAL-STAGING.md#end-to-end-checks)) | PASS, 48 of 48 on two runs, 10 Oct 2026 (`feat/phase2-daily-records`); PASS 48 of 48 again on `feat/phase3-appointments-portal` |
@@ -47,7 +47,7 @@ Every requirement needs a planned proof method. Include manual accessibility, re
 | `npm run build` | PASS | Exit 0; Sass deprecation and large-chunk warnings |
 | `php php-api/tests/run.php` | PASS | 34 of 34 pure helper checks at baseline (70 after PR #7, 166 after PR #9) |
 | `php -l` on top-level php-api files | PASS | 32 files; syntax only |
-| `npm run lint` | FAIL (coverage) | Exit 0 but checks no source files (A13) |
+| `npm run lint` | FAIL (coverage) | Exit 0 but checks no source files (A13); JS/JSX lint applied later on `feat/phase4-website` |
 | getdesign CLI | PASS | Tesla reference saved in `docs/Plans 2026/`; no active rules overwritten |
 | Local production preview | PASS (startup) | Bound 127.0.0.1:5113; relative API paths |
 | Chrome DevTools and Computer Use | BLOCKED | Occupied browser profile; in-app browser unavailable; no browser was stopped |

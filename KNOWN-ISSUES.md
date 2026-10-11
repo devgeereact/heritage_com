@@ -10,7 +10,7 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | A02 | P0 | Deploy | 22 endpoints uploaded by hand; live versions Unknown | List manual uploads in every pull request and in [DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request) | Business owner | Open |
 | A03 | P0 | Customer access | Contact-channel verification built on `feat/phase3-appointments-portal` (staging API and browser PASS); real email delivery NOT TESTED; legacy login stays while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on | Throttle and generic errors (PR #6) | Business owner | Partly fixed (in code) |
 | A07 | P0 | Website | Invented claims, fallbacks and offers removed from the public pages (`feat/phase4-website`); real copy and photography still to come from the owner through the CMS | Pages hide empty sections | Business owner | Partly fixed (in code) |
-| A13 | P0 | Quality | Lint checks no JS/JSX files | JS/JSX config written and tested; owner to apply | Business owner | Blocked |
+| A13 | P0 | Quality | JS/JSX lint applied on `feat/phase4-website` (0 errors); no frontend flow tests yet | Staging end-to-end scripts cover the API | Developer | Partly fixed (in code) |
 | A20 | P0 | Operations | Backups and deployed config not certified | None | Business owner | Open |
 | A12 | P1 | Website | Server refuses and hides unverified social links (`feat/phase4-website`); the footer now shows only https links on the platform's own domain, with no fallbacks | None | Business owner | Partly fixed (in code) |
 | A15 | P1 | Security | Staff token in a JS-readable cookie; customer token moves to sessionStorage on `feat/phase3-appointments-portal` | CORS gate (PR #6) | Business owner | Partly fixed; staff token storage Open |

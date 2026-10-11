@@ -30,7 +30,7 @@ Still to build (Plans 2026, 04):
 1. A shared non-production environment with synthetic clients and no real payment, email or WhatsApp actions, which shows its API URL, database and sender mode visibly before tests. Local staging covers this on one laptop; the app does not yet show which API it is using.
 2. Compare required endpoint names and schema versions with the release manifest. Never copy `config.php` or discover credentials during a review.
 3. Make application and PHP release versions consistent. The release manifest lists every endpoint still in use and which are retired. Never glob-upload all files, schemas, tests or the sample config.
-4. Meaningful JS/JSX lint (A13, blocked) and critical flow tests in CI. PHP syntax, helper tests and the documentation check already run there; the Phase 2 end-to-end script runs only against local staging.
+4. Critical flow tests in CI (JS/JSX lint applied on `feat/phase4-website`, A13). PHP syntax, helper tests and the documentation check already run there; the Phase 2 end-to-end script runs only against local staging.
 
 ## CI and deploy
 

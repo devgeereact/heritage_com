@@ -13,6 +13,7 @@ Added
 
 Changed
 
+- JS/JSX lint is on (A13): `eslint.config.js` lints `src/**/*.{js,jsx}`, `public/sw.js` and the root config files, and `npm run lint` reports 0 errors. The proposed copy in `scripts/lint/` is removed. `site/ui/Card.jsx` binds its `as` prop to a local so the rule sees it used.
 - `site.css` rebuilt on the tokens: white and light-ash surfaces, thin dividers, Source Serif 4 headings at weight 500, Inter body; fabric pattern tiles, dark bands, shadows and the Tack Stitch leftovers are gone. Home, About and Contact use the UI kit; the contact form no longer needs react-bootstrap.
 
 Removed

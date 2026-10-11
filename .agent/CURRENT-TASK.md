@@ -26,7 +26,7 @@ Everything is on GitHub; nothing needed lives only on the Mac. On the other mach
 3. Before any work, read [docs/ROADMAP.md](../docs/ROADMAP.md), [KNOWN-ISSUES.md](../KNOWN-ISSUES.md), the Unreleased part of [CHANGELOG.md](../CHANGELOG.md) and this file, as `.claude/rules/docs-sync.md` requires.
 4. Remaining build: [docs/BUILD-SPEC.md](../docs/BUILD-SPEC.md) (Phase 4 pages and admin Website area, then Phase 5 company orders). Plan of record: `docs/Plans 2026/`.
 5. Checks per change: `npm run build`, `npm run lint`, `npm run check:tokens`, `npm run docs:check`, `php php-api/tests/run.php`, and `bash scripts/staging/e2e-phase2.sh`, `e2e-phase3.sh`, `e2e-phase4.sh` against staging.
-6. Lint (A13): the tested JS/JSX config is in `scripts/lint/eslint.config.proposed.js`. Apply it with `cp scripts/lint/eslint.config.proposed.js eslint.config.js` (a local hook on the Mac stops agents writing that file).
+6. Lint (A13): the JS/JSX config is applied in `eslint.config.js` (11 October 2026); `npm run lint` must report 0 errors.
 7. Env files and `config.php` never move between computers; the Ubuntu machine uses its own staging `config.local.php`, created by `npm run staging:setup`.
 
 ## Mode
@@ -59,7 +59,6 @@ Existing Application. Workflow: Change Safety for every change.
 
 ## Open items for the owner
 
-- Apply the tested JS/JSX ESLint config (A13): `cp scripts/lint/eslint.config.proposed.js eslint.config.js`.
 - Merge PRs #6 to #11 in order, with the owner actions listed in `docs/DEPLOYMENT.md`.
 - Approve or refuse the deletion candidates in `docs/ROADMAP.md`.
 - Phase 3: fill in availability in Settings, decide when to open public requests, confirm the proposed feedback consent wording, and choose when to switch off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021).

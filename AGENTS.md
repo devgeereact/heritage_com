@@ -41,7 +41,7 @@ Every agent follows `.claude/rules/docs-sync.md`. In short:
 - Staging: `npm run staging:setup` once, then `npm run staging:serve` (local API on 127.0.0.1:8088, synthetic data; see `docs/LOCAL-STAGING.md`).
 - Develop: `npm run dev` (port 5112). Development calls the local staging API unless `VITE_API_BASE` says otherwise; never point it at production without the owner's agreement.
 - Build: `npm run build`
-- Lint: `npm run lint` (exit 0, but the committed config matches only TS/TSX, so it lints no JS/JSX until the owner applies the tested config; finding A13)
+- Lint: `npm run lint` (ESLint over `src/**/*.{js,jsx}`, `public/sw.js` and root config files; must report 0 errors)
 - Test: `php php-api/tests/run.php` (pure PHP helper checks); `php -l` on changed PHP files; `bash scripts/staging/e2e-phase2.sh` against local staging. No frontend test script yet.
 - Docs: `node scripts/check-docs.mjs`
 - Type check: none (JavaScript project)
