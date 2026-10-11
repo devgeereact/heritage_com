@@ -6,6 +6,11 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### `feat/phase4-website` (no PR yet), 11 October 2026
 
+Performance
+
+- Admin CSS kept off public routes: layouts are lazy and each loads its own CSS (`PublicLayout` tokens only; `AuthLayout` and `AdminLayout` Bootstrap, Larkon and `heritos-admin.css`). Public home initial CSS fell from 63.0 KB to 6.5 KB gzip and JS from 155.7 KB to 107.4 KB gzip ([qa/PERFORMANCE-AUDIT.md](qa/PERFORMANCE-AUDIT.md)).
+- Public pages use bundled SVG icons (`site/ui/Icon.jsx`) instead of Iconify, so they make no request to api.iconify.design. Fonts: IBM Plex Mono dropped, Inter and Source Serif 4 as variable ranges with swap. The public site stays light whatever the staff theme is (`data-hc-public`). The staff splash is hidden on public paths; `lang` is `en-NG`.
+
 Added
 
 - Staging: `seed.php --phase4` (a business profile marked Staging, three services, three portfolio projects with generated STAGING swatches, FAQs, policies, two pages), the router serves `/uploads/site/`, `/sitemap.xml` and `/robots.txt`, and `scripts/staging/e2e-phase4.sh` adds 62 checks (PASS on two runs).

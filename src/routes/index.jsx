@@ -21,7 +21,7 @@ const Settings = lazy(() => import('@/app/(admin)/settings/page'));
 const Profile = lazy(() => import('@/app/(admin)/profile/page'));
 const Permissions = lazy(() => import('@/app/(admin)/permissions/page'));
 
-// Public site — multi-page marketing storefront (no auth, OtherLayout)
+// Public site: multi-page website (no auth, PublicLayout)
 const Home = lazy(() => import('@/app/(public)/site/HomePage'));
 const About = lazy(() => import('@/app/(public)/site/AboutPage'));
 const Shop = lazy(() => import('@/app/(public)/site/ShopPage'));
@@ -85,7 +85,7 @@ const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
 const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-pass/page'));
 const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'));
 
-// Public routes — no auth, rendered in OtherLayout (no admin chrome).
+// Public routes: no auth, rendered in PublicLayout (no admin chrome or CSS).
 export const publicRoutes = [{
   path: '/',
   name: 'Home',

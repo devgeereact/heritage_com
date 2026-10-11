@@ -95,7 +95,7 @@ Light is built and tested first. The public site is always light: `.hc` redeclar
 | Inter | App, forms, buttons, tables, labels and public body text. Use tabular figures for amounts, dates and measurements. |
 | Source Serif 4 | Public headings only (already loaded, index.html). A deliberate deviation from the Tesla template that keeps Herit identity; the owner can drop it. Never long body copy. |
 
-IBM Plex Mono is loaded today for codes and kicker labels. It is not part of the approved two-family pair; Proposed: remove it in Phase 4 unless the owner wants it for job codes. Fonts are licence-safe, local or Google-hosted; never Tesla's proprietary Universal Sans.
+IBM Plex Mono is no longer loaded (Phase 4); codes use the system monospace (`--hc-font-mono`). `index.html` loads Inter and Source Serif 4 from Google Fonts as variable weight ranges (Inter 400 to 700, Source Serif 4 500 to 700, no italics) with `font-display: swap` and preconnect. Self-hosting is a later improvement. Fonts are licence-safe, local or Google-hosted; never Tesla's proprietary Universal Sans.
 
 | Role | Size | Notes |
 |---|---|---|

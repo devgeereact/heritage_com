@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import heritApi from '@/helpers/heritApi';
 import SiteLayout from './SiteLayout';
 import { getProduct, loadCatalogue } from './products';

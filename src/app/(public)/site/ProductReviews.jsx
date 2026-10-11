@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import heritApi from '@/helpers/heritApi';
 
 const field = {

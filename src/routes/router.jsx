@@ -1,20 +1,24 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-// import AuthLayout from '@/layouts/AuthLayout'
 import { appRoutes, authRoutes, publicRoutes, redirectRoutes } from '@/routes/index';
 import { useAuthContext } from '@/context/useAuthContext';
 import { canAccessPath, roleHome } from '@/helpers/roles';
-import OtherLayout from '@/layout/OtherLayout';
-import AdminLayout from '@/layout/AdminLayout';
+
+// Layouts are lazy so each route group loads only its own CSS: public pages
+// never download Bootstrap, Larkon or heritos-admin.css (Phase 4, A23).
+const PublicLayout = lazy(() => import('@/layout/PublicLayout'));
+const AuthLayout = lazy(() => import('@/layout/AuthLayout'));
+const AdminLayout = lazy(() => import('@/layout/AdminLayout'));
 const AppRouter = props => {
   const {
     isAuthenticated,
     user
   } = useAuthContext();
-  return <Routes>
-      {(publicRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<OtherLayout {...props}>{route.element}</OtherLayout>} />)}
+  return <Suspense fallback={null}><Routes>
+      {(publicRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<PublicLayout {...props}>{route.element}</PublicLayout>} />)}
 
-      {(authRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<OtherLayout {...props}>{route.element}</OtherLayout>} />)}
+      {(authRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<AuthLayout {...props}>{route.element}</AuthLayout>} />)}
 
       {(redirectRoutes || []).map((route) => <Route key={route.name} path={route.path} element={route.element} />)}
 
@@ -33,6 +37,6 @@ const AppRouter = props => {
       }
       return <Route key={idx + route.name} path={route.path} element={element} />;
     })}
-    </Routes>;
+    </Routes></Suspense>;
 };
 export default AppRouter;

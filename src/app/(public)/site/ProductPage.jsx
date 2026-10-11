@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import { useCatalogue, formatNgn } from './products';
 import { useCart } from './cart';

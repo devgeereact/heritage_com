@@ -118,7 +118,10 @@ const LayoutProvider = ({
   }, []);
 
   useEffect(() => {
-    toggleDocumentAttribute('data-bs-theme', settings.theme);
+    // The public site is always light: PublicLayout marks <html> with
+    // data-hc-public while a public route is open (spec fact 4).
+    const isPublic = document.documentElement.hasAttribute('data-hc-public');
+    toggleDocumentAttribute('data-bs-theme', isPublic ? 'light' : settings.theme);
     toggleDocumentAttribute('data-topbar-color', settings.topbarTheme);
     toggleDocumentAttribute('data-menu-color', settings.menu.theme);
     toggleDocumentAttribute('data-menu-size', settings.menu.size);

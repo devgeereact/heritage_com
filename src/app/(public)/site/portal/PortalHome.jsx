@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from '../ui/Icon';
 import heritApi from '@/helpers/heritApi';
 import { fmtDate, fmtWhen, naira } from '@/helpers/format';
 import { EXPIRED, endSession } from './session';

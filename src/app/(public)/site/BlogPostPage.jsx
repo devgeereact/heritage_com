@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import { useBlog, useBlogPost } from './content';
 
