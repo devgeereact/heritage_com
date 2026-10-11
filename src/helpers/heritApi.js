@@ -53,21 +53,43 @@ function qs(params = {}) {
   return parts.length ? `&${parts.join('&')}` : '';
 }
 
-/** Customer-portal token (separate from staff auth) lives in localStorage. */
+/**
+ * Customer-portal token (separate from staff auth). Kept in sessionStorage so it
+ * ends with the browser tab; an older token in localStorage (legacy login) is
+ * still read once and moved across.
+ */
+const CTOKEN = 'herit_customer_token';
 function customerToken() {
-  try { return localStorage.getItem('herit_customer_token'); } catch { return null; }
+  try {
+    const s = sessionStorage.getItem(CTOKEN);
+    if (s) return s;
+    const l = localStorage.getItem(CTOKEN);
+    if (l) { sessionStorage.setItem(CTOKEN, l); localStorage.removeItem(CTOKEN); }
+    return l;
+  } catch { return null; }
+}
+function setCustomerToken(t) {
+  try { sessionStorage.setItem(CTOKEN, t); localStorage.removeItem(CTOKEN); } catch { /* ignore */ }
+}
+function clearCustomerToken() {
+  try { sessionStorage.removeItem(CTOKEN); localStorage.removeItem(CTOKEN); } catch { /* ignore */ }
 }
 
-/** Request variant that carries the customer-portal Bearer token. */
+/** Request variant that carries the customer-portal Bearer token. Errors carry the status (401 means sign in again). */
 async function crequest(path, { method = 'GET', body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   const t = customerToken();
   if (t) headers.Authorization = `Bearer ${t}`;
   const res = await fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  if (!res.ok) throw apiError(res.status, data);
   return data;
 }
+
+const post = (path, body) => request(path, { method: 'POST', body: body || {} });
+const pub = (path, body) => request(path, body ? { method: 'POST', body, auth: false } : { auth: false });
+const cpost = (path, body) => crequest(path, { method: 'POST', body: body || {} });
+const enc = encodeURIComponent;
 
 export const heritApi = {
   // Smoke test — proves React → api.php → MySQL → JSON.
@@ -411,7 +433,78 @@ export const heritApi = {
     saveCart: (data) => request('/store.php?action=save_cart', { method: 'POST', body: data, auth: false }),
   },
 
-  // Customer self-service portal (separate customer token in localStorage)
+  // Appointments and availability (Phase 3; reads workshop, writes owner)
+  appointments: {
+    list: (params = {}) => request(`/appointments.php?action=list${qs(params)}`),
+    get: (id) => request(`/appointments.php?action=get&id=${id}`),
+    requests: () => request('/appointments.php?action=requests'),
+    slots: (type, from, days = 7) => request(`/appointments.php?action=slots${qs({ type, from, days })}`),
+    create: (data) => post('/appointments.php?action=create', data),
+    reschedule: (id, data) => post(`/appointments.php?action=reschedule&id=${id}`, data),
+    /** action: confirm, decline, complete, no_show or cancel */
+    setStatus: (id, action, reason) => post(`/appointments.php?action=${action}&id=${id}`, reason ? { reason } : {}),
+    availabilityGet: () => request('/appointments.php?action=availability_get'),
+    availabilitySave: (data) => post('/appointments.php?action=availability_save', data),
+    blocks: (from, to) => request(`/appointments.php?action=blocks${qs({ from, to })}`),
+    blockSave: (data) => post('/appointments.php?action=block_save', data),
+    blockDelete: (id) => post(`/appointments.php?action=block_delete&id=${id}`),
+  },
+
+  // Job messages, change requests and feedback (owner)
+  messages: {
+    inbox: () => request('/messages.php?action=inbox'),
+    unreadCount: () => request('/messages.php?action=unread_count'),
+    thread: (jobId) => request(`/messages.php?action=thread&job_id=${jobId}`),
+    post: (data) => post('/messages.php?action=post', data),
+    markRead: (job_id) => post('/messages.php?action=mark_read', { job_id }),
+    changeRequests: (params = {}) => request(`/messages.php?action=change_requests${qs(params)}`),
+    changeDecide: (id, data) => post(`/messages.php?action=change_decide&id=${id}`, data),
+    feedbackList: (params = {}) => request(`/messages.php?action=feedback_list${qs(params)}`),
+    feedbackUpdate: (id, follow_up) => post(`/messages.php?action=feedback_update&id=${id}`, { follow_up }),
+    feedbackPublish: (id) => post(`/messages.php?action=feedback_publish&id=${id}`),
+  },
+
+  // Customer access: public start/verify/redeem, owner invites and revocation
+  access: {
+    start: (reference, contact, hp_url = '') => pub('/access.php?action=start', { reference, contact, hp_url }),
+    verify: (challenge, code) => pub('/access.php?action=verify', { challenge, code }),
+    redeem: (invite) => pub('/access.php?action=redeem', { invite }),
+    logout: () => cpost('/access.php?action=logout'),
+    logoutAll: () => cpost('/access.php?action=logout_all'),
+    requests: () => request('/access.php?action=requests'),
+    invite: (data) => post('/access.php?action=invite', data),
+    revoke: (customer_id) => post('/access.php?action=revoke', { customer_id }),
+  },
+
+  // Public appointment requests (off until public_booking_enabled)
+  booking: {
+    config: () => pub('/booking.php?action=config'),
+    slots: (type, from, days = 14) => pub(`/booking.php?action=slots${qs({ type, from, days })}`),
+    request: (data) => pub('/booking.php?action=request', data),
+  },
+
+  // Customer portal over tailoring jobs (portal.php; customer session)
+  client: {
+    me: () => crequest('/portal.php?action=me'),
+    jobs: () => crequest('/portal.php?action=jobs'),
+    job: (ref) => crequest(`/portal.php?action=job&ref=${enc(ref)}`),
+    messages: (ref) => crequest(`/portal.php?action=messages&ref=${enc(ref)}`),
+    message: (ref, body, request_key) => cpost('/portal.php?action=message', { ref, body, request_key }),
+    changeRequest: (data) => cpost('/portal.php?action=change_request', data),
+    slots: (type, from, days = 14) => crequest(`/portal.php?action=slots${qs({ type, from, days })}`),
+    appointmentRequest: (data) => cpost('/portal.php?action=appointment_request', data),
+    rescheduleRequest: (data) => cpost('/portal.php?action=appointment_reschedule_request', data),
+    measurements: () => crequest('/portal.php?action=measurements'),
+    measurementTemplates: () => crequest('/portal.php?action=measurement_templates'),
+    proposeMeasurements: (data) => cpost('/portal.php?action=propose_measurements', data),
+    feedback: (data) => cpost('/portal.php?action=feedback', data),
+    quoteAccept: (data) => cpost('/portal.php?action=quote_accept', data),
+    setToken: (t) => setCustomerToken(t),
+    clearToken: () => clearCustomerToken(),
+    token: () => customerToken(),
+  },
+
+  // Retail customer self-service (account.php; shares the customer session)
   portal: {
     login: (phone, order_code) =>
       request('/account.php?action=login', { method: 'POST', body: { phone, order_code }, auth: false }),
@@ -426,8 +519,8 @@ export const heritApi = {
     wishlistToggle: (slug, name) => crequest('/account.php?action=wishlist_toggle', { method: 'POST', body: { slug, name } }),
     setBirthday: (birthday) => crequest('/account.php?action=set_birthday', { method: 'POST', body: { birthday } }),
     npsSubmit: (score, comment) => crequest('/account.php?action=nps_submit', { method: 'POST', body: { score, comment } }),
-    setToken: (t) => { try { localStorage.setItem('herit_customer_token', t); } catch { /* ignore */ } },
-    logout: () => { try { localStorage.removeItem('herit_customer_token'); } catch { /* ignore */ } },
+    setToken: (t) => setCustomerToken(t),
+    logout: () => clearCustomerToken(),
     token: () => customerToken(),
   },
 

@@ -182,3 +182,26 @@ html[data-bs-theme="dark"] .hd-bottom a.active, html[data-bs-theme="dark"] .hd-b
   .hd-print { padding: 0; max-width: none; }
   body { background: #fff !important; }
 }
+
+/* Phase 3: appointments week strip */
+.hd .hd-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .25rem; }
+.hd .hd-week-day {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  min-height: 64px; border: 1px solid var(--hd-divider); border-radius: 8px; background: transparent; color: var(--hd-ink);
+  padding: .25rem 0; line-height: 1.2;
+}
+.hd .hd-week-day.is-today { border-color: var(--hd-ink); }
+.hd .hd-week-day.is-active { background: #171A20; color: #fff; border-color: #171A20; box-shadow: inset 0 -3px 0 var(--hd-amber); }
+.hd .hd-week-day:focus-visible { outline: 2px solid var(--hd-ink); outline-offset: 2px; }
+.hd .hd-week-dot { min-height: 1.1em; font-weight: 700; }
+.hd button.hd-row { cursor: pointer; }
+
+/* Phase 3: messages (internal notes look clearly different from client messages) */
+.hd .hd-msg { border: 1px solid var(--hd-divider); border-radius: 8px; padding: .6rem .8rem; margin-bottom: .6rem; background: transparent; max-width: 42rem; }
+.hd .hd-msg--client-in { border-left: 4px solid var(--hd-ink); }
+.hd .hd-msg--client-out { border-left: 4px solid var(--hd-amber); margin-left: auto; }
+.hd .hd-msg--internal { background: var(--hd-surface-alt); border-style: dashed; border-left: 4px dashed var(--hd-muted); }
+.hd .hd-msg--system { background: var(--hd-surface-alt); font-size: .925rem; }
+.hd .hd-msg-meta { font-size: .8125rem; color: var(--hd-muted); display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.hd .hd-msg-body { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: .25rem; color: var(--hd-ink); }
+.hd .hd-compose--internal { background: var(--hd-surface-alt); }

@@ -1,5 +1,5 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import { ENQUIRY_LABELS, PAYMENT_STATE_LABELS, STAGE_LABELS } from '@/helpers/format';
+import { APPT_STATUS_LABELS, CHANGE_STATUS_LABELS, ENQUIRY_LABELS, PAYMENT_STATE_LABELS, STAGE_LABELS } from '@/helpers/format';
 
 const ICONS = {
   ok: 'solar:check-circle-bold',
@@ -40,5 +40,15 @@ const SET_LABEL = {
   superseded: 'Replaced by a newer set', rejected: 'Rejected',
 };
 export const SetChip = ({ status }) => <StatusChip tone={SET_TONE[status] || 'neutral'}>{SET_LABEL[status] || status}</StatusChip>;
+
+const APPT_TONE = { requested: 'warn', confirmed: 'ok', completed: 'neutral', cancelled: 'neutral', no_show: 'bad', expired: 'neutral' };
+export const ApptChip = ({ status }) => (
+  <StatusChip tone={APPT_TONE[status] || 'neutral'}>{APPT_STATUS_LABELS[status] || status}</StatusChip>
+);
+
+const CHANGE_TONE = { open: 'warn', approved: 'ok', declined: 'bad', withdrawn: 'neutral' };
+export const ChangeChip = ({ status }) => (
+  <StatusChip tone={CHANGE_TONE[status] || 'neutral'}>{CHANGE_STATUS_LABELS[status] || status}</StatusChip>
+);
 
 export default StatusChip;

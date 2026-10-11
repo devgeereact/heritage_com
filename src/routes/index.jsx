@@ -5,6 +5,7 @@ import RedirectWithParams from './RedirectWithParams';
 const Today = lazy(() => import('@/app/(admin)/today/page'));
 const Payments = lazy(() => import('@/app/(admin)/payments/page'));
 const Appointments = lazy(() => import('@/app/(admin)/appointments/page'));
+const Messages = lazy(() => import('@/app/(admin)/messages/page'));
 const PrintDoc = lazy(() => import('@/app/(admin)/print/page'));
 const EnquiryDetail = lazy(() => import('@/app/(admin)/enquiries/[id]/page'));
 const EnquiryConvert = lazy(() => import('@/app/(admin)/enquiries/[id]/convert/page'));
@@ -13,9 +14,6 @@ const NewMeasurements = lazy(() => import('@/app/(admin)/crm/[id]/measurements/n
 // The old dashboard lives on as Reports
 const Dashboard = lazy(() => import('@/app/(admin)/dashboard/page'));
 
-// Apps Routes
-
-const Calendar = lazy(() => import('@/app/(admin)/apps/calendar/page'));
 
 // Pages Routes
 const NotFound = lazy(() => import('@/app/(other)/pages-404/page'));
@@ -34,6 +32,9 @@ const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
 const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
 const Track = lazy(() => import('@/app/(public)/site/TrackPage'));
 const Account = lazy(() => import('@/app/(public)/site/AccountPage'));
+const PortalJob = lazy(() => import('@/app/(public)/site/portal/PortalJobPage'));
+const AccessInvite = lazy(() => import('@/app/(public)/site/portal/InvitePage'));
+const Book = lazy(() => import('@/app/(public)/site/BookPage'));
 const Blog = lazy(() => import('@/app/(public)/site/BlogPage'));
 const BlogPost = lazy(() => import('@/app/(public)/site/BlogPostPage'));
 
@@ -133,6 +134,18 @@ export const publicRoutes = [{
   path: '/account',
   name: 'Account',
   element: <Account />
+}, {
+  path: '/account/jobs/:ref',
+  name: 'Portal job',
+  element: <PortalJob />
+}, {
+  path: '/access/:invite',
+  name: 'Access link',
+  element: <AccessInvite />
+}, {
+  path: '/book',
+  name: 'Book appointment',
+  element: <Book />
 }];
 // Old URLs keep working (bookmarks, links in messages). Rendered before the app
 // routes and outside the layout; the target applies sign-in and role checks.
@@ -143,6 +156,7 @@ export const redirectRoutes = [
   { path: '/tailoring/:id', to: '/jobs/:id' },
   { path: '/crm', to: '/clients' },
   { path: '/crm/:id', to: '/clients/:id' },
+  { path: '/apps/calendar', to: '/appointments' },
 ].map((r) => ({ ...r, name: `Redirect ${r.path}`, element: <RedirectWithParams to={r.to} /> }));
 
 const generalRoutes = [{
@@ -189,6 +203,10 @@ const generalRoutes = [{
   path: '/appointments',
   name: 'Appointments',
   element: <Appointments />
+}, {
+  path: '/messages',
+  name: 'Messages',
+  element: <Messages />
 }, {
   path: '/print/:doc/:id',
   name: 'Print',
@@ -286,11 +304,6 @@ const generalRoutes = [{
   name: 'Order Detail',
   element: <SalesDetail />
 }];
-const appsRoutes = [{
-  name: 'Calendar',
-  path: '/apps/calendar',
-  element: <Calendar />
-}];
 const customRoutes = [{
   name: 'Settings',
   path: '/settings',
@@ -325,4 +338,4 @@ export const authRoutes = [{
   path: '/pages-404',
   element: <NotFound />
 }];
-export const appRoutes = [...generalRoutes, ...appsRoutes, ...customRoutes];
+export const appRoutes = [...generalRoutes, ...customRoutes];

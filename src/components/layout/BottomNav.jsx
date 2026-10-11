@@ -12,6 +12,7 @@ const MAIN = [
 ];
 const MORE = [
   { key: 'enquiries', label: 'Enquiries', icon: 'solar:inbox-line-bold-duotone', to: '/enquiries' },
+  { key: 'messages', label: 'Messages', icon: 'solar:chat-round-dots-bold-duotone', to: '/messages' },
   { key: 'clients', label: 'Clients', icon: 'solar:users-group-rounded-bold-duotone', to: '/clients' },
   { key: 'payments', label: 'Payments', icon: 'solar:wallet-money-bold-duotone', to: '/payments' },
   { key: 'content', label: 'Website', icon: 'solar:global-bold-duotone', to: '/content' },

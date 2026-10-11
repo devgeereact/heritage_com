@@ -25,6 +25,11 @@ export const MENU_ITEMS = [{
   icon: 'solar:calendar-bold-duotone',
   url: '/appointments'
 }, {
+  key: 'messages',
+  label: 'Messages',
+  icon: 'solar:chat-round-dots-bold-duotone',
+  url: '/messages'
+}, {
   key: 'clients',
   label: 'Clients',
   icon: 'solar:users-group-rounded-bold-duotone',

@@ -20,7 +20,8 @@ const SECTIONS = {
   // Daily records (Phase 2)
   today: MANAGE,                                               // today.php
   enquiries: ENQUIRY,                                          // enquiries.php (convert is owner-only inside)
-  appointments: WORKSHOP,                                      // placeholder until Phase 3
+  appointments: WORKSHOP,                                      // appointments.php (reads workshop; writes and requests owner)
+  messages: MANAGE,                                            // messages.php (owner)
   clients: CLIENTS,                                            // customers.php (measurements tab: workshop roles)
   jobs: WORKSHOP,                                              // tailoring.php, measurements.php
   payments: MANAGE,                                            // ledger.php
@@ -48,8 +49,8 @@ const SECTIONS = {
   reviews: ['super_admin', 'admin', 'manager', 'editor'],                 // reviews.php
   coupons: ['super_admin', 'admin', 'manager', 'editor'],                 // coupons.php
   profile: ALL,                                                           // users.php self actions
-  // Remaining Larkon kit pages (calendar until Phase 3, product review page): no endpoint.
-  review: MANAGE, apps: MANAGE,
+  // Remaining Larkon kit page (product review page): no endpoint.
+  review: MANAGE,
 
   // Platform administration — admins only.
   team: ADMIN, permissions: ADMIN,                                        // users.php management
@@ -69,6 +70,7 @@ export const ACCESS_MATRIX = [
   { key: 'today', label: 'Today' },
   { key: 'enquiries', label: 'Enquiries' },
   { key: 'appointments', label: 'Appointments' },
+  { key: 'messages', label: 'Messages' },
   { key: 'clients', label: 'Clients' },
   { key: 'jobs', label: 'Jobs' },
   { key: 'payments', label: 'Payments' },

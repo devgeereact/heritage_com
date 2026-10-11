@@ -25,6 +25,10 @@ const Notifications = () => {
   // Only roles the server lets read enquiries ask for them (K-01: no 403 noise).
   const allowed = canAccessSection(user?.role, 'enquiries');
 
+  // Unread client messages (Phase 3), for the roles messages.php accepts.
+  const canMessages = canAccessSection(user?.role, 'messages');
+  const [unread, setUnread] = useState(0);
+
   useEffect(() => {
     if (!allowed) return undefined;
     let live = true;
@@ -34,7 +38,16 @@ const Notifications = () => {
     return () => { live = false; };
   }, [allowed]);
 
-  const count = items.length;
+  useEffect(() => {
+    if (!canMessages) return undefined;
+    let live = true;
+    const poll = () => heritApi.messages.unreadCount().then((r) => { if (live) setUnread(Number(r?.messages) || 0); }).catch(() => {});
+    poll();
+    const t = setInterval(poll, 120000);
+    return () => { live = false; clearInterval(t); };
+  }, [canMessages]);
+
+  const count = items.length + unread;
 
   return (
     <Dropdown className="topbar-item">
@@ -42,7 +55,7 @@ const Notifications = () => {
         <IconifyIcon icon="solar:bell-bing-bold-duotone" className="fs-24 align-middle" />
         {count > 0 && (
           <span className="position-absolute topbar-badge fs-10 translate-middle badge bg-danger rounded-pill">
-            {count}<span className="visually-hidden">new enquiries</span>
+            {count}<span className="visually-hidden">{unread ? `, ${unread} unread messages and ${items.length} new enquiries` : ' new enquiries'}</span>
           </span>
         )}
       </DropdownToggle>
@@ -57,8 +70,14 @@ const Notifications = () => {
             </div>
           </Row>
         </div>
+        {unread > 0 && (
+          <Link to="/messages" className="dropdown-item py-3 border-bottom d-flex align-items-center gap-2">
+            <IconifyIcon icon="solar:chat-unread-bold" className="fs-20" aria-hidden="true" />
+            <span className="fw-semibold">{unread} unread client {unread === 1 ? 'message' : 'messages'}</span>
+          </Link>
+        )}
         <SimplebarReactClient style={{ maxHeight: 280 }}>
-          {count === 0 ? (
+          {items.length === 0 ? (
             <div className="text-center text-muted py-4 small">No new enquiries. 🎉</div>
           ) : items.map((e, idx) => (
             <Link key={idx} to="/enquiries" className="dropdown-item py-3 border-bottom text-wrap">

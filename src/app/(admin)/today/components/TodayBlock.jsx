@@ -25,16 +25,22 @@ const TodayBlock = ({ id, title, icon, count = 0, total, rows = [], seeAll, empt
           <div className="px-3 py-3 text-muted">{empty}</div>
         ) : (
           <div>
-            {shown.map((r) => (
-              <Link key={r.key} to={r.to} className="hd-row">
-                <span className="hd-row-main">
-                  <span className="hd-row-title d-block text-truncate">{r.title}</span>
-                  {r.sub && <span className="hd-row-sub d-block text-truncate">{r.sub}</span>}
-                </span>
-                {r.right && <span className="text-end flex-none">{r.right}</span>}
-                <IconifyIcon icon="solar:alt-arrow-right-linear" aria-hidden="true" className="text-muted flex-none" />
-              </Link>
-            ))}
+            {shown.map((r) => {
+              const inner = (
+                <>
+                  <span className="hd-row-main">
+                    <span className="hd-row-title d-block text-truncate">{r.title}</span>
+                    {r.sub && <span className="hd-row-sub d-block text-truncate">{r.sub}</span>}
+                  </span>
+                  {r.right && <span className="text-end flex-none">{r.right}</span>}
+                  <IconifyIcon icon="solar:alt-arrow-right-linear" aria-hidden="true" className="text-muted flex-none" />
+                </>
+              );
+              // A row either opens a record (link) or starts a short action (button).
+              return r.onClick
+                ? <button key={r.key} type="button" className="hd-row w-100 text-start bg-transparent border-0 border-top" onClick={r.onClick}>{inner}</button>
+                : <Link key={r.key} to={r.to} className="hd-row">{inner}</Link>;
+            })}
           </div>
         )}
       </Card.Body>

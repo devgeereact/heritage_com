@@ -4,9 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
-import { fmtDate, fmtUtc, naira, GARMENT_LABELS, METHOD_LABELS, ENQUIRY_LABELS, daysFromToday } from '@/helpers/format';
+import {
+  fmtDate, fmtUtc, fmtTime, fmtWhen, naira, GARMENT_LABELS, METHOD_LABELS, ENQUIRY_LABELS, APPT_TYPE_LABELS, CHANGE_KIND_LABELS, daysFromToday,
+} from '@/helpers/format';
 import LoadError from '@/components/herit/LoadError';
-import StatusChip, { StageChip } from '@/components/herit/StatusChip';
+import StatusChip, { ApptChip, StageChip } from '@/components/herit/StatusChip';
+import InviteModal from '@/components/herit/InviteModal';
 import NewEnquiryModal from '@/app/(admin)/enquiries/components/NewEnquiryModal';
 import NewOrderModal from '@/app/(admin)/tailoring/components/NewOrderModal';
 import TodayBlock from './components/TodayBlock';
@@ -33,6 +36,7 @@ const TodayPage = () => {
   const [error, setError] = useState(null);
   const [showEnquiry, setShowEnquiry] = useState(false);
   const [showJob, setShowJob] = useState(false);
+  const [invite, setInvite] = useState(null);
   const navigate = useNavigate();
 
   const load = useCallback(async () => {
@@ -57,10 +61,65 @@ const TodayPage = () => {
       rows: b('overdue').items.map((j) => jobRow(j, { right: <StatusChip tone="bad">{ago(j.due_date)}</StatusChip> })),
     },
     {
-      id: 'appointments', title: 'Fittings today', icon: 'solar:calendar-bold', seeAll: '/jobs',
-      empty: 'No fittings today. Set a fitting date on a job to see it here.',
+      id: 'appointments', title: 'Appointments today', icon: 'solar:calendar-bold', seeAll: '/appointments',
+      empty: 'Nothing booked today. Book from Appointments.',
       ...b('appointments_today'),
-      rows: b('appointments_today').items.map((j) => jobRow(j, { right: <StageChip stage={j.job_stage} label={j.stage_label} /> })),
+      // Before the Phase 3 schema is imported, this block still lists jobs with a fitting today.
+      rows: b('appointments_today').items.map((a) => (a.type ? {
+        key: `a${a.id}`, to: `/appointments?id=${a.id}`,
+        title: `${a.all_day ? 'All day' : fmtTime(a.starts_at_local)} · ${APPT_TYPE_LABELS[a.type] || a.type}${a.client_name ? ` · ${a.client_name}` : ''}`,
+        sub: a.job_code || (a.all_day ? 'Whole day' : `until ${fmtTime(a.ends_at_local)}`),
+        right: a.status === 'requested' ? <ApptChip status={a.status} /> : null,
+      } : jobRow(a, { right: <StageChip stage={a.job_stage} label={a.stage_label} /> }))),
+    },
+    {
+      id: 'appt_requests', title: 'Appointment requests', icon: 'solar:calendar-add-bold', seeAll: '/appointments?tab=requests',
+      empty: 'No requests waiting.',
+      ...b('appointment_requests'),
+      rows: b('appointment_requests').items.map((a) => ({
+        key: `ar${a.id}`, to: `/appointments?tab=requests&id=${a.id}`,
+        title: `${a.client_name || 'Someone'} · ${APPT_TYPE_LABELS[a.type] || a.type}`,
+        sub: `Asks for ${fmtWhen(a.starts_at_local)}`,
+        right: <StatusChip tone="warn">To confirm</StatusChip>,
+      })),
+    },
+    {
+      id: 'messages', title: 'Unread messages', icon: 'solar:chat-unread-bold', seeAll: '/messages',
+      empty: 'No unread messages from clients.',
+      ...b('messages_unread'),
+      rows: b('messages_unread').items.map((m) => ({
+        key: `mu${m.job_id}`, to: `/jobs/${m.job_id}?tab=messages`, title: m.client_name,
+        sub: `${m.job_code} · ${fmtWhen(m.last_at_local)}`,
+        right: <StatusChip tone="warn" icon="solar:chat-unread-bold">{m.unread} new</StatusChip>,
+      })),
+    },
+    {
+      id: 'changes', title: 'Change requests', icon: 'solar:pen-new-square-bold', seeAll: '/messages?tab=changes',
+      empty: 'No change requests waiting.',
+      ...b('change_requests'),
+      rows: b('change_requests').items.map((c) => ({
+        key: `cr${c.id}`, to: `/jobs/${c.job_id}?tab=messages`, title: `${c.client_name} · ${CHANGE_KIND_LABELS[c.kind] || c.kind}`,
+        sub: `${c.job_code} · ${fmtUtc(c.created_at, { time: false })}`,
+      })),
+    },
+    {
+      id: 'access', title: 'Clients waiting for an access link', icon: 'solar:key-bold',
+      empty: 'No client is waiting for a link.',
+      ...b('access_requests'),
+      rows: b('access_requests').items.map((r) => ({
+        key: `ac${r.id}`, title: r.client_name, sub: `No email for a code · asked ${fmtUtc(r.created_at)}`,
+        right: <StatusChip tone="warn" icon="solar:link-bold">Send link</StatusChip>,
+        onClick: () => setInvite({ challengeId: r.id, clientName: r.client_name }),
+      })),
+    },
+    {
+      id: 'feedback', title: 'Feedback to follow up', icon: 'solar:star-bold', seeAll: '/messages?tab=feedback',
+      empty: 'No low ratings to follow up.',
+      ...b('feedback_follow_up'),
+      rows: b('feedback_follow_up').items.map((f) => ({
+        key: `fb${f.id}`, to: '/messages?tab=feedback', title: `${f.client_name} · ${f.rating ? `${f.rating} of 5` : 'no rating'}`,
+        sub: f.job_code,
+      })),
     },
     {
       id: 'next', title: 'Next actions due', icon: 'solar:checklist-minimalistic-bold', seeAll: '/jobs?next=due',
@@ -179,6 +238,7 @@ const TodayPage = () => {
         onHide={() => setShowEnquiry(false)}
         onCreated={(id) => navigate(`/enquiries/${id}`)}
       />
+      <InviteModal show={!!invite} onHide={() => { setInvite(null); load(); }} challengeId={invite?.challengeId} clientName={invite?.clientName} />
       <NewOrderModal show={showJob} onHide={() => setShowJob(false)} onCreated={(r) => (r?.id ? navigate(`/jobs/${r.id}`) : load())} />
     </div>
   );

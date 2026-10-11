@@ -15,11 +15,12 @@ import MeasurementsPanel from '../components/MeasurementsPanel';
 import QuotePanel from '../components/QuotePanel';
 import MoneyPanel from '../components/MoneyPanel';
 import HandoverPanel from '../components/HandoverPanel';
+import MessagesPanel from '../components/MessagesPanel';
 
 const OWNER = ['super_admin', 'admin', 'manager'];
 
 /**
- * One job: stage, dates, measurements, quote, payments, handover, timeline.
+ * One job: stage, dates, messages, measurements, quote, payments, handover, timeline.
  * Money tabs exist only for owner roles; the server strips money for tailors.
  */
 const JobDetailPage = () => {
@@ -28,7 +29,7 @@ const JobDetailPage = () => {
   const isOwner = OWNER.includes(user?.role);
   const location = useLocation();
   const [params, setParams] = useSearchParams();
-  const tabs = ['overview', 'measurements', ...(isOwner ? ['quote', 'payments'] : []), 'handover', 'timeline'];
+  const tabs = ['overview', ...(isOwner ? ['messages'] : []), 'measurements', ...(isOwner ? ['quote', 'payments'] : []), 'handover', 'timeline'];
   const tab = tabs.includes(params.get('tab')) ? params.get('tab') : 'overview';
   const [job, setJob] = useState(null);
   const [meta, setMeta] = useState(null);
@@ -58,7 +59,7 @@ const JobDetailPage = () => {
   if (state === 'error') return <div className="hd"><LoadError what="this job" error={error} onRetry={() => { setState('loading'); load(); }} /></div>;
 
   const stages = meta?.stages || Object.keys(STAGE_LABELS).map((k) => ({ key: k, label: STAGE_LABELS[k] }));
-  const TAB_LABEL = { overview: 'Overview', measurements: 'Measurements', quote: 'Quote', payments: 'Payments', handover: 'Handover', timeline: 'Timeline' };
+  const TAB_LABEL = { overview: 'Overview', messages: 'Messages', measurements: 'Measurements', quote: 'Quote', payments: 'Payments', handover: 'Handover', timeline: 'Timeline' };
   const wa = waLink(job.customer_phone);
 
   return (
@@ -94,6 +95,7 @@ const JobDetailPage = () => {
           <DatesPanel job={job} tailors={tailors} onSaved={load} onReload={load} />
         </>
       )}
+      {tab === 'messages' && isOwner && <MessagesPanel job={job} />}
       {tab === 'measurements' && <MeasurementsPanel job={job} onChanged={load} />}
       {tab === 'quote' && isOwner && <QuotePanel job={job} onChanged={load} />}
       {tab === 'payments' && isOwner && <MoneyPanel job={job} verifiedMethods={meta?.verified_methods || ['cash']} onChanged={load} />}
