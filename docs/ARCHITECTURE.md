@@ -60,7 +60,7 @@ From `src/routes/index.jsx` on `chore/cleanup-docs-sync`, 10 October 2026. Navig
 
 | Group | Routes |
 |---|---|
-| Public site | `/`, `/about`, `/shop`, `/shop/:slug`, `/cart`, `/checkout`, `/gifting`, `/contact`, `/journal`, `/journal/:slug`, `/track`, `/account`. Shop, cart and gifting links show in public navigation only while the `shop_enabled` setting is on (default off); the routes work by direct URL either way. |
+| Public site | `/`, `/about`, `/services`, `/services/:slug`, `/work`, `/work/:slug`, `/how-it-works`, `/company-orders`, `/shop`, `/shop/:slug`, `/cart`, `/checkout`, `/gifting`, `/contact`, `/journal`, `/journal/:slug`, `/track`, `/account`, `/account/jobs/:ref`, `/access/:invite`, `/book`. CMS pages read `site.php` through `site/siteData.js`; their nav links follow the published-content flags. Shop, cart and gifting links show in public navigation only while the `shop_enabled` setting is on (default off); the routes work by direct URL either way. |
 | Public site, Phase 3 branch | `/book` (linked as Book appointment only while `booking.php?action=config` says enabled), `/account/jobs/:ref` (one tailoring job in the client portal), `/access/:invite` (exchanges an owner invite, then opens `/account`); `/track` and `/account` become the two-step verified access form and the portal |
 | Admin, daily records (Phase 2 branch) | `/today`, `/enquiries`, `/enquiries/:id`, `/enquiries/:id/convert`, `/clients`, `/clients/:id`, `/clients/:id/measurements/new`, `/jobs`, `/jobs/groups`, `/jobs/:id`, `/payments`, `/appointments`, `/print/:doc/:id`, `/settings`, `/reports` (the former dashboard). On the Phase 3 branch `/appointments` is the real Appointments page and `/messages` is added (owner roles) |
 | Admin, redirects (Phase 2 branch) | `/dashboard` to `/today`, `/tailoring` to `/jobs`, `/tailoring/groups` to `/jobs/groups`, `/tailoring/:id` to `/jobs/:id`, `/crm` to `/clients`, `/crm/:id` to `/clients/:id`; on the Phase 3 branch also `/apps/calendar` to `/appointments` |
@@ -90,7 +90,7 @@ Workflow: edit draft > preview phone and desktop > review permissions and copy >
 
 Failure behaviour: show a clear unavailable message, the last verified public content where suitable, or omit optional sections. Never resurrect sample products, fabricated reviews or old offers when the API returns empty; a deliberately empty catalogue stays empty. Changed or unpublished content invalidates the relevant cache. No credentials, private IDs or internal notes in public JSON.
 
-Known gaps: `SiteLayout.jsx:24-31` falls back to platform home pages for Instagram, Facebook and TikTok and to `wa.me/234` for WhatsApp; Twitter and YouTube fall back to empty; LinkedIn is absent (A12).
+Known gaps: none for social links since `feat/phase4-website` (A12): the footer shows only links `site.php` returns after its own checks.
 
 Acceptance: change a service, phone number and social URL, publish, and confirm every public consumer uses the new value; unpublish a review or post and confirm no fallback recreates it; malicious HTML and URLs are rejected; booking and enquiry complete on phone and keyboard without losing entered details; no fictional proof or private record appears anywhere public.
 

@@ -402,3 +402,6 @@
 
 /* Loading and empty states. */
 .hc-state { padding: var(--hc-section-y) 0; color: var(--hc-text-muted); }
+
+/* Form column width on CMS pages. */
+.hc-form-wrap { max-width: 48rem; }

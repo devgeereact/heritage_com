@@ -8,6 +8,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 Added
 
+- Website pages on the CMS (BUILD-SPEC 4.7): `/services`, `/services/:slug` (with `Service` JSON-LD), `/work` (service filter chips), `/work/:slug` (gallery and facts), `/how-it-works` and `/company-orders` with the company brief form (posts to `contact.php` as a wholesale enquiry; D-022). Unpublished items show a noindex not-found page. The staff splash skips the new public paths.
 - Handoff for a second computer: remaining build spec in `docs/BUILD-SPEC.md`, the tested JS/JSX lint config in `scripts/lint/eslint.config.proposed.js` (A13), and a "Continue on another computer" section in `.agent/CURRENT-TASK.md`.
 - Public UI kit in `src/app/(public)/site/ui/` (Button, Section and SectionHead, Card, ServiceCard, WorkCard, Field and ErrorSummary, StatusChip, HcImage, Hero, Icon) and a motion layer: word-by-word headline mask reveal and image settle on the first home view per session, once-only fade-up reveals below the fold, the amber measure line under eyebrows, a filling step rule, growing link underlines and button press feedback, all static under reduced motion. New header (opaque, menu sheet with focus trap below 1024px) and footer that shows only filled-in business details and verified social links (A12). `npm run check:tokens` guards the stylesheets against raw colours (A23).
 

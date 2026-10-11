@@ -37,6 +37,12 @@ const AccessInvite = lazy(() => import('@/app/(public)/site/portal/InvitePage'))
 const Book = lazy(() => import('@/app/(public)/site/BookPage'));
 const Blog = lazy(() => import('@/app/(public)/site/BlogPage'));
 const BlogPost = lazy(() => import('@/app/(public)/site/BlogPostPage'));
+const Services = lazy(() => import('@/app/(public)/site/ServicesPage'));
+const Service = lazy(() => import('@/app/(public)/site/ServicePage'));
+const Work = lazy(() => import('@/app/(public)/site/WorkPage'));
+const WorkItem = lazy(() => import('@/app/(public)/site/WorkItemPage'));
+const HowItWorks = lazy(() => import('@/app/(public)/site/CmsPage').then((m) => ({ default: m.HowItWorksPage })));
+const CompanyOrders = lazy(() => import('@/app/(public)/site/CompanyOrdersPage'));
 
 // Tailoring & Production (HeritOS core module)
 const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
@@ -94,6 +100,30 @@ export const publicRoutes = [{
   path: '/about',
   name: 'About',
   element: <About />
+}, {
+  path: '/services',
+  name: 'Services',
+  element: <Services />
+}, {
+  path: '/services/:slug',
+  name: 'Service',
+  element: <Service />
+}, {
+  path: '/work',
+  name: 'Our work',
+  element: <Work />
+}, {
+  path: '/work/:slug',
+  name: 'Work item',
+  element: <WorkItem />
+}, {
+  path: '/how-it-works',
+  name: 'How it works',
+  element: <HowItWorks />
+}, {
+  path: '/company-orders',
+  name: 'Company orders',
+  element: <CompanyOrders />
 }, {
   path: '/shop',
   name: 'Shop',
