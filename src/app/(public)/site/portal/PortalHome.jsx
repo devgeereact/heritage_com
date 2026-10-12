@@ -5,6 +5,7 @@ import heritApi from '@/helpers/heritApi';
 import { fmtDate, fmtWhen, naira } from '@/helpers/format';
 import { EXPIRED, endSession } from './session';
 import './portal.css';
+import { CompanyLists } from './CompanyViews';
 
 /** Signed-in client: their tailoring jobs (stage, promised date, money) and shop orders. */
 const PortalHome = ({ onSignedOut }) => {
@@ -78,6 +79,8 @@ const PortalHome = ({ onSignedOut }) => {
           );
         })}
       </div>
+
+      <CompanyLists data={data} />
 
       {data.orders.length > 0 && (
         <div className="hp-card">

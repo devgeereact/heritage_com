@@ -6,6 +6,7 @@ import SiteLayout from '../SiteLayout';
 import AccessForm from './AccessForm';
 import { EXPIRED, endSession, signedIn } from './session';
 import { AppointmentsSection, ChangeSection, FeedbackSection, MeasurementsSection, MessagesSection, QuoteSection } from './sections';
+import { CompanyJobDetail, WearerItemDetail } from './CompanyViews';
 import './portal.css';
 
 const Section = ({ id, title, children }) => (
@@ -47,7 +48,8 @@ const PortalJobPage = () => {
   useEffect(() => { if (signed) load(); }, [signed, load]);
 
   const p = job?.payment;
-  const toc = job ? [
+  const kind = job?.kind || 'own';
+  const toc = job && kind === 'own' ? [
     ['progress', 'Progress'], ['messages', 'Messages'], ['appointments', 'Appointments'], ['changes', 'Changes'],
     ['payments', 'Payments'], ...(job.quote ? [['quote', 'Quote']] : []), ['measurements', 'Measurements'],
     ...(job.can?.give_feedback || job.feedback ? [['feedback', 'Feedback']] : []),
@@ -59,7 +61,7 @@ const PortalJobPage = () => {
         <div className="hc-container">
           <div className="hc-crumb"><Link to="/">Home</Link> / <Link to="/account">Your orders</Link> / <span>{ref}</span></div>
           <h1 className="hc-h1">{job ? (job.description || 'Your order') : 'Your order'}</h1>
-          {job && <p>{job.stage_label || 'In progress'}{job.promised_date ? ` · promised ${fmtDate(job.promised_date)}` : ''} · reference {job.ref}</p>}
+          {job && <p>{job.stage_label || 'In progress'}{job.promised_date ? ` · promised ${fmtDate(job.promised_date)}` : ''} · reference {job.ref}{kind === 'company' ? ' · company order' : ''}</p>}
         </div>
       </section>
       <section className="hc-section">
@@ -76,7 +78,9 @@ const PortalJobPage = () => {
           {signed && state === 'error' && (
             <div className="hp-card"><p className="hp-error" role="alert">We could not load this order just now.</p><button type="button" className="hp-btn" onClick={load}>Try again</button></div>
           )}
-          {signed && state === 'ready' && job && (
+          {signed && state === 'ready' && job && kind === 'company' && <CompanyJobDetail job={job} guard={guard} onChanged={load} />}
+          {signed && state === 'ready' && job && kind === 'wearer' && <WearerItemDetail item={job} />}
+          {signed && state === 'ready' && job && kind === 'own' && (
             <div className="hp-stack">
               <nav aria-label="On this page"><ul className="hp-toc">{toc.map(([id, l]) => <li key={id}><a className="hp-link" href={`#${id}`}>{l}</a></li>)}</ul></nav>
 
