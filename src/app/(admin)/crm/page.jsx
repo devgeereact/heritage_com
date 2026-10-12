@@ -41,7 +41,10 @@ const ClientsPage = () => {
       <PageHeader
         title="Clients"
         subtitle={state === 'ready' ? `${rows.length} client${rows.length === 1 ? '' : 's'}${q ? ' found' : ''}` : 'People and companies you make for'}
-        actions={<Button variant="primary" onClick={() => setShowNew(true)}><IconifyIcon icon="solar:user-plus-bold" className="me-1" aria-hidden="true" />Add client</Button>}
+        actions={<>
+          {['super_admin', 'admin', 'manager'].includes(user?.role) && <Link className="btn btn-outline-secondary" to="/clients/companies"><IconifyIcon icon="solar:buildings-2-bold" className="me-1" aria-hidden="true" />Companies</Link>}
+          <Button variant="primary" onClick={() => setShowNew(true)}><IconifyIcon icon="solar:user-plus-bold" className="me-1" aria-hidden="true" />Add client</Button>
+        </>}
       />
       <Form.Group controlId="client-search" className="mb-3" style={{ maxWidth: 480 }}>
         <Form.Label>Search</Form.Label>

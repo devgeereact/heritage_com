@@ -93,11 +93,13 @@ function job_fields_from_body(array $b, array $garments, array $fabricSources) {
   return $f;
 }
 
-const JOB_LIST_COLS = "o.id, o.code, o.public_ref, o.customer_id, o.group_id, o.garment_type, o.quantity, o.description, o.fabric,
+// job_kind and company_id arrive with schema_phase27.sql (Phase 5); before that every job is individual.
+define('JOB_LIST_COLS', "o.id, o.code, o.public_ref, o.customer_id, o.group_id, o.garment_type, o.quantity, o.description, o.fabric,
        o.fabric_source, o.stage, o.job_stage, o.stage_review, o.price, o.deposit, o.paid_total, o.payment_state,
        o.fabric_cost, o.labour_cost, o.due_date, o.event_date, o.fitting_date, o.next_action, o.next_action_date,
        o.handed_over_qty, o.lock_version, o.notes, o.assigned_tailor_id, o.enquiry_id, o.quote_id,
-       c.name AS customer_name, c.phone AS customer_phone, c.client_ref, t.name AS tailor_name";
+       " . (has_column('tailoring_orders', 'job_kind') ? 'o.job_kind, o.company_id' : "'individual' AS job_kind, NULL AS company_id") . ",
+       c.name AS customer_name, c.phone AS customer_phone, c.client_ref, t.name AS tailor_name");
 
 /* ---- META ---------------------------------------------------------------- */
 if ($action === 'meta' && method() === 'GET') {

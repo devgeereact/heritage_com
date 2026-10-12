@@ -88,6 +88,8 @@ const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
 // Customers / CRM
 const Crm = lazy(() => import('@/app/(admin)/crm/page'));
 const CrmDetail = lazy(() => import('@/app/(admin)/crm/[id]/page'));
+const Companies = lazy(() => import('@/app/(admin)/clients/companies/page'));
+const CompanyDetail = lazy(() => import('@/app/(admin)/clients/companies/[id]/page'));
 
 // Sales / Orders (ready-to-wear)
 const Sales = lazy(() => import('@/app/(admin)/sales/page'));
@@ -230,6 +232,14 @@ const generalRoutes = [{
   path: '/clients',
   name: 'Clients',
   element: <Crm />
+}, {
+  path: '/clients/companies',
+  name: 'Companies',
+  element: <Companies />
+}, {
+  path: '/clients/companies/:id',
+  name: 'Company',
+  element: <CompanyDetail />
 }, {
   path: '/clients/:id',
   name: 'Client',

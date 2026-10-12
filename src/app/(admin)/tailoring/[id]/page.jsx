@@ -16,6 +16,8 @@ import QuotePanel from '../components/QuotePanel';
 import MoneyPanel from '../components/MoneyPanel';
 import HandoverPanel from '../components/HandoverPanel';
 import MessagesPanel from '../components/MessagesPanel';
+import { CompanyItemsPanel, CompanySamplePanel, CompanyDetailsPanel, CompanyHandoverPanel } from '../components/CompanyJobPanels';
+import StatusChip from '@/components/herit/StatusChip';
 
 const OWNER = ['super_admin', 'admin', 'manager'];
 
@@ -29,9 +31,13 @@ const JobDetailPage = () => {
   const isOwner = OWNER.includes(user?.role);
   const location = useLocation();
   const [params, setParams] = useSearchParams();
-  const tabs = ['overview', ...(isOwner ? ['messages'] : []), 'measurements', ...(isOwner ? ['quote', 'payments'] : []), 'handover', 'timeline'];
-  const tab = tabs.includes(params.get('tab')) ? params.get('tab') : 'overview';
   const [job, setJob] = useState(null);
+  const [cj, setCj] = useState(null); // company job data (Phase 5), only for job_kind 'company'
+  const isCompany = job?.job_kind === 'company';
+  const tabs = isCompany
+    ? ['overview', 'items', ...(isOwner ? ['sample', 'company', 'messages', 'quote', 'payments'] : []), 'handover', 'timeline']
+    : ['overview', ...(isOwner ? ['messages'] : []), 'measurements', ...(isOwner ? ['quote', 'payments'] : []), 'handover', 'timeline'];
+  const tab = tabs.includes(params.get('tab')) ? params.get('tab') : 'overview';
   const [meta, setMeta] = useState(null);
   const [tailors, setTailors] = useState([]);
   const [state, setState] = useState('loading');
@@ -46,6 +52,7 @@ const JobDetailPage = () => {
     try {
       const [j, t] = await Promise.all([heritApi.tailoring.get(id), heritApi.tailoring.tailors().catch(() => [])]);
       setJob(j); setTailors(Array.isArray(t) ? t : []);
+      if (j?.job_kind === 'company') setCj(await heritApi.companyJobs.get(id));
       setState('ready');
     } catch (e) {
       setError(e); setState(e.status === 404 ? 'missing' : 'error');
@@ -59,7 +66,9 @@ const JobDetailPage = () => {
   if (state === 'error') return <div className="hd"><LoadError what="this job" error={error} onRetry={() => { setState('loading'); load(); }} /></div>;
 
   const stages = meta?.stages || Object.keys(STAGE_LABELS).map((k) => ({ key: k, label: STAGE_LABELS[k] }));
-  const TAB_LABEL = { overview: 'Overview', messages: 'Messages', measurements: 'Measurements', quote: 'Quote', payments: 'Payments', handover: 'Handover', timeline: 'Timeline' };
+  const TAB_LABEL = { overview: 'Overview', items: 'Items', sample: 'Sample', company: 'Company', messages: 'Messages', measurements: 'Measurements', quote: 'Quote', payments: 'Payments', handover: 'Handover', timeline: 'Timeline' };
+  // A company job change returns the company view; refresh the job row too so stage and quantity stay in step.
+  const onCompanyData = (data) => { setCj(data); heritApi.tailoring.get(id).then(setJob).catch(() => {}); };
   const wa = waLink(job.customer_phone);
 
   return (
@@ -72,6 +81,7 @@ const JobDetailPage = () => {
           <span className="d-inline-flex flex-wrap gap-2 align-items-center">
             <Link to={`/clients/${job.customer_id}`}>{job.customer_name}</Link>
             {job.client_ref && <span className="small">{job.client_ref}</span>}
+            {isCompany && <StatusChip tone="ink" icon="solar:buildings-2-bold">Company · {cj?.company?.name || 'order'}</StatusChip>}
             <StageChip stage={job.job_stage} label={job.stage_label} />
             {isOwner && <PaymentChip state={job.payment_state} />}
           </span>
@@ -99,7 +109,12 @@ const JobDetailPage = () => {
       {tab === 'measurements' && <MeasurementsPanel job={job} onChanged={load} />}
       {tab === 'quote' && isOwner && <QuotePanel job={job} onChanged={load} />}
       {tab === 'payments' && isOwner && <MoneyPanel job={job} verifiedMethods={meta?.verified_methods || ['cash']} onChanged={load} />}
-      {tab === 'handover' && <HandoverPanel job={job} isOwner={isOwner} onChanged={load} />}
+      {tab === 'items' && cj && <CompanyItemsPanel cj={cj} isOwner={isOwner} onData={onCompanyData} />}
+      {tab === 'sample' && cj && isOwner && <CompanySamplePanel cj={cj} onData={onCompanyData} />}
+      {tab === 'company' && cj && isOwner && <CompanyDetailsPanel cj={cj} onData={onCompanyData} />}
+      {tab === 'handover' && (isCompany
+        ? (cj && isOwner ? <CompanyHandoverPanel cj={cj} onData={onCompanyData} /> : <Card className="hd-card"><Card.Body>{cj?.job.progress}</Card.Body></Card>)
+        : <HandoverPanel job={job} isOwner={isOwner} onChanged={load} />)}
       {tab === 'timeline' && (
         <Card className="hd-card">
           {(job.events || []).length === 0 ? <Card.Body className="text-muted">Nothing recorded yet.</Card.Body> : job.events.map((ev) => (

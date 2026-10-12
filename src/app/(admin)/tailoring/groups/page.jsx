@@ -75,7 +75,7 @@ const NewGroupModal = ({ show, onHide, onCreated }) => {
           <Col md={3}><Form.Label className="small mb-1">Phone</Form.Label><Form.Control value={g.phone} onChange={setGF('phone')} /></Col>
           <Col md={5}><Form.Label className="small mb-1">Event</Form.Label><Form.Control value={g.event} onChange={setGF('event')} placeholder="Wedding, burial, birthday…" /></Col>
           <Col md={3}><Form.Label className="small mb-1">Due date</Form.Label><Form.Control type="date" value={g.due_date} onChange={setGF('due_date')} /></Col>
-          <Col md={3}><Form.Label className="small mb-1">Group discount (%)</Form.Label><Form.Control type="number" min="0" max="100" value={g.discount_pct} onChange={setGF('discount_pct')} /></Col>
+          <Col md={3}><Form.Label className="small mb-1">Group discount (%), optional</Form.Label><Form.Control type="number" min="0" max="100" value={g.discount_pct} onChange={setGF('discount_pct')} /></Col>
           <Col md={6}><Form.Label className="small mb-1">Notes</Form.Label><Form.Control value={g.notes} onChange={setGF('notes')} /></Col>
         </Row>
 
@@ -167,7 +167,7 @@ const GroupsPage = () => {
         <div>
           <Link to="/jobs" className="btn btn-sm btn-light mb-1"><IconifyIcon icon="solar:arrow-left-linear" /> Jobs</Link>
           <h4 className="mb-1">Aso-ebi &amp; group orders</h4>
-          <p className="text-muted mb-0">One organiser, many matching pieces, group pricing.</p>
+          <p className="text-muted mb-0">Coordinated pieces where each person pays for their own. No automatic discount. For one company paying for many pieces, use <Link to="/clients/companies">Companies</Link>.</p>
         </div>
         <Button variant="primary" onClick={() => setShow(true)}><IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" /> New group</Button>
       </div>

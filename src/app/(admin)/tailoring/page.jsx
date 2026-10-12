@@ -143,6 +143,7 @@ const JobsPage = () => {
                   {late && <StatusChip tone="bad">{-d} day{d === -1 ? '' : 's'} late</StatusChip>}
                   {nd !== null && nd <= 0 && OPEN(j) && <StatusChip tone="warn" icon="solar:bell-bold">Action due</StatusChip>}
                   {j.stage_review ? <StatusChip tone="warn" icon="solar:question-circle-bold">Confirm</StatusChip> : null}
+                  {j.job_kind === 'company' && <StatusChip tone="ink" icon="solar:buildings-2-bold">Company</StatusChip>}
                   <StageChip stage={j.job_stage} label={j.stage_label} />
                   {isOwner && <PaymentChip state={j.payment_state} />}
                 </span>

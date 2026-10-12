@@ -510,6 +510,7 @@ export const heritApi = {
     proposeMeasurements: (data) => cpost('/portal.php?action=propose_measurements', data),
     feedback: (data) => cpost('/portal.php?action=feedback', data),
     quoteAccept: (data) => cpost('/portal.php?action=quote_accept', data),
+    sampleDecide: (data) => cpost('/portal.php?action=sample_decide', data),
     setToken: (t) => setCustomerToken(t),
     clearToken: () => clearCustomerToken(),
     token: () => customerToken(),
@@ -532,6 +533,21 @@ export const heritApi = {
     setToken: (t) => setCustomerToken(t),
     logout: () => clearCustomerToken(),
     token: () => customerToken(),
+  },
+
+  // Company orders (Phase 5; owner roles, item progress also for tailors)
+  companies: {
+    list: (q) => request(`/companies.php?action=list${qs({ q })}`),
+    get: (id) => request(`/companies.php?action=get&id=${enc(id)}`),
+    match: (name) => request(`/companies.php?action=match${qs({ name })}`),
+    save: (data) => request('/companies.php?action=save', { method: 'POST', body: data }),
+    contactSave: (data) => request('/companies.php?action=contact_save', { method: 'POST', body: data }),
+    contactDeactivate: (id) => request(`/companies.php?action=contact_deactivate&id=${enc(id)}`, { method: 'POST', body: {} }),
+  },
+  companyJobs: {
+    create: (data) => request('/company_jobs.php?action=create', { method: 'POST', body: data }),
+    get: (jobId) => request(`/company_jobs.php?action=job&job_id=${enc(jobId)}`),
+    act: (action, jobId, data = {}) => request(`/company_jobs.php?action=${enc(action)}&job_id=${enc(jobId)}`, { method: 'POST', body: data }),
   },
 
   // Public website projection (site.php; published content only, no sign-in)
