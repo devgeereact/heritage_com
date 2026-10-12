@@ -1,4 +1,4 @@
-import { useSiteConfig } from '../siteData';
+import { useSiteConfig } from '../siteData'
 
 /**
  * The site's two actions, decided in one place (BUILD-SPEC 4.7):
@@ -8,9 +8,9 @@ import { useSiteConfig } from '../siteData';
  *   otherwise the contact form with the company type.
  */
 export default function useActions() {
-  const cfg = useSiteConfig();
-  const booking = cfg?.booking_enabled === true;
-  const company = cfg?.nav?.company === true;
+  const cfg = useSiteConfig()
+  const booking = cfg?.booking_enabled === true
+  const company = cfg?.nav?.company === true
   return {
     primary: booking
       ? { to: '/book', label: 'Book a measurement appointment', short: 'Book an appointment' }
@@ -18,5 +18,5 @@ export default function useActions() {
     secondary: company
       ? { to: '/company-orders#brief', label: 'Discuss a company order' }
       : { to: '/contact?type=company', label: 'Discuss a company order' },
-  };
+  }
 }

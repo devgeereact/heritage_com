@@ -8,8 +8,7 @@
 // htmlToText() turns stored HTML back into this format for editing. Bold,
 // italics and other tags round-trip as plain text.
 
-const esc = (s) =>
-  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 const okHref = (h) => /^(https:\/\/|http:\/\/|mailto:|tel:|\/(?!\/))/i.test(h)
 
@@ -63,10 +62,20 @@ export function htmlToText(html) {
     }
     if (n.nodeType !== 1) return
     const tag = n.tagName.toLowerCase()
-    if (tag === 'ul' || tag === 'ol') out.push(Array.from(n.querySelectorAll('li')).map((li) => `- ${text(li).trim()}`).join('\n'))
+    if (tag === 'ul' || tag === 'ol')
+      out.push(
+        Array.from(n.querySelectorAll('li'))
+          .map((li) => `- ${text(li).trim()}`)
+          .join('\n'),
+      )
     else if (tag === 'h2') out.push(`## ${text(n).trim()}`)
     else if (tag === 'h3' || tag === 'h4') out.push(`### ${text(n).trim()}`)
-    else out.push(text(n).trim().replace(/ *\n */g, '\n'))
+    else
+      out.push(
+        text(n)
+          .trim()
+          .replace(/ *\n */g, '\n'),
+      )
   })
   return out.filter(Boolean).join('\n\n')
 }

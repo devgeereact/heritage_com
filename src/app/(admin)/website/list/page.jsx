@@ -46,7 +46,10 @@ const WebsiteListPage = () => {
     setItems(next)
     setSave({ state: 'saving', error: '' })
     try {
-      await heritApi.cms.reorder(ent.entity, next.map((n) => n.id))
+      await heritApi.cms.reorder(
+        ent.entity,
+        next.map((n) => n.id),
+      )
       setSave({ state: 'saved', error: '' })
     } catch (e) {
       setSave({ state: 'failed', error: e.message })
@@ -98,7 +101,12 @@ const WebsiteListPage = () => {
                       <Button size="sm" variant="outline-secondary" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move ${r.label} up`}>
                         Up
                       </Button>
-                      <Button size="sm" variant="outline-secondary" disabled={i === rows.length - 1} onClick={() => move(i, 1)} aria-label={`Move ${r.label} down`}>
+                      <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        disabled={i === rows.length - 1}
+                        onClick={() => move(i, 1)}
+                        aria-label={`Move ${r.label} down`}>
                         Down
                       </Button>
                     </span>

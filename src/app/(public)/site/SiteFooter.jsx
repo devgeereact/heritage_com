@@ -1,12 +1,12 @@
-import { Link } from 'react-router-dom';
-import { useAuthContext } from '@/context/useAuthContext';
-import { roleHome } from '@/helpers/roles';
-import { useShopEnabled } from './storeConfig';
-import { useBusiness } from './business';
-import { useSiteNav } from './siteData';
-import Icon from './ui/Icon';
+import { Link } from 'react-router-dom'
+import { useAuthContext } from '@/context/useAuthContext'
+import { roleHome } from '@/helpers/roles'
+import { useShopEnabled } from './storeConfig'
+import { useBusiness } from './business'
+import { useSiteNav } from './siteData'
+import Icon from './ui/Icon'
 
-const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`;
+const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`
 
 /**
  * Footer on the light-ash surface. Four columns, each shown only when it has
@@ -16,11 +16,11 @@ const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`;
  * `business` prop. Explore and policy links follow the published-content flags.
  */
 const SiteFooter = ({ business: given }) => {
-  const fromConfig = useBusiness();
-  const b = given || fromConfig;
-  const shopOn = useShopEnabled();
-  const nav = useSiteNav();
-  const { isAuthenticated, user } = useAuthContext();
+  const fromConfig = useBusiness()
+  const b = given || fromConfig
+  const shopOn = useShopEnabled()
+  const nav = useSiteNav()
+  const { isAuthenticated, user } = useAuthContext()
 
   const explore = [
     nav.services && { to: '/services', label: 'Services' },
@@ -33,13 +33,10 @@ const SiteFooter = ({ business: given }) => {
     shopOn && { to: '/shop', label: 'Shop' },
     { to: '/contact', label: 'Contact' },
     { to: '/track', label: 'Track your job' },
-  ].filter(Boolean);
-  const policies = [
-    nav.privacy && { to: '/privacy', label: 'Privacy' },
-    nav.terms && { to: '/terms', label: 'Terms' },
-  ].filter(Boolean);
-  const hasBusiness = b.area || b.hours || b.address;
-  const hasContact = b.phone || b.whatsapp || b.email;
+  ].filter(Boolean)
+  const policies = [nav.privacy && { to: '/privacy', label: 'Privacy' }, nav.terms && { to: '/terms', label: 'Terms' }].filter(Boolean)
+  const hasBusiness = b.area || b.hours || b.address
+  const hasContact = b.phone || b.whatsapp || b.email
 
   return (
     <footer className="hc-footer">
@@ -60,9 +57,27 @@ const SiteFooter = ({ business: given }) => {
             <div>
               <h2>Contact</h2>
               <ul>
-                {b.phone && <li><a href={telHref(b.phone)}><Icon name="phone" /> {b.phone}</a></li>}
-                {b.whatsapp && <li><a href={b.whatsapp} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp" /> WhatsApp</a></li>}
-                {b.email && <li><a href={`mailto:${b.email}`}><Icon name="mail" /> {b.email}</a></li>}
+                {b.phone && (
+                  <li>
+                    <a href={telHref(b.phone)}>
+                      <Icon name="phone" /> {b.phone}
+                    </a>
+                  </li>
+                )}
+                {b.whatsapp && (
+                  <li>
+                    <a href={b.whatsapp} target="_blank" rel="noopener noreferrer">
+                      <Icon name="whatsapp" /> WhatsApp
+                    </a>
+                  </li>
+                )}
+                {b.email && (
+                  <li>
+                    <a href={`mailto:${b.email}`}>
+                      <Icon name="mail" /> {b.email}
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
           )}
@@ -70,7 +85,11 @@ const SiteFooter = ({ business: given }) => {
           <nav aria-label="Explore">
             <h2>Explore</h2>
             <ul>
-              {explore.map((l) => <li key={l.to}><Link to={l.to}>{l.label}</Link></li>)}
+              {explore.map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to}>{l.label}</Link>
+                </li>
+              ))}
             </ul>
           </nav>
 
@@ -78,7 +97,11 @@ const SiteFooter = ({ business: given }) => {
             <nav aria-label="Policies">
               <h2>Policies</h2>
               <ul>
-                {policies.map((p) => <li key={p.to}><Link to={p.to}>{p.label}</Link></li>)}
+                {policies.map((p) => (
+                  <li key={p.to}>
+                    <Link to={p.to}>{p.label}</Link>
+                  </li>
+                ))}
               </ul>
             </nav>
           )}
@@ -97,14 +120,14 @@ const SiteFooter = ({ business: given }) => {
         )}
 
         <div className="hc-footer-bottom">
-          <span>© {new Date().getFullYear()} {b.name}</span>
-          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'}>
-            {isAuthenticated ? 'Staff dashboard' : 'Staff sign in'}
-          </Link>
+          <span>
+            © {new Date().getFullYear()} {b.name}
+          </span>
+          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'}>{isAuthenticated ? 'Staff dashboard' : 'Staff sign in'}</Link>
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default SiteFooter;
+export default SiteFooter

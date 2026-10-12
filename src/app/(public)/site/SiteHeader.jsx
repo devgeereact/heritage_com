@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useCart } from './cart';
-import { useShopEnabled } from './storeConfig';
-import { useSiteNav } from './siteData';
-import useActions from './ui/useActions';
-import Button from './ui/Button';
-import Icon from './ui/Icon';
-import logoDark from '@/assets/images/logo-dark.svg';
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useCart } from './cart'
+import { useShopEnabled } from './storeConfig'
+import { useSiteNav } from './siteData'
+import useActions from './ui/useActions'
+import Button from './ui/Button'
+import Icon from './ui/Icon'
+import logoDark from '@/assets/images/logo-dark.svg'
 
 // Each link shows only while its page has published content (site.php config
 // `nav` flags); the shop links only while the retail shop is switched on.
@@ -18,9 +18,9 @@ const NAV = [
   { to: '/about', label: 'About', flag: 'about' },
   { to: '/shop', label: 'Shop', shop: true },
   { to: '/contact', label: 'Contact' },
-];
+]
 
-const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`));
+const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`))
 
 /**
  * Sticky, opaque header (64px). A 1px divider fades in once the page has
@@ -28,51 +28,62 @@ const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname ==
  * Escape to close, body scroll lock, and Book and Track pinned at the bottom.
  */
 const SiteHeader = () => {
-  const { pathname } = useLocation();
-  const shopOn = useShopEnabled();
-  const nav = useSiteNav();
-  const { primary: action } = useActions();
-  const { count } = useCart();
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const toggleRef = useRef(null);
-  const sheetRef = useRef(null);
+  const { pathname } = useLocation()
+  const shopOn = useShopEnabled()
+  const nav = useSiteNav()
+  const { primary: action } = useActions()
+  const { count } = useCart()
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const toggleRef = useRef(null)
+  const sheetRef = useRef(null)
 
-  const links = NAV.filter((n) => (n.shop ? shopOn : !n.flag || nav[n.flag] === true));
-  const primary = { to: action.to, label: action.short };
-
-  useEffect(() => { setOpen(false); }, [pathname]);
+  const links = NAV.filter((n) => (n.shop ? shopOn : !n.flag || nav[n.flag] === true))
+  const primary = { to: action.to, label: action.short }
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // Sheet: lock page scroll, trap focus, close on Escape, return focus.
   useEffect(() => {
-    if (!open) return undefined;
-    const toggle = toggleRef.current;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const focusables = () => [toggle, ...(sheetRef.current?.querySelectorAll('a[href], button:not([disabled])') || [])].filter(Boolean);
-    focusables()[1]?.focus();
+    if (!open) return undefined
+    const toggle = toggleRef.current
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusables = () => [toggle, ...(sheetRef.current?.querySelectorAll('a[href], button:not([disabled])') || [])].filter(Boolean)
+    focusables()[1]?.focus()
     const onKey = (e) => {
-      if (e.key === 'Escape') { setOpen(false); toggle?.focus(); return; }
-      if (e.key !== 'Tab') return;
-      const list = focusables();
-      const first = list[0];
-      const last = list[list.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    document.addEventListener('keydown', onKey);
+      if (e.key === 'Escape') {
+        setOpen(false)
+        toggle?.focus()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const list = focusables()
+      const first = list[0]
+      const last = list[list.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
     return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+      document.body.style.overflow = prevOverflow
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
 
   return (
     <header className={`hc-header ${scrolled || open ? 'is-scrolled' : ''}`}>
@@ -85,7 +96,9 @@ const SiteHeader = () => {
           <ul>
             {links.map((n) => (
               <li key={n.to}>
-                <Link to={n.to} className="hc-nav-link" aria-current={isCurrent(pathname, n.to) ? 'page' : undefined}>{n.label}</Link>
+                <Link to={n.to} className="hc-nav-link" aria-current={isCurrent(pathname, n.to) ? 'page' : undefined}>
+                  {n.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -98,18 +111,23 @@ const SiteHeader = () => {
           {shopOn && (
             <Link to="/cart" className="hc-header-bag" aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
               <Icon name="bag" />
-              {count > 0 && <span className="hc-header-bag-count" aria-hidden="true">{count}</span>}
+              {count > 0 && (
+                <span className="hc-header-bag-count" aria-hidden="true">
+                  {count}
+                </span>
+              )}
             </Link>
           )}
-          <Button to={primary.to} className="hc-header-cta">{primary.label}</Button>
+          <Button to={primary.to} className="hc-header-cta">
+            {primary.label}
+          </Button>
           <button
             ref={toggleRef}
             type="button"
             className="hc-menu-toggle"
             aria-expanded={open}
             aria-controls="hc-mobile-nav"
-            onClick={() => setOpen((v) => !v)}
-          >
+            onClick={() => setOpen((v) => !v)}>
             <Icon name={open ? 'close' : 'menu'} size="1.4em" />
             <span>{open ? 'Close' : 'Menu'}</span>
           </button>
@@ -120,22 +138,32 @@ const SiteHeader = () => {
         <div id="hc-mobile-nav" ref={sheetRef} className="hc-sheet">
           <nav aria-label="Main">
             <ul>
-              <li><Link to="/" aria-current={pathname === '/' ? 'page' : undefined}>Home <Icon name="chevron-right" /></Link></li>
+              <li>
+                <Link to="/" aria-current={pathname === '/' ? 'page' : undefined}>
+                  Home <Icon name="chevron-right" />
+                </Link>
+              </li>
               {links.map((n) => (
                 <li key={n.to}>
-                  <Link to={n.to} aria-current={isCurrent(pathname, n.to) ? 'page' : undefined}>{n.label} <Icon name="chevron-right" /></Link>
+                  <Link to={n.to} aria-current={isCurrent(pathname, n.to) ? 'page' : undefined}>
+                    {n.label} <Icon name="chevron-right" />
+                  </Link>
                 </li>
               ))}
             </ul>
           </nav>
           <div className="hc-sheet-actions">
-            <Button to={primary.to} block>{primary.label}</Button>
-            <Button to="/track" variant="secondary" block>Track your job</Button>
+            <Button to={primary.to} block>
+              {primary.label}
+            </Button>
+            <Button to="/track" variant="secondary" block>
+              Track your job
+            </Button>
           </div>
         </div>
       )}
     </header>
-  );
-};
+  )
+}
 
-export default SiteHeader;
+export default SiteHeader

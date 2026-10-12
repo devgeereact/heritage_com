@@ -42,7 +42,11 @@ const fromForm = (entity, form) => {
   FIELDS[entity].forEach((f) => {
     const v = form[f.k]
     if (f.type === 'rich') out[f.k] = textToHtml(v)
-    else if (f.type === 'list') out[f.k] = String(v || '').split('\n').map((s) => s.trim()).filter(Boolean)
+    else if (f.type === 'list')
+      out[f.k] = String(v || '')
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
     else if (f.type === 'media') out[f.k] = v || null
     else if (f.type === 'date' || f.type === 'service') out[f.k] = v || null
     else out[f.k] = v
@@ -131,7 +135,11 @@ const Field = ({ f, value, error, set, media, services, onPick }) => {
       next.splice(i + d, 0, x)
       set(f.k, next)
     }
-    const upd = (i, k, v) => set(f.k, list.map((x, j) => (j === i ? { ...x, [k]: v } : x)))
+    const upd = (i, k, v) =>
+      set(
+        f.k,
+        list.map((x, j) => (j === i ? { ...x, [k]: v } : x)),
+      )
     return (
       <fieldset className="mb-3">
         <legend className="form-label fs-6">{f.label}</legend>
@@ -140,12 +148,23 @@ const Field = ({ f, value, error, set, media, services, onPick }) => {
           const m = media[img.media_id]
           return (
             <div key={`${img.media_id}-${i}`} className="d-flex flex-wrap gap-2 align-items-start border rounded p-2 mb-2">
-              {m ? <img src={thumbSrc(m)} alt="" width={72} height={72} className="rounded" style={{ objectFit: 'cover' }} /> : <span className="small">Image {img.media_id}</span>}
+              {m ? (
+                <img src={thumbSrc(m)} alt="" width={72} height={72} className="rounded" style={{ objectFit: 'cover' }} />
+              ) : (
+                <span className="small">Image {img.media_id}</span>
+              )}
               <div className="flex-grow-1" style={{ minWidth: 200 }}>
                 <Form.Label htmlFor={`${id}-alt-${i}`} className="small mb-1">
                   Alt text on this page {m?.alt_text ? '(empty uses the library text)' : '(required)'}
                 </Form.Label>
-                <Form.Control id={`${id}-alt-${i}`} size="sm" maxLength={250} value={img.alt} onChange={(e) => upd(i, 'alt', e.target.value)} placeholder={m?.alt_text || ''} />
+                <Form.Control
+                  id={`${id}-alt-${i}`}
+                  size="sm"
+                  maxLength={250}
+                  value={img.alt}
+                  onChange={(e) => upd(i, 'alt', e.target.value)}
+                  placeholder={m?.alt_text || ''}
+                />
                 <Form.Label htmlFor={`${id}-role-${i}`} className="small mb-1 mt-2">
                   Shows
                 </Form.Label>
@@ -161,10 +180,24 @@ const Field = ({ f, value, error, set, media, services, onPick }) => {
                 <Button variant="outline-secondary" size="sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move image ${i + 1} up`}>
                   Up
                 </Button>
-                <Button variant="outline-secondary" size="sm" disabled={i === list.length - 1} onClick={() => move(i, 1)} aria-label={`Move image ${i + 1} down`}>
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={i === list.length - 1}
+                  onClick={() => move(i, 1)}
+                  aria-label={`Move image ${i + 1} down`}>
                   Down
                 </Button>
-                <Button variant="outline-danger" size="sm" onClick={() => set(f.k, list.filter((_, j) => j !== i))} aria-label={`Remove image ${i + 1}`}>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() =>
+                    set(
+                      f.k,
+                      list.filter((_, j) => j !== i),
+                    )
+                  }
+                  aria-label={`Remove image ${i + 1}`}>
                   Remove
                 </Button>
               </div>
@@ -249,7 +282,11 @@ const WebsiteEditPage = () => {
     setLoadError(null)
     try {
       let it = null
-      if (ent.keyed) it = await heritApi.cms.get(entity, { key: ref }).then((r) => r.item).catch((e) => (e.status === 404 ? null : Promise.reject(e)))
+      if (ent.keyed)
+        it = await heritApi.cms
+          .get(entity, { key: ref })
+          .then((r) => r.item)
+          .catch((e) => (e.status === 404 ? null : Promise.reject(e)))
       else if (!isNew) it = (await heritApi.cms.get(entity, { id: ref })).item
       setItem(it)
       setForm(toForm(entity, it?.editable))
@@ -365,7 +402,12 @@ const WebsiteEditPage = () => {
   const ask = (action) => {
     const texts = {
       unpublish: ['Unpublish?', 'Visitors will no longer see it. The content is kept and you can publish it again.', 'Unpublish', true],
-      rollback: ['Go back to the earlier version?', 'The website shows the version before the last publish. Doing this again switches back.', 'Roll back', false],
+      rollback: [
+        'Go back to the earlier version?',
+        'The website shows the version before the last publish. Doing this again switches back.',
+        'Roll back',
+        false,
+      ],
       discard_draft: ['Discard the unpublished changes?', 'The draft is deleted and the published version stays as it is.', 'Discard changes', true],
       delete: ['Delete this item?', 'It has never been published, so it can be deleted. This cannot be undone.', 'Delete', true],
     }
@@ -409,8 +451,7 @@ const WebsiteEditPage = () => {
                   onSubmit={(e) => {
                     e.preventDefault()
                     saveDraft()
-                  }}
-                >
+                  }}>
                   {ent.slugged && (
                     <Form.Group className="mb-3" controlId="cms-slug">
                       <Form.Label>Web address</Form.Label>
@@ -424,22 +465,46 @@ const WebsiteEditPage = () => {
                         }}
                         placeholder="Made from the title when empty"
                       />
-                      <Form.Text>{item?.slug_locked ? 'Fixed once published, so links keep working.' : ent.publicPath({ slug: slug || 'your-title' })}</Form.Text>
+                      <Form.Text>
+                        {item?.slug_locked ? 'Fixed once published, so links keep working.' : ent.publicPath({ slug: slug || 'your-title' })}
+                      </Form.Text>
                       <Form.Control.Feedback type="invalid">{fieldErrors.slug}</Form.Control.Feedback>
                     </Form.Group>
                   )}
                   {FIELDS[entity].map((f) => (
-                    <Field key={f.k} f={f} value={form[f.k]} error={fieldErrors[f.k]} set={set} media={media} services={services} onPick={(field) => setPicker({ field })} />
+                    <Field
+                      key={f.k}
+                      f={f}
+                      value={form[f.k]}
+                      error={fieldErrors[f.k]}
+                      set={set}
+                      media={media}
+                      services={services}
+                      onPick={(field) => setPicker({ field })}
+                    />
                   ))}
                   {entity === 'project' && (
                     <fieldset className="border rounded p-3 mb-3">
                       <legend className="h6 w-auto px-1 mb-1">Consent (private, never shown on the website)</legend>
                       {CONSENT_FIELDS.map((c) => (
-                        <Form.Check key={c.k} id={`cms-${c.k}`} type="checkbox" label={c.label} checked={!!form[c.k]} onChange={(e) => set(c.k, e.target.checked)} />
+                        <Form.Check
+                          key={c.k}
+                          id={`cms-${c.k}`}
+                          type="checkbox"
+                          label={c.label}
+                          checked={!!form[c.k]}
+                          onChange={(e) => set(c.k, e.target.checked)}
+                        />
                       ))}
                       <Form.Group className="mt-2" controlId="cms-consent-note">
                         <Form.Label>Consent note (optional)</Form.Label>
-                        <Form.Control as="textarea" rows={2} maxLength={255} value={form.consent_note} onChange={(e) => set('consent_note', e.target.value)} />
+                        <Form.Control
+                          as="textarea"
+                          rows={2}
+                          maxLength={255}
+                          value={form.consent_note}
+                          onChange={(e) => set('consent_note', e.target.value)}
+                        />
                         <Form.Text>How and when consent was given. Staff only.</Form.Text>
                       </Form.Group>
                     </fieldset>

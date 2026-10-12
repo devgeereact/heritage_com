@@ -22,27 +22,52 @@ export const POLICY_LABELS = { privacy: 'Privacy', terms: 'Terms' }
 
 export const ENTITIES = {
   service: {
-    entity: 'service', path: 'services', label: 'Services', one: 'service', slugged: true, ordered: true,
+    entity: 'service',
+    path: 'services',
+    label: 'Services',
+    one: 'service',
+    slugged: true,
+    ordered: true,
     publicPath: (i) => (i?.slug ? `/services/${i.slug}` : null),
     intro: 'What you make. Each published service gets its own page and appears on Home and in the company brief form.',
   },
   project: {
-    entity: 'project', path: 'work', label: 'Our work', one: 'project', slugged: true, ordered: true,
+    entity: 'project',
+    path: 'work',
+    label: 'Our work',
+    one: 'project',
+    slugged: true,
+    ordered: true,
     publicPath: (i) => (i?.slug ? `/work/${i.slug}` : null),
     intro: 'Finished pieces. A project can be published only with images, alt text and recorded consent.',
   },
   faq: {
-    entity: 'faq', path: 'faqs', label: 'Questions', one: 'question', ordered: true,
+    entity: 'faq',
+    path: 'faqs',
+    label: 'Questions',
+    one: 'question',
+    ordered: true,
     publicPath: () => '/faqs',
     intro: 'Questions and answers. Tick "Show on Home" for up to four of them.',
   },
   page: {
-    entity: 'page', path: 'pages', label: 'Pages', one: 'page', keyed: true, keys: PAGE_LABELS,
+    entity: 'page',
+    path: 'pages',
+    label: 'Pages',
+    one: 'page',
+    keyed: true,
+    keys: PAGE_LABELS,
     publicPath: (i) => PAGE_PATHS[i?.key] || null,
     intro: 'The fixed pages of the website. A page that is not published is hidden, with its menu link.',
   },
   policy: {
-    entity: 'policy', path: 'policies', label: 'Policies', one: 'policy', keyed: true, keys: POLICY_LABELS, ownerOnly: true,
+    entity: 'policy',
+    path: 'policies',
+    label: 'Policies',
+    one: 'policy',
+    keyed: true,
+    keys: POLICY_LABELS,
+    ownerOnly: true,
     publicPath: (i) => (i?.key ? `/${i.key}` : null),
     intro: 'Privacy and terms. Only the owner can publish them, and not while any [owner …] note remains.',
   },
@@ -52,7 +77,13 @@ export const entityByPath = (path) => Object.values(ENTITIES).find((e) => e.path
 
 const SEO = [
   { k: 'seo_title', label: 'Search title (optional)', type: 'text', max: 70, help: 'Shown in search results. Up to 70 characters.' },
-  { k: 'seo_description', label: 'Search description (optional)', type: 'textarea', max: 170, help: 'Up to 170 characters. Without it the summary is used.' },
+  {
+    k: 'seo_description',
+    label: 'Search description (optional)',
+    type: 'textarea',
+    max: 170,
+    help: 'Up to 170 characters. Without it the summary is used.',
+  },
 ]
 
 /** Field list per entity: type text, textarea, rich, list, media, images, bool, date, service. */
@@ -63,7 +94,13 @@ export const FIELDS = {
     { k: 'hero_media_id', label: 'Image', type: 'media' },
     { k: 'body', label: 'Description', type: 'rich', help: 'Who it is for, what happens, options.' },
     { k: 'includes', label: "What's included", type: 'list', max: 12, help: 'One item per line, up to 12.' },
-    { k: 'price_note', label: 'Pricing note (optional)', type: 'text', max: 255, help: 'For example how the price is worked out. Leave empty to hide.' },
+    {
+      k: 'price_note',
+      label: 'Pricing note (optional)',
+      type: 'text',
+      max: 255,
+      help: 'For example how the price is worked out. Leave empty to hide.',
+    },
     ...SEO,
   ],
   project: [

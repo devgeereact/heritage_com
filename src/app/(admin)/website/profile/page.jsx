@@ -79,7 +79,11 @@ const WebsiteProfilePage = () => {
   return (
     <div className="hd">
       <PageTitle title="Business details" />
-      <PageHeader title="Business details" back={{ to: '/website', label: 'Website' }} subtitle="Empty details are not shown on the website. Nothing is filled in for you." />
+      <PageHeader
+        title="Business details"
+        back={{ to: '/website', label: 'Website' }}
+        subtitle="Empty details are not shown on the website. Nothing is filled in for you."
+      />
       {error && <LoadError what="the business details" onRetry={load} error={error} />}
       {!form && !error && <Spinner animation="border" role="status" />}
       {form && (

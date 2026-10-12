@@ -26,7 +26,12 @@ const PreviewFrame = ({ path, version }) => {
         </a>
       </div>
       <div className="border rounded overflow-auto" style={{ maxWidth: '100%', background: 'var(--bs-tertiary-bg)' }}>
-        <iframe key={`${url}-${version}`} title="Preview of the draft" src={url} style={{ width, height: 720, border: 0, display: 'block', background: 'var(--bs-body-bg)' }} />
+        <iframe
+          key={`${url}-${version}`}
+          title="Preview of the draft"
+          src={url}
+          style={{ width, height: 720, border: 0, display: 'block', background: 'var(--bs-body-bg)' }}
+        />
       </div>
     </div>
   )

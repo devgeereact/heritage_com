@@ -4,33 +4,33 @@
 //
 // Dev hits the local staging API unless VITE_API_BASE says otherwise (constants.js);
 // production is same-origin.
-import { API_BASE } from '@/context/constants';
+import { API_BASE } from '@/context/constants'
 
 /** Pull the Bearer token from the session cookie (set by useAuthContext). */
 function token() {
-  const m = document.cookie.match(/_LARKON_AUTH_KEY_=([^;]+)/);
-  if (!m) return null;
+  const m = document.cookie.match(/_LARKON_AUTH_KEY_=([^;]+)/)
+  if (!m) return null
   try {
-    return JSON.parse(decodeURIComponent(m[1]))?.token ?? null;
+    return JSON.parse(decodeURIComponent(m[1]))?.token ?? null
   } catch {
-    return null;
+    return null
   }
 }
 
 async function request(path, { method = 'GET', body, auth = true } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json' }
   if (auth) {
-    const t = token();
-    if (t) headers.Authorization = `Bearer ${t}`;
+    const t = token()
+    if (t) headers.Authorization = `Bearer ${t}`
   }
   const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw apiError(res.status, data);
-  return data;
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw apiError(res.status, data)
+  return data
 }
 
 /**
@@ -39,18 +39,18 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
  * parsing message text. The message stays the server's plain sentence.
  */
 function apiError(status, data) {
-  const err = new Error(data?.error || `Request failed (${status})`);
-  err.status = status;
-  err.data = data || {};
-  return err;
+  const err = new Error(data?.error || `Request failed (${status})`)
+  err.status = status
+  err.data = data || {}
+  return err
 }
 
 /** Build a query string from an object, skipping empty values. */
 function qs(params = {}) {
   const parts = Object.entries(params)
     .filter(([, v]) => v !== undefined && v !== null && v !== '')
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
-  return parts.length ? `&${parts.join('&')}` : '';
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+  return parts.length ? `&${parts.join('&')}` : ''
 }
 
 /**
@@ -58,52 +58,69 @@ function qs(params = {}) {
  * ends with the browser tab; an older token in localStorage (legacy login) is
  * still read once and moved across.
  */
-const CTOKEN = 'herit_customer_token';
+const CTOKEN = 'herit_customer_token'
 function customerToken() {
   try {
-    const s = sessionStorage.getItem(CTOKEN);
-    if (s) return s;
-    const l = localStorage.getItem(CTOKEN);
-    if (l) { sessionStorage.setItem(CTOKEN, l); localStorage.removeItem(CTOKEN); }
-    return l;
-  } catch { return null; }
+    const s = sessionStorage.getItem(CTOKEN)
+    if (s) return s
+    const l = localStorage.getItem(CTOKEN)
+    if (l) {
+      sessionStorage.setItem(CTOKEN, l)
+      localStorage.removeItem(CTOKEN)
+    }
+    return l
+  } catch {
+    return null
+  }
 }
 function setCustomerToken(t) {
-  try { sessionStorage.setItem(CTOKEN, t); localStorage.removeItem(CTOKEN); } catch { /* ignore */ }
+  try {
+    sessionStorage.setItem(CTOKEN, t)
+    localStorage.removeItem(CTOKEN)
+  } catch {
+    /* ignore */
+  }
 }
 function clearCustomerToken() {
-  try { sessionStorage.removeItem(CTOKEN); localStorage.removeItem(CTOKEN); } catch { /* ignore */ }
+  try {
+    sessionStorage.removeItem(CTOKEN)
+    localStorage.removeItem(CTOKEN)
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Request variant that carries the customer-portal Bearer token. Errors carry the status (401 means sign in again). */
 async function crequest(path, { method = 'GET', body } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  const t = customerToken();
-  if (t) headers.Authorization = `Bearer ${t}`;
-  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw apiError(res.status, data);
-  return data;
+  const headers = { 'Content-Type': 'application/json' }
+  const t = customerToken()
+  if (t) headers.Authorization = `Bearer ${t}`
+  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw apiError(res.status, data)
+  return data
 }
 
-const post = (path, body) => request(path, { method: 'POST', body: body || {} });
+const post = (path, body) => request(path, { method: 'POST', body: body || {} })
 /** Multipart upload with the staff token (the browser sets the boundary). */
 async function upload(path, file, fields = {}) {
-  const form = new FormData();
-  form.append('file', file);
-  Object.entries(fields).forEach(([k, v]) => { if (v !== undefined && v !== null) form.append(k, v); });
-  const headers = {};
-  const t = token();
-  if (t) headers.Authorization = `Bearer ${t}`;
-  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: form });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw apiError(res.status, data);
-  return data;
+  const form = new FormData()
+  form.append('file', file)
+  Object.entries(fields).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) form.append(k, v)
+  })
+  const headers = {}
+  const t = token()
+  if (t) headers.Authorization = `Bearer ${t}`
+  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: form })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw apiError(res.status, data)
+  return data
 }
 
-const pub = (path, body) => request(path, body ? { method: 'POST', body, auth: false } : { auth: false });
-const cpost = (path, body) => crequest(path, { method: 'POST', body: body || {} });
-const enc = encodeURIComponent;
+const pub = (path, body) => request(path, body ? { method: 'POST', body, auth: false } : { auth: false })
+const cpost = (path, body) => crequest(path, { method: 'POST', body: body || {} })
+const enc = encodeURIComponent
 
 export const heritApi = {
   // Smoke test — proves React → api.php → MySQL → JSON.
@@ -111,8 +128,7 @@ export const heritApi = {
   addItem: (label) => request('/api.php', { method: 'POST', body: { label } }), // staff session required
 
   // Auth
-  login: (email, password) =>
-    request('/auth.php?action=login', { method: 'POST', body: { email, password }, auth: false }),
+  login: (email, password) => request('/auth.php?action=login', { method: 'POST', body: { email, password }, auth: false }),
   logout: () => request('/auth.php?action=logout', { method: 'POST' }),
   me: () => request('/auth.php?action=me'),
   pinLogin: (pin) => request('/auth.php?action=pin_login', { method: 'POST', body: { pin }, auth: false }),
@@ -121,12 +137,10 @@ export const heritApi = {
   revokeSession: (id) => request('/auth.php?action=revoke', { method: 'POST', body: { id } }),
 
   // AI proxy (OpenRouter, server-side)
-  ai: (task, prompt, opts = {}) =>
-    request('/ai.php', { method: 'POST', body: { task, prompt, ...opts } }),
+  ai: (task, prompt, opts = {}) => request('/ai.php', { method: 'POST', body: { task, prompt, ...opts } }),
 
   // AI image proxy (text-to-image, server-side, staff-only)
-  aiImage: (task, prompt, opts = {}) =>
-    request('/ai_image.php', { method: 'POST', body: { task, prompt, ...opts } }),
+  aiImage: (task, prompt, opts = {}) => request('/ai_image.php', { method: 'POST', body: { task, prompt, ...opts } }),
 
   // Today: the owner's daily worklist (owner roles)
   today: () => request('/today.php'),
@@ -137,8 +151,7 @@ export const heritApi = {
     get: (id) => request(`/enquiries.php?action=get&id=${id}`),
     create: (data) => request('/enquiries.php?action=create', { method: 'POST', body: data }),
     update: (id, data) => request(`/enquiries.php?action=update&id=${id}`, { method: 'POST', body: data }),
-    linkClient: (id, client_id) =>
-      request(`/enquiries.php?action=link_client&id=${id}`, { method: 'POST', body: { client_id } }),
+    linkClient: (id, client_id) => request(`/enquiries.php?action=link_client&id=${id}`, { method: 'POST', body: { client_id } }),
     convert: (id, data) => request(`/enquiries.php?action=convert&id=${id}`, { method: 'POST', body: data }),
   },
 
@@ -149,8 +162,7 @@ export const heritApi = {
     list: (customerId) => request(`/measurements.php?action=list&customer_id=${customerId}`),
     get: (id) => request(`/measurements.php?action=get&id=${id}`),
     create: (data) => request('/measurements.php?action=create', { method: 'POST', body: data }),
-    approve: (id, unit) =>
-      request(`/measurements.php?action=approve&id=${id}`, { method: 'POST', body: unit ? { unit } : {} }),
+    approve: (id, unit) => request(`/measurements.php?action=approve&id=${id}`, { method: 'POST', body: unit ? { unit } : {} }),
     reject: (id, reason) => request(`/measurements.php?action=reject&id=${id}`, { method: 'POST', body: { reason } }),
     convertPreview: (id, to) => request(`/measurements.php?action=convert_preview&id=${id}&to=${to}`),
   },
@@ -175,8 +187,7 @@ export const heritApi = {
     credits: () => request('/ledger.php?action=credits'),
     record: (data) => request('/ledger.php?action=record', { method: 'POST', body: data }),
     verify: (id) => request(`/ledger.php?action=verify&id=${id}`, { method: 'POST', body: {} }),
-    reverse: (id, reason, request_key) =>
-      request(`/ledger.php?action=reverse&id=${id}`, { method: 'POST', body: { reason, request_key } }),
+    reverse: (id, reason, request_key) => request(`/ledger.php?action=reverse&id=${id}`, { method: 'POST', body: { reason, request_key } }),
     refund: (data) => request('/ledger.php?action=refund', { method: 'POST', body: data }),
   },
 
@@ -185,33 +196,26 @@ export const heritApi = {
     meta: () => request('/tailoring.php?action=meta'),
     update: (id, data) => request(`/tailoring.php?action=update&id=${id}`, { method: 'POST', body: data }),
     moveStage: (id, data) => request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: data }),
-    confirmReview: (id, outcome) =>
-      request(`/tailoring.php?action=confirm_review&id=${id}`, { method: 'POST', body: { outcome } }),
+    confirmReview: (id, outcome) => request(`/tailoring.php?action=confirm_review&id=${id}`, { method: 'POST', body: { outcome } }),
     attachMeasurements: (id, set_id, reason) =>
       request(`/tailoring.php?action=attach_measurements&id=${id}`, { method: 'POST', body: { set_id, reason } }),
     handovers: (id) => request(`/tailoring.php?action=handovers&id=${id}`),
     handoverSave: (id, data) => request(`/tailoring.php?action=handover_save&id=${id}`, { method: 'POST', body: data }),
-    handoverComplete: (id, hid, data) =>
-      request(`/tailoring.php?action=handover_complete&id=${id}&hid=${hid}`, { method: 'POST', body: data }),
+    handoverComplete: (id, hid, data) => request(`/tailoring.php?action=handover_complete&id=${id}&hid=${hid}`, { method: 'POST', body: data }),
     document: (id, doc, ref) => request(`/tailoring.php?action=document&id=${id}&doc=${doc}${ref ? `&ref=${ref}` : ''}`),
     list: (params = {}) => request(`/tailoring.php?action=list${qs(params)}`),
     get: (id) => request(`/tailoring.php?action=get&id=${id}`),
     tailors: () => request('/tailoring.php?action=tailors'),
     create: (data) => request('/tailoring.php?action=create', { method: 'POST', body: data }),
-    setStage: (id, stage, note) =>
-      request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: { stage, note } }),
-    assign: (id, data) =>
-      request(`/tailoring.php?action=assign&id=${id}`, { method: 'POST', body: data }),
+    setStage: (id, stage, note) => request(`/tailoring.php?action=stage&id=${id}`, { method: 'POST', body: { stage, note } }),
+    assign: (id, data) => request(`/tailoring.php?action=assign&id=${id}`, { method: 'POST', body: data }),
     setMeasurements: (id, measurements, sync_customer = false) =>
       request(`/tailoring.php?action=measure&id=${id}`, { method: 'POST', body: { measurements, sync_customer } }),
-    pay: (id, amount) =>
-      request(`/tailoring.php?action=pay&id=${id}`, { method: 'POST', body: { amount } }),
+    pay: (id, amount) => request(`/tailoring.php?action=pay&id=${id}`, { method: 'POST', body: { amount } }),
     setCosts: (id, fabric_cost, labour_cost) =>
       request(`/tailoring.php?action=costs&id=${id}`, { method: 'POST', body: { fabric_cost, labour_cost } }),
-    setFitting: (id, fitting_date) =>
-      request(`/tailoring.php?action=fitting&id=${id}`, { method: 'POST', body: { fitting_date } }),
-    remind: (id, data) =>
-      request(`/tailoring.php?action=remind&id=${id}`, { method: 'POST', body: data }),
+    setFitting: (id, fitting_date) => request(`/tailoring.php?action=fitting&id=${id}`, { method: 'POST', body: { fitting_date } }),
+    remind: (id, data) => request(`/tailoring.php?action=remind&id=${id}`, { method: 'POST', body: data }),
     groupList: () => request('/tailoring.php?action=group_list'),
     groupGet: (id) => request(`/tailoring.php?action=group_get&id=${id}`),
     groupCreate: (data) => request('/tailoring.php?action=group_create', { method: 'POST', body: data }),
@@ -223,10 +227,8 @@ export const heritApi = {
     get: (id) => request(`/products.php?action=get&id=${id}`),
     create: (data) => request('/products.php?action=create', { method: 'POST', body: data }),
     update: (id, data) => request(`/products.php?action=update&id=${id}`, { method: 'POST', body: data }),
-    setStock: (variantId, stock) =>
-      request(`/products.php?action=stock&id=${variantId}`, { method: 'POST', body: { stock } }),
-    setStatus: (id, status) =>
-      request(`/products.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+    setStock: (variantId, stock) => request(`/products.php?action=stock&id=${variantId}`, { method: 'POST', body: { stock } }),
+    setStatus: (id, status) => request(`/products.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
   // Customers / CRM
@@ -236,8 +238,7 @@ export const heritApi = {
     get: (id) => request(`/customers.php?action=get&id=${id}`),
     create: (data) => request('/customers.php?action=create', { method: 'POST', body: data }),
     update: (id, data) => request(`/customers.php?action=update&id=${id}`, { method: 'POST', body: data }),
-    setMeasurements: (id, measurements) =>
-      request(`/customers.php?action=measure&id=${id}`, { method: 'POST', body: { measurements } }),
+    setMeasurements: (id, measurements) => request(`/customers.php?action=measure&id=${id}`, { method: 'POST', body: { measurements } }),
     birthdays: () => request('/customers.php?action=birthdays'),
   },
 
@@ -247,8 +248,7 @@ export const heritApi = {
     history: (variantId) => request(`/stock.php?action=history&id=${variantId}`),
     adjust: (variantId, delta, reason, note) =>
       request(`/stock.php?action=adjust&id=${variantId}`, { method: 'POST', body: { delta, reason, note } }),
-    setCount: (variantId, stock, note) =>
-      request(`/stock.php?action=set&id=${variantId}`, { method: 'POST', body: { stock, note } }),
+    setCount: (variantId, stock, note) => request(`/stock.php?action=set&id=${variantId}`, { method: 'POST', body: { stock, note } }),
   },
 
   // Orders (selling side)
@@ -256,8 +256,7 @@ export const heritApi = {
     list: () => request('/orders.php?action=list'),
     get: (id) => request(`/orders.php?action=get&id=${id}`),
     create: (data) => request('/orders.php?action=create', { method: 'POST', body: data }),
-    setStatus: (id, status) =>
-      request(`/orders.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+    setStatus: (id, status) => request(`/orders.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
     track: (id, data) => request(`/orders.php?action=track&id=${id}`, { method: 'POST', body: data }),
     setReturn: (id, return_status, return_reason) =>
       request(`/orders.php?action=return&id=${id}`, { method: 'POST', body: { return_status, return_reason } }),
@@ -365,14 +364,17 @@ export const heritApi = {
 
   // Data / accounting export — fetch CSV (with auth) and trigger a download.
   downloadCsv: async (type) => {
-    const data = await request(`/export.php?type=${type}`);
-    const blob = new Blob([data.csv || ''], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = data.filename || `${type}.csv`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    return data.rows ?? 0;
+    const data = await request(`/export.php?type=${type}`)
+    const blob = new Blob([data.csv || ''], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = data.filename || `${type}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    return data.rows ?? 0
   },
 
   // Dashboard stats
@@ -382,8 +384,7 @@ export const heritApi = {
   contact: {
     submit: (data) => request('/contact.php', { method: 'POST', body: data, auth: false }),
     list: () => request('/contact.php?action=list'),
-    setStatus: (id, status) =>
-      request(`/contact.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
+    setStatus: (id, status) => request(`/contact.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
   },
 
   // Team & Access (staff user management, admin-only)
@@ -419,8 +420,7 @@ export const heritApi = {
   // Own account (any authenticated role)
   account: {
     me: () => request('/users.php?action=me'),
-    changePassword: (current, next) =>
-      request('/users.php?action=password', { method: 'POST', body: { current, next } }),
+    changePassword: (current, next) => request('/users.php?action=password', { method: 'POST', body: { current, next } }),
   },
 
   // Public storefront (no auth) — catalogue, checkout, payment
@@ -437,12 +437,9 @@ export const heritApi = {
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
     validateCoupon: (code, subtotal, shipping = 0) =>
       request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
-    creditBalance: (phone) =>
-      request(`/loyalty.php?action=credit_balance&phone=${encodeURIComponent(phone)}`, { auth: false }),
-    giftCheck: (code) =>
-      request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
-    track: (code, phone) =>
-      request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    creditBalance: (phone) => request(`/loyalty.php?action=credit_balance&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    giftCheck: (code) => request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
+    track: (code, phone) => request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
     waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),
     saveCart: (data) => request('/store.php?action=save_cart', { method: 'POST', body: data, auth: false }),
   },
@@ -520,8 +517,7 @@ export const heritApi = {
 
   // Retail customer self-service (account.php; shares the customer session)
   portal: {
-    login: (phone, order_code) =>
-      request('/account.php?action=login', { method: 'POST', body: { phone, order_code }, auth: false }),
+    login: (phone, order_code) => request('/account.php?action=login', { method: 'POST', body: { phone, order_code }, auth: false }),
     me: () => crequest('/account.php?action=me'),
     orders: () => crequest('/account.php?action=orders'),
     order: (code) => crequest(`/account.php?action=order&code=${encodeURIComponent(code)}`),
@@ -576,6 +572,6 @@ export const heritApi = {
   post: (path, body) => request(path, { method: 'POST', body }),
   put: (path, body) => request(path, { method: 'PUT', body }),
   del: (path) => request(path, { method: 'DELETE' }),
-};
+}
 
-export default heritApi;
+export default heritApi

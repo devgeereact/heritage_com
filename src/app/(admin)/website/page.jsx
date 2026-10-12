@@ -113,7 +113,9 @@ const WebsitePage = () => {
                     <Link to="/content" className="fw-semibold">
                       Journal and testimonials
                     </Link>
-                    <div className="small text-muted">Journal posts show on the website only while the journal is switched on in Business details.</div>
+                    <div className="small text-muted">
+                      Journal posts show on the website only while the journal is switched on in Business details.
+                    </div>
                   </li>
                 </ul>
               </Card.Body>
