@@ -16,6 +16,7 @@ Added
 
 Fixed
 
+- Recorded K-07: with more than 20 new enquiries, Today hides due follow-ups (Phase 2 ordering; owner decision needed). `e2e-phase2.sh` E15c fails on staging data with 22 new enquiries (it passed earlier the same day, before test runs added new enquiries).
 - `company_jobs.php` loaded `_company.php` twice (fatal "Cannot redeclare") once `_portal.php` included it too; every include of `_company.php` is now `require_once`. Found by `e2e-phase5.sh`.
 
 Changed
