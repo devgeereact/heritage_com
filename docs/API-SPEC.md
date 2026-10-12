@@ -271,3 +271,20 @@ All start empty (or `0`); empty means hidden on the public site. Saved by `cms.p
 | `socials` | `{platform: url}`, rules above |
 | `journal_enabled` | `0` or `1` (default `0`): the journal list, posts and sitemap entries |
 | `site_rev` | Counter bumped on every public change; read-only |
+
+## Phase 5 company orders
+
+Branch `feat/phase5-company-orders` (no PR yet). Tables: [DATA-MODEL.md](DATA-MODEL.md#phase-5-tables-and-columns-schema_phase27). Without `schema_phase27.sql` every Phase 5 endpoint answers 409 with an import message.
+
+### `companies.php` (owner roles)
+
+| Action | Method | Request | Response |
+|---|---|---|---|
+| `list[&q=]` | GET | | `{items:[{id, company_ref, name, invoice_email, contacts (active), jobs}]}` |
+| `get&id=N` | GET | | `{company (all columns, staff only), contacts:[contact], jobs:[{id, code, ref, description, quantity, job_stage, stage_label, due_date, po_number, sample_status, price, paid_total}]}` |
+| `match&name=` | GET | | `{matches:[{id, company_ref, name}]}`: names equal or containing each other once case, spaces and suffixes (Ltd, Limited, Plc, Nig, Nigeria, Inc, LLC, Company, Co) are ignored |
+| `save` | POST | `{id?, name, invoice_name?, invoice_address?, invoice_email?, tax_id?, notes_internal?, confirm_new?}` | 201 or 200 `{company}`; 400 `{errors}`; 409 `{matches}` for a new company with a similar name unless `confirm_new` |
+| `contact_save` | POST | `{company_id, id?}` to edit, or `customer_id`, or `person:{name, phone, email, confirm_new}` to add; `role_title?`, `can_view_jobs?`, `can_approve_samples?`, `is_invoice_recipient?` | 201 or 200 `{contact:{id, company_id, customer_id, name, client_ref, phone_masked, email, role_title, can_view_jobs, can_approve_samples, is_invoice_recipient, active}}`; 409 `{candidates}` when the person may already be a client (Phase 2 rule, never merged); 400 without a phone or email |
+| `contact_deactivate&id=N` | POST | | `{contact}` with `active: 0`; from the next portal request that person sees none of the company's jobs |
+
+Every write is audited (`company_create`, `company_update`, `company_contact_add`, `company_contact_update`, `company_contact_deactivate`). A company reference is `CO-` and the id padded to four digits.

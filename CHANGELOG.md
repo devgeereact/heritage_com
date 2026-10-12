@@ -8,6 +8,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 Added
 
+- `companies.php` (owner roles): company list, profile with contacts and jobs, a similar-name warning that never merges, contacts as ordinary clients with view, sample-approval and invoice permissions (Phase 2 duplicate check), and deactivation. Deployed by CI with `_company.php`.
 - Company orders data model (`schema_phase27.sql`): companies, company contacts with permissions, company job columns on `tailoring_orders`, job items with wearers, sample versions, per-item handover quantities and a frozen bill-to on quotes. Pure helpers in `php-api/_company.php` (quantities, stage rollup, item handover checks, sample transitions, contact permissions, company and wearer portal views) with 43 tests in `tests/company_cases.php`.
 
 ### `feat/phase4-website` (no PR yet), 11 October 2026

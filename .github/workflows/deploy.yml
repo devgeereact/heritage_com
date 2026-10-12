@@ -77,6 +77,9 @@ jobs:
           cp php-api/cms.php         dist/
           cp php-api/site.php        dist/
           cp php-api/sitemap.php     dist/
+          # Phase 5 files (company orders). New, so no hand-managed server copy exists.
+          cp php-api/_company.php    dist/
+          cp php-api/companies.php   dist/
       # The FTP action records what it uploaded in .ftp-deploy-sync-state.json on
       # the server and only ever deletes files listed there that have gone from
       # dist/. Website images in uploads/site/ are written by cms.php on the
