@@ -16,6 +16,10 @@ Status as of 10 October 2026. Work is on stacked pull requests, none merged yet;
 
 Owner actions at each merge: [DEPLOYMENT.md](DEPLOYMENT.md#owner-actions-per-pull-request).
 
+## 2026 design proposal
+
+12 October 2026: replacement website and CMS guideline and sample image delivered; owner subsequently selected Apple (D-026), now adapted in the shared tokens, public surfaces and CMS. See [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md#2026-direction-quiet-confidence) and [design review](../qa/DESIGN-2026-REVIEW.md). Local visual implementation and checks are recorded in the design review; this does not complete another roadmap phase.
+
 ## Phases
 
 | Phase | Work | Completion evidence | Status |

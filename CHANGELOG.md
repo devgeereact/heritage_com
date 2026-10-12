@@ -4,10 +4,21 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+Changed
+
+- Apple-inspired Herit adaptation (D-026): shared warm-neutral tokens, 8px CMS controls, 18px public image cards and pill actions; static CMS-led home hero replaces the D-025 slider and floating effects. CMS shell and Website hub gain calmer navigation, real content summaries and consistent spacing; tailoring rules, CMS publishing actions and API contracts remain unchanged. Browser checks cover 320 to 1440px and save/preview/publish; existing React Helmet warning recorded as K-07.
+
+Changed
+
+- Design guideline rewritten with a proposed 2026 website and CMS direction: colour roles, typography, spacing, cards, controls, responsive composition and implementation acceptance. Added an illustrative concept image and design review; runtime styling remains unchanged by this task.
+
 ### `feat/phase4-website` (no PR yet), 11 October 2026
 
 Added
 
+- Home hero back to the old dark animated slider, rebuilt on the tokens as a Lunar Gravity style card with a floating outfit stack, progress dots and pauses; header with a contact bar and a solid sticky bar after the owner's EGO and RitaGreen sites; footer in the 21st.dev Footer 7 layout (D-025, replaces the D-024 hero, header and footer).
+- Professional header, hero and footer after 21st.dev references, rebuilt on the tokens (D-024): floating framed header with at most four links, a compact action and a numbered menu sheet; editorial split hero with two framed path cards and a blur-to-sharp entrance; four-column footer with policies inline and an outline wordmark. `npm run staging:demo` fills local staging with professional demo content and generated DEMO illustrations.
+- Home page blended layout (D-023): hero order card, principles row, story with checklist, process band and closing band on ink, company split and questions split; services, story, process and company sections show standing copy until their CMS content is published. Header brand is now the needle mark plus a live-text HERIT CLOTHING wordmark, legible at 64px. `MoreLink` renders a `div`, fixing a nested `<p>` warning on Home. Hero lead, note and eyebrow spacing now applies (it was reset to 0 by `.hc p`).
 - Admin Website area (BUILD-SPEC 4.8) at `/website`: a hub listing missing business details and what each hides, business details with checked social links and the journal switch (owner saves), images with in-browser downscaling to 2400px, alt text and captions, lists for pages, services, work, questions and policies, and one editor with save draft, preview in a 390 or 1280px frame, publish (the server's reasons shown when it refuses; a private-details warning asks before publishing), unpublish, roll back, discard and delete. Text uses simple formatting (blank lines, `- ` lists, `## ` headings, `[text](url)` links) converted to HTML by `src/helpers/richText.js`. New `website` section in `roles.js` (owner roles and editor); the Website menu item now opens `/website` and the old content page moves under More tools as Journal and testimonials.
 - `/faqs` (grouped details, `FAQPage` JSON-LD), `/privacy` and `/terms` (effective date, owner-published) on the CMS. `npm run check:tokens` now also scans every JS/JSX file under `src/app/(public)` and runs inside `npm run lint`, so CI enforces it (A23).
 - Website pages on the CMS (BUILD-SPEC 4.7): `/services`, `/services/:slug` (with `Service` JSON-LD), `/work` (service filter chips), `/work/:slug` (gallery and facts), `/how-it-works` and `/company-orders` with the company brief form (posts to `contact.php` as a wholesale enquiry; D-022). Unpublished items show a noindex not-found page. The staff splash skips the new public paths.

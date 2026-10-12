@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Card, Col, Row, Spinner } from 'react-bootstrap'
+import { Button, Card, Col, Row, Spinner } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import PageTitle from '@/components/PageTitle'
 import PageHeader from '@/components/herit/PageHeader'
@@ -48,17 +48,30 @@ const WebsitePage = () => {
     load()
   }, [load])
 
+  const totals = data ? Object.values(data.counts).reduce((sum, c) => ({
+    total: sum.total + c.total,
+    published: sum.published + c.published,
+    drafts: sum.drafts + c.drafts,
+  }), { total: 0, published: 0, drafts: 0 }) : null
+
   return (
-    <div className="hd">
+    <div className="hd hd-website">
       <PageTitle title="Website" />
       <PageHeader
         title="Website"
-        subtitle="Everything visitors see on the website. Drafts are private until you publish them; empty sections stay hidden."
+        subtitle="Manage what your customers see. Save privately, preview your changes, then publish when ready."
+        actions={<Button as="a" href="/" target="_blank" rel="noopener noreferrer" variant="outline-secondary">View website</Button>}
       />
       {error && <LoadError what="the website overview" onRetry={load} error={error} />}
       {!data && !error && <Spinner animation="border" role="status" />}
       {data && (
-        <Row className="g-3">
+        <>
+        <dl className="hd-website-summary" aria-label="Website content overview">
+          <div className="hd-website-stat"><dt>Content slots</dt><dd>{totals.total}</dd></div>
+          <div className="hd-website-stat"><dt>Published</dt><dd>{totals.published}</dd></div>
+          <div className="hd-website-stat"><dt>With drafts</dt><dd>{totals.drafts}</dd></div>
+        </dl>
+        <Row className="g-4">
           <Col lg={5}>
             <Card className="hd-card h-100">
               <Card.Body>
@@ -93,7 +106,7 @@ const WebsitePage = () => {
                   {SECTIONS.map((s) => {
                     const c = data.counts[s.entity]
                     return (
-                      <li key={s.entity} className="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-bottom">
+                      <li key={s.entity} className="hd-cms-row d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-bottom">
                         <div className="min-w-0">
                           <Link to={`/website/${s.path}`} className="fw-semibold">
                             {s.label}
@@ -122,6 +135,7 @@ const WebsitePage = () => {
             </Card>
           </Col>
         </Row>
+        </>
       )}
     </div>
   )

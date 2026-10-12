@@ -16,6 +16,9 @@
  *                                           profile, 3 services, 3 portfolio projects with
  *                                           generated STAGING swatches (never photos), FAQs,
  *                                           policies and two pages, all published
+ *   php scripts/staging/seed.php --demo     Professional demo website content instead of the
+ *                                           plain staging records (demo-content.php; D-024).
+ *                                           Not run by setup.sh; run setup again to undo
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
@@ -61,6 +64,7 @@ $conn->query("DELETE FROM customers WHERE id IN (SELECT id FROM ($sample) AS s)"
 if (in_array('--phase2', $argv, true)) { seed_phase2(); exit(0); }
 if (in_array('--phase3', $argv, true)) { seed_phase3(); exit(0); }
 if (in_array('--phase4', $argv, true)) { seed_phase4(); exit(0); }
+if (in_array('--demo', $argv, true)) { require __DIR__ . '/demo-content.php'; seed_demo(); exit(0); }
 
 // Already seeded (setup.sh --keep)? Leave the synthetic records alone.
 if (q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_result()->fetch_row()) {

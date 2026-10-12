@@ -85,7 +85,7 @@ export const ErrorPage = ({ title }) => (
 
 /** Inline "more" link under a preview section. */
 export const MoreLink = ({ to, children }) => (
-  <p><Link to={to} className="hc-card-link">{children} <Icon name="arrow-right" /></Link></p>
+  <div className="hc-more"><Link to={to} className="hc-card-link">{children} <Icon name="arrow-right" /></Link></div>
 );
 
 /** Render loading, not-found and error states for a useSiteResource answer; null when ready. */

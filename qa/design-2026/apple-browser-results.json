@@ -1,0 +1,336 @@
+{
+  "results": [
+    {
+      "name": "Home 320",
+      "status": "PASS",
+      "detail": {
+        "width": 320,
+        "scroll": 320,
+        "headings": [
+          "Tailored menswear, made for you in Lagos."
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "One hero message 320",
+      "status": "PASS"
+    },
+    {
+      "name": "Home 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Tailored menswear, made for you in Lagos."
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "One hero message 390",
+      "status": "PASS"
+    },
+    {
+      "name": "Menu opens",
+      "status": "PASS"
+    },
+    {
+      "name": "Escape restores menu focus",
+      "status": "PASS"
+    },
+    {
+      "name": "Home 768",
+      "status": "PASS",
+      "detail": {
+        "width": 768,
+        "scroll": 768,
+        "headings": [
+          "Tailored menswear, made for you in Lagos."
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "One hero message 768",
+      "status": "PASS"
+    },
+    {
+      "name": "Home 1024",
+      "status": "PASS",
+      "detail": {
+        "width": 1024,
+        "scroll": 1024,
+        "headings": [
+          "Tailored menswear, made for you in Lagos."
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "One hero message 1024",
+      "status": "PASS"
+    },
+    {
+      "name": "Home 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Tailored menswear, made for you in Lagos."
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "One hero message 1440",
+      "status": "PASS"
+    },
+    {
+      "name": "Home with empty CMS, 320",
+      "status": "PASS",
+      "detail": {
+        "width": 320,
+        "scroll": 320,
+        "headings": [
+          "Men's clothing, made with care in Lagos."
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "Empty CMS has readable hero",
+      "status": "PASS"
+    },
+    {
+      "name": "Reduced motion stops hero entrance",
+      "status": "PASS"
+    },
+    {
+      "name": "CMS hub 320",
+      "status": "PASS",
+      "detail": {
+        "width": 320,
+        "scroll": 320,
+        "headings": [
+          "Website"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "CMS hub 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Website"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "CMS hub 768",
+      "status": "PASS",
+      "detail": {
+        "width": 768,
+        "scroll": 768,
+        "headings": [
+          "Website"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "CMS hub 1024",
+      "status": "PASS",
+      "detail": {
+        "width": 1024,
+        "scroll": 1024,
+        "headings": [
+          "Website"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "CMS hub 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Website"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/pages 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Pages"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/pages 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Pages"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/pages/home 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Home"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/pages/home 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Home"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/profile 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Business details"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/profile 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Business details"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/media 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Images"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/website/media 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Images"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/today 390",
+      "status": "PASS",
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "headings": [
+          "Today"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "/today 1440",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Today"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "Save draft leaves published headline unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "Saved draft preview renders",
+      "status": "PASS"
+    },
+    {
+      "name": "Publish existing synthetic home draft",
+      "status": "PASS"
+    },
+    {
+      "name": "Published home retains original content",
+      "status": "PASS"
+    },
+    {
+      "name": "CMS dark hub",
+      "status": "PASS",
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "headings": [
+          "Website"
+        ],
+        "outside": []
+      }
+    },
+    {
+      "name": "Browser runtime exceptions and unexpected console errors",
+      "status": "PASS",
+      "detail": []
+    },
+    {
+      "name": "Existing react-helmet strict-mode lifecycle warning",
+      "status": "PARTIAL",
+      "detail": [
+        "Using UNSAFE_componentWillMount in strict mode is not recommended and may indicate bugs in your code. See https://react.dev/link/unsafe-component-lifecycles for details.\n\n* Move code with side effects to componentDidMount, and set initial state in the constructor.\n\nPlease update the following components: %s SideEffect(NullComponent2)"
+      ]
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "Using UNSAFE_componentWillMount in strict mode is not recommended and may indicate bugs in your code. See https://react.dev/link/unsafe-component-lifecycles for details.\n\n* Move code with side effects to componentDidMount, and set initial state in the constructor.\n\nPlease update the following components: %s SideEffect(NullComponent2)"
+  ]
+}

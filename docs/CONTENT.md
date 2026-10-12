@@ -67,6 +67,20 @@ Current public routes are listed in [ARCHITECTURE.md](ARCHITECTURE.md#route-inve
 - Form fields: company name, contact name, phone or email, garment type, approximate quantity, required date, material responsibility, short brief. Attachments come later and only with safe private storage ([SECURITY.md](SECURITY.md#private-files-and-content-safety)).
 - The honeypot is now `website_url_confirm` and `company` is a real optional field stored on `enquiries` (A11, fixed in PR #7; needs `schema_phase17.sql` in production).
 
+## Standing home copy
+
+Owner-approved direction 12 October 2026 (D-023); wording Proposed. Lives in `COPY` in `src/app/(public)/site/HomePage.jsx` and fills a home section only while its CMS content is unpublished. Published content always wins.
+
+- Hero: the draft headline and supporting copy from [Positioning](#positioning); eyebrow "Men's tailoring in Lagos". The hero is a slider (D-025): the home message; then a service (the second published service, or "Made-to-measure menswear") with "Cut and fitted for you."; then company orders (the company page headline and intro, or the hook below).
+- Principles (always shown): "Cut to your measurements", "Agreed before sewing begins", "Follow your job online".
+- Services, until services are published (Home shows at most three published ones): "Made-to-measure menswear" and "Company orders", linking to the contact form.
+- Story, until About is published: "One conversation, start to finish." with a four-line checklist (fabric, fit and finish discussed; measurements before work; written quote before sewing; fitting before finish).
+- Process band (always shown; headline from How it works when published): Discuss, Measure, Agree, Sew and fit, Collect.
+- Company orders (always shown; headline and intro from the company page when published): the draft from [Company order hook](#company-order-hook).
+- Closing band: "Tell me what you want to make." with the business area and hours, or a line about appointments.
+
+No section claims numbers, staff, reviews, offers or delivery reach.
+
 ## Copy rules
 
 - Specific captions: what was made, a useful fabric or fit detail, and the occasion where permission exists.

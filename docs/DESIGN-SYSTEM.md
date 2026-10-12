@@ -1,5 +1,149 @@
 # Design System
 
+This file owns the design direction for Herit Clothing's website and the HeritOS CMS and operations app. Screen behaviour belongs to [UX-SPEC.md](UX-SPEC.md), accessibility requirements to [ACCESSIBILITY.md](ACCESSIBILITY.md), and public copy and photography to [CONTENT.md](CONTENT.md).
+
+## 2026 direction: quiet confidence
+
+**Status: owner-selected Apple reference, adapted locally on 12 October 2026 (D-026).** The website and CMS use the shared palette and controls below. The editorial hero replaces D-025's automatic slider. Build and browser verification are recorded in [the design review](../qa/DESIGN-2026-REVIEW.md). Production deployment remains outside this task.
+
+The foundation is GetDesign's [independent Apple design analysis](https://getdesign.md/apple/design-md): generous white space, photography-led presentation, restrained interface chrome and rounded actions. Herit keeps amber instead of Apple's blue, Inter instead of proprietary SF Pro, and Source Serif 4 for public display headings. These are deliberate adaptations for a tailoring studio, not a copy of Apple's branding.
+
+Create the feel of a contemporary tailoring studio: warm, composed and precise. Give the website an editorial rhythm, generous space and strong garment photography. Give the CMS predictable navigation, readable records and clearly separated editing and publishing actions. Both use the same colours and controls, with different density.
+
+Clarity and consistency guide the adaptation. Keep one clear message per section, let photographs carry the character, and keep working controls predictable in the CMS.
+
+[View the earlier website and CMS concept image](../qa/design-2026/herit-website-cms-concept.png). This earlier image predates the Apple selection and is an AI-generated visual sample with fictional records and photography, not a screenshot, finished UI, verified business details or evidence of delivered garments. Exact rules below take priority over image rendering, including typography, contact details and mobile navigation.
+
+### 1. Colour roles
+
+Use white panels on a warm neutral canvas. Charcoal leads; amber is a controlled brand accent. Photography supplies the richer colour. Keep approximately 85% of interface area neutral, with amber on a primary action and a small active indicator. Status colours are semantic exceptions.
+
+| Semantic role | Target | Use |
+|---|---|---|
+| Canvas | `#F7F7F2` | CMS workspace and quiet website section background |
+| Surface | `#FFFFFF` | Cards, forms, header, menus |
+| Primary text | `#20221F` | Headings, navigation, labels, text on amber |
+| Body text | `#41453E` | Paragraphs and table content |
+| Muted text | `#61655E` | Supporting text and dates, never lower-opacity body copy |
+| Decorative border | `#E1E3DC` | Card edges and separators, not the sole boundary of an input |
+| Control border | `#858A80` | Input, select and checkbox boundaries |
+| Accent | `#F59E0B` | Primary action fill, selected indicator |
+| Accent hover | `#D97706` | Primary action hover, retain charcoal label |
+| Accent text | `#995108` | Underlined text links where an accent is useful |
+| Selected surface | `#FFF1D6` | Active CMS navigation item with charcoal label |
+| Success | `#246342` on `#EDF6EF` | Published, ready or confirmed, with a text label |
+| Warning | `#854D0E` on `#FFF4DC` | Draft or needs attention, with a text label |
+| Danger | `#A12B2B` on `#FFF0EE` | Error or destructive action |
+| Neutral status | `#61655E` on `#F0F1EC` | Unpublished or pending |
+| Focus | `#20221F` | 2px outline with 3px offset on light surfaces |
+
+Amber never carries white button text and is not small text on white. Decorative borders cannot establish focus or communicate an error. On dark photography, use a solid light text panel or sufficiently opaque scrim and test the actual crop. Do not infer contrast from the colour swatches alone. Calculated contrast evidence: [design review](../qa/DESIGN-2026-REVIEW.md).
+
+### 2. Typography
+
+Keep the existing two open-source families, Inter and Source Serif 4. A contemporary result comes from hierarchy and composition, not adding fonts.
+
+| Role | Desktop | Mobile | Weight and leading |
+|---|---|---|---|
+| Website hero | 64px, maximum 72px | 40px, 36px at 320px | Source Serif 4 500; 1.08; tracking -0.025em |
+| Website section title | 40px | 30px | Source Serif 4 500; 1.15; tracking -0.015em |
+| Website card title | 24px | 22px | Source Serif 4 500; 1.2 |
+| CMS page title | 28px | 24px | Inter 600; 1.2; tracking -0.02em |
+| CMS panel title | 18px | 18px | Inter 600; 1.3 |
+| Public body | 18px | 16px | Inter 400; 1.6 |
+| CMS body and rows | 15px | 16px | Inter 400; 1.5 |
+| Inputs and buttons | 16px | 16px | Inter 400 inputs, 500 actions; 1.4 |
+| Labels and table headings | 14px | 14px | Inter 500; 1.4 |
+| Metadata and badges | 13px | 13px | Inter 400 or 500; 1.4 |
+
+Serif belongs to public display headings, never CMS headings, navigation, forms or long body text. Keep paragraphs to 55 to 65 characters per line. Hero copy should occupy at most three lines without forced line breaks on phones. Use tabular numbers for counts, amounts and dates, and system monospace only for references. Use sentence case. Small uppercase eyebrows are optional, maximum one per section, 12px with 0.08em tracking.
+
+### 3. Spacing and grids
+
+Use a 4px base with named steps: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96 and 120px. Choose from the scale rather than accumulating arbitrary margins.
+
+| Layout decision | Website | CMS |
+|---|---|---|
+| Content width | Maximum 1280px, centred | Maximum 1440px excluding sidebar; editor form maximum 760px |
+| Outer gutters | 48px desktop, 32px tablet, 20px phone, 16px at 320px | 32px desktop, 24px tablet, 16px phone |
+| Grid | 12 columns desktop; 24px gaps | 12 columns; 24px gaps, 16px on phones |
+| Section separation | 96px desktop, 64px tablet, 48px phone | 32px between page regions |
+| Card padding | 24px desktop, 20px phone | 24px desktop, 16px phone |
+| Internal grouping | 8px label to helper; 16px title to text; 24px text to action | 8px label to control; 8px helper below; 24px between fields |
+| Sidebar and header | Header 72px desktop, 64px phone | Sidebar 248px; topbar 72px; retain existing sidebar collapse rules |
+
+Related items sit closer together than separate groups. Align section titles, cards and footer columns to the same left edge. Never force a section to 100vh or shrink text to fit. At 1024px reassess navigation and grids; below 768px stack hero and editor columns; at 320px retain readable type and complete controls.
+
+### 4. Cards, borders and depth
+
+- CMS cards: white, 1px decorative border, 12px radius, 24px padding. Static cards remain flat. Three useful summary tiles are enough; counts come from real records.
+- Website cards: 18px radius for image frames, 3:2 service images and 4:5 garment images. Keep headings and links outside the image. Two or three columns on desktop, one on narrow phones.
+- Hero: a warm neutral split panel with a 24px outer radius, one CMS image and a readable copy column. On phones use an 18px outer radius and stack copy above the image. Without an image use centred copy with no placeholder garment.
+- CMS controls and inputs: 8px radius. Public action buttons: 999px pill radius. Badges: 999px radius, at least 28px height. Dialogs: 16px radius. Rounded pills are reserved for short statuses and filters.
+- Borders: 1px by default. Use stronger control borders for inputs and a 2px focus outline. Do not nest several bordered cards around one form.
+- Depth: no shadow on ordinary panels; optional `0 2px 8px rgba(32,34,31,0.04)` on an interactive card; `0 12px 32px rgba(32,34,31,0.12)` on menus and dialogs. Shadow communicates elevation, not decoration.
+
+### 5. Controls and states
+
+| Component | Specification |
+|---|---|
+| Primary action | Amber fill, charcoal label, 48px public / 44px CMS height, 20px horizontal padding; one main action per task region |
+| Secondary action | White or transparent fill, charcoal label, visible control border; same height as primary |
+| Text action | Underlined label or explicit arrow; 44px touch area; no icon-only essential action |
+| Input and select | White, 48px height, 16px text, 12px horizontal padding, visible label above; placeholder is an example, not a label |
+| Textarea | Minimum 144px; same boundary and label rules as inputs |
+| Status | Text and optional icon on a pale tint; do not colour the whole card for a status |
+| Table | 56px desktop rows, 44px heading; left-aligned labels, right-aligned amounts, subtle horizontal separators; hover tint for actionable rows |
+| Tabs | 44px target; active label plus 2px underline; avoid a pill around each tab |
+| Dialog | Maximum 560px, 24px padding, descriptive heading; cancel secondary, confirm primary; labelled close button and focus return |
+
+Hover changes colour or border without moving the layout. Pressed state is slightly darker. Focus is always visible. Disabled state has a readable label and a reason where useful. Loading keeps the button width and changes its label to an explicit action such as “Saving…”. Success says what completed. Errors appear beside the affected field and in a focused summary for long forms. Empty, offline and permission-denied states explain what the user can do next.
+
+### 6. Landing page composition
+
+1. Header: legible needle mark and wordmark, at most four main links, one compact booking/request action. Track remains a utility link or inside the phone menu. Navigation behaviour and conditional routes stay in UX-SPEC.
+2. Hero: 5-column copy / 7-column photograph, short tailoring headline, one supporting paragraph, one main action and one quieter work link. D-026 authorises the static editorial hero: one published home image, falling back to the first published work image, then to a text-only layout. No autoplay, outfit stack, decorative weave, glow or pointer tilt.
+3. Services: section heading, short introduction, up to three consistently cropped service cards. Confirmed service wording comes from the CMS and CONTENT, not the sample.
+4. Selected work: two or three actual garment photographs, clear context, one collection link. Hide when there is no publishable work.
+5. Process and studio: short, well-spaced steps and a story split. Avoid another large stack of cards for ordinary prose.
+6. Closing action: simple appointment or enquiry prompt. Use only the configured action; do not imply instant confirmation.
+7. Footer: brand plus short description, Explore, Help and Studio columns, at most five links per column; policies and copyright below a divider. Hide missing details. Two columns on tablet, stacked groups on phones. No giant repeated navigation list.
+
+Photography should centre African menswear and workmanship, with warm natural light, consistent cropping and quiet backgrounds. AI garments in this concept are illustrative only. Do not publish the sample's email address, hours, dates, counts or other generated details.
+
+### 7. CMS and staff surfaces
+
+- Keep the existing role-gated navigation and business rules. The earlier sample shows a subset, not a new route inventory. Website content tools live inside Website rather than adding a new sidebar item for each entity.
+- Use a pale sidebar, restrained line icons, charcoal active label and soft amber selected background. Keep icon size 20px and label size 14px. Secondary tools sit in an expandable group.
+- Page header: title and one explanatory sentence on the left, task actions on the right. On phones put actions below the title. Avoid duplicate title bars.
+- Website hub: content slots, published records and records with drafts, calculated from existing list responses. Content slots include fixed page/policy keys even when not yet written. Keep missing-details guidance and existing content navigation. View website opens the public home in a new tab. No unsupported activity feed or financial metrics.
+- Content lists: search and filters above a table, readable status and last updated time, one clear Edit action. On phones use labelled record cards or a contained scroll region, never page-wide horizontal overflow.
+- Editor: form on the left, preview/status panel on the right where room permits. Keep Save draft distinct from Publish. State whether changes are saved and whether the public version differs. Preserve server validation and existing publishing safeguards.
+- Image library: equal aspect-ratio thumbnails, filenames, alt-text state and selection state. Labels remain visible. Upload progress and retry belong beside the upload.
+- Business details: group contact, studio and social fields; explain what becomes public. Avoid a dense multi-column form on phones.
+- Jobs, appointments and customers share this shell, type, controls and statuses. Do not redesign their business logic as part of a visual change.
+- The phone sketch is illustrative; it does not authorise a new bottom navigation. Use the existing drawer pattern until navigation changes are requested.
+
+### 8. Motion, themes and accessibility
+
+Use 120 to 180ms for hover, 180 to 220ms for menus, and 250 to 350ms for a restrained entrance. Animate opacity and transform only where useful. Reduce motion removes entrances, orbits, pointer tilt and autoplay. No ornamental CMS motion.
+
+Light is the first implementation target. The public site stays light. Preserve existing admin dark mode while implementing the new light design, then specify and verify a matching dark palette separately. Dark mode retains its existing palette plus a compatible selected-item surface. Verification scope is in the design review; do not infer full dark-theme compliance from a hub screenshot.
+
+Aim for WCAG 2.2 AA: 4.5:1 for normal text, 3:1 for large text and meaningful control boundaries. Use a 44px minimum target, preferably 48px on public forms. Test keyboard access, focus order, 200% text zoom, long titles, reduced motion and 320, 390, 768, 1024 and 1440px widths. See ACCESSIBILITY for the full requirements. A mockup cannot establish accessibility compliance.
+
+### 9. Implementation handoff and acceptance
+
+Keep the current React, Bootstrap and PHP architecture. No UI kit replacement or new runtime dependency is required by this guideline. Add raw values only to `src/assets/tokens/_tokens-map.scss`; emit semantic `--hc-*` tokens through `tokens.scss`; derive component aliases where needed. Extend the spacing and radius scales centrally. Do not scatter raw colours through component styles.
+
+Applied to shared tokens and controls, CMS shell and Website screens, and public header, hero, sections and footer. Continue to verify changes with screenshots and existing local staging journeys. The current token map, public UI kit, admin style layer, daily-record aliases and CMS hub implement this adaptation. Existing API contracts and role gates are retained.
+
+Acceptance: the website and CMS visibly share colour and control rules; CMS uses Inter throughout; public serif is limited to headings; navigation fits; grids align; cards use the documented radii; focus and error states are visible; phones have no page overflow; public facts remain sourced from the CMS. Verify build, lint/token guard and docs checks, then local staging editing, preview, publishing and public booking/request journeys when implementing. Current evidence and limitations are recorded in the design review.
+
+## Historical implementation record, before the Apple adaptation
+
+The sections below are retained for traceability and incoming links. They describe the previous implementation, not the current token values or styling rules. D-026 and the Apple adaptation above supersede these visual specifications. Their contrast figures apply to the old palette only.
+
 This is the single design contract for the HeritOS app and the public website. It owns principles, tokens and measured contrast, typography, spacing, surfaces, control styling, motion, the Tesla reference and every deviation from it. Screen behaviour, forms and navigation are in [UX-SPEC.md](UX-SPEC.md); keyboard, focus, touch-target, reduced-motion and test-width rules are in [ACCESSIBILITY.md](ACCESSIBILITY.md); copy and photography rules are in [CONTENT.md](CONTENT.md).
 
 The direction, approved by the owner on 10 October 2026 (D-002), is a restrained Tesla-style layout led by real photography, with Herit amber `#F59E0B` as the only accent. The rebuild is Phase 4 of [ROADMAP.md](ROADMAP.md). The token layer, public components and motion are built on `feat/phase4-website`; page content and the CMS follow.
@@ -129,22 +273,22 @@ Built on `feat/phase4-website` (`src/app/(public)/site/ui/ui.css`, `Hero.jsx`, `
 
 | Element | Motion | Timing |
 |---|---|---|
-| Home hero headline | Each word rises out of a mask (`translateY(110%)` to 0); opacity stays 1, so the text is one readable string | 700ms `--hc-ease-emph`, 80ms start, 40ms stagger, capped at 12 words |
-| Hero eyebrow, lead, actions, note | Fade up 10px | 360ms at 0, 380, 460 and 540ms |
-| Hero photograph (when one exists) | Settles from `scale(1.04)` to 1 while a light-ash curtain lifts; the image is painted from the first frame so LCP is not delayed | 1200ms image, 700ms curtain from 120ms |
-| Hero run rule | First home view per session only (`sessionStorage.hc_hero_seen`); later views and `animate={false}` are static | |
+| Home hero title | Each of the two lines rises out of a mask (`translateY(105%)` to 0) on every slide change; the second line is a pale gradient (white to `--hc-control-border`) | 900ms `--hc-ease-emph`, second line 110ms later |
+| Hero lead and actions | Fade up 10px; the eyebrow pill carries an amber dot with a soft ping | 600ms at 260 and 360ms; ping 2.2s loop |
+| Hero outfit stage (D-025) | Three garment cards fanned (-9, 0, 9deg) rise in, then float 14px up and down with a breathing ground shadow; two thin orbit rings turn slowly; with a mouse the stack tilts up to 8 to 10deg toward the pointer. Slides crossfade by re-entering every 6.5s with a progress bar on the active dot; autoplay pauses on hover, keyboard focus and a hidden tab | 1000ms in, 7s float, 45 to 60s orbit, 500ms tilt |
+| Hero reduced motion | Under `prefers-reduced-motion` nothing animates and the slides do not advance on their own; dots and arrows still work | |
 | Section content | `data-reveal` items that start below the fold fade up 12px on first view (IntersectionObserver, once); up to four entering together stagger 60ms; a 3s safety net reveals anything already passed | 360ms `--hc-ease` |
 | Measure line | A 1px by 48px amber rule under each eyebrow draws from the left when its heading block reveals; the signature detail | 480ms |
 | How it works | The vertical rule between numbered steps fills amber as each step reveals (triggered, not scroll-linked) | 600ms |
 | Links | Header links: a 1px underline grows from the left on hover and marks the current page; body links thicken from 1px to 2px | 200ms |
 | Buttons | Colour-only hover; press scales to 0.98 | 330ms colour, 80 to 180ms press |
-| Mobile menu | Sheet fades in with an 8px drop | 200ms |
-| Header | 1px divider fades in after 8px of scroll | 330ms |
+| Mobile menu | Burger lines cross into an X; each numbered link fades up in turn | 200ms; links 360ms, 60ms start, 40ms stagger |
+| Header | 1px divider fades in after 40px of scroll; the contact bar above scrolls away with the page (D-025) | 330ms |
 
 - Content is never hidden without JavaScript: only items `useReveal` marks `pending` are hidden, and only when they start below the fold, so nothing on screen at load flashes.
 - `prefers-reduced-motion: reduce` removes every animation and transition on public pages (verified: `document.getAnimations().length` is 0 on home, about, contact, track and book, 11 October 2026); the hero curtain is not drawn.
 - Admin: 180 to 250ms colour transitions and a 0.98 button press; the old card lift and settle-in animation are gone.
-- Never: autoplay carousels, scroll hijacking, parallax, cursor effects, tickers or marquees, counters, forced viewport-height text clipping, animation during measurement entry or amount editing.
+- Never: scroll hijacking, parallax, tickers or marquees, counters, forced viewport-height text clipping, animation during measurement entry or amount editing. Exception by owner decision D-025: the home hero slider (autoplay with pauses) and its outfit stage (float, slow orbits, pointer tilt), all off under reduced motion.
 
 ## Public components
 
@@ -158,11 +302,12 @@ Built in `src/app/(public)/site/ui/` (barrel `ui/index.js`), styled in `ui/ui.cs
 | `Field`, `ErrorSummary` | Label above (14px, 500), "(required)" in text, help below in muted text, 16px input 48px tall with a 1px `#8E8E8E` border and a 2px ink focus outline; inline error in `#991B1B` with an icon via `aria-invalid` and `aria-describedby`; the summary links to fields and takes focus |
 | `StatusChip` | 28px pill, 13px 500, icon plus text on the status tint pair |
 | `HcImage` | Reserved aspect ratio, AVIF and WebP `srcset` when present, required `alt`, `priority` for the one hero image (eager, high priority), lazy and async otherwise |
-| `Hero` | Text beside the photograph from 1024px (columns 1 to 5 and 6 to 12), above it below; never text on the photo, so no scrim. Text-only until real photography exists |
+| `Hero` | D-025: the old landing's dark animated slider, framed as the 21st.dev "Lunar Gravity Card". A rounded ink card (24px radius) inside the page margins with a fine weave and one amber glow; a round "Track your job" button in the corner from 768px. Left (1.25fr from 1024px): eyebrow pill with an amber dot, a two-line serif title (second line pale), the lead, a primary button and an outlined ghost link. Right: the outfit stage (three garment cards, the centre one with a white caption chip). Bottom edge: three progress dots and previous/next buttons. Slides on Home: the home message, a service, company orders; images come from published work and the slide's own image |
 | `Icon` | About 60 inline stroke SVGs (24px grid, 1.75 stroke, `currentColor`, decorative unless `label` is given); older Iconify names map to them |
-| Header (`SiteHeader.jsx`) | Sticky, opaque white, 64px; wordmark, links (Services, Companies, Our work, How it works, About, each shown only while its page has published content; Shop while the shop is on; Contact always), quiet "Track your job", primary "Book an appointment" (or "Request an appointment" while booking is off). Below 1024px a Menu button opens a sheet with 56px rows and Book and Track pinned at the bottom (a recorded deviation: the links do not fit at 768px) |
-| Footer (`SiteFooter.jsx`) | Light ash, four columns, each shown only when it has content: business name, area and hours; phone, WhatsApp and email; explore links; policies. Verified social links only (https on the platform's own domain). Bottom row "© year name" and a small staff link. Details come from `useBusiness()` (`site/business.js`: the Website profile in `site.php?action=config`, falling back to `store.php` config on a server without `site.php`); explore and policy links follow the published-content flags |
+| Header (`SiteHeader.jsx`) | D-025, after the owner's EGO and RitaGreen sites. From 1024px a 36px ink contact bar (area, hours, phone) sits above the header and scrolls away. Header: sticky, solid white, 64px, a hairline once scrolled. Brand lockup: the `logo-sm.svg` needle mark at 34px plus a live-text wordmark (HERIT in Source Serif 4 600 with 0.08em tracking, CLOTHING in Inter 500 10px with 0.34em tracking, muted), because the stacked `logo-dark.svg` is unreadable at this height. At most four centred links (Services, Our work, How it works, About; Shop while the shop is on), each only while its page is published; the current page is underlined in amber. Then "Track your job" with a ticket icon (from 1200px) and a compact primary button: "Book a fitting", or "Request a fitting" while booking is off. Company orders, Questions, Journal and Contact live in the footer and the menu sheet. Below 1024px a Menu button opens a full-height sheet: numbered serif links, phone and email, then Book, Track and the company action pinned at the bottom |
+| Footer (`SiteFooter.jsx`) | After 21st.dev "Footer 7" (Shadcnblocks), D-025. White with a top hairline and generous padding. Left: brand lockup, one short statement, muted social icons in a row. Right: three columns with bold headings and small muted links: Explore (at most five published pages), Help (Track your job, Questions, Journal, Contact), Studio (phone, WhatsApp, email, area or public address, hours). Bottom: a hairline, "© year name. All rights reserved." on the left, Privacy, Terms and the staff link on the right. Columns with nothing real are not rendered |
 | `useActions` (`ui/useActions.js`) | The two site actions in one place: primary "Book a measurement appointment" (`/book`) while public booking is on and ready, else "Request a measurement appointment" (`/contact?type=fitting`); secondary "Discuss a company order" (`/company-orders#brief` while that page is published, else `/contact?type=company`) |
+| Home blocks (`HomePage.jsx`, styles in `ui.css` "home") | Principles row (three columns divided by hairlines, no cards); services (at most three on Home); story split (image 5fr beside copy 6fr, checklist); ink band (`.hc-band`: `--hc-text` surface, `--hc-surface` headings, `--hc-divider` body, amber serif step numbers and a 1px amber rule per step that draws on reveal); work grid (two columns on phones); company split (heading block beside the primary action); questions split (heading 4fr, answers 7fr). D-023 |
 | CMS blocks (`site/cmsBlocks.jsx`) | `Rich` (CMS rich text through `safeHtml()`), `PageHead` (h1, intro, optional hero image), `RichSection`, loading, not-found (noindex) and error pages, `MoreLink`. Empty content renders nothing |
 | `useSeo` (`site/seo/useSeo.js`) | Title ("{Page} \| Herit Clothing", Home "Herit Clothing \| Men's tailoring in Lagos"), description, canonical, Open Graph (absolute image URL), Twitter card, robots and one JSON-LD block; restores defaults on unmount. Called once by `SiteLayout` from its `title`, `seo` and `noindex` props; preview mode is always noindex |
 
@@ -201,6 +346,7 @@ The reference came from `npx getdesign@latest add tesla` and is kept at [docs/Pl
 | Transparent navigation over the hero | Opaque white header always | Contrast |
 | Navigation collapses below 768px | Collapses below 1024px | The links and two actions do not fit at 768px |
 | Frosted glass navigation | Not used | No glass layers |
+| Auto-advancing hero carousel | Owner-approved slider (D-025): 6.5s, pauses on hover, focus and hidden tab, never under reduced motion; dots and arrows | Owner preferred the old animated hero, 12 Oct 2026 |
 | Placeholder text `#8E8E8E` | Placeholders and help text `#5C5E62`; `#8E8E8E` only for control borders | `#8E8E8E` is 3.28:1, too low for text |
 | Persistent "Ask a question" chat bar | Not used | No live chat infrastructure (deferred) |
 | 0.33s for every transition | 180 to 250ms for UI, 300 to 400ms for reveals | Immediate feedback in the app |

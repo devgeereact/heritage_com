@@ -63,7 +63,7 @@ const WebsiteListPage = () => {
     : (items || []).map((item) => ({ key: item.id, label: item.title || '(no title yet)', item }))
 
   return (
-    <div className="hd">
+    <div className="hd hd-website">
       <PageTitle title={`Website: ${ent.label}`} />
       <PageHeader
         title={ent.label}
@@ -85,7 +85,7 @@ const WebsiteListPage = () => {
             {rows.length === 0 && <p className="p-3 mb-0 text-muted">Nothing here yet. Use New {ent.one} to add the first one.</p>}
             <ul className="list-unstyled mb-0">
               {rows.map((r, i) => (
-                <li key={r.key} className="d-flex flex-wrap align-items-center gap-2 p-3 border-bottom">
+                <li key={r.key} className="hd-cms-row d-flex flex-wrap align-items-center gap-2 p-3 border-bottom">
                   <div className="flex-grow-1 min-w-0">
                     <Link to={`/website/${section}/${ent.keyed ? r.key : r.item.id}`} className="fw-semibold">
                       {r.label}

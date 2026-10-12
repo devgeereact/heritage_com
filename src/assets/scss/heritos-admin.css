@@ -79,7 +79,7 @@ main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 
   border-color: var(--hc-text);
 }
 
-/* ---- buttons: 4px radius, colour-only hover, short press ---------------- */
+/* ---- buttons: 8px radius, colour-only hover, short press ---------------- */
 .btn {
   border-radius: var(--hc-radius-control);
   transition: background-color var(--hc-dur-color) var(--hc-ease), border-color var(--hc-dur-color) var(--hc-ease), color var(--hc-dur-color) var(--hc-ease), transform var(--hc-dur-press) var(--hc-ease);
@@ -256,4 +256,94 @@ summary:focus-visible {
     scroll-behavior: auto !important;
   }
   .btn:active { transform: none; }
+}
+
+/* Apple-inspired Herit adaptation: quiet chrome, readable working surfaces. */
+.wrapper {
+  --bs-main-nav-width: 248px;
+  --bs-topbar-height: 72px;
+  font-family: var(--hc-font-sans);
+  color: var(--hc-text-body);
+  background: var(--hc-surface-alt);
+}
+.wrapper .page-content { background: var(--hc-surface-alt); }
+.wrapper .page-content > .container-fluid { padding: var(--hc-space-6); }
+.wrapper .card {
+  --bs-card-spacer-x: var(--hc-space-5);
+  --bs-card-spacer-y: var(--hc-space-5);
+  --bs-card-bg: var(--hc-surface);
+  --bs-card-border-color: var(--hc-divider);
+  --bs-card-color: var(--hc-text-body);
+}
+.wrapper .main-nav .navbar-nav .nav-link {
+  margin: var(--hc-space-1) var(--hc-space-3);
+  padding: var(--hc-space-3);
+  min-height: var(--hc-touch);
+  border-left: 0;
+  border-radius: var(--hc-radius-control);
+  font-size: var(--hc-text-sm);
+  line-height: 1.3;
+}
+.wrapper .main-nav .navbar-nav .nav-link.active {
+  color: var(--hc-text);
+  background: var(--hc-selected);
+  font-weight: var(--hc-w-medium);
+}
+.wrapper .main-nav .navbar-nav .nav-link.active .nav-icon { color: var(--hc-text); }
+.wrapper .main-nav .navbar-nav .sub-nav-link { border-radius: var(--hc-radius-control); }
+.wrapper .main-nav .menu-title { text-transform: none; letter-spacing: 0; }
+.wrapper .table { --bs-table-bg: var(--hc-surface); --bs-table-color: var(--hc-text-body); }
+.wrapper .table > :not(caption) > * > * { padding: var(--hc-space-4); vertical-align: middle; }
+.wrapper .table > thead th { font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); }
+.wrapper .form-control, .wrapper .form-select { min-height: var(--hc-control-h); font-size: var(--hc-text-base); border-radius: var(--hc-radius-control); }
+.wrapper .btn { min-height: var(--hc-touch); padding-inline: var(--hc-space-4); font-weight: var(--hc-w-medium); }
+.wrapper .topbar .topbar-button { min-width: var(--hc-touch); min-height: var(--hc-touch); }
+.wrapper .topbar .app-search .form-control { border: 1px solid var(--hc-control-border); }
+.hd-page-header { margin-bottom: var(--hc-space-6) !important; gap: var(--hc-space-5) !important; }
+.hd-page-header .text-muted { max-width: var(--hc-measure); font-size: var(--hc-text-sm); line-height: 1.6; }
+.hd-website-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--hc-space-5); margin-bottom: var(--hc-space-6); }
+.hd-website-stat { display: flex; flex-direction: column; gap: var(--hc-space-2); padding: var(--hc-space-5); background: var(--hc-surface); border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-card); }
+.hd-website-stat dt { font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); color: var(--hc-text-muted); }
+.hd-website-stat dd { margin: 0; font-size: var(--hc-text-3xl); font-weight: var(--hc-w-semibold); line-height: 1.2; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--hc-text); }
+.hd-website .hd-cms-row { padding: var(--hc-space-5) !important; gap: var(--hc-space-4) !important; }
+.hd-website .hd-cms-row a { color: var(--hc-text) !important; }
+.hd-website .hd-cms-row:hover { background: var(--hc-surface-alt); }
+@media (max-width: 767px) {
+  .wrapper .page-content > .container-fluid { padding: var(--hc-space-4); }
+  .hd-page-header { flex-direction: column; align-items: stretch !important; }
+  .hd-website-summary { gap: var(--hc-space-2); margin-bottom: var(--hc-space-5); }
+  .hd-website-stat { padding: var(--hc-space-4) var(--hc-space-3); }
+  .hd-website-stat dt { font-size: var(--hc-text-xs); }
+  .hd-website-stat dd { font-size: var(--hc-text-2xl); }
+  .hd-website .hd-cms-row { padding: var(--hc-space-4) !important; }
+}
+.wrapper .main-nav { box-shadow: none; }
+.wrapper .topbar .navbar-header > .d-flex:first-child { min-width: 0; flex: 1; }
+.wrapper .topbar .navbar-header > .d-flex:first-child .topbar-item:last-child { min-width: 0; }
+.wrapper .topbar .navbar-header > .d-flex:last-child { flex-shrink: 0; }
+.wrapper .topbar .topbar-button { padding: 6px; }
+.wrapper .topbar h4.topbar-button { padding: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--hc-text-md); line-height: var(--hc-touch); border-radius: 0; }
+.wrapper .bg-primary.text-white { color: var(--hc-on-accent) !important; }
+
+.wrapper .logo-box { height: var(--bs-topbar-height); padding: 0 var(--hc-space-5); line-height: normal; display: flex; align-items: center; }
+.wrapper .logo-box .hd-brand-lockup { display: inline-flex; align-items: center; gap: var(--hc-space-3); height: var(--hc-touch); width: auto; font-size: var(--hc-text-lg); font-weight: var(--hc-w-semibold); color: var(--hc-text); letter-spacing: -0.02em; }
+.wrapper .logo-box .hd-brand-lockup img { flex: none; }
+html[data-menu-size="condensed"] .wrapper .logo-box .hd-brand-lockup,
+html[data-menu-size="sm-hover"] .wrapper .logo-box .hd-brand-lockup { display: none; }
+.hd-website .hd-card { height: auto !important; }
+.hd-website > .row { align-items: flex-start; }
+/* The kit's menu-size rules have higher specificity than its base menu. */
+html .wrapper .main-nav .navbar-nav .nav-item > .nav-link.active {
+  background: var(--hc-selected);
+  border-left-color: transparent;
+  color: var(--hc-text);
+}
+html .wrapper .main-nav .navbar-nav .nav-item > .nav-link.active .nav-icon { color: var(--hc-text); }
+html .wrapper .main-nav .navbar-nav .menu-title {
+  font-size: var(--hc-text-xs);
+  font-weight: var(--hc-w-medium);
+  color: var(--hc-text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 1;
 }

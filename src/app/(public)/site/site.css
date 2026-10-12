@@ -2,7 +2,7 @@
    Herit Clothing public site: base and page patterns.
    Every value comes from the shared --hc-* tokens (src/assets/tokens);
    this file holds no colour values (scripts/check-tokens.mjs).
-   Tesla-style restraint: white and light-ash surfaces, thin dividers,
+   Apple-inspired Herit adaptation: white and light-ash surfaces, thin dividers,
    no decorative gradients, patterns or shadows. Components (buttons,
    header, footer, hero, forms, chips, motion) live in ui/ui.css.
    Contract: docs/DESIGN-SYSTEM.md.

@@ -13,8 +13,8 @@ export default function useActions() {
   const company = cfg?.nav?.company === true
   return {
     primary: booking
-      ? { to: '/book', label: 'Book a measurement appointment', short: 'Book an appointment' }
-      : { to: '/contact?type=fitting', label: 'Request a measurement appointment', short: 'Request an appointment' },
+      ? { to: '/book', label: 'Book a measurement appointment', short: 'Book a fitting' }
+      : { to: '/contact?type=fitting', label: 'Request a measurement appointment', short: 'Request a fitting' },
     secondary: company
       ? { to: '/company-orders#brief', label: 'Discuss a company order' }
       : { to: '/contact?type=company', label: 'Discuss a company order' },

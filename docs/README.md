@@ -16,7 +16,7 @@ Documentation follows the GEE OS "Standard application" profile: one flat `docs/
 | [API-SPEC.md](API-SPEC.md) | Endpoint inventory, server role gates, deploy route per file, action contracts, settings keys |
 | [SECURITY.md](SECURITY.md) | Threats and controls, private files and content safety, authentication, permissions |
 | [DATA-PRIVACY.md](DATA-PRIVACY.md) | Nigeria privacy position, data categories, retention, rights, AI |
-| [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | Tokens, contrast, type, spacing, motion, Tesla reference and deviations |
+| [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | 2026 website and CMS design proposal, tokens, contrast, components, and existing implementation history |
 | [UX-SPEC.md](UX-SPEC.md) | Navigation (target and as built), screens, required states, forms |
 | [ACCESSIBILITY.md](ACCESSIBILITY.md) | Target, focus, touch targets, reduced motion, test widths |
 | [TEST-STRATEGY.md](TEST-STRATEGY.md) | Commands and latest results, coverage plan, baseline audit record |
