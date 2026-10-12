@@ -70,7 +70,7 @@ Frontend environment: `VITE_API_BASE` only, documented in `.env.example`; produc
 
 - First install: import `php-api/schema.sql` in phpMyAdmin. It creates the foundation and module tables and seeds one `super_admin`, `dev@heritclothing.com`.
 - Where the full `schema.sql` aborts on a stale legacy table, import `schema_modules.sql` instead; it creates only the later-module tables.
-- Then apply `schema_phase2.sql` onwards in numeric order, up to `schema_phase22.sql` on the Phase 2 branch, `schema_phase25.sql` on the Phase 3 branch and `schema_phase26.sql` on the Phase 4 branch (later phases alter tables created earlier). Local staging imports exactly this order without errors and replays 18 to 22 over seeded data (10 October 2026). Which phases the live database has is Unknown.
+- Then apply `schema_phase2.sql` onwards in numeric order, up to `schema_phase22.sql` on the Phase 2 branch, `schema_phase25.sql` on the Phase 3 branch `schema_phase26.sql` on the Phase 4 branch and `schema_phase27.sql` on the Phase 5 branch (later phases alter tables created earlier). Local staging imports exactly this order without errors and replays 18 to 22 over seeded data (10 October 2026). Which phases the live database has is Unknown.
 - `users.php`, `mail.php` and `inbox.php` need no new tables.
 - Phase-specific imports and their order relative to the merge are under [Owner actions per pull request](#owner-actions-per-pull-request).
 - `CREATE TABLE IF NOT EXISTS` does not upgrade existing columns, and re-running a file is not automatically safe. Record which versions are applied and their dependencies. Keep versioned SQL in `php-api/`.

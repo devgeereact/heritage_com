@@ -437,5 +437,8 @@ check('testimonial name: no consent never publishes', testimonial_name('no', 'Ad
 /* ---- Phase 4: website CMS (_cms.php) --------------------------------------- */
 require __DIR__ . '/cms_cases.php';
 
+/* ---- Phase 5: company orders (_company.php) -------------------------------- */
+require __DIR__ . '/company_cases.php';
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

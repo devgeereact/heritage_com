@@ -113,3 +113,19 @@ Owner of every entity: the business owner.
 | `cms_items` | One row per service, portfolio project, FAQ, policy or page. `entity`, `slug` (unique per entity; a page or policy uses its fixed key; fixed once `published_at` is set), `status` (`draft`, `published`, `unpublished`), `sort`, JSON `live`, `draft` and `prev` (one earlier live version), `version`, `published_at` (first publication, UTC), `live_updated_at`, `draft_updated_at`, `draft_updated_by`, `created_by`. Portfolio consent (`own_work`, `consent_images`, `consent_client`, `consent_note`) and any `client_id` are kept in the JSON and never projected |
 
 The business profile is not a table: it is the `business_*`, `socials` and `journal_enabled` keys in `settings` ([API-SPEC.md](API-SPEC.md#phase-4-settings-keys)). Nothing is seeded: an empty profile and no content mean the public site hides those sections.
+
+## Phase 5 tables and columns (schema_phase27)
+
+Branch `feat/phase5-company-orders`. Additive and re-runnable (`IF NOT EXISTS` throughout); existing jobs keep `job_kind = 'individual'` and are unchanged. Numbered 27 because the Phase 4 `schema_phase27` was not needed ([DECISIONS.md](DECISIONS.md) D-022). A company order is one `tailoring_orders` row with `job_kind = 'company'`; groups (`tailoring_groups`) stay "coordinated, separate payers" and are not the company parent.
+
+| Table or column | Columns and rules |
+|---|---|
+| `companies` | `name`, `company_ref`, invoice details (`invoice_name`, `invoice_address`, `invoice_email`, `tax_id`), `notes_internal` (staff only, never in a portal answer), soft delete `deleted_at` |
+| `company_contacts` | A `customers` row acting for a company: `role_title`, `can_view_jobs` (default 1), `can_approve_samples` (0), `is_invoice_recipient` (0), `active` (1). Unique per company and customer. An inactive contact can do nothing from the next request |
+| `tailoring_orders` (added) | `job_kind` (`individual` or `company`), `company_id`, `po_number`, `invoice_contact_id`, `measurement_method` (`individual`, `sizes`, `mixed`), `sample_status` (`not_required`, `pending`, `submitted`, `approved`, `changes_requested`). For a company job `customer_id` is the primary contact and `quantity` is kept equal to the active items' total |
+| `job_items` | Lines of a company job: `description`, `garment_type`, `service_key`, `qty`, `size_label`, the wearer (`wearer_customer_id`, staff-only `wearer_label`), `measurement_set_id` (an approved set of that wearer), `wearer_consent_at` (UTC), `item_stage` (`pending`, `in_production`, `ready`, `handed_over`, `cancelled`), `qty_ready`, `qty_handed_over`, `request_key`, `lock_version` |
+| `job_samples` | Sample versions per job (`version` unique per job), `status` (`submitted`, `approved`, `changes_requested`, `withdrawn`), the recorded decision (`decided_channel`: `portal`, `in_person`, `whatsapp`, `email`, `phone`; contact or staff user; note; `decided_at` UTC), `request_key` |
+| `job_handover_items` | Which items, and how many of each, went out in a `job_handovers` row |
+| `quotes` (added) | `bill_to_company_id`, `po_number`, `bill_to_snapshot` (JSON `{name, invoice_name, address, email, tax_id, po_number, recipient}`, frozen when the quote is sent) |
+
+Privacy (BR-28): wearers are ordinary `customers` rows with their own measurement sets; a company contact never sees a wearer or a measurement, and a wearer sees only their own garment. Both portal views are allowlists in `php-api/_company.php`, tested by key set.
