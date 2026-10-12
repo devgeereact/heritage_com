@@ -34,10 +34,13 @@ npm run dev               # second terminal: app on http://localhost:5112, talki
 bash scripts/staging/e2e-phase2.sh   # with staging:serve running
 bash scripts/staging/e2e-phase3.sh
 bash scripts/staging/e2e-phase4.sh
+bash scripts/staging/e2e-phase5.sh
 ```
 
 Phase 2 API journey checks with `curl` and `jq` (48 checks, PASS on two runs on 10 October 2026). `e2e-phase3.sh` adds 93 Phase 3 checks (PASS on two runs on a fresh rebuild, 10 October 2026): availability, slots with buffers, two parallel requests for one slot, hold expiry, cancel, reschedule history, hours, notice and horizon, the public switch, generic access replies, code expiry, reuse and lockout, throttles, owner invites, cross-client isolation, private fields, internal notes, request keys, change requests after cutting, measurement proposals, feedback consent and sessions. It resets throttle counters in the local database between sections. The script refuses any host other than `127.0.0.1` or `localhost`, mints one-day tokens straight into the local `heritos_staging` database for synthetic users only, and exits 0 only when every check passes. Set `STAGING_API` to use another local port.
 
 `e2e-phase4.sh` adds 62 website checks (PASS on two runs, 11 October 2026): drafts never public, preview needs staff, publish, a second version, rollback, slug lock, unpublish removing an item from the projection and the sitemap, malicious HTML stripped, placeholder text blocked, social and WhatsApp link rules, owner-only profile and policy actions, uploads (PHP renamed `.jpg`, a JPEG with PHP appended, 13 MB, EXIF and GPS removed, random names, nothing executed under `/uploads`), portfolio consent and alt text, no private fields in any public answer, sitemap, robots and the removed offers. It generates its own test images and adds a synthetic `editor01@example.test` account.
+
+`e2e-phase5.sh` adds 25 company-order checks (PASS, 12 October 2026): company job with five wearers and an idempotent create, the contact view carries no wearer, measurement, notes or staff code, a wearer sees only their own garment and no other portal action, sample approval only by an approver and recorded as `portal`, tailors record progress without money, an in-production edit needs a stated effect, partial handover (2 of 5), over-quantity refused, one row per request key, another company's reference answers like a missing one, the invoice and a sent quote carry the bill-to and PO, a deactivated contact and the switch turned off both lose access. It turns `company_portal_enabled` on for the run and restores the previous value.
 
 Results of every staging and browser run: [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).

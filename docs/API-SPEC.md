@@ -309,3 +309,18 @@ A company job is one `tailoring_orders` row with `job_kind = 'company'`; it star
 
 `tailoring.php?action=document` for a company job adds `bill_to` (the quote's frozen snapshot when there is one, else the live company details: company, invoice name, address, email, tax id, PO number and the invoice recipient), `bill_to_frozen` and `po_number`. `quotes.php?action=send` freezes `bill_to_snapshot`, `bill_to_company_id` and `po_number` on the quote for company jobs.
 
+### Portal additions (`portal.php`, Phase 5)
+
+Off until the owner sets `company_portal_enabled` to 1 (setting, default 0); while it is off, company contacts and wearers see no company jobs and a company job's reference answers 404 to everyone in the portal. A company job is never reached through its `customer_id` alone, so a deactivated primary contact loses access at once.
+
+| Action | Change |
+|---|---|
+| `me` | `company`: `[{name, can_approve_samples}]` for each company the person is an active contact of (null while the switch is off) |
+| `jobs` | Own jobs exclude company jobs; adds `company_jobs:[{ref, company, description, quantity, quantity_handed_over, stage, stage_label, promised_date}]` for active contacts with `can_view_jobs`, and `wearing:[wearer view]` for garments the person wears |
+| `job&ref=` | Company contact: `{ref, kind:'company', description, quantity, stage, stage_label, promised_date, po_number, quantity_ready, quantity_handed_over, lines:[{description, qty, qty_ready, qty_handed_over, sizes? (only when measuring by size)}], sample:{id, version, description, status, decided_at} or null, quote, payment, handovers, timeline, messages, can:{approve_sample}}`. Wearer: `{ref, kind:'wearer', item_id, description, garment_type, quantity, stage, stage_label, promised_date}`. Neither view ever carries a wearer, a measurement, notes, costs or another company (exact key sets tested in `tests/company_cases.php`) |
+| `messages`, `message` | Also open to company contacts on their company's jobs; wearers get 404 |
+| `sample_decide` (new) | POST `{ref, sample_id, decision: approve or changes, note? (required for changes), request_key}`; only an active contact with `can_approve_samples`, only the latest submitted version; anyone else gets the 404 of a missing job; records channel `portal` and a public timeline event |
+| Every other action | Unchanged and still limited to the job's own client: contacts and wearers get 404 (they never propose measurements, request appointments or changes, give feedback or accept quotes) |
+
+Settings: `company_portal_enabled` (`0` or `1`, default `0`).
+

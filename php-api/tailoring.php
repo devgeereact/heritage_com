@@ -24,7 +24,7 @@
  */
 require __DIR__ . '/_lib.php';
 require __DIR__ . '/_jobs.php';
-require __DIR__ . '/_company.php';
+require_once __DIR__ . '/_company.php';
 cors();
 
 $GARMENTS = ['agbada', 'kaftan', 'senator', 'suit', 'shirt', 'trouser', 'other'];

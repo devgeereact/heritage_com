@@ -16,6 +16,7 @@
  * same 404 as one that does not exist.
  */
 require_once __DIR__ . '/_jobs.php';
+require_once __DIR__ . '/_company.php';
 
 /** Is the old phone + order code login (and its raw tokens) still allowed? */
 function legacy_portal_login_enabled() {
@@ -84,22 +85,51 @@ function customer_sessions_revoke_all($customerId) {
   return $n;
 }
 
+/** Is the company portal on (contacts and wearers see company jobs)? Off by default; the owner turns it on per pilot. */
+function company_portal_on() {
+  return has_column('tailoring_orders', 'job_kind') && setting_flag('company_portal_enabled', false);
+}
+
+/**
+ * How this customer may see a job: ['owner', null] for the job's own client
+ * (individual jobs), ['contact', contact row] for an active company contact
+ * with can_view_jobs, ['wearer', item row] for a wearer of one of its items,
+ * or [null, null]. A company job is never reached through customer_id alone,
+ * so a deactivated primary contact loses access at once (Phase 5, BR-28).
+ */
+function portal_job_access(array $me, array $job) {
+  $isCompany = ($job['job_kind'] ?? 'individual') === 'company';
+  if (!$isCompany) return (int)$job['customer_id'] === (int)$me['id'] ? ['owner', null] : [null, null];
+  if (!company_portal_on()) return [null, null];
+  $k = db_row('SELECT * FROM company_contacts WHERE company_id = ? AND customer_id = ? AND active = 1', 'ii', (int)$job['company_id'], (int)$me['id']);
+  if ($k && contact_can($k, 'view_jobs')) return ['contact', $k];
+  $it = db_row("SELECT * FROM job_items WHERE job_id = ? AND wearer_customer_id = ? AND item_stage <> 'cancelled' ORDER BY id LIMIT 1", 'ii', (int)$job['id'], (int)$me['id']);
+  if ($it) return ['wearer', $it];
+  return [null, null];
+}
+
 /**
  * The job this customer may see, by its public reference, or the generic 404.
- * Phase 5 hook: company contacts will also reach their parent jobs here, through
- * an explicit company membership check. Until then only the job's own client can.
+ * $allow lists the kinds of access the calling action accepts (default: the
+ * job's own client only), so company contacts and wearers reach only the
+ * actions written for them; anything else answers like a missing job.
+ * The result carries portal_access and, for contacts and wearers, the row.
  */
-function portal_job(array $me, $ref) {
+function portal_job(array $me, $ref, array $allow = ['owner']) {
   $ref = public_ref_normalise($ref);
   $job = $ref === '' ? null : db_row('SELECT * FROM tailoring_orders WHERE public_ref = ? AND deleted_at IS NULL', 's', $ref);
-  if (!$job || !portal_can_access_job($me, $job)) fail('Not found', 404);
+  [$access, $row] = $job ? portal_job_access($me, $job) : [null, null];
+  if (!$access || !in_array($access, $allow, true)) fail('Not found', 404);
   $job['job_stage'] = job_stage_of($job);
+  $job['portal_access'] = $access;
+  $job['portal_contact'] = $access === 'contact' ? $row : null;
+  $job['portal_item'] = $access === 'wearer' ? $row : null;
   return $job;
 }
 
-/** Object-level check for one job (customer owns it). The company and wearer rules arrive in Phase 5. */
+/** Object-level check for one job (any kind of access). */
 function portal_can_access_job(array $me, array $job) {
-  return (int)$job['customer_id'] === (int)$me['id'];
+  return portal_job_access($me, $job)[0] !== null;
 }
 
 /**

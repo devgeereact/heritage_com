@@ -26,7 +26,7 @@
 require __DIR__ . '/_lib.php';
 require __DIR__ . '/_jobs.php';
 require __DIR__ . '/_portal.php';
-require __DIR__ . '/_company.php';
+require_once __DIR__ . '/_company.php';
 cors();
 
 $user = require_auth(ROLES_WORKSHOP);

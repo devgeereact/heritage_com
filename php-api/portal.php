@@ -18,6 +18,10 @@
  *   POST ?action=propose_measurements       {ref?, template_key, unit, vals, note?, request_key}  → pending set (+ change request)
  *   POST ?action=feedback                   {ref, rating?, comment?, contact_ok, publish_consent, photo_consent, request_key}
  *   POST ?action=quote_accept               {ref, quote_id, content_hash, confirm:true}  (only when portal_quote_accept_enabled is on)
+ *   POST ?action=sample_decide              {ref, sample_id, decision, note?, request_key}  (company contacts who may approve; Phase 5)
+ *
+ * Phase 5 (company_portal_enabled on): company contacts see company jobs as lines and totals, wearers see only their own
+ * garment (jobs lists them as company_jobs and wearing). Every other action stays limited to the job's own client.
  *
  * Every lookup is filtered by the signed-in customer. Another customer's
  * reference answers exactly like a missing one: 404 {"error":"Not found"}.
@@ -102,7 +106,9 @@ if ($action === 'me' && method() === 'GET') {
   json(['name' => $me['name'], 'first_name' => trim(explode(' ', trim((string)$me['name']))[0] ?? ''),
         'email_masked' => email_masked($me['email']), 'phone_masked' => phone_masked($me['phone']),
         'features' => features(), 'timezone' => BUSINESS_TZ,
-        'company' => null]);   // Phase 5 hook: company contact details
+        'company' => company_portal_on() ? array_map(fn($r) => ['name' => $r['name'], 'can_approve_samples' => (int)$r['can_approve_samples']],
+          db_rows('SELECT co.name, k.can_approve_samples FROM company_contacts k JOIN companies co ON co.id = k.company_id
+                    WHERE k.customer_id = ? AND k.active = 1 AND k.can_view_jobs = 1 AND co.deleted_at IS NULL ORDER BY co.name', 'i', $cid)) : null]);
 }
 
 /* ---- JOBS ----------------------------------------------------------------- */
@@ -111,8 +117,21 @@ if ($action === 'jobs' && method() === 'GET') {
                           (SELECT COUNT(*) FROM job_messages m WHERE m.job_id = o.id AND m.visibility = 'client' AND m.author_type <> 'customer'
                               AND m.read_by_customer_at IS NULL) AS unread
                      FROM tailoring_orders o
-                    WHERE o.customer_id = ? AND o.deleted_at IS NULL AND o.public_ref IS NOT NULL
+                    WHERE o.customer_id = ? AND o.deleted_at IS NULL AND o.public_ref IS NOT NULL" .
+                    (has_column('tailoring_orders', 'job_kind') ? " AND o.job_kind <> 'company'" : '') . "
                  ORDER BY o.id DESC LIMIT 100", 'i', $cid);
+  // Phase 5: company jobs this person may follow as a contact, and garments they wear.
+  $companyJobs = []; $wearing = [];
+  if (company_portal_on()) {
+    $companyJobs = db_rows("SELECT o.public_ref, o.description, o.quantity, o.handed_over_qty, o.job_stage, o.stage, o.due_date, co.name AS company_name
+                              FROM tailoring_orders o JOIN companies co ON co.id = o.company_id
+                              JOIN company_contacts k ON k.company_id = o.company_id AND k.customer_id = ? AND k.active = 1 AND k.can_view_jobs = 1
+                             WHERE o.job_kind = 'company' AND o.deleted_at IS NULL AND o.public_ref IS NOT NULL ORDER BY o.id DESC LIMIT 100", 'i', $cid);
+    $wearing = db_rows("SELECT o.public_ref, o.due_date, i.id, i.description, i.garment_type, i.qty, i.qty_ready, i.qty_handed_over, i.item_stage
+                          FROM job_items i JOIN tailoring_orders o ON o.id = i.job_id
+                         WHERE i.wearer_customer_id = ? AND i.item_stage <> 'cancelled' AND o.job_kind = 'company' AND o.deleted_at IS NULL
+                           AND o.public_ref IS NOT NULL ORDER BY i.id DESC LIMIT 100", 'i', $cid);
+  }
   $orders = has_column('orders', 'public_ref') ? db_rows(
     "SELECT o.public_ref, o.status, o.total, UNIX_TIMESTAMP(o.created_at) AS created_at, o.courier, o.tracking_url, COUNT(i.id) AS item_count
        FROM orders o LEFT JOIN order_items i ON i.order_id = o.id
@@ -127,13 +146,35 @@ if ($action === 'jobs' && method() === 'GET') {
     }, $jobs),
     'orders' => array_map(fn($o) => ['ref' => $o['public_ref'], 'status' => $o['status'], 'total' => $o['total'], 'item_count' => (int)$o['item_count'],
       'created_at' => lagos_iso($o['created_at']), 'courier' => $o['courier'], 'tracking_url' => $o['tracking_url']], $orders),
+    'company_jobs' => array_map(function ($j) {
+      $stage = job_stage_of($j);
+      return ['ref' => $j['public_ref'], 'company' => $j['company_name'], 'description' => $j['description'], 'quantity' => (int)$j['quantity'],
+              'quantity_handed_over' => (int)$j['handed_over_qty'], 'stage' => $stage, 'stage_label' => JOB_PUBLIC_STAGE_LABELS[$stage] ?? null,
+              'promised_date' => $j['due_date']];
+    }, $companyJobs),
+    'wearing' => array_map(fn($w) => wearer_item_public_view($w + ['id' => $w['id']], ['public_ref' => $w['public_ref'], 'due_date' => $w['due_date']]), $wearing),
   ]);
 }
 
 /* ---- JOB ------------------------------------------------------------------ */
 if ($action === 'job' && method() === 'GET') {
-  $job = portal_job($me, $ref);
+  $job = portal_job($me, $ref, ['owner', 'contact', 'wearer']);
   $jid = (int)$job['id'];
+  // Phase 5: a wearer sees only their own garment; a company contact sees the
+  // job as lines and totals (never wearers or measurements), the latest sample
+  // and, when allowed, approves it.
+  if ($job['portal_access'] === 'wearer') json(wearer_item_public_view($job['portal_item'], $job));
+  if ($job['portal_access'] === 'contact') {
+    $view = company_job_public_view($job,
+      db_rows('SELECT * FROM job_items WHERE job_id = ? ORDER BY sort, id', 'i', $jid),
+      db_rows('SELECT * FROM job_samples WHERE job_id = ? ORDER BY version', 'i', $jid),
+      portal_quote($job), job_ledger($jid),
+      db_rows('SELECT * FROM job_handovers WHERE job_id = ? ORDER BY id', 'i', $jid),
+      db_rows('SELECT stage, kind, public, UNIX_TIMESTAMP(created_at) AS created_at FROM tailoring_events WHERE order_id = ? AND public = 1 ORDER BY id', 'i', $jid));
+    $view['messages'] = client_thread($jid);
+    $view['can'] = ['approve_sample' => contact_can($job['portal_contact'], 'approve_samples') && ($view['sample']['status'] ?? '') === 'submitted'];
+    json($view);
+  }
   $quote = portal_quote($job);
   $view = job_public_view($job, $quote, job_ledger($jid),
     db_rows('SELECT * FROM job_handovers WHERE job_id = ? ORDER BY id', 'i', $jid),
@@ -158,7 +199,7 @@ if ($action === 'job' && method() === 'GET') {
 
 /* ---- MESSAGES ------------------------------------------------------------- */
 if ($action === 'messages' && method() === 'GET') {
-  $job = portal_job($me, $ref);
+  $job = portal_job($me, $ref, ['owner', 'contact']);
   $thread = client_thread((int)$job['id']);
   db_exec("UPDATE job_messages SET read_by_customer_at = UTC_TIMESTAMP()
             WHERE job_id = ? AND visibility = 'client' AND author_type <> 'customer' AND read_by_customer_at IS NULL", 'i', (int)$job['id']);
@@ -166,7 +207,7 @@ if ($action === 'messages' && method() === 'GET') {
 }
 
 if ($action === 'message' && method() === 'POST') {
-  $job = portal_job($me, $ref);
+  $job = portal_job($me, $ref, ['owner', 'contact']);
   $key = body_request_key($b);
   $body = message_body_clean($b['body'] ?? '');
   if ($body === null) fail('Write a message of up to 2000 characters');
@@ -335,6 +376,40 @@ if ($action === 'quote_accept' && method() === 'POST') {
   $res = quote_accept($qid, 'portal', 'Accepted by the client in the portal', (string)($b['content_hash'] ?? ''), null, $cid);
   if (!$res['already']) audit(null, 'quote_accept_portal', 'quote', $qid, ['customer_id' => $cid]);
   json(['ok' => true, 'already' => $res['already']]);
+}
+
+/* ---- SAMPLE DECISION (Phase 5, company contacts) ----------------------------- */
+/* POST ?action=sample_decide {ref, sample_id, decision: approve|changes, note?, request_key}
+ * Only a contact with can_approve_samples, and only on the latest submitted
+ * version; anyone else gets the same 404 as a missing job. */
+if ($action === 'sample_decide' && method() === 'POST') {
+  $job = portal_job($me, $ref, ['contact']);
+  if (!contact_can($job['portal_contact'], 'approve_samples')) fail('Not found', 404);
+  $key = body_request_key($b);
+  $to = ['approve' => 'approved', 'changes' => 'changes_requested'][$b['decision'] ?? ''] ?? null;
+  if (!$to) fail('decision must be approve or changes');
+  $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 500) ?: null;
+  if ($to === 'changes_requested' && $note === null) fail('Say what should change');
+  $jid = (int)$job['id'];
+  $sid = (int)($b['sample_id'] ?? 0);
+  $contactId = (int)$job['portal_contact']['id'];
+  $res = db_tx(function () use ($jid, $sid, $to, $note, $contactId, $key) {
+    job_lock($jid);
+    $s = db_row('SELECT * FROM job_samples WHERE id = ? AND job_id = ? FOR UPDATE', 'ii', $sid, $jid);
+    if (!$s) tx_fail('Not found', 404);
+    $latest = db_row('SELECT id FROM job_samples WHERE job_id = ? ORDER BY version DESC LIMIT 1', 'i', $jid);
+    // A repeat of the same decision (same key) is answered as done.
+    if ($s['status'] === $to && (int)$s['decided_contact_id'] === $contactId) return ['already' => true];
+    if ((int)$latest['id'] !== $sid || !sample_transition_ok($s['status'], $to)) tx_fail('This sample version is no longer waiting for a decision', 409);
+    db_exec("UPDATE job_samples SET status = ?, decided_channel = 'portal', decided_contact_id = ?, decision_note = ?, decided_at = UTC_TIMESTAMP() WHERE id = ?",
+      'sisi', $to, $contactId, $note, $sid);
+    db_exec('UPDATE tailoring_orders SET sample_status = ?, lock_version = lock_version + 1 WHERE id = ?', 'si', job_sample_status_for($to), $jid);
+    job_event($jid, 'sample', null, 'Sample version ' . (int)$s['version'] . ($to === 'approved' ? ' approved' : ': changes requested') . ' (portal)',
+      ['sample_id' => $sid, 'decision' => $to, 'channel' => 'portal', 'contact_id' => $contactId, 'request_key' => $key], 1, null);
+    return ['already' => false];
+  });
+  if (!$res['already']) audit(null, 'company_sample_decision_portal', 'tailoring_order', $jid, ['sample_id' => $sid, 'decision' => $to, 'customer_id' => $cid]);
+  json(['ok' => true, 'already' => $res['already'], 'status' => $to]);
 }
 
 fail('Unknown action', 404);
