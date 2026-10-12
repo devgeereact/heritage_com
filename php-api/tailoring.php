@@ -24,11 +24,11 @@
  */
 require __DIR__ . '/_lib.php';
 require __DIR__ . '/_jobs.php';
+require __DIR__ . '/_company.php';
 cors();
 
 $GARMENTS = ['agbada', 'kaftan', 'senator', 'suit', 'shirt', 'trouser', 'other'];
 $FABRIC_SOURCES = ['client', 'herit', 'mixed'];
-const HANDOVER_CHECKLIST = ['garment_count', 'fit', 'finishing', 'packaging', 'accessories', 'instructions'];
 
 // K-01: employee was allowed here by the server but not by the app. Jobs are
 // for workshop roles only, matching the approved permissions.
@@ -509,6 +509,17 @@ if ($action === 'document' && method() === 'GET') {
               'stage_label' => JOB_STAGE_LABELS[job_stage_of($job)] ?? null],
     'totals' => money_view($t, $job['price'], $job['payment_state']),
   ];
+  // Company jobs (Phase 5): bill the company. The quote's frozen bill-to wins;
+  // before a quote is sent, the live company details are used.
+  $bill = has_column('tailoring_orders', 'job_kind') ? company_bill_to_snapshot($id) : null;
+  if ($bill) {
+    $qid = $ref && $doc === 'quote' ? $ref : (int)$job['quote_id'];
+    $frozen = $qid && has_column('quotes', 'bill_to_snapshot') ? db_row('SELECT bill_to_snapshot FROM quotes WHERE id = ?', 'i', $qid) : null;
+    $snap = $frozen && $frozen['bill_to_snapshot'] ? json_decode($frozen['bill_to_snapshot'], true) : null;
+    $out['bill_to'] = $snap ?: $bill;
+    $out['bill_to_frozen'] = (bool)$snap;
+    $out['po_number'] = $out['bill_to']['po_number'] ?? null;
+  }
   $quoteFor = function ($qid) use ($id) {
     $q = db_row('SELECT * FROM quotes WHERE id = ? AND (job_id = ? OR job_id IS NULL)', 'ii', (int)$qid, $id);
     if (!$q) return null;
@@ -545,41 +556,6 @@ if ($action === 'document' && method() === 'GET') {
 }
 
 /* ---- DELIVERY AND COLLECTION -------------------------------------------- */
-
-function handover_view(array $h, $isOwner) {
-  foreach (['id', 'job_id', 'quantity', 'recorded_by'] as $k) if (isset($h[$k])) $h[$k] = (int)$h[$k];
-  $h['checklist'] = $h['checklist'] !== null ? json_decode($h['checklist'], true) : null;
-  unset($h['request_key']);
-  if (!$isOwner) unset($h['balance_at_handover']);
-  return $h;
-}
-
-/**
- * Complete a handover under the job lock: snapshot the balance, recount the
- * completed quantity and move the job to handed_over only when every piece is
- * out. Returns [handed_over_qty, quantity, job_stage, balance_minor].
- */
-function handover_complete_tx(array $job, $hid, array $b, $user) {
-  $t = job_money($job['id'], $job['price']);
-  $bal = minor_to_decimal($t['balance']);
-  $check = [];
-  foreach (HANDOVER_CHECKLIST as $k) if (array_key_exists($k, (array)($b['checklist'] ?? []))) $check[$k] = (bool)$b['checklist'][$k];
-  $cj = $check ? json_encode($check) : null;
-  $rb = mb_substr(trim((string)($b['received_by'] ?? '')), 0, 120) ?: null;
-  $ev = mb_substr(trim((string)($b['evidence_note'] ?? '')), 0, 255) ?: null;
-  db_exec("UPDATE job_handovers SET status = 'completed', completed_at = UTC_TIMESTAMP(), received_by = ?, evidence_note = ?,
-                  checklist = ?, balance_at_handover = ? WHERE id = ?", 'ssssi', $rb, $ev, $cj, $bal, (int)$hid);
-  $done = (int)db_row("SELECT COALESCE(SUM(quantity),0) AS q FROM job_handovers WHERE job_id = ? AND status = 'completed'", 'i', (int)$job['id'])['q'];
-  db_exec('UPDATE tailoring_orders SET handed_over_qty = ?, lock_version = lock_version + 1 WHERE id = ?', 'ii', $done, (int)$job['id']);
-  $qty = max(1, (int)$job['quantity']);
-  $stage = handover_stage_after($job['job_stage'], $qty, $done);
-  job_event($job['id'], 'handover', $job['job_stage'], "Handover completed: $done of $qty handed over" . ($t['balance'] > 0 ? ' (balance ₦' . number_format(intdiv($t['balance'], 100)) . ' outstanding)' : ''),
-    ['handover_id' => (int)$hid, 'handed_over_qty' => $done, 'quantity' => $qty, 'balance_at_handover' => $bal, 'money' => true], 1, $user['id']);
-  if ($stage === 'handed_over' && $job['job_stage'] !== 'handed_over') {
-    job_set_stage_tx($job, 'handed_over', $user['id'], 'All pieces handed over', ['handover_id' => (int)$hid]);
-  }
-  return [$done, $qty, $stage, $t['balance']];
-}
 
 /* GET ?action=handovers&id=N */
 if ($action === 'handovers' && method() === 'GET') {

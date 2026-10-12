@@ -288,3 +288,24 @@ Branch `feat/phase5-company-orders` (no PR yet). Tables: [DATA-MODEL.md](DATA-MO
 | `contact_deactivate&id=N` | POST | | `{contact}` with `active: 0`; from the next portal request that person sees none of the company's jobs |
 
 Every write is audited (`company_create`, `company_update`, `company_contact_add`, `company_contact_update`, `company_contact_deactivate`). A company reference is `CO-` and the id padded to four digits.
+
+### `company_jobs.php` (workshop roles; everything except `job` and `item_progress` is owner-only)
+
+A company job is one `tailoring_orders` row with `job_kind = 'company'`; it starts at stage `quote` with price 0 (the quote sets the price) and its `quantity` is kept equal to the active items' total. Tailors see the items (they make the garments) but no money, company or contact fields. Every write runs under the job lock and adds a job event.
+
+| Action | Method | Request | Response and rules |
+|---|---|---|---|
+| `create` | POST | `{company_id, contact_id (active contact of that company; becomes the job's client), description?, po_number?, measurement_method? (individual, sizes, mixed), sample_required?, due_date?, items:[{description, qty 1 to 999, garment_type?, service_key?, size_label?, wearer_customer_id?, wearer_label?}], request_key}` | 201 `{job, items, samples, handovers, company, contacts, bill_to, suggested_stage}`; the same request key answers 200 with the same job. The invoice contact defaults to the chosen contact when they are the invoice recipient. No automatic discount (BR-29) |
+| `job&job_id=N` | GET | | The same shape; `job.progress` reads "2 of 5 handed over"; items carry `measurement_state` (`attached`, `available`, `pending`, `missing`, `not_needed`) and the wearer's name for staff; `suggested_stage` is what the items imply (the stage itself still moves through Jobs) |
+| `set&job_id=N` | POST | `{po_number?, invoice_contact_id?, measurement_method?}` | The answer above |
+| `item_save&job_id=N` | POST | `{item_id?, ...item fields, effect_note?}` | Adds or edits an item. Once an item has started, an edit needs `effect_note` stating the price or date effect (BR-30), else 409 `{code:'effect_required'}`; quantity never below what is handed over; changing the wearer clears the attached measurements |
+| `item_cancel&job_id=N` | POST | `{item_id, reason}` | Refused (409) once any of the item is handed over |
+| `item_progress&job_id=N` | POST | `{item_id, qty_ready}` | 0 to the item quantity and not below what is handed over; 409 while the job is a quote or cancelled. Tailors may call it |
+| `item_attach_measurement&job_id=N` | POST | `{item_id, measurement_set_id}` | Only an approved set belonging to the item's wearer |
+| `wearer_invite&job_id=N` | POST | `{item_id}` | 201 single-use invite link for the wearer's own client record (the Phase 3 invite, now `customer_invite_create()` in `_portal.php`) |
+| `sample_submit&job_id=N` | POST | `{description, item_id?, request_key}` | New version; a version still waiting is withdrawn; job `sample_status` becomes `submitted`; public timeline event |
+| `sample_record_decision&job_id=N` | POST | `{sample_id, decision: approve or changes, channel: in_person, whatsapp, email or phone, note?, contact_id?}` | Only the latest submitted version moves; 409 once decided. (Decisions from the portal arrive through `portal.php`) |
+| `handover&job_id=N` | POST | `{items:[{item_id, qty}], method: collection or delivery, received_by?, evidence_note?, checklist?, request_key}` | 201 with the job; each quantity at least 1 and at most ready minus already handed over, else 422 `{errors}`; the same request key answers 200 without a second row; the job moves to handed over only when every active item is out; `warning` when a balance is still owed |
+
+`tailoring.php?action=document` for a company job adds `bill_to` (the quote's frozen snapshot when there is one, else the live company details: company, invoice name, address, email, tax id, PO number and the invoice recipient), `bill_to_frozen` and `po_number`. `quotes.php?action=send` freezes `bill_to_snapshot`, `bill_to_company_id` and `po_number` on the quote for company jobs.
+

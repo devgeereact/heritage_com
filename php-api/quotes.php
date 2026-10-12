@@ -18,6 +18,7 @@
  */
 require __DIR__ . '/_lib.php';
 require __DIR__ . '/_jobs.php';
+require __DIR__ . '/_company.php';
 cors();
 
 $user = require_auth(ROLES_OWNER);
@@ -210,6 +211,11 @@ if ($action === 'send' && method() === 'POST') {
     db_exec("UPDATE quotes SET status = 'superseded' WHERE series_id = ? AND id <> ? AND status = 'sent'", 'ii', (int)$q['series_id'], $id);
     $hash = quote_hash_of($q);
     db_exec("UPDATE quotes SET status = 'sent', content_hash = ?, sent_at = UTC_TIMESTAMP(), sent_channel = ? WHERE id = ?", 'ssi', $hash, $channel, $id);
+    // Company jobs (Phase 5): freeze who is billed, as it stands when the quote goes out.
+    if ($q['job_id'] && ($bill = company_bill_to_snapshot($q['job_id']))) {
+      db_exec('UPDATE quotes SET bill_to_company_id = ?, po_number = ?, bill_to_snapshot = ? WHERE id = ?', 'issi',
+        $bill['company_id'], $bill['po_number'], json_encode($bill, JSON_UNESCAPED_UNICODE), $id);
+    }
     if ($q['enquiry_id']) {
       db_exec("UPDATE enquiries SET status = 'quote_sent' WHERE id = ? AND status IN ('new','contacted','awaiting_reply')", 'i', (int)$q['enquiry_id']);
     }

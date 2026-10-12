@@ -8,8 +8,13 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 Added
 
+- `company_jobs.php`: create a company job with items and wearers (idempotent), job view with measurement state and a suggested stage, PO and invoice contact, item add, edit (an edit after production starts needs a stated price or date effect, BR-30), cancel and progress, measurements attached only from the wearer's approved sets, wearer invite links, sample versions with recorded decisions, and handover by item ("2 of 5 handed over", over-quantity refused, request keys). Company invoices and quotes carry the PO and a bill-to frozen when the quote is sent.
 - `companies.php` (owner roles): company list, profile with contacts and jobs, a similar-name warning that never merges, contacts as ordinary clients with view, sample-approval and invoice permissions (Phase 2 duplicate check), and deactivation. Deployed by CI with `_company.php`.
 - Company orders data model (`schema_phase27.sql`): companies, company contacts with permissions, company job columns on `tailoring_orders`, job items with wearers, sample versions, per-item handover quantities and a frozen bill-to on quotes. Pure helpers in `php-api/_company.php` (quantities, stage rollup, item handover checks, sample transitions, contact permissions, company and wearer portal views) with 43 tests in `tests/company_cases.php`.
+
+Changed
+
+- The handover completion helper moved from `tailoring.php` to `_jobs.php`, and the owner invite link from `access.php` to `customer_invite_create()` in `_portal.php`, unchanged, so company jobs reuse them (`e2e-phase2.sh` and `e2e-phase3.sh` still pass).
 
 ### `feat/phase4-website` (no PR yet), 11 October 2026
 

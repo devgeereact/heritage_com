@@ -101,3 +101,25 @@ function portal_job(array $me, $ref) {
 function portal_can_access_job(array $me, array $job) {
   return (int)$job['customer_id'] === (int)$me['id'];
 }
+
+/**
+ * A single-use owner invite link for one client (Phase 3; reused for Phase 5
+ * wearers). Records the challenge and the audit entry; returns the link, its
+ * expiry and a ready-to-send message with a wa.me link when the client has a
+ * phone. $c is a customers row with id, name and phone.
+ */
+function customer_invite_create(array $c, $userId) {
+  $cid = (int)$c['id'];
+  $hours = max(1, min(168, (int)cfg('ACCESS_INVITE_HOURS', 24)));
+  $invite = bin2hex(random_bytes(32));
+  db_exec("INSERT INTO customer_access_challenges (challenge_hash, customer_id, channel, expires_at, status, created_by, ip)
+           VALUES (?,?, 'invite', UTC_TIMESTAMP() + INTERVAL ? HOUR, 'pending', ?, ?)", 'siiis', token_hash($invite), $cid, $hours, (int)$userId, client_ip());
+  audit($userId, 'customer_access_invite', 'customer', $cid, ['hours' => $hours]);
+  $site = rtrim((string)cfg('SITE_URL', CORS_ORIGIN), '/');
+  $url = $site . '/account?invite=' . $invite;
+  $phone = wa_normalize_phone($c['phone'] ?? '');
+  $text = 'Hello ' . trim(explode(' ', trim((string)$c['name']))[0] ?? '') . ', here is your private Herit Clothing link to follow your order. It works once and expires in '
+    . $hours . ' hours: ' . $url;
+  return ['invite_url' => $url, 'expires_at_local' => lagos_iso(time() + $hours * 3600), 'single_use' => true,
+          'message_text' => $text, 'wa_link' => $phone !== '' ? 'https://wa.me/' . $phone . '?text=' . rawurlencode($text) : null];
+}

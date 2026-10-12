@@ -215,19 +215,9 @@ if (in_array($action, ['requests', 'invite', 'revoke'], true)) {
     }
     $c = db_row('SELECT id, name, phone FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', $cid);
     if (!$c) fail('Client not found', 404);
-    $hours = max(1, min(168, (int)cfg('ACCESS_INVITE_HOURS', 24)));
-    $invite = bin2hex(random_bytes(32));
-    db_exec("INSERT INTO customer_access_challenges (challenge_hash, customer_id, channel, expires_at, status, created_by, ip)
-             VALUES (?,?, 'invite', UTC_TIMESTAMP() + INTERVAL ? HOUR, 'pending', ?, ?)", 'siiis', token_hash($invite), $cid, $hours, (int)$user['id'], client_ip());
+    $out = customer_invite_create($c, (int)$user['id']);
     if ($chId) db_exec("UPDATE customer_access_challenges SET status = 'used', used_at = UTC_TIMESTAMP() WHERE id = ?", 'i', $chId);
-    audit($user['id'], 'customer_access_invite', 'customer', $cid, ['hours' => $hours]);
-    $site = rtrim((string)cfg('SITE_URL', CORS_ORIGIN), '/');
-    $url = $site . '/account?invite=' . $invite;
-    $phone = wa_normalize_phone($c['phone'] ?? '');
-    $text = 'Hello ' . trim(explode(' ', trim((string)$c['name']))[0] ?? '') . ', here is your private Herit Clothing link to follow your order. It works once and expires in '
-      . $hours . ' hours: ' . $url;
-    json(['invite_url' => $url, 'expires_at_local' => lagos_iso(time() + $hours * 3600), 'single_use' => true,
-          'message_text' => $text, 'wa_link' => $phone !== '' ? 'https://wa.me/' . $phone . '?text=' . rawurlencode($text) : null], 201);
+    json($out, 201);
   }
 
   if ($action === 'revoke' && method() === 'POST') {

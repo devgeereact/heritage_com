@@ -189,3 +189,32 @@ function company_item_clean(array $in) {
   $c['wearer_customer_id'] = ($w === null || $w === '' || (int)$w === 0) ? null : (int)$w;
   return [$c, $err];
 }
+
+/* ---- Database helpers (need _jobs.php; never called by the pure tests) ------ */
+
+/**
+ * The bill-to of a company job as it stands now: company invoice details, the
+ * PO number and the invoice recipient (the job's invoice contact, else the
+ * company's invoice-recipient contact). Null for an individual job.
+ */
+function company_bill_to_snapshot($jobId) {
+  if (!has_column('tailoring_orders', 'job_kind')) return null;
+  $j = db_row("SELECT job_kind, company_id, po_number, invoice_contact_id FROM tailoring_orders WHERE id = ?", 'i', (int)$jobId);
+  if (!$j || $j['job_kind'] !== 'company' || !$j['company_id']) return null;
+  $co = db_row('SELECT id, name, invoice_name, invoice_address, invoice_email, tax_id FROM companies WHERE id = ?', 'i', (int)$j['company_id']);
+  if (!$co) return null;
+  $rec = null;
+  if ($j['invoice_contact_id']) {
+    $rec = db_row('SELECT c.name, c.email FROM company_contacts k JOIN customers c ON c.id = k.customer_id WHERE k.id = ? AND k.company_id = ?',
+      'ii', (int)$j['invoice_contact_id'], (int)$co['id']);
+  }
+  if (!$rec) {
+    $rec = db_row('SELECT c.name, c.email FROM company_contacts k JOIN customers c ON c.id = k.customer_id
+                    WHERE k.company_id = ? AND k.active = 1 AND k.is_invoice_recipient = 1 ORDER BY k.id LIMIT 1', 'i', (int)$co['id']);
+  }
+  return [
+    'company_id' => (int)$co['id'], 'name' => $co['name'], 'invoice_name' => $co['invoice_name'] ?: $co['name'],
+    'address' => $co['invoice_address'], 'email' => $co['invoice_email'], 'tax_id' => $co['tax_id'],
+    'po_number' => $j['po_number'], 'recipient' => $rec ? ['name' => $rec['name'], 'email' => $rec['email']] : null,
+  ];
+}
