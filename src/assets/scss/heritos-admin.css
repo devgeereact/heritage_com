@@ -23,6 +23,12 @@
   --herit-paper: var(--hc-surface-alt);
 }
 
+/* ---- page: warm ivory (ink in dark), cards sit on it in white (charcoal) - */
+body,
+.wrapper,
+.page-content { background-color: var(--hc-surface-alt); }
+.card { background-color: var(--hc-surface); }
+
 /* ---- amber is a fill, never text on light surfaces ---------------------- */
 .text-primary,
 .link-primary { color: var(--hc-accent-text) !important; }
@@ -43,12 +49,13 @@
 .card > .card-body { flex: 1 1 auto; }
 .card-title, h5.card-title { letter-spacing: 0; }
 
-/* ---- page headings: Inter 600, sentence case ---------------------------- */
+/* ---- page headings: Fraunces 600, sentence case ------------------------- */
 main .container-fluid > .d-flex h4,
 main .container-fluid > h4.mb-1 {
-  font-family: var(--hc-font-sans);
+  font-family: var(--hc-font-serif);
   font-weight: var(--hc-w-semibold);
-  letter-spacing: 0;
+  font-size: clamp(1.5rem, 1.1rem + 1vw, 1.875rem);
+  letter-spacing: -0.02em;
 }
 main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 { margin-bottom: var(--hc-space-5) !important; }
 main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 p.text-muted { margin-top: var(--hc-space-1); }
@@ -114,10 +121,13 @@ main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 
 ::-webkit-scrollbar-thumb { background: var(--hc-divider); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: var(--hc-control-border); background-clip: content-box; }
 
-/* ---- topbar: opaque surface with a 1px divider -------------------------- */
+/* ---- topbar: translucent page colour with a blur and a 1px divider ------ */
 .topbar {
-  background: var(--hc-surface);
+  background: var(--hc-surface-alt);
   border-bottom: 1px solid var(--hc-divider);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .topbar { background: color-mix(in srgb, var(--hc-surface-alt) 86%, transparent); backdrop-filter: blur(12px); }
 }
 .topbar .topbar-button.fw-bold.text-uppercase {
   font-family: var(--hc-font-sans);
@@ -128,9 +138,9 @@ main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 
   color: var(--hc-text);
 }
 .topbar .app-search .form-control {
-  background: var(--hc-surface-alt);
-  border-color: transparent;
-  border-radius: var(--hc-radius-chip);
+  background: var(--hc-surface);
+  border-color: var(--hc-divider);
+  border-radius: var(--hc-radius-control);
   padding-left: 2.4rem;
 }
 .topbar .app-search .form-control:focus { background: var(--hc-surface); border-color: var(--hc-focus); }
@@ -147,9 +157,15 @@ main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 
   border-right: 1px solid var(--hc-divider);
 }
 .logo-box {
-  padding: 1.25rem 1.5rem 1rem;
+  display: flex;
+  align-items: center;
+  height: var(--bs-topbar-height);
+  padding: 0 1.25rem;
+  line-height: 1;
   border-bottom: 1px solid var(--hc-divider);
 }
+.logo-box .logo-lg { height: 36px; width: auto; }
+.page-content > .container-fluid { padding-top: 1.75rem; }
 .side-nav-item .side-nav-link,
 .leftside-menu .side-nav .side-nav-item .side-nav-link {
   position: relative;
@@ -166,10 +182,12 @@ main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 
 }
 .side-nav-link.active,
 .leftside-menu .side-nav .side-nav-item .side-nav-link.active {
-  background: var(--hc-surface-alt);
+  background: var(--hc-accent-tint);
   color: var(--hc-text);
   font-weight: var(--hc-w-semibold);
 }
+.side-nav-link.active .nav-icon,
+.side-nav-link.active svg { color: var(--hc-accent-text); }
 .side-nav-link.active::before,
 .leftside-menu .side-nav .side-nav-item .side-nav-link.active::before {
   content: "";
@@ -183,10 +201,10 @@ main .container-fluid > .d-flex.justify-content-between.align-items-center.mb-3 
 }
 .side-nav-title, .menu-title {
   font-family: var(--hc-font-sans);
-  font-size: var(--hc-text-xs);
+  font-size: 0.6875rem;
   font-weight: var(--hc-w-semibold);
-  letter-spacing: 0;
-  text-transform: none;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--hc-text-muted);
   padding: 1.25rem 1.5rem 0.5rem;
 }

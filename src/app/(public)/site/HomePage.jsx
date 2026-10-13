@@ -63,6 +63,24 @@ const HomePage = () => {
   const aboutImg = toImage(d.about?.hero);
   const proof = [business.area, business.hours].filter(Boolean).join(' · ');
   const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4);
+  const book = { to: primary.to, label: primary.label };
+
+  // Hero slides come from published content only (D-023): the home page
+  // first, then up to four services that have a photograph.
+  const slides = [
+    { label: 'Made to measure', eyebrow: business.area ? `Made to measure in ${business.area}` : 'Made to measure', title: page?.headline || business.name, lead: page?.intro, image: toImage(page?.hero), primary: book, secondary },
+    ...services.filter((s) => s.hero?.url).slice(0, 4).map((s) => ({
+      label: s.title,
+      eyebrow: 'What I make',
+      title: s.title,
+      lead: s.summary,
+      image: toImage(s.hero),
+      primary: { to: `/services/${s.slug}`, label: 'View service' },
+      secondary: { to: book.to, label: primary.short || primary.label },
+    })),
+  ];
+  const companyImg = toImage(d.company?.hero);
+  const closingImg = toImage(page?.hero);
 
   return (
     <SiteLayout
@@ -73,58 +91,56 @@ const HomePage = () => {
         jsonld: cfg?.jsonld || undefined,
       }}
     >
-      <Hero
-        title={page?.headline || business.name}
-        lead={page?.intro}
-        primary={{ to: primary.to, label: primary.label }}
-        secondary={secondary}
-        note={proof || undefined}
-        image={toImage(page?.hero)}
-      />
+      <Hero slides={slides} note={proof || undefined} />
 
       {page?.body && (
-        <Section>
+        <Section tone="paper" className="hc-section--statement">
           <Rich html={page.body} />
         </Section>
       )}
 
       {services.length > 0 && (
-        <Section tone="alt" labelledBy="home-services">
-          <SectionHead id="home-services" eyebrow="Services" title="What I make" />
-          <div className="hc-grid hc-grid--3">
+        <Section labelledBy="home-services">
+          <SectionHead id="home-services" eyebrow="What I make" title="Services">
+            <MoreLink to="/services">All services</MoreLink>
+          </SectionHead>
+          <div className={`hc-grid ${services.length % 4 === 0 ? 'hc-grid--4' : 'hc-grid--3'}`}>
             {services.map((s) => (
               <ServiceCard key={s.slug} image={toImage(s.hero)} title={s.title} summary={s.summary} to={`/services/${s.slug}`} />
             ))}
           </div>
-          <MoreLink to="/services">All services</MoreLink>
-        </Section>
-      )}
-
-      {d.company && (
-        <Section labelledBy="home-company">
-          <SectionHead id="home-company" eyebrow="Company orders" title={d.company.headline} lead={d.company.intro || undefined}>
-            <MoreLink to="/company-orders">How company orders work</MoreLink>
-          </SectionHead>
         </Section>
       )}
 
       {work.length > 0 && (
         <Section tone="alt" labelledBy="home-work">
-          <SectionHead id="home-work" eyebrow="Our work" title="Recent pieces" />
+          <SectionHead id="home-work" eyebrow="Our work" title="Recent pieces from the workroom">
+            <MoreLink to="/work">See all work</MoreLink>
+          </SectionHead>
           <div className="hc-grid hc-grid--3">
             {work.map((w) => (
               <WorkCard key={w.slug} image={toImage(w.cover)} title={w.title} meta={[w.garment, w.fabric].filter(Boolean).join(' · ')} to={`/work/${w.slug}`} />
             ))}
           </div>
-          <MoreLink to="/work">See all work</MoreLink>
         </Section>
       )}
 
       {d.how && (
-        <Section labelledBy="home-how">
+        <Section tone="paper" labelledBy="home-how">
           <SectionHead id="home-how" eyebrow="How it works" title={d.how.headline} lead={d.how.intro || undefined}>
             <MoreLink to="/how-it-works">The steps in full</MoreLink>
           </SectionHead>
+        </Section>
+      )}
+
+      {d.company && (
+        <Section labelledBy="home-company">
+          <div className={`hc-pagetop ${companyImg ? 'hc-pagetop--media hc-pagetop--flip' : ''}`.trim()}>
+            <SectionHead id="home-company" eyebrow="Company orders" title={d.company.headline} lead={d.company.intro || undefined}>
+              <MoreLink to="/company-orders">How company orders work</MoreLink>
+            </SectionHead>
+            {companyImg && <HcImage {...companyImg} sizes="(min-width: 1024px) 50vw, 100vw" ratio="5 / 6" className="hc-band-media" />}
+          </div>
         </Section>
       )}
 
@@ -146,7 +162,7 @@ const HomePage = () => {
       <Testimonials eyebrow="In their words" title="What clients say" quotes={quotes} />
 
       {faqs.length > 0 && (
-        <Section labelledBy="home-faqs">
+        <Section tone="paper" labelledBy="home-faqs">
           <SectionHead id="home-faqs" eyebrow="Questions" title="Before you ask" />
           <div className="hc-faq-list">
             {faqs.map((f) => (
@@ -163,9 +179,12 @@ const HomePage = () => {
       <JournalGrid eyebrow="Journal" title="Notes from the workroom" posts={journal} />
 
       <ClosingAction
+        eyebrow="Start here"
         title="Tell me what you want to make."
-        primary={{ to: primary.to, label: primary.label }}
+        text="Send a short message with the occasion and the date, and I will get back to you."
+        primary={book}
         secondary={secondary}
+        image={closingImg}
       />
     </SiteLayout>
   );

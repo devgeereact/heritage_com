@@ -2,9 +2,10 @@
    Herit Clothing public site: base and page patterns.
    Every value comes from the shared --hc-* tokens (src/assets/tokens);
    this file holds no colour values (scripts/check-tokens.mjs).
-   Tesla-style restraint: white and light-ash surfaces, thin dividers,
-   no decorative gradients, patterns or shadows. Components (buttons,
-   header, footer, hero, forms, chips, motion) live in ui/ui.css.
+   Dark luxury direction (D-023): ink surfaces, warm ivory paper bands,
+   amber as the one accent, thin dividers, scrims only over photographs.
+   Components (buttons, header, footer, hero, forms, chips, motion) live
+   in ui/ui.css.
    Contract: docs/DESIGN-SYSTEM.md.
    ============================================================ */
 
@@ -64,7 +65,7 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
   line-height: var(--hc-lh-heading);
   color: var(--hc-text);
   margin: 0;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 .hc h4, .hc h5, .hc h6 { font-family: var(--hc-font-sans); font-weight: var(--hc-w-semibold); }
@@ -125,11 +126,19 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-section--tight { padding: calc(var(--hc-section-y) * 0.6) 0; }
 .hc-section--alt,
 .hc-section--paper { background: var(--hc-surface-alt); }
+/* Ivory band: .hc-paper remaps the tokens to the light palette (tokens.scss). */
+.hc-section--ivory { background: var(--hc-surface); color: var(--hc-text-body); }
+.hc-section--alt + .hc-section--alt { border-top: 1px solid var(--hc-divider); }
 /* Retired dark bands now render as the alternate surface. */
 .hc-section--dark,
 .hc-section--crimson,
 .hc-section--olive,
 .hc-section--steel { background: var(--hc-surface-alt); color: var(--hc-text-body); }
+
+/* Large serif statement (the home page body). */
+.hc-section--statement .hc-prose,
+.hc-section--statement > .hc-container > div:first-child { max-width: 52rem; }
+.hc-section--statement p { font-family: var(--hc-font-serif); font-size: clamp(var(--hc-text-xl), 1.1rem + 1.6vw, 2.5rem); line-height: 1.22; letter-spacing: -0.015em; color: var(--hc-text); }
 
 .hc-grid { display: grid; gap: var(--hc-space-5); }
 .hc-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -166,29 +175,32 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc .d-flex { display: flex; }
 
 /* ---------------------------------------------------------- type */
-.hc-h1 { font-size: clamp(var(--hc-text-3xl), 1.5rem + 2.4vw, var(--hc-text-4xl)); }
-.hc-h2 { font-size: clamp(var(--hc-text-xl), 1.2rem + 1.4vw, var(--hc-text-3xl)); }
+.hc-h1 { font-size: clamp(var(--hc-text-3xl), 1.4rem + 3.4vw, var(--hc-text-5xl)); }
+.hc-h2 { font-size: clamp(var(--hc-text-2xl), 1.2rem + 2.6vw, var(--hc-text-5xl)); }
 .hc-h3 { font-size: var(--hc-text-xl); }
 .hc-h4 { font-size: var(--hc-text-lg); }
 .hc-lead { font-size: var(--hc-text-md); color: var(--hc-text-body); max-width: var(--hc-measure); }
 
-/* Eyebrow above a heading: Inter 500, sentence case, muted. The 48px amber
-   "measure line" under it is drawn by .hc-eyebrow::after (see ui.css motion). */
+/* Eyebrow above a heading: Inter 600, small capitals in the amber text colour.
+   The 28px "measure line" before it is drawn by .hc-eyebrow::before (ui.css). */
 .hc-kicker,
 .hc-eyebrow {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--hc-space-3);
   font-family: var(--hc-font-sans);
-  font-size: var(--hc-text-sm);
-  font-weight: var(--hc-w-medium);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--hc-text-muted);
+  font-size: var(--hc-text-xs);
+  font-weight: var(--hc-w-semibold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hc-accent-text);
 }
 
-.hc-head { max-width: 46rem; margin-bottom: var(--hc-space-7); }
+.hc-head { max-width: 46rem; margin-bottom: clamp(var(--hc-space-6), 5vw, var(--hc-space-8)); }
 .hc-head--center { margin-left: auto; margin-right: auto; text-align: center; }
 .hc-head h1, .hc-head h2 { margin-top: var(--hc-space-4); }
 .hc-head p { margin-top: var(--hc-space-4); }
+.hc-head .hc-lead { color: var(--hc-text-muted); }
 .hc-head--center .hc-lead { margin-left: auto; margin-right: auto; }
 
 /* ---------------------------------------------------------- page header */
@@ -254,8 +266,8 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
   position: absolute; left: 0; top: 0;
   width: var(--hc-touch); height: var(--hc-touch);
   display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--hc-text); border-radius: var(--hc-radius-chip);
-  font-weight: var(--hc-w-medium); color: var(--hc-text);
+  border: 1px solid var(--hc-accent); border-radius: var(--hc-radius-chip);
+  font-family: var(--hc-font-serif); font-weight: var(--hc-w-medium); color: var(--hc-accent-text);
   background: var(--hc-surface);
   font-variant-numeric: tabular-nums;
 }
@@ -333,17 +345,30 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-check li { display: flex; gap: var(--hc-space-3); align-items: flex-start; }
 .hc-check li svg { color: var(--hc-success); flex: 0 0 auto; margin-top: 3px; }
 
-.hc-quote { border-left: 2px solid var(--hc-text); padding: var(--hc-space-1) 0 var(--hc-space-1) var(--hc-space-5); }
+.hc-quote { border-left: 2px solid var(--hc-accent); padding: var(--hc-space-1) 0 var(--hc-space-1) var(--hc-space-5); }
 .hc-quote p, .hc-quote blockquote { font-family: var(--hc-font-serif); font-size: var(--hc-text-lg); line-height: 1.45; color: var(--hc-text); margin: 0; }
 .hc-quote cite, .hc-quote figcaption { display: block; margin-top: var(--hc-space-3); font-style: normal; font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
 
 /* ---------------------------------------------------------- closing action band */
 .hc-cta-band { text-align: center; }
-.hc-cta-band h2 { color: var(--hc-text); }
-.hc-cta-band p { max-width: var(--hc-measure); margin: var(--hc-space-4) auto 0; }
+.hc-cta-band .hc-eyebrow { justify-content: center; }
+.hc-cta-band h2 { color: var(--hc-text); max-width: 16ch; margin: var(--hc-space-4) auto 0; font-size: clamp(var(--hc-text-3xl), 1.4rem + 4vw, 5rem); line-height: 1.02; }
+.hc-cta-band p { max-width: 48ch; margin: var(--hc-space-5) auto 0; color: var(--hc-text-muted); font-size: var(--hc-text-md); }
 .hc-cta-actions { display: flex; gap: var(--hc-space-3); justify-content: center; flex-wrap: wrap; margin-top: var(--hc-space-6); }
 @media (max-width: 599px) { .hc-cta-actions { flex-direction: column; align-items: stretch; } .hc-cta-actions .hc-btn { width: 100%; } }
-.hc-section--closing { border-top: 1px solid var(--hc-divider); }
+.hc-section--closing { position: relative; overflow: hidden; isolation: isolate; border-top: 1px solid var(--hc-divider); background: var(--hc-surface-alt); padding: clamp(96px, 14vw, 180px) 0; }
+.hc-closing-media { position: absolute; inset: 0; z-index: -2; }
+.hc-closing-media .hc-img { position: absolute; inset: 0; height: 100%; border-radius: 0; opacity: 0.3; }
+.hc-section--closing-media::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at center, var(--hc-scrim-glass), var(--hc-scrim-strong)); }
+.hc-section--closing-media .hc-cta-band h2 { color: var(--hc-on-image); }
+.hc-section--closing-media .hc-cta-band p { color: var(--hc-on-image-muted); }
+
+/* Image band beside a heading block (home company orders). */
+.hc-band-media { border-radius: var(--hc-radius-card); overflow: hidden; }
+@media (min-width: 1024px) {
+  .hc-pagetop--flip { grid-template-columns: 6fr 5fr; }
+  .hc-pagetop--flip > .hc-band-media { order: -1; }
+}
 
 /* ---------------------------------------------------------- contact rows */
 .hc-contact-list { list-style: none; padding: 0; margin: var(--hc-space-5) 0 0; }
@@ -354,15 +379,17 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-contact-list a { color: var(--hc-text); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------------------------------------------------------- FAQ (native details) */
-.hc-faq-list { max-width: 52rem; margin: 0 auto; border-top: 1px solid var(--hc-divider); }
+.hc-faq-list { max-width: 52rem; margin: 0; border-top: 1px solid var(--hc-divider); }
 .hc-faq { border-bottom: 1px solid var(--hc-divider); }
 .hc-faq > summary,
 .hc-faq-q {
   display: flex; align-items: center; justify-content: space-between; gap: var(--hc-space-4);
   width: 100%; min-height: 56px; padding: var(--hc-space-3) 0;
   background: none; border: 0; cursor: pointer; text-align: left; list-style: none;
-  font: inherit; font-weight: var(--hc-w-medium); color: var(--hc-text);
+  font-family: var(--hc-font-serif); font-size: var(--hc-text-lg); font-weight: var(--hc-w-medium); color: var(--hc-text);
 }
+.hc-faq > summary .hc-icon { flex: none; transition: transform var(--hc-dur-ui) var(--hc-ease); color: var(--hc-accent-text); }
+.hc-faq[open] > summary .hc-icon { transform: rotate(180deg); }
 .hc-faq > summary::-webkit-details-marker { display: none; }
 .hc-faq-a { padding: 0 0 var(--hc-space-5); max-width: var(--hc-measure); }
 

@@ -159,6 +159,24 @@ Branch `feat/phase4-website`, local staging (synthetic data), Vite dev server on
 
 NOT TESTED: screen readers, desktop widths for the admin editor, the editor as the `editor` role (owner-only buttons hidden by role; the server enforces it), real photographs, dark theme on the new admin screens.
 
+## Redesign: dark luxury (13 October 2026)
+
+Branch `feat/redesign-dark-luxury` (D-023), local staging with synthetic data, Vite dev server on 5112 against the staging API on 8088, Chromium through the Playwright MCP. To exercise the slider, five labelled placeholder photographs were uploaded to staging through `cms.php?action=media_upload` and attached to the home page and four services (staging only; no production call).
+
+| Check | Result |
+|---|---|
+| `npm run lint` (0 errors; the 87 warnings are in untouched files), `check-tokens` (5 stylesheets, 58 public scripts), `npm run build` | PASS |
+| Home at 1440px: full-screen hero under the transparent header, five slides (home plus four services), headline word reveal, progress bars advance, counter and arrows; header turns solid on scroll | PASS |
+| Home at 1440px: service cards equal height with the footer row aligned; work cards with captions; ivory bands for questions; closing band over the dimmed photograph; footer with action, columns and wordmark | PASS |
+| Home at 390px: hero copy at the bottom over the scrim, stacked actions, bars and arrows on one row, no sideways scroll (`scrollWidth` 375 within a 390 window) | PASS |
+| Admin Today at 1440px (light): Fraunces title, four summary tiles from the existing `today.php` counts, white cards on ivory, tinted chips, amber-tint active item | PASS |
+| Admin Jobs at 1440px (dark): ink surfaces, readable chips and rows, logo box aligned with the 64px topbar | PASS |
+| Console | No new errors; the one error is the existing `UNSAFE_componentWillMount` warning from `SideEffect` (react-helmet) |
+
+Fixed during the check: a 1px line under the transparent header (its gradient repeated into the transparent border), the questions list centred under a left-aligned heading, and the admin logo box at 100px against a 64px topbar.
+
+NOT TESTED: reduced motion on the new hero, keyboard and swipe on a real phone, screen readers, every other public page and admin screen in both themes, tablet widths, real photographs, production.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

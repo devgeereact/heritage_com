@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Button, Col, Row, Spinner } from 'react-bootstrap'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import PageTitle from '@/components/PageTitle'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import heritApi from '@/helpers/heritApi'
@@ -294,6 +294,17 @@ const TodayPage = () => {
   const ordered = [...blocks.filter((x) => x.count > 0), ...blocks.filter((x) => x.count === 0)]
   const nothing = data && blocks.every((x) => x.count === 0)
 
+  // Summary tiles: the same counts as the blocks below, as a first glance.
+  const blockOf = (id) => blocks.find((x) => x.id === id) || { count: 0 }
+  const tiles = data
+    ? [
+        { id: 'due', label: 'Due this week', value: blockOf('due').count, sub: 'Promised in the next 7 days', icon: 'solar:clock-circle-bold', tone: 'bad', to: '/jobs?due=week' },
+        { id: 'ready', label: 'Ready to hand over', value: blockOf('ready').count, sub: 'Waiting for collection', icon: 'solar:bag-check-bold', tone: 'ok', to: '/jobs?stage=ready' },
+        { id: 'balances', label: 'Balances to collect', value: naira(data.balances?.total_balance || 0), sub: `${blockOf('balances').count} open job${blockOf('balances').count === 1 ? '' : 's'}`, icon: 'solar:wallet-money-bold', tone: 'amber', to: '/payments' },
+        { id: 'enquiries', label: 'Enquiries to answer', value: blockOf('enquiries').count, sub: 'New or due a follow-up', icon: 'solar:inbox-line-bold', tone: 'info', to: '/enquiries' },
+      ]
+    : []
+
   return (
     <div className="hd">
       <PageTitle title="Today" />
@@ -327,6 +338,23 @@ const TodayPage = () => {
         <div className="hd-card border rounded p-4 mb-3">
           <h2 className="h5">You are all caught up.</h2>
           <p className="mb-0 text-muted">When a client gets in touch, add the enquiry so it shows here.</p>
+        </div>
+      )}
+
+      {state === 'ready' && tiles.length > 0 && (
+        <div className="hd-stats" aria-label="Summary">
+          {tiles.map((t) => (
+            <Link key={t.id} to={t.to} className="hd-stat">
+              <span className="hd-stat-top">
+                <span>{t.label}</span>
+                <span className={`hd-stat-ic hd-stat-ic--${t.tone}`} aria-hidden="true">
+                  <IconifyIcon icon={t.icon} />
+                </span>
+              </span>
+              <b className="hd-stat-value tnum">{t.value}</b>
+              <span className="hd-stat-sub">{t.sub}</span>
+            </Link>
+          ))}
         </div>
       )}
 

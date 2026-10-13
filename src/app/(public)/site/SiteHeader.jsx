@@ -6,7 +6,7 @@ import { useSiteNav } from './siteData'
 import useActions from './ui/useActions'
 import Button from './ui/Button'
 import Icon from './ui/Icon'
-import logoDark from '@/assets/images/logo-dark.svg'
+import logoLight from '@/assets/images/logo-light.svg'
 
 // Each link shows only while its page has published content (site.php config
 // `nav` flags); the shop links only while the retail shop is switched on.
@@ -23,9 +23,11 @@ const NAV = [
 const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`))
 
 /**
- * Sticky, opaque header (64px). A 1px divider fades in once the page has
- * scrolled. Below 1024px the links move into a sheet with a focus trap,
- * Escape to close, body scroll lock, and Book and Track pinned at the bottom.
+ * Ink header (76px). On the home page it floats transparent over the
+ * full-screen hero and turns solid with a blur once the page scrolls; on
+ * every other page it is sticky and solid. Below 1024px the links move into
+ * a sheet with a focus trap, Escape to close, body scroll lock, and Book and
+ * Track pinned at the bottom.
  */
 const SiteHeader = () => {
   const { pathname } = useLocation()
@@ -86,10 +88,10 @@ const SiteHeader = () => {
   }, [open])
 
   return (
-    <header className={`hc-header ${scrolled || open ? 'is-scrolled' : ''}`}>
+    <header className={['hc-header', pathname === '/' && 'hc-header--overlay', (scrolled || open) && 'is-scrolled'].filter(Boolean).join(' ')}>
       <div className="hc-container hc-header-inner">
         <Link to="/" className="hc-brand" aria-label="Herit Clothing, home">
-          <img src={logoDark} alt="" width="52" height="36" />
+          <img src={logoLight} alt="" width="52" height="36" />
         </Link>
 
         <nav className="hc-nav" aria-label="Main">

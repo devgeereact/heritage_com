@@ -2,7 +2,7 @@
 
 This is the single design contract for the HeritOS app and the public website. It owns principles, tokens and measured contrast, typography, spacing, surfaces, control styling, motion, the Tesla reference and every deviation from it. Screen behaviour, forms and navigation are in [UX-SPEC.md](UX-SPEC.md); keyboard, focus, touch-target, reduced-motion and test-width rules are in [ACCESSIBILITY.md](ACCESSIBILITY.md); copy and photography rules are in [CONTENT.md](CONTENT.md).
 
-The direction, approved by the owner on 10 October 2026 (D-002), is a restrained Tesla-style layout led by real photography, with Herit amber `#F59E0B` as the only accent. The rebuild is Phase 4 of [ROADMAP.md](ROADMAP.md). The token layer, public components and motion are built on `feat/phase4-website`; page content and the CMS follow.
+The direction since 13 October 2026 is **dark luxury** (D-023, which supersedes the white Tesla-style surfaces of D-002 and the Source Serif 4 choice of D-017): near-black ink and warm ivory, led by real photography, with Herit amber `#F59E0B` still the only accent. The owner approved it from two prototypes (a landing page and the admin) before the build. Built on `feat/redesign-dark-luxury`. Sections below that still describe the white palette are history unless they agree with [Dark luxury palette](#dark-luxury-palette-d-023).
 
 Contrast figures are calculated from token values with the WCAG formula on 10 October 2026. They are not measurements of rendered pages. Visual quality and cross-device behaviour are NOT TESTED until screenshots and device checks exist ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
 
@@ -15,7 +15,35 @@ Contrast figures are calculated from token values with the WCAG formula on 10 Oc
 
 ## Colour and contrast
 
-### Target palette (approved 10 October 2026)
+### Dark luxury palette (D-023)
+
+Verified in `src/assets/tokens/_tokens-map.scss`, 13 October 2026. Four colour maps share the same keys, so components never branch:
+
+| Map | Applies to | Surface / alt / raised | Text / body / muted | Divider / control | Accent text |
+|---|---|---|---|---|---|
+| `$hc-site` | Public site (`.hc`, `html[data-hc-public]`) | `#0E0D0B` / `#171512` / `#1F1C18` | `#F3EEE4` / `#D9D2C5` / `#A79F92` | `#2E2A24` / `#6F685D` | `#F59E0B` |
+| `$hc-paper` | Ivory bands inside the site (`.hc-paper`, `<Section tone="paper">`) | `#F6F1E8` / `#ECE5D8` / `#FFFFFF` | `#1A1713` / `#3A342C` / `#5E574C` | `#D8CFBF` / `#8A8275` | `#9A4A07` |
+| `$hc-light` | Admin light (default), printed documents | `#FFFFFF` cards / `#F6F1E8` page / `#FBF8F2` | `#1A1713` / `#3A342C` / `#5E574C` | `#E4DCCD` / `#8A8275` | `#9A4A07` |
+| `$hc-dark` | Admin dark | `#171512` cards / `#0E0D0B` page / `#1F1C18` | `#F3EEE4` / `#D9D2C5` / `#A79F92` | `#2E2A24` / `#6F685D` | `#F59E0B` |
+
+`$hc-media` holds the values used over photographs in every theme: `--hc-on-image` `#F3EEE4`, `--hc-on-image-muted`, `--hc-on-image-line`, and the scrims `--hc-scrim-strong` (90% ink), `-mid` (55%), `-glass` (35%) and `-clear`. A new `--hc-accent-tint` key gives amber-tinted fills (active sidebar item, summary-tile icons). The amber fill keeps ink text in every map.
+
+Calculated contrast (WCAG formula, 13 October 2026; not measured on rendered pages):
+
+| Pair | Ratio |
+|---|---|
+| Ivory `#F3EEE4` on ink `#0E0D0B` | 16.80:1 |
+| Body `#D9D2C5` on ink | 12.93:1 |
+| Muted `#A79F92` on ink / on `#171512` / on `#1F1C18` | 7.42 / 6.96 / 6.48:1 |
+| Amber `#F59E0B` as text on ink / on `#171512` | 9.04 / 8.48:1 |
+| Ink on amber (buttons) | 9.04:1 (site), 8.32:1 with `#1A1713` |
+| Ink `#1A1713` / body `#3A342C` / muted `#5E574C` on ivory `#F6F1E8` | 15.87 / 10.93 / 6.34:1 |
+| Accent text `#9A4A07` on ivory / on white / on `#FDF0D5` | 5.56 / 6.26 / 5.54:1 |
+| Control border `#6F685D` on ink; `#8A8275` on ivory / white | 3.53; 3.38 / 3.80:1 (non-text, 3:1 needed) |
+| Dark status on tints: success / danger / warning | 9.12 / 8.91 / 9.47:1 |
+| Light status on tints: success `#15803D` / danger `#991B1B` | 4.79 / 7.60:1 |
+
+### Target palette (approved 10 October 2026, superseded by D-023)
 
 | Role | Value | Use |
 |---|---|---|
@@ -63,22 +91,22 @@ The Tesla reference has no semantic colours; working forms need them. Status alw
 One token layer replaces the four separate sets (A23). Verified in code, 11 October 2026:
 
 - `src/assets/tokens/_tokens-map.scss` holds every colour value once, as Sass maps (`$hc-light`, `$hc-dark`) plus `$hc-scale` for type, spacing, layout, radius, controls and motion. It is the only file that should contain hex values.
-- `src/assets/tokens/tokens.scss` emits them as `--hc-*` custom properties on `:root`, remaps the colours under `html[data-bs-theme="dark"]`, and redeclares the light colours on `.hc` (the public wrapper) and `.hd-print` with `color-scheme: light`, so the public site and printed documents always stay light.
+- `src/assets/tokens/tokens.scss` emits them as `--hc-*` custom properties on `:root` (admin light plus `$hc-media`), remaps the colours under `html[data-bs-theme="dark"]`, applies `$hc-site` to `.hc` and `html[data-hc-public]` with `color-scheme: dark`, `$hc-paper` to `.hc-paper` and `$hc-light` to `.hd-print`, so the public site is dark whatever the admin theme is and printed documents stay light (D-023).
 - Admin: Larkon's `scss/config/_variables.scss`, `_variables-dark.scss` and `_theme-mode.scss` read the same maps (`$primary` amber with `$color-contrast-dark` ink and `$min-contrast-ratio: 4.5`, so `.btn-primary` is amber with ink text; ink `$secondary`/`$dark`; graphite body; Tesla neutrals for the greys; ink focus ring; `#B45309` underlined links; 4px control and 12px card radius; system monospace). `heritos-admin.css` is rewritten on `var(--hc-*)`: flat cards, no warm shadows or glass, Inter 600 sentence-case table headers and page headings, a 3px amber rail on the active sidebar item only, and `.text-primary`/`.link-primary` set to `--hc-accent-text` (amber as text fails contrast). `--herit-*` remain as aliases for one release.
 - Phase 2 and 3: `--hd-*` in `src/components/herit/herit-daily.css` are aliases of `--hc-*`; `portal.css` uses `--hc-*` directly.
 
 | Group | Tokens |
 |---|---|
-| Colour | `--hc-surface` `#FFFFFF`, `--hc-surface-alt` `#F4F4F4`, `--hc-text` `#171A20`, `--hc-text-body` `#393C41`, `--hc-text-muted` `#5C5E62`, `--hc-divider` `#D0D1D2`, `--hc-control-border` `#8E8E8E`, `--hc-accent` `#F59E0B`, `--hc-accent-hover` `#D97706`, `--hc-on-accent` `#171A20`, `--hc-accent-text` `#B45309`, `--hc-focus` `#171A20` |
-| Status (text / tint) | `--hc-success` `#15803D` / `--hc-success-tint` `#F0FDF4`; `--hc-warning` `#B45309` / `#FFFBEB`; `--hc-danger` `#991B1B` / `#FEF2F2`; `--hc-pending` `#5C5E62` / `#F4F4F4` |
-| Font | `--hc-font-sans` (Inter, then system UI), `--hc-font-serif` (Source Serif 4, Georgia), `--hc-font-mono` (system monospace) |
-| Type scale | `--hc-text-xs` 13px, `-sm` 14px, `-base` 16px, `-md` 18px, `-lg` 20px, `-xl` 24px, `-2xl` 28px, `-3xl` 32px, `-4xl` 40px, `--hc-text-hero` `clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem)` |
-| Leading and weight | `--hc-lh-body` 1.6, `--hc-lh-heading` 1.2, `--hc-lh-hero` 1.08; `--hc-w-regular` 400, `--hc-w-medium` 500, `--hc-w-semibold` 600 |
-| Spacing | `--hc-space-1` to `--hc-space-9`: 4, 8, 12, 16, 24, 32, 48, 64, 96px; `--hc-section-y` `clamp(40px, 7vw, 96px)` |
-| Layout | `--hc-container` 1200px, `--hc-measure` 65ch, `--hc-gutter` `clamp(16px, 4vw, 32px)`, `--hc-header-h` 64px |
-| Radius and controls | `--hc-radius-control` 4px, `--hc-radius-card` 12px, `--hc-radius-chip` 999px; `--hc-touch` 44px, `--hc-control-h` 48px |
+| Colour | Per map, see [Dark luxury palette](#dark-luxury-palette-d-023): `--hc-surface`, `-surface-alt`, `-surface-raised`, `-text`, `-text-body`, `-text-muted`, `-divider`, `-control-border`, `-accent` `#F59E0B`, `-accent-hover`, `-on-accent`, `-accent-text`, `-accent-tint`, `-focus`; over photographs `--hc-on-image*` and `--hc-scrim-*` |
+| Status (text / tint) | `--hc-success`, `--hc-warning`, `--hc-danger`, `--hc-pending`, each with a `-tint`; values per map |
+| Font | `--hc-font-sans` (Inter, then system UI), `--hc-font-serif` (Fraunces, Georgia), `--hc-font-mono` (system monospace) |
+| Type scale | `--hc-text-xs` 13px, `-sm` 14px, `-base` 16px, `-md` 18px, `-lg` 20px, `-xl` 24px, `-2xl` 28px, `-3xl` 32px, `-4xl` 40px, `-5xl` 56px, `--hc-text-hero` `clamp(2.75rem, 1.4rem + 5.2vw, 6rem)` |
+| Leading and weight | `--hc-lh-body` 1.65, `--hc-lh-heading` 1.1, `--hc-lh-hero` 0.98; `--hc-w-regular` 400, `--hc-w-medium` 500, `--hc-w-semibold` 600 |
+| Spacing | `--hc-space-1` to `--hc-space-10`: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px; `--hc-section-y` `clamp(64px, 10vw, 140px)` |
+| Layout | `--hc-container` 1240px, `--hc-measure` 65ch, `--hc-gutter` `clamp(16px, 4vw, 48px)`, `--hc-header-h` 76px (public); admin topbar 64px and sidebar 248px (`_theme-mode.scss`) |
+| Radius and controls | `--hc-radius-control` 8px, `--hc-radius-card` 14px, `--hc-radius-chip` 999px (public buttons are pills); `--hc-touch` 44px, `--hc-control-h` 48px |
 | Motion | `--hc-dur-press` 180ms, `--hc-dur-ui` 200ms, `--hc-dur-color` 330ms, `--hc-dur-reveal` 360ms, `--hc-dur-hero` 700ms; `--hc-ease` `cubic-bezier(0.2, 0, 0, 1)`, `--hc-ease-emph` `cubic-bezier(0.16, 1, 0.3, 1)`, `--hc-ease-curtain` `cubic-bezier(0.65, 0, 0.35, 1)` |
-| Elevation | `--hc-shadow-overlay` `0 8px 24px rgba(23, 26, 32, 0.12)`, dropdowns and dialogs only |
+| Elevation | `--hc-shadow-overlay` `0 8px 24px rgba(14, 13, 11, 0.18)`, dropdowns and dialogs only |
 
 Status tint pairs are calculated at 4.8:1 or better; they still need measuring on rendered pages. The PWA manifest already uses `background_color` `#FFFFFF` and `theme_color` `#171A20` (commit f1e8960, K-03). Legacy values (Heritage Brown `#92400E`, Earth `#78350F`, espresso `#1A1714`, cream `#FFFBEB` as a surface) are gone from the admin layer; cream survives only as the warning tint and as dark-mode text.
 
@@ -86,21 +114,22 @@ Rules for tokens: components inherit tokens and never hard-code a hex. A rebrand
 
 ### Themes
 
-Light is built and tested first. The public site is always light: `.hc` redeclares the light colours, and the public layout keeps `data-bs-theme` off the page while a public route is open (see [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)). Admin dark mode remaps only the colour tokens (`$hc-dark`: surface `#1C1A17`, surface-alt `#262320`, text `#FFFBEB`, body `#E7E1D6`, muted `#C9C2B5`, divider `#3A352E`, control border `#7A736A`, accent text and status warning `#F59E0B`, success `#4ADE80`, danger `#FCA5A5`); the amber fill and its ink button text stay the same. Calculated: cream on espresso 16.74:1, muted on espresso 9.81:1, amber on espresso 8.08:1. Dark mode is not verified on rendered pages beyond the Today and Jobs screenshots recorded in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md); the old claim that both themes pass WCAG AA is withdrawn.
+Since D-023 the public site is always dark (`$hc-site` on `.hc`, with ivory `.hc-paper` bands), whatever the admin theme; the public layout still keeps `data-bs-theme` off the page while a public route is open (see [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)). The admin starts in its warm light theme (ivory page, white cards, an amber-tint active sidebar item) and its dark theme remaps only colour tokens to ink and ivory (`$hc-dark`). The amber fill and its ink button text stay the same everywhere. Figures are in [Dark luxury palette](#dark-luxury-palette-d-023). Rendered checks on 13 October 2026: Today in light and Jobs in dark at 1440px on local staging ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)); other admin screens in dark are NOT TESTED.
 
 ## Typography
 
 | Face | Use |
 |---|---|
 | Inter | App, forms, buttons, tables, labels and public body text. Use tabular figures for amounts, dates and measurements. |
-| Source Serif 4 | Public headings only (already loaded, index.html). A deliberate deviation from the Tesla template that keeps Herit identity; the owner can drop it. Never long body copy. |
+| Fraunces | Display serif (D-023): public headings, the hero, the closing band, admin page titles and summary-tile figures. Tight tracking (-0.02 to -0.035em), italic used sparingly. Never long body copy. Replaced Source Serif 4 on 13 October 2026. |
 
-IBM Plex Mono is no longer loaded (Phase 4); codes use the system monospace (`--hc-font-mono`). `index.html` loads Inter and Source Serif 4 from Google Fonts as variable weight ranges (Inter 400 to 700, Source Serif 4 500 to 700, no italics) with `font-display: swap` and preconnect. Self-hosting is a later improvement. Fonts are licence-safe, local or Google-hosted; never Tesla's proprietary Universal Sans.
+IBM Plex Mono is no longer loaded (Phase 4); codes use the system monospace (`--hc-font-mono`). `index.html` loads Inter and Fraunces from Google Fonts as variable ranges (Inter 400 to 700; Fraunces optical size 9 to 144, weight 400 to 600, italic 400 to 500) with `font-display: swap` and preconnect. Self-hosting is a later improvement. Fonts are licence-safe, local or Google-hosted; never Tesla's proprietary Universal Sans.
 
 | Role | Size | Notes |
 |---|---|---|
-| Public hero | 36px phone to 56px desktop | Source Serif 4 |
-| App H1 | 28 to 32px | Inter |
+| Public hero | 44px phone to 96px desktop | Fraunces 500 |
+| Section heading | 28px to 56px | Fraunces 500 |
+| App H1 | 26 to 34px | Fraunces 600 |
 | Body and form text | 16px minimum | Comfortable line height |
 | Caption and meta | 13 to 14px | |
 
@@ -129,22 +158,22 @@ Built on `feat/phase4-website` (`src/app/(public)/site/ui/ui.css`, `Hero.jsx`, `
 
 | Element | Motion | Timing |
 |---|---|---|
-| Home hero headline | Each word rises out of a mask (`translateY(110%)` to 0); opacity stays 1, so the text is one readable string | 700ms `--hc-ease-emph`, 80ms start, 40ms stagger, capped at 12 words |
-| Hero eyebrow, lead, actions, note | Fade up 10px | 360ms at 0, 380, 460 and 540ms |
-| Hero photograph (when one exists) | Settles from `scale(1.04)` to 1 while a light-ash curtain lifts; the image is painted from the first frame so LCP is not delayed | 1200ms image, 700ms curtain from 120ms |
-| Hero run rule | First home view per session only (`sessionStorage.hc_hero_seen`); later views and `animate={false}` are static | |
+| Home hero (D-023) | Full screen (`min(100svh, 1100px)`) under a transparent header. Slides come from published content: the home page, then up to four services with a photograph. With two or more it is a slider: photographs crossfade and slowly zoom (Ken Burns, scale 1 to 1.12), progress bars fill per slide, arrows, the left and right keys and a swipe change slide. It pauses on hover, keyboard focus and a hidden tab | 7.5s per slide, 1.2s crossfade |
+| Hero headline | Each word of the active slide rises out of a mask; screen readers get the whole headline from `aria-label` | 900ms `--hc-ease-emph`, 150ms start, 60ms stagger, capped at 12 words |
+| Hero eyebrow, lead, actions, note | Fade up 12px with the active slide | 800ms at 100, 450, 600 and 700ms |
 | Section content | `data-reveal` items that start below the fold fade up 12px on first view (IntersectionObserver, once); up to four entering together stagger 60ms; a 3s safety net reveals anything already passed | 360ms `--hc-ease` |
-| Measure line | A 1px by 48px amber rule under each eyebrow draws from the left when its heading block reveals; the signature detail | 480ms |
+| Measure line | A 1px by 28px rule before each eyebrow (small capitals in the accent text colour) draws from the left when its heading block reveals; the signature detail | 480ms |
+| Cards | Service cards lift 6px with an amber border and the image zooms 6%; work cards zoom 5% under a caption scrim | 450ms, 1s image |
 | How it works | The vertical rule between numbered steps fills amber as each step reveals (triggered, not scroll-linked) | 600ms |
 | Links | Header links: a 1px underline grows from the left on hover and marks the current page; body links thicken from 1px to 2px | 200ms |
 | Buttons | Colour-only hover; press scales to 0.98 | 330ms colour, 80 to 180ms press |
 | Mobile menu | Sheet fades in with an 8px drop | 200ms |
-| Header | 1px divider fades in after 8px of scroll | 330ms |
+| Header | On the home page it is transparent over the hero; after 8px of scroll it turns ink with a blur and a 1px divider (every page) | 330 to 400ms |
 
 - Content is never hidden without JavaScript: only items `useReveal` marks `pending` are hidden, and only when they start below the fold, so nothing on screen at load flashes.
-- `prefers-reduced-motion: reduce` removes every animation and transition on public pages (verified: `document.getAnimations().length` is 0 on home, about, contact, track and book, 11 October 2026); the hero curtain is not drawn.
+- `prefers-reduced-motion: reduce` removes every animation and transition on public pages (verified 11 October 2026 before D-023); the hero slider never advances on its own and shows full progress bars. Rechecking the redesign under reduced motion is NOT TESTED.
 - Admin: 180 to 250ms colour transitions and a 0.98 button press; the old card lift and settle-in animation are gone.
-- Never: autoplay carousels, scroll hijacking, parallax, cursor effects, tickers or marquees, counters, forced viewport-height text clipping, animation during measurement entry or amount editing.
+- Never: autoplay carousels other than the home hero (D-023), scroll hijacking, parallax, cursor effects, tickers or marquees, counters, forced viewport-height text clipping, animation during measurement entry or amount editing.
 
 ## Public components
 

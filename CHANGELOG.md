@@ -4,6 +4,19 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### `feat/redesign-dark-luxury` (no PR yet), 13 October 2026
+
+Changed
+
+- Design direction is dark luxury (D-023): new colour maps (`$hc-site`, `$hc-paper`, warmer `$hc-light` and `$hc-dark`, `$hc-media` for text and scrims over photographs), Fraunces replaces Source Serif 4, a larger type scale, 1240px container, 14px cards, 8px controls and pill public buttons. The public site is dark with ivory bands (`<Section tone="paper">`).
+- Home hero is a full-screen photograph slider: home page first, then up to four services with a photograph; Ken Burns crossfade, word-by-word headline, progress bars, arrows, keys and swipe, paused on hover, focus and hidden tabs, static under reduced motion. The header floats transparent over it on the home page.
+- Service cards are single links with equal heights and an aligned footer row; work cards carry the caption over the photograph; the closing band sits over a dimmed photograph; the footer gains the primary action and a large outline wordmark; eyebrows become small capitals with a leading amber rule.
+- Admin: ivory page with white cards (ink and charcoal in dark), 64px topbar, 248px sidebar with an amber-tint active item, Fraunces page titles, tinted status chips, 14px cards, and four summary tiles on Today built from the counts `today.php` already returns.
+
+Fixed
+
+- A 1px line under the transparent home header, the home questions list centred under a left-aligned heading, and the admin logo box taller than the topbar (found in the browser check, [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)).
+
 ### `feat/phase5-company-orders` (no PR yet), 12 October 2026
 
 Added

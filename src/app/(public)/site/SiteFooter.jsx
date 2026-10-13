@@ -5,13 +5,16 @@ import { useShopEnabled } from './storeConfig'
 import { useBusiness } from './business'
 import { useSiteNav } from './siteData'
 import Icon from './ui/Icon'
+import Button from './ui/Button'
+import useActions from './ui/useActions'
 
 const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`
 
 /**
- * Footer on the light-ash surface. Four columns, each shown only when it has
- * something real to show: business, contact, explore, policies. Then the
- * verified social links and "© year name" with a small staff link.
+ * Footer on the ink surface. Four columns, each shown only when it has
+ * something real to show: business (with the primary action), contact,
+ * explore, policies. Then the verified social links, a large outline
+ * wordmark (decorative) and "© year name" with a small staff link.
  * Details come from useBusiness() (the Website profile), or from the
  * `business` prop. Explore and policy links follow the published-content flags.
  */
@@ -21,6 +24,7 @@ const SiteFooter = ({ business: given }) => {
   const shopOn = useShopEnabled()
   const nav = useSiteNav()
   const { isAuthenticated, user } = useAuthContext()
+  const { primary } = useActions()
 
   const explore = [
     nav.services && { to: '/services', label: 'Services' },
@@ -42,7 +46,7 @@ const SiteFooter = ({ business: given }) => {
     <footer className="hc-footer">
       <div className="hc-container">
         <div className="hc-footer-cols">
-          <div>
+          <div className="hc-footer-brand">
             <p className="hc-footer-name">{b.name}</p>
             {hasBusiness && (
               <>
@@ -51,6 +55,7 @@ const SiteFooter = ({ business: given }) => {
                 {b.hours && <p className="hc-footer-text">{b.hours}</p>}
               </>
             )}
+            <Button to={primary.to} iconEnd="arrow-right" className="hc-footer-cta">{primary.short || primary.label}</Button>
           </div>
 
           {hasContact && (
@@ -118,6 +123,8 @@ const SiteFooter = ({ business: given }) => {
             ))}
           </ul>
         )}
+
+        {b.name && <p className="hc-footer-wordmark" aria-hidden="true">{String(b.name).split(' ')[0]}</p>}
 
         <div className="hc-footer-bottom">
           <span>

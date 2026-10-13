@@ -1,12 +1,13 @@
 /* ============================================================
-   Public page sections built from the UI kit (ui/). No carousels,
-   counters, marquees or logo strips: every section shows real data
-   or is not rendered at all.
+   Public page sections built from the UI kit (ui/). No counters,
+   marquees or logo strips (the home hero slider is the one carousel,
+   D-023): every section shows real data or is not rendered at all.
    ============================================================ */
 import { Link } from 'react-router-dom';
 import { Section, SectionHead } from './ui/Section';
 import Button from './ui/Button';
 import Icon from './ui/Icon';
+import HcImage from './ui/HcImage';
 
 export { SectionHead };
 
@@ -89,14 +90,20 @@ export const JournalGrid = ({ eyebrow, title, posts }) => {
   );
 };
 
-/* Closing action: one primary, one secondary. */
-export const ClosingAction = ({ title, text, primary, secondary }) => (
-  <Section className="hc-section--closing">
+/* Closing action: one primary, one secondary, over an optional dimmed photograph. */
+export const ClosingAction = ({ eyebrow, title, text, primary, secondary, image }) => (
+  <Section className={`hc-section--closing${image?.src ? ' hc-section--closing-media' : ''}`}>
+    {image?.src && (
+      <div className="hc-closing-media" aria-hidden="true">
+        <HcImage {...image} alt="" sizes="100vw" />
+      </div>
+    )}
     <div className="hc-cta-band" data-reveal="">
+      {eyebrow && <p className="hc-eyebrow">{eyebrow}</p>}
       <h2 className="hc-h2">{title}</h2>
       {text && <p>{text}</p>}
       <div className="hc-cta-actions">
-        {primary && <Button to={primary.to}>{primary.label}</Button>}
+        {primary && <Button to={primary.to} iconEnd="arrow-right">{primary.label}</Button>}
         {secondary && <Button to={secondary.to} variant="secondary">{secondary.label}</Button>}
       </div>
     </div>
