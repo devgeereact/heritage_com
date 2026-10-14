@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import SiteLayout from './SiteLayout'
 import heritApi from '@/helpers/heritApi'
 import { useCatalogue, formatNgn } from './products'
@@ -12,7 +13,7 @@ import { ServiceCard, WorkCard } from './ui/Card'
 import HcImage from './ui/HcImage'
 import Icon from './ui/Icon'
 import { MoreLink, Rich } from './cmsBlocks'
-import { Lookbook, Testimonials, JournalGrid, ClosingAction } from './sections'
+import { Lookbook, Testimonials, JournalGrid, ClosingAction, PromiseBand, ProcessBand, CompanyBand } from './sections'
 
 /** A published page, or null when it is not published (asked only when the config lists it). */
 const pageOrNull = (key, published) =>
@@ -62,13 +63,15 @@ const HomePage = () => {
   const { products } = useCatalogue()
   const quotes = useTestimonials()
   const journal = useBlog(3)
+  const [workFilter, setWorkFilter] = useState('')
 
   const d = res.data || {}
   const page = d.page
   const services = d.services || []
   const work = d.work || []
   const faqs = d.faqs || []
-  const aboutImg = toImage(d.about?.hero)
+  // About falls back to a published service photograph so the band is never a lone heading.
+  const aboutImg = toImage(d.about?.hero) || toImage(services.filter((s) => s.hero?.url)[1]?.hero || services.find((s) => s.hero?.url)?.hero)
   const proof = [business.area, business.hours].filter(Boolean).join(' · ')
   const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4)
   const book = { to: primary.to, label: primary.label }
@@ -98,8 +101,14 @@ const HomePage = () => {
         secondary: { to: book.to, label: primary.short || primary.label },
       })),
   ]
-  const companyImg = toImage(d.company?.hero)
+  const firstCover = work.find((w) => w.cover?.url)?.cover
+  const companyImg = toImage(d.company?.hero) || toImage(firstCover)
   const closingImg = toImage(page?.hero)
+  const statement = `${business.name || 'Herit Clothing'} is a tailoring workroom${business.area ? ` in ${business.area}` : ''}. I make men's clothing to your measurements and keep you posted at every step, from the first fitting to handover.`
+
+  // Work filter chips: only services that have published work.
+  const workServices = services.filter((s) => work.some((w) => w.service_slug === s.slug))
+  const shownWork = workFilter ? work.filter((w) => w.service_slug === workFilter) : work
 
   return (
     <SiteLayout
@@ -111,20 +120,29 @@ const HomePage = () => {
       }}>
       <Hero slides={slides} note={proof || undefined} />
 
-      {page?.body && (
-        <Section tone="paper" className="hc-section--statement">
-          <Rich html={page.body} />
-        </Section>
-      )}
+      <PromiseBand eyebrow="The Herit way" statement={statement}>
+        {page?.body ? <Rich html={page.body} className="hc-promise-statement" /> : null}
+      </PromiseBand>
 
       {services.length > 0 && (
         <Section labelledBy="home-services">
-          <SectionHead id="home-services" eyebrow="What I make" title="Services">
+          <SectionHead
+            id="home-services"
+            eyebrow="What I make"
+            title="Services, cut to measure"
+            lead="Every piece is made for you. Prices depend on the cloth and the finish, so you get a written quote before any work starts.">
             <MoreLink to="/services">All services</MoreLink>
           </SectionHead>
-          <div className={`hc-grid ${services.length % 4 === 0 ? 'hc-grid--4' : 'hc-grid--3'}`}>
+          <div className="hc-grid hc-grid--3">
             {services.map((s) => (
-              <ServiceCard key={s.slug} image={toImage(s.hero)} title={s.title} summary={s.summary} to={`/services/${s.slug}`} />
+              <ServiceCard
+                key={s.slug}
+                image={toImage(s.hero)}
+                title={s.title}
+                summary={s.summary}
+                meta={s.price_note || undefined}
+                to={`/services/${s.slug}`}
+              />
             ))}
           </div>
         </Section>
@@ -132,11 +150,29 @@ const HomePage = () => {
 
       {work.length > 0 && (
         <Section tone="alt" labelledBy="home-work">
-          <SectionHead id="home-work" eyebrow="Our work" title="Recent pieces from the workroom">
-            <MoreLink to="/work">See all work</MoreLink>
-          </SectionHead>
-          <div className="hc-grid hc-grid--3">
-            {work.map((w) => (
+          <div className="hc-head-row">
+            <SectionHead
+              id="home-work"
+              eyebrow="Our work"
+              title="Recent pieces from the workroom"
+              lead="Open a piece to see the garment, the cloth and the photographs.">
+              <MoreLink to="/work">See all work</MoreLink>
+            </SectionHead>
+            {workServices.length > 1 && (
+              <div className="hc-chip-group" role="group" aria-label="Filter work by service">
+                <button type="button" className="hc-chip" aria-pressed={workFilter === ''} onClick={() => setWorkFilter('')}>
+                  All
+                </button>
+                {workServices.map((s) => (
+                  <button key={s.slug} type="button" className="hc-chip" aria-pressed={workFilter === s.slug} onClick={() => setWorkFilter(s.slug)}>
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="hc-grid hc-grid--3" aria-live="polite">
+            {shownWork.map((w) => (
               <WorkCard
                 key={w.slug}
                 image={toImage(w.cover)}
@@ -149,24 +185,14 @@ const HomePage = () => {
         </Section>
       )}
 
-      {d.how && (
-        <Section tone="paper" labelledBy="home-how">
-          <SectionHead id="home-how" eyebrow="How it works" title={d.how.headline} lead={d.how.intro || undefined}>
-            <MoreLink to="/how-it-works">The steps in full</MoreLink>
-          </SectionHead>
-        </Section>
-      )}
+      <ProcessBand title={d.how?.headline || undefined} lead={d.how?.intro || undefined} moreTo={d.how ? '/how-it-works' : undefined} />
 
-      {d.company && (
-        <Section labelledBy="home-company">
-          <div className={`hc-pagetop ${companyImg ? 'hc-pagetop--media hc-pagetop--flip' : ''}`.trim()}>
-            <SectionHead id="home-company" eyebrow="Company orders" title={d.company.headline} lead={d.company.intro || undefined}>
-              <MoreLink to="/company-orders">How company orders work</MoreLink>
-            </SectionHead>
-            {companyImg && <HcImage {...companyImg} sizes="(min-width: 1024px) 50vw, 100vw" ratio="5 / 6" className="hc-band-media" />}
-          </div>
-        </Section>
-      )}
+      <CompanyBand
+        title={d.company?.headline}
+        lead={d.company?.intro || undefined}
+        image={companyImg}
+        to={cfg?.nav?.company ? '/company-orders' : '/contact?type=company'}
+      />
 
       {d.about && (
         <Section tone="alt" labelledBy="home-about">
@@ -185,20 +211,27 @@ const HomePage = () => {
 
       {faqs.length > 0 && (
         <Section tone="paper" labelledBy="home-faqs">
-          <SectionHead id="home-faqs" eyebrow="Questions" title="Before you ask" />
-          <div className="hc-faq-list">
-            {faqs.map((f) => (
-              <details key={f.id} className="hc-faq">
-                <summary>
-                  {f.question} <Icon name="chevron-down" />
-                </summary>
-                <div className="hc-faq-a">
-                  <Rich html={f.answer} />
-                </div>
-              </details>
-            ))}
+          <div className="hc-split hc-split--faq">
+            <SectionHead
+              id="home-faqs"
+              eyebrow="Before you ask"
+              title="Questions people ask first"
+              lead="Anything else, send a message and I will get back to you.">
+              {cfg?.nav?.faqs && <MoreLink to="/faqs">All questions</MoreLink>}
+            </SectionHead>
+            <div className="hc-faq-list">
+              {faqs.map((f, i) => (
+                <details key={f.id} className="hc-faq" open={i === 0}>
+                  <summary>
+                    {f.question} <Icon name="chevron-down" />
+                  </summary>
+                  <div className="hc-faq-a">
+                    <Rich html={f.answer} />
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
-          {cfg?.nav?.faqs && <MoreLink to="/faqs">All questions</MoreLink>}
         </Section>
       )}
 

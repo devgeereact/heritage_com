@@ -1,10 +1,9 @@
 import heritApi from '@/helpers/heritApi'
 import SiteLayout from './SiteLayout'
-import { useSiteResource, previewItem, clip } from './siteData'
+import { useSiteResource, previewItem, clip, toImage } from './siteData'
 import useActions from './ui/useActions'
-import { Section } from './ui/Section'
 import { PageHead, Rich, resourceState } from './cmsBlocks'
-import { ClosingAction } from './sections'
+import { ClosingAction, PromiseBand, ProcessBand } from './sections'
 
 /**
  * A fixed CMS page rendered as published: headline, intro, image and body,
@@ -25,12 +24,18 @@ const CmsPage = ({ pageKey, eyebrow, name }) => {
   return (
     <SiteLayout title={p.seo_title || name} seo={{ description: p.seo_description || clip(p.intro || p.body), image: p.hero?.url }}>
       <PageHead eyebrow={eyebrow} title={p.headline} intro={p.intro} hero={p.hero} />
-      {p.body && (
-        <Section tone="alt">
-          <Rich html={p.body} />
-        </Section>
-      )}
-      <ClosingAction title="Tell me what you want to make." primary={{ to: primary.to, label: primary.label }} secondary={secondary} />
+      <PromiseBand eyebrow={eyebrow} statement={p.intro || p.headline}>
+        {p.body ? <Rich html={p.body} className="hc-detail-body" /> : null}
+      </PromiseBand>
+      <ProcessBand tone="ink" title={pageKey === 'how_it_works' ? 'The four steps' : undefined} />
+      <ClosingAction
+        eyebrow="Start here"
+        title="Tell me what you want to make."
+        text="Send a short message with the occasion and the date, and I will get back to you."
+        primary={{ to: primary.to, label: primary.label }}
+        secondary={secondary}
+        image={toImage(p.hero)}
+      />
     </SiteLayout>
   )
 }

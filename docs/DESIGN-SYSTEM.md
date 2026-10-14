@@ -179,6 +179,8 @@ Built on `feat/phase4-website` (`src/app/(public)/site/ui/ui.css`, `Hero.jsx`, `
 
 Built in `src/app/(public)/site/ui/` (barrel `ui/index.js`), styled in `ui/ui.css`, tokens only. No new dependencies.
 
+Since D-023 (13 and 14 October 2026) buttons are 48px pills in Inter 600 14px, secondary buttons are outlined (a glass fill over photographs), and cards use the 14px radius. Shared bands in `sections.jsx`, styled in `site.css`: `PromiseBand` (serif statement beside three facts with icons, ivory), `ProcessBand` (four steps on a 2px rail that fills amber as each step reveals, with a dot per step; four columns, two below 992px, one below 560px), `CompanyBand` (5:6 photograph beside copy and a ticked list), and `ClosingAction` (eyebrow, large serif title, text and two actions over a dimmed photograph). Service pages use `.hc-detail` (copy beside a sticky "At a glance" card). A three-column grid holding exactly four cards shows four across. Copy for the bands: [CONTENT.md](CONTENT.md#fixed-copy-in-the-shared-bands-d-023). The table below is the Phase 4 contract; where it disagrees, this paragraph wins.
+
 | Component | Contract |
 |---|---|
 | `Button` (`.hc-btn`) | 48px tall, `0 24px`, 4px radius, Inter 500 16px. `primary` amber with ink text, hover `#D97706`; `secondary` light ash with ink text, ink border on hover; `quiet` ink text link with a 4px underline offset. Disabled uses `aria-disabled`. `Actions` holds at most two and stacks them full width below 600px. Older class names `--ghost`, `--light` and `--onfill` render as secondary |

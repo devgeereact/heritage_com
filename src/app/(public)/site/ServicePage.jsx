@@ -6,7 +6,8 @@ import { Section, SectionHead } from './ui/Section'
 import { WorkCard } from './ui/Card'
 import Button, { Actions } from './ui/Button'
 import Icon from './ui/Icon'
-import { PageHead, Rich, MoreLink, resourceState } from './cmsBlocks'
+import { PageHead, Rich, resourceState } from './cmsBlocks'
+import { ClosingAction, ProcessBand } from './sections'
 
 /**
  * One service (BUILD-SPEC 4.7): header, description, what's included,
@@ -46,45 +47,50 @@ const ServicePage = () => {
     <SiteLayout title={s.seo_title || s.title} seo={{ description: s.seo_description || clip(s.summary || s.body), image: s.hero?.url, jsonld }}>
       <PageHead eyebrow="Service" title={s.title} intro={s.summary} hero={s.hero} />
 
-      {s.body && (
-        <Section>
-          <Rich html={s.body} />
-        </Section>
-      )}
-
-      {(s.includes?.length > 0 || s.price_note) && (
-        <Section tone="paper" aria-label="What's included and pricing">
-          <div className="hc-split">
+      <Section tone="paper" aria-label={`About ${s.title}`}>
+        <div className="hc-detail">
+          <div className="hc-detail-main">
+            <p className="hc-eyebrow">About this service</p>
+            {s.body ? <Rich html={s.body} className="hc-detail-body" /> : <p className="hc-detail-body hc-lead">{s.summary}</p>}
             {s.includes?.length > 0 && (
-              <div>
-                <SectionHead id="svc-includes" eyebrow="The service" title="What's included" />
-                <ul className="hc-checklist">
+              <>
+                <h2 id="svc-includes" className="hc-h3 hc-detail-sub">
+                  What&apos;s included
+                </h2>
+                <ul className="hc-checklist" aria-labelledby="svc-includes">
                   {s.includes.map((line) => (
                     <li key={line}>
                       <Icon name="check" /> <span>{line}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
-            {s.price_note && (
-              <div className="hc-price-card" data-reveal="">
-                <p className="hc-eyebrow">Pricing</p>
-                <p className="hc-price-card-note">{s.price_note}</p>
-                <Button to={`/contact?service=${encodeURIComponent(s.slug)}`} iconEnd="arrow-right">
-                  Ask for a quote
-                </Button>
-              </div>
+              </>
             )}
           </div>
-        </Section>
-      )}
-
-      {cfg?.nav?.how_it_works && (
-        <Section tight>
-          <MoreLink to="/how-it-works">How the process works</MoreLink>
-        </Section>
-      )}
+          <aside className="hc-price-card" aria-label="At a glance" data-reveal="">
+            <p className="hc-eyebrow">At a glance</p>
+            <p className="hc-price-card-note">{s.price_note || 'Priced by quote: the cloth and the finish set the price.'}</p>
+            <dl className="hc-glance">
+              <dt>Measurements</dt>
+              <dd>Taken at your appointment</dd>
+              <dt>Fittings</dt>
+              <dd>By appointment, until it sits right</dd>
+              <dt>Your order</dt>
+              <dd>Followed online in your account</dd>
+            </dl>
+            <Actions>
+              <Button to={`/contact?service=${encodeURIComponent(s.slug)}`} iconEnd="arrow-right">
+                Ask for a quote
+              </Button>
+              {work.length > 0 && (
+                <Button href="#svc-work" variant="secondary">
+                  See the work
+                </Button>
+              )}
+            </Actions>
+          </aside>
+        </div>
+      </Section>
 
       {work.length > 0 && (
         <Section tone="alt" labelledBy="svc-work">
@@ -103,17 +109,16 @@ const ServicePage = () => {
         </Section>
       )}
 
-      <Section className="hc-section--closing">
-        <div className="hc-cta-band" data-reveal="">
-          <h2 className="hc-h2">Ask about this service</h2>
-          <Actions center>
-            <Button to={`/contact?service=${encodeURIComponent(s.slug)}`}>Ask about this service</Button>
-            <Button to="/services" variant="secondary">
-              All services
-            </Button>
-          </Actions>
-        </div>
-      </Section>
+      <ProcessBand tone={work.length > 0 ? 'paper' : 'ink'} moreTo={cfg?.nav?.how_it_works ? '/how-it-works' : undefined} />
+
+      <ClosingAction
+        eyebrow={s.title}
+        title="Ask about this service"
+        text="Tell me the occasion and the date, and I will reply with the next step."
+        primary={{ to: `/contact?service=${encodeURIComponent(s.slug)}`, label: 'Ask about this service' }}
+        secondary={{ to: '/services', label: 'All services' }}
+        image={toImage(s.hero)}
+      />
     </SiteLayout>
   )
 }

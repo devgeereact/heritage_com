@@ -39,6 +39,109 @@ export const Lookbook = ({ eyebrow, title, products, formatNgn }) => {
   )
 }
 
+/* ------------------------------------------------------------
+   Shared informative bands (D-023). Their copy describes how the
+   service really works in HeritOS (enquiry, appointment and quote,
+   fittings, collection, the online account, company orders); it
+   holds no numbers, offers or client claims (CONTENT.md, BR-20).
+   ------------------------------------------------------------ */
+
+const FACTS = [
+  { icon: 'ruler', title: 'Made to your measurements', desc: 'A pattern is drafted from your own measurements, not a standard size.' },
+  { icon: 'clock', title: 'Fittings by appointment', desc: 'You choose the time. The date for your piece is agreed in the written quote.' },
+  { icon: 'notes', title: 'Follow your order online', desc: 'Your account shows the stage, the payments and the next fitting.' },
+]
+
+const PROCESS = [
+  { title: 'Tell me what you need', desc: 'Send an enquiry with the occasion, the date and any photos you like.' },
+  { title: 'Measurement appointment', desc: 'We meet, choose the cloth and take your measurements. You get a written quote before any work starts.' },
+  { title: 'Cutting and fittings', desc: 'Once the quote is agreed, the piece is cut to your pattern and fitted until it sits right.' },
+  { title: 'Collect', desc: 'Pay any balance and collect. Your account shows each stage along the way.' },
+]
+
+const COMPANY_POINTS = [
+  'One quote billed to your company',
+  'Each wearer measured and listed by name',
+  'The sample approved before production starts',
+  'Handover recorded item by item',
+]
+
+/* Statement beside three facts about the way the work is done. `children` (CMS rich text) replaces the default statement. */
+export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'paper', children }) => (
+  <Section tone={tone} className="hc-section--promise" aria-label={eyebrow}>
+    <div className="hc-promise">
+      <div className="hc-promise-copy" data-reveal="">
+        <p className="hc-eyebrow">{eyebrow}</p>
+        {children || <p className="hc-promise-statement">{statement}</p>}
+      </div>
+      <ul className="hc-facts-list" data-reveal="">
+        {FACTS.map((f) => (
+          <li key={f.title}>
+            <Icon name={f.icon} />
+            <div>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </Section>
+)
+
+/* Four steps on a rail that fills amber as the steps are revealed. */
+export const ProcessBand = ({ tone = 'paper', title = 'From first message to handover', lead, moreTo }) => (
+  <Section tone={tone} labelledBy="process-title" className="hc-section--process">
+    <SectionHead id="process-title" eyebrow="How it works" title={title} lead={lead}>
+      {moreTo && (
+        <p>
+          <Link to={moreTo} className="hc-card-link">
+            The steps in full <Icon name="arrow-right" />
+          </Link>
+        </p>
+      )}
+    </SectionHead>
+    <ol className="hc-process">
+      {PROCESS.map((s, i) => (
+        <li key={s.title} data-reveal="" style={{ '--hc-reveal-delay': `${i * 90}ms` }}>
+          <span className="hc-process-n">Step {i + 1}</span>
+          <h3>{s.title}</h3>
+          <p>{s.desc}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
+)
+
+/* Company orders: photograph, what a company gets, one action. */
+export const CompanyBand = ({ title, lead, image, to, tone }) => (
+  <Section tone={tone} labelledBy="company-band" className="hc-section--band">
+    <div className={`hc-band${image?.src ? '' : ' hc-band--text'}`}>
+      {image?.src && <HcImage {...image} ratio="5 / 6" sizes="(min-width: 1024px) 50vw, 100vw" className="hc-band-media" />}
+      <div className="hc-band-copy" data-reveal="">
+        <p className="hc-eyebrow">Company orders</p>
+        <h2 id="company-band" className="hc-h2">
+          {title || 'Uniforms and event wear for your whole team'}
+        </h2>
+        <p className="hc-lead">
+          {lead ||
+            'For teams, events and wedding parties: one brief, many wearers, and a clear record of who has been measured and who has collected.'}
+        </p>
+        <ul className="hc-ticks">
+          {COMPANY_POINTS.map((p) => (
+            <li key={p}>
+              <Icon name="check" /> <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+        <Button {...(String(to).startsWith('#') ? { href: to } : { to })} iconEnd="arrow-right">
+          Ask about a company order
+        </Button>
+      </div>
+    </div>
+  </Section>
+)
+
 /* Numbered steps with the amber rule that fills as each step is revealed. */
 export const ProcessSteps = ({ eyebrow, title, lead, steps, tone }) => (
   <Section tone={tone}>

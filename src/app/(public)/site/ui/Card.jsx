@@ -23,7 +23,7 @@ export const Card = ({ title, children, to, linkLabel, as = 'h3', className = ''
  * link label and an arrow. The whole card is one link when `to` is given;
  * cards in a row share the same height and footer line.
  */
-export const ServiceCard = ({ image, title, summary, to, linkLabel = 'View service' }) => {
+export const ServiceCard = ({ image, title, summary, meta, to, linkLabel = 'View service' }) => {
   const body = (
     <>
       <span className="hc-service-card-media-wrap">
@@ -36,6 +36,7 @@ export const ServiceCard = ({ image, title, summary, to, linkLabel = 'View servi
       <span className="hc-service-card-body">
         <h3 className="hc-service-card-title">{title}</h3>
         {summary && <p>{summary}</p>}
+        {meta && <span className="hc-service-card-meta">{meta}</span>}
         {to && (
           <span className="hc-service-card-foot">
             {linkLabel} <Icon name="arrow-right" />

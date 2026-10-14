@@ -380,6 +380,68 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-section--closing-media .hc-cta-band h2 { color: var(--hc-on-image); }
 .hc-section--closing-media .hc-cta-band p { color: var(--hc-on-image-muted); }
 
+/* ---------------------------------------------------------- shared bands (D-023) */
+
+/* Promise: a large serif statement beside three facts. */
+.hc-promise { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(var(--hc-space-7), 7vw, 110px); align-items: start; }
+@media (max-width: 900px) { .hc-promise { grid-template-columns: minmax(0, 1fr); } }
+.hc-promise-statement,
+.hc-promise-statement p { margin-top: var(--hc-space-5); font-family: var(--hc-font-serif); font-size: clamp(var(--hc-text-xl), 1rem + 1.7vw, 2.5rem); line-height: 1.22; letter-spacing: -0.015em; color: var(--hc-text); max-width: none; }
+.hc-promise-statement p + p { margin-top: var(--hc-space-4); }
+.hc-facts-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--hc-divider); }
+.hc-facts-list li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: var(--hc-space-4); padding: var(--hc-space-5) 0; border-bottom: 1px solid var(--hc-divider); }
+.hc-facts-list .hc-icon { width: 24px; height: 24px; color: var(--hc-accent-text); margin-top: 2px; }
+.hc-facts-list h3 { font-family: var(--hc-font-sans); font-size: var(--hc-text-base); font-weight: var(--hc-w-semibold); letter-spacing: 0; }
+.hc-facts-list p { margin-top: var(--hc-space-1); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
+
+/* Process: four steps on a rail that fills amber as they reveal. */
+.hc-process { list-style: none; padding: var(--hc-space-7) 0 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--hc-space-6); }
+.hc-process > li { position: relative; padding-top: var(--hc-space-6); border-top: 2px solid var(--hc-divider); }
+.hc-process > li::before { content: ""; position: absolute; left: 0; right: 0; top: -2px; height: 2px; background: var(--hc-accent); transform: scaleX(0); transform-origin: left center; transition: transform 700ms var(--hc-ease); transition-delay: var(--hc-reveal-delay, 0ms); }
+.hc-process > li:not([data-reveal="pending"])::before { transform: scaleX(1); }
+.hc-process > li::after { content: ""; position: absolute; left: 0; top: -9px; width: 16px; height: 16px; border-radius: 50%; background: var(--hc-accent); box-shadow: 0 0 0 4px var(--hc-surface); }
+.hc-process-n { font-family: var(--hc-font-serif); font-size: var(--hc-text-sm); color: var(--hc-accent-text); }
+.hc-process h3 { margin-top: var(--hc-space-3); font-size: var(--hc-text-xl); }
+.hc-process p { margin-top: var(--hc-space-3); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
+@media (max-width: 991px) { .hc-process { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--hc-space-8); } }
+@media (max-width: 560px) { .hc-process { grid-template-columns: minmax(0, 1fr); } }
+
+/* Band: photograph beside copy with ticks (company orders). */
+.hc-band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(var(--hc-space-6), 6vw, 90px); align-items: center; }
+.hc-band--text { grid-template-columns: minmax(0, 1fr); max-width: 46rem; }
+@media (max-width: 900px) { .hc-band { grid-template-columns: minmax(0, 1fr); } }
+.hc-band-copy .hc-h2 { margin-top: var(--hc-space-4); }
+.hc-band-copy .hc-lead { margin-top: var(--hc-space-4); color: var(--hc-text-muted); }
+.hc-ticks { list-style: none; padding: 0; margin: var(--hc-space-6) 0 var(--hc-space-6); border-top: 1px solid var(--hc-divider); }
+.hc-ticks li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--hc-space-3); padding: var(--hc-space-4) 0; border-bottom: 1px solid var(--hc-divider); color: var(--hc-text); }
+.hc-ticks .hc-icon { color: var(--hc-accent-text); margin-top: 3px; }
+
+/* Heading with filter chips on the right (home work). */
+.hc-head-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--hc-space-5); margin-bottom: clamp(var(--hc-space-6), 5vw, var(--hc-space-8)); }
+.hc-head-row .hc-head { margin-bottom: 0; }
+
+/* FAQ beside its heading. */
+.hc-split--faq { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+@media (max-width: 900px) { .hc-split--faq { grid-template-columns: minmax(0, 1fr); } }
+.hc-split--faq .hc-head { margin-bottom: 0; }
+
+/* Detail layout: main copy beside a sticky "at a glance" card (service page, CMS pages). */
+.hc-detail { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(var(--hc-space-7), 6vw, 96px); align-items: start; }
+@media (max-width: 900px) { .hc-detail { grid-template-columns: minmax(0, 1fr); } }
+.hc-detail--single { grid-template-columns: minmax(0, 1fr); max-width: 52rem; }
+.hc-detail-body { margin-top: var(--hc-space-5); }
+.hc-detail-body.hc-prose { font-size: var(--hc-text-md); }
+.hc .hc-detail-sub { margin: var(--hc-space-7) 0 var(--hc-space-4); }
+.hc-detail > .hc-price-card { position: sticky; top: calc(var(--hc-header-h) + var(--hc-space-5)); }
+.hc-glance { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0 var(--hc-space-5); width: 100%; margin: var(--hc-space-2) 0 var(--hc-space-3); border-top: 1px solid var(--hc-divider); }
+.hc-glance dt, .hc-glance dd { margin: 0; padding: var(--hc-space-3) 0; border-bottom: 1px solid var(--hc-divider); font-size: var(--hc-text-sm); }
+.hc-glance dt { color: var(--hc-text-muted); }
+.hc-glance dd { color: var(--hc-text); }
+.hc-price-card .hc-actions { width: 100%; }
+
+/* Price line on a service card. */
+.hc-service-card-meta { font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); color: var(--hc-text); font-variant-numeric: tabular-nums; }
+
 /* CMS page header: a band with a divider; the photograph has card corners. */
 .hc-section--pagehead { padding-top: clamp(var(--hc-space-8), 8vw, var(--hc-space-10)); border-bottom: 1px solid var(--hc-divider); }
 .hc-section--pagehead .hc-h1 { font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }

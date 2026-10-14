@@ -67,6 +67,19 @@ Current public routes are listed in [ARCHITECTURE.md](ARCHITECTURE.md#route-inve
 - Form fields: company name, contact name, phone or email, garment type, approximate quantity, required date, material responsibility, short brief. Attachments come later and only with safe private storage ([SECURITY.md](SECURITY.md#private-files-and-content-safety)).
 - The honeypot is now `website_url_confirm` and `company` is a real optional field stored on `enquiries` (A11, fixed in PR #7; needs `schema_phase17.sql` in production).
 
+## Fixed copy in the shared bands (D-023)
+
+Verified in `src/app/(public)/site/sections.jsx`, 14 October 2026. These bands appear on several pages so no page is left as a lone heading. Their text describes how HeritOS really works and holds no numbers, offers, deposits or client claims; edit it here and in the file together.
+
+| Band | Where | Text (summary) |
+|---|---|---|
+| `PromiseBand` | Home (statement from the business name and area, or the home page body), About and How it works (the page body) | Three facts: made to your measurements; fittings by appointment, the date agreed in the written quote; follow your order online in your account |
+| `ProcessBand` | Home, Services, a service, Our work, About, How it works, Company orders | Four steps: tell me what you need; measurement appointment and written quote; cutting and fittings once the quote is agreed; pay any balance and collect, with each stage in your account. Heading "From first message to handover" unless the How it works page is published, then its headline |
+| `CompanyBand` | Home, Services, Company orders | "For teams, events and wedding parties", then four points: one quote billed to your company; each wearer measured and listed by name; the sample approved before production starts; handover recorded item by item. The action goes to `/company-orders` when published, otherwise `/contact?type=company` |
+| Service "At a glance" card | A service page | The price note, or "Priced by quote: the cloth and the finish set the price"; measurements taken at your appointment; fittings by appointment; your order followed online |
+
+Photographs in these bands come only from published content (the company or about page, a service, or a work cover). Without any, the band is text only.
+
 ## Copy rules
 
 - Specific captions: what was made, a useful fabric or fit detail, and the occasion where permission exists.

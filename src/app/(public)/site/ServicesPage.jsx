@@ -1,11 +1,11 @@
 import heritApi from '@/helpers/heritApi'
 import SiteLayout from './SiteLayout'
-import { useSiteResource, previewItem, toImage, clip } from './siteData'
+import { useSiteResource, useSiteConfig, previewItem, toImage, clip } from './siteData'
 import useActions from './ui/useActions'
 import { Section } from './ui/Section'
 import { ServiceCard } from './ui/Card'
 import { PageHead, Rich, resourceState } from './cmsBlocks'
-import { ClosingAction } from './sections'
+import { ClosingAction, ProcessBand, CompanyBand } from './sections'
 
 const load = () => heritApi.site.services()
 const loadPreview = async () => {
@@ -20,6 +20,7 @@ const loadPreview = async () => {
  */
 const ServicesPage = () => {
   const res = useSiteResource(load, loadPreview)
+  const cfg = useSiteConfig()
   const { primary, secondary } = useActions()
   const early = resourceState(res, 'Services')
   if (early) return early
@@ -41,11 +42,22 @@ const ServicesPage = () => {
         <Section tone="alt" aria-label="Services">
           <div className="hc-grid hc-grid--3">
             {items.map((s) => (
-              <ServiceCard key={s.slug} image={toImage(s.hero)} title={s.title} summary={s.summary} to={`/services/${s.slug}`} />
+              <ServiceCard
+                key={s.slug}
+                image={toImage(s.hero)}
+                title={s.title}
+                summary={s.summary}
+                meta={s.price_note || undefined}
+                to={`/services/${s.slug}`}
+              />
             ))}
           </div>
         </Section>
       )}
+
+      <ProcessBand moreTo={cfg?.nav?.how_it_works ? '/how-it-works' : undefined} />
+
+      <CompanyBand image={toImage(items.find((s) => s.hero?.url)?.hero)} to={cfg?.nav?.company ? '/company-orders' : '/contact?type=company'} />
 
       <ClosingAction
         title={items.length ? 'Not sure which service fits?' : 'Tell me what you want to make.'}

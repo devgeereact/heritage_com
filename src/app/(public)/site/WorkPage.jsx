@@ -6,7 +6,7 @@ import useActions from './ui/useActions'
 import { Section, SectionHead } from './ui/Section'
 import { WorkCard } from './ui/Card'
 import { resourceState } from './cmsBlocks'
-import { ClosingAction } from './sections'
+import { ClosingAction, ProcessBand } from './sections'
 
 const load = async () => {
   const [work, services] = await Promise.all([heritApi.site.work(), heritApi.site.services()])
@@ -31,8 +31,13 @@ const WorkPage = () => {
 
   return (
     <SiteLayout title="Our work" seo={{ description: 'Finished pieces from Herit Clothing in Lagos.', image: items[0]?.cover?.url }}>
-      <Section>
-        <SectionHead as="h1" eyebrow="Our work" title="Finished pieces" />
+      <Section className="hc-section--pagehead">
+        <SectionHead
+          as="h1"
+          eyebrow="Our work"
+          title="Finished pieces"
+          lead="Each piece here was cut to one person's measurements. Open one to see the garment, the cloth and more photographs."
+        />
         {withWork.length >= 2 && (
           <div className="hc-chip-group" role="group" aria-label="Filter by service">
             <button type="button" className="hc-chip" aria-pressed={filter === ''} onClick={() => setFilter('')}>
@@ -65,7 +70,16 @@ const WorkPage = () => {
         )}
       </Section>
 
-      <ClosingAction title="Start something similar" primary={{ to: primary.to, label: primary.label }} secondary={secondary} />
+      <ProcessBand title="How a piece like this is made" />
+
+      <ClosingAction
+        eyebrow="Your piece"
+        title="Start something similar"
+        text="Send a photo of a piece you like, the occasion and the date."
+        primary={{ to: primary.to, label: primary.label }}
+        secondary={secondary}
+        image={toImage(items.find((w) => w.cover?.url)?.cover)}
+      />
     </SiteLayout>
   )
 }

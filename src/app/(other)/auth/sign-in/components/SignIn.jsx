@@ -1,12 +1,12 @@
-import logoDark from '@/assets/images/logo-dark.svg';
-import logoLight from '@/assets/images/logo-light.svg';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import { Card, Col, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import LoginFrom from './LoginFrom';
-import PinLogin from './PinLogin';
-import BrandSidePanel from '../../components/BrandSidePanel';
-import AuthHeading from '../../components/AuthHeading';
+import logoDark from '@/assets/images/logo-dark.svg'
+import logoLight from '@/assets/images/logo-light.svg'
+import IconifyIcon from '@/components/wrappers/IconifyIcon'
+import { Card, Col, Row } from 'react-bootstrap'
+import { Link } from 'react-router-dom'
+import LoginFrom from './LoginFrom'
+import PinLogin from './PinLogin'
+import BrandSidePanel from '../../components/BrandSidePanel'
+import AuthHeading from '../../components/AuthHeading'
 
 const SignIn = () => {
   return (
@@ -52,7 +52,7 @@ const SignIn = () => {
         </Row>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn
