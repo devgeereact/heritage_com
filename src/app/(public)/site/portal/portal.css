@@ -17,7 +17,7 @@
 .hc .hp-ok { color: var(--hc-success); }
 .hc .hp-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: var(--hc-control-h); padding: .6rem 1.25rem;
-  border-radius: var(--hc-radius-control); border: 1px solid var(--hc-text); background: transparent; color: var(--hc-text); font: inherit; font-weight: 600; cursor: pointer;
+  border-radius: var(--hc-radius-chip); border: 1px solid var(--hc-control-border); background: transparent; color: var(--hc-text); font: inherit; font-size: var(--hc-text-sm); font-weight: 600; cursor: pointer;
   transition: background-color .2s, border-color .2s;
 }
 .hc .hp-btn--primary { background: var(--hc-accent); border-color: var(--hc-accent); color: var(--hc-on-accent); }

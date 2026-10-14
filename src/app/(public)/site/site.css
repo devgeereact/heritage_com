@@ -177,7 +177,7 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc .d-flex { display: flex; }
 
 /* ---------------------------------------------------------- type */
-.hc-h1 { font-size: clamp(var(--hc-text-3xl), 1.4rem + 3.4vw, var(--hc-text-5xl)); }
+.hc-h1 { font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
 .hc-h2 { font-size: clamp(var(--hc-text-2xl), 1.2rem + 2.6vw, var(--hc-text-5xl)); }
 .hc-h3 { font-size: var(--hc-text-xl); }
 .hc-h4 { font-size: var(--hc-text-lg); }
@@ -213,12 +213,16 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-head--center .hc-lead { margin-left: auto; margin-right: auto; }
 
 /* ---------------------------------------------------------- page header */
+/* One page header everywhere (D-023): the CMS PageHead band (.hc-section--pagehead)
+   and the older .hc-pagehead (track, account, book, shop, portal) share padding,
+   divider, title size and lead colour. */
 .hc-pagehead {
-  padding: calc(var(--hc-section-y) * 0.75) 0 calc(var(--hc-section-y) * 0.5);
+  padding: clamp(var(--hc-space-8), 8vw, var(--hc-space-10)) 0 var(--hc-section-y);
   border-bottom: 1px solid var(--hc-divider);
 }
-.hc-pagehead h1 { margin-top: var(--hc-space-4); }
-.hc-pagehead p { margin-top: var(--hc-space-4); max-width: var(--hc-measure); font-size: var(--hc-text-md); }
+.hc-pagehead h1 { margin-top: var(--hc-space-4); font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
+.hc-pagehead p { margin-top: var(--hc-space-4); max-width: var(--hc-measure); font-size: var(--hc-text-md); color: var(--hc-text-muted); }
+.hc-pagehead .hc-crumb { color: var(--hc-text-muted); }
 .hc-crumb { font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
 .hc-crumb a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hc-divider); }
 .hc-crumb a:hover { color: var(--hc-text); text-decoration-color: currentColor; }
@@ -436,6 +440,8 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-detail { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(var(--hc-space-7), 6vw, 96px); align-items: start; }
 @media (max-width: 900px) { .hc-detail { grid-template-columns: minmax(0, 1fr); } }
 .hc-detail--single { grid-template-columns: minmax(0, 1fr); max-width: 52rem; }
+/* Portal cards (access form) align with the page edge inside a detail layout. */
+.hc .hc-detail-main > .hp-card { margin: 0 !important; max-width: none !important; }
 .hc-detail-body { margin-top: var(--hc-space-5); }
 .hc-detail-body.hc-prose { font-size: var(--hc-text-md); }
 .hc .hc-detail-sub { margin: var(--hc-space-7) 0 var(--hc-space-4); }
@@ -467,7 +473,7 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 
 /* CMS page header: a band with a divider; the photograph has card corners. */
 .hc-section--pagehead { padding-top: clamp(var(--hc-space-8), 8vw, var(--hc-space-10)); border-bottom: 1px solid var(--hc-divider); }
-.hc-section--pagehead .hc-h1 { font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
+.hc-section--pagehead .hc-lead { color: var(--hc-text-muted); }
 .hc-pagetop-media { border-radius: var(--hc-radius-card); overflow: hidden; }
 
 /* Image band beside a heading block (home company orders). */

@@ -70,8 +70,13 @@ export const LoadingPage = ({ title }) => (
 /** Not found, or not published: a real page with noindex and a way back. */
 export const NotFoundPage = ({ title = 'Page not found', text }) => (
   <SiteLayout title={title} noindex>
-    <Section>
-      <SectionHead as="h1" title={title} lead={text || 'This page is not available. It may have moved or not be published yet.'} />
+    <Section className="hc-section--pagehead">
+      <SectionHead
+        as="h1"
+        eyebrow="Not found"
+        title={title}
+        lead={text || 'This page is not available. It may have moved or not be published yet.'}
+      />
       <Actions>
         <Button to="/">Go to the home page</Button>
         <Button to="/contact" variant="secondary">
@@ -85,8 +90,8 @@ export const NotFoundPage = ({ title = 'Page not found', text }) => (
 /** Could not reach the server: say so plainly and offer a retry. */
 export const ErrorPage = ({ title }) => (
   <SiteLayout title={title} noindex>
-    <Section>
-      <SectionHead as="h1" title="This page could not load" lead="Please check your connection and try again." />
+    <Section className="hc-section--pagehead">
+      <SectionHead as="h1" eyebrow="Something went wrong" title="This page could not load" lead="Please check your connection and try again." />
       <Actions>
         <Button onClick={() => window.location.reload()}>Try again</Button>
         <Button to="/contact" variant="secondary">

@@ -234,7 +234,7 @@ export const JournalGrid = ({ eyebrow, title, posts }) => {
 }
 
 /* Closing action: one primary, one secondary, over an optional dimmed photograph. */
-export const ClosingAction = ({ eyebrow, title, text, primary, secondary, image }) => (
+export const ClosingAction = ({ eyebrow = 'Start here', title, text, primary, secondary, image }) => (
   <Section className={`hc-section--closing${image?.src ? ' hc-section--closing-media' : ''}`}>
     {image?.src && (
       <div className="hc-closing-media" aria-hidden="true">

@@ -57,33 +57,34 @@ const FaqsPage = () => {
         />
       </Section>
       {groups.map((g, gi) => (
-        <Section
-          key={g.name || 'general'}
-          tone={gi % 2 === 0 ? 'alt' : undefined}
-          tight
-          labelledBy={g.name ? `faq-g-${gi}` : undefined}
-          aria-label={g.name ? undefined : 'Questions'}>
-          {g.name && (
-            <h2 id={`faq-g-${gi}`} className="hc-h3">
-              {g.name}
-            </h2>
-          )}
-          <div className="hc-faq-list hc-mt-3">
-            {g.items.map((f) => (
-              <details key={f.id} className="hc-faq">
-                <summary>
-                  {f.question} <Icon name="chevron-down" />
-                </summary>
-                <div className="hc-faq-a">
-                  <Rich html={f.answer} />
-                </div>
-              </details>
-            ))}
+        <Section key={g.name || 'general'} tone={gi % 2 === 0 ? 'paper' : 'alt'} labelledBy={`faq-g-${gi}`}>
+          <div className="hc-split hc-split--faq">
+            <SectionHead
+              id={`faq-g-${gi}`}
+              eyebrow="Before you ask"
+              title={g.name || 'Questions people ask first'}
+              lead={g.name ? `Answers about ${g.name.toLowerCase()}.` : 'Tap a question to open the answer.'}
+              split={false}
+            />
+            <div className="hc-faq-list">
+              {g.items.map((f, i) => (
+                <details key={f.id} className="hc-faq" open={gi === 0 && i === 0}>
+                  <summary>
+                    {f.question} <Icon name="chevron-down" />
+                  </summary>
+                  <div className="hc-faq-a">
+                    <Rich html={f.answer} />
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
         </Section>
       ))}
       <ClosingAction
+        eyebrow="Still unsure?"
         title="Still have a question?"
+        text="Send a message and I will get back to you."
         primary={{ to: primary.to, label: primary.label }}
         secondary={{ to: '/contact', label: 'Contact' }}
       />

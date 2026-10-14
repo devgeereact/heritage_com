@@ -7,7 +7,7 @@ import { Section, SectionHead } from './ui/Section'
 import HcImage from './ui/HcImage'
 import Icon from './ui/Icon'
 import { Rich, resourceState } from './cmsBlocks'
-import { ClosingAction } from './sections'
+import { ClosingAction, ProcessBand } from './sections'
 
 const ROLE_LABEL = { front: 'Front', back: 'Back', detail: 'Detail', process: 'In progress' }
 
@@ -39,14 +39,21 @@ const WorkItemPage = () => {
     <SiteLayout
       title={w.seo_title || w.title}
       seo={{ description: w.seo_description || clip(w.summary || w.body), image: w.cover?.url, type: 'article' }}>
-      <Section>
+      <Section className="hc-section--pagehead">
         <p className="hc-crumb">
           <Link to="/work">Our work</Link> / <span>{w.title}</span>
         </p>
         <div className="hc-split">
           <div>
-            <SectionHead as="h1" title={w.title} lead={w.summary || undefined} />
+            <SectionHead as="h1" eyebrow={w.garment || 'Selected work'} title={w.title} lead={w.summary || undefined} />
             {facts.length > 0 && <dl className="hc-facts">{facts.map(([k, v]) => [<dt key={`${k}-t`}>{k}</dt>, <dd key={`${k}-d`}>{v}</dd>])}</dl>}
+            {w.service_slug && (
+              <p className="hc-mt-4">
+                <Link to={`/services/${w.service_slug}`} className="hc-card-link">
+                  About this service <Icon name="arrow-right" />
+                </Link>
+              </p>
+            )}
           </div>
           {images[0] && <HcImage {...toImage(images[0])} priority sizes="(min-width: 1024px) 42vw, 100vw" ratio="4 / 5" />}
         </div>
@@ -66,22 +73,24 @@ const WorkItemPage = () => {
       )}
 
       {w.body && (
-        <Section>
-          <Rich html={w.body} />
+        <Section tone="paper" aria-label="About this piece">
+          <div className="hc-detail hc-detail--single">
+            <p className="hc-eyebrow">About this piece</p>
+            <Rich html={w.body} className="hc-detail-body" />
+          </div>
         </Section>
       )}
 
-      {w.service_slug && (
-        <Section tight>
-          <p>
-            <Link to={`/services/${w.service_slug}`} className="hc-card-link">
-              About this service <Icon name="arrow-right" />
-            </Link>
-          </p>
-        </Section>
-      )}
+      <ProcessBand tone="ink" title="How a piece like this is made" />
 
-      <ClosingAction title="Start something similar" primary={{ to: primary.to, label: primary.label }} secondary={secondary} />
+      <ClosingAction
+        eyebrow="Your piece"
+        title="Start something similar"
+        text="Send a photo of a piece you like, the occasion and the date."
+        primary={{ to: primary.to, label: primary.label }}
+        secondary={secondary}
+        image={images[0] ? toImage(images[0]) : undefined}
+      />
     </SiteLayout>
   )
 }

@@ -61,9 +61,14 @@ const ServicesPage = () => {
 
       <ClosingAction
         title={items.length ? 'Not sure which service fits?' : 'Tell me what you want to make.'}
-        text={items.length ? 'Send a short note about the piece and the date you need it.' : undefined}
+        text={
+          items.length
+            ? 'Send a short note about the piece and the date you need it.'
+            : 'Send a short message with the occasion and the date, and I will get back to you.'
+        }
         primary={{ to: primary.to, label: primary.label }}
         secondary={secondary}
+        image={toImage(intro?.hero) || toImage(items.filter((s) => s.hero?.url).slice(-1)[0]?.hero)}
       />
     </SiteLayout>
   )
