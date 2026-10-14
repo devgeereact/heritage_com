@@ -7,6 +7,7 @@ import LoadError from '@/components/herit/LoadError'
 import StatusChip from '@/components/herit/StatusChip'
 import heritApi from '@/helpers/heritApi'
 import { ENTITIES } from './components/cmsSchema'
+import HeroSlidesCard from './components/HeroSlidesCard'
 
 // Each missing business fact and what it hides on the website.
 const MISSING = {
@@ -58,6 +59,11 @@ const WebsitePage = () => {
       {error && <LoadError what="the website overview" onRetry={load} error={error} />}
       {!data && !error && <Spinner animation="border" role="status" />}
       {data && (
+        <div className="mb-3">
+          <HeroSlidesCard />
+        </div>
+      )}
+      {data && (
         <Row className="g-3">
           <Col lg={5}>
             <Card className="hd-card h-100">
@@ -79,9 +85,26 @@ const WebsitePage = () => {
                     </ul>
                   </>
                 )}
-                <Link to="/website/profile">Edit business details</Link>
-                <span className="mx-2 text-muted">·</span>
-                <Link to="/website/media">Images</Link>
+                <ul className="list-unstyled mb-0 mt-3 border-top">
+                  {[
+                    ['/website/profile', 'Business details', 'Name, area, hours, phone, WhatsApp, email and social links.'],
+                    ['/website/media', 'Images', 'Upload photographs once and use them on pages, services and work.'],
+                    ['/content', 'Journal and testimonials', 'Posts and published client reviews.'],
+                  ].map(([to, label, text]) => (
+                    <li key={to} className="py-3 border-bottom">
+                      <Link to={to} className="fw-semibold">
+                        {label}
+                      </Link>
+                      <div className="small text-muted">{text}</div>
+                    </li>
+                  ))}
+                  <li className="pt-3">
+                    <a href="/" target="_blank" rel="noopener noreferrer" className="fw-semibold">
+                      View the website
+                    </a>
+                    <div className="small text-muted">Opens the public site in a new tab, as visitors see it.</div>
+                  </li>
+                </ul>
               </Card.Body>
             </Card>
           </Col>

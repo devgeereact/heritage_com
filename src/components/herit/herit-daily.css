@@ -104,6 +104,31 @@
 .hd-chip--neutral { color: var(--hd-neutral); background: var(--hc-pending-tint); border-color: var(--hd-divider); }
 .hd-chip--ink { color: var(--hd-ink); border-color: var(--hd-control); }
 
+/* Website: home hero slides preview (D-023). Over photographs the media tokens apply in both themes. */
+.hd .hd-hero-editor { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.25rem; padding: 1.25rem; }
+@media (max-width: 991.98px) { .hd .hd-hero-editor { grid-template-columns: minmax(0, 1fr); } }
+.hd .hd-hero-preview { position: relative; aspect-ratio: 16 / 10; border-radius: var(--hc-radius-card); overflow: hidden; background: var(--hc-scrim-strong); }
+.hd .hd-hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1s var(--hc-ease); }
+.hd .hd-hero-slide.is-on { opacity: 1; }
+.hd .hd-hero-slide img { width: 100%; height: 100%; object-fit: cover; }
+.hd .hd-hero-slide.is-on img { animation: hd-kenburns 5.5s linear both; }
+@keyframes hd-kenburns { from { transform: scale(1); } to { transform: scale(1.1); } }
+.hd .hd-hero-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, var(--hc-scrim-strong), var(--hc-scrim-mid) 55%, var(--hc-scrim-clear)); }
+.hd .hd-hero-copy { position: absolute; left: 7%; right: 30%; top: 50%; transform: translateY(-50%); display: grid; gap: .4rem; color: var(--hc-on-image-muted); }
+.hd .hd-hero-copy strong { font-family: var(--hc-font-serif); font-weight: 500; font-size: clamp(1.25rem, 1rem + 1.4vw, 2rem); line-height: 1.05; letter-spacing: -0.02em; color: var(--hc-on-image); }
+.hd .hd-hero-eyebrow { font-size: .625rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--hc-accent); }
+.hd .hd-hero-lead { font-size: .8125rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hd .hd-hero-bars { position: absolute; left: 7%; right: 7%; bottom: 7%; display: flex; gap: .4rem; }
+.hd .hd-hero-bars button { flex: 1; height: 3px; min-height: 0; padding: 0; border: 0; border-radius: 2px; background: var(--hc-on-image-line); cursor: pointer; }
+.hd .hd-hero-bars button.is-on { background: var(--hc-accent); }
+.hd .hd-hero-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hd-divider); }
+.hd .hd-hero-list li { display: flex; align-items: center; gap: .75rem; padding: .65rem .5rem; border-bottom: 1px solid var(--hd-divider); border-radius: 0; }
+.hd .hd-hero-list li.is-on { background: var(--hc-accent-tint); }
+.hd .hd-hero-list li.is-waiting { opacity: .8; }
+.hd .hd-hero-thumb { flex: none; width: 64px; height: 42px; border-radius: 6px; overflow: hidden; background: var(--hc-surface-alt); border: 1px solid var(--hd-divider); }
+.hd .hd-hero-thumb img { width: 100%; height: 100%; object-fit: cover; }
+@media (prefers-reduced-motion: reduce) { .hd .hd-hero-slide, .hd .hd-hero-slide img { transition: none; animation: none; } }
+
 /* Cards and rows */
 .hd .hd-card { border: 1px solid var(--hd-divider); border-radius: var(--hc-radius-card); box-shadow: none; overflow: hidden; }
 .hd .hd-card .card-header { background: transparent; border-bottom: 1px solid var(--hd-divider); }
