@@ -11,12 +11,12 @@ import useActions from './ui/useActions'
 const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`
 
 /**
- * Footer on the ink surface. Four columns, each shown only when it has
- * something real to show: business (with the primary action), contact,
- * explore, policies. Then the verified social links, a large outline
- * wordmark (decorative) and "© year name" with a small staff link.
- * Details come from useBusiness() (the Website profile), or from the
- * `business` prop. Explore and policy links follow the published-content flags.
+ * Footer as in the approved prototype (D-023): brand with the primary action,
+ * then Explore, Clients and Visit columns; a large outline wordmark; and a
+ * bottom bar with the year, the legal links, staff sign-in and the verified
+ * social links. Links follow the published-content flags; business details
+ * come from useBusiness() (the Website profile) or the `business` prop, and
+ * a column with nothing real to show is not rendered.
  */
 const SiteFooter = ({ business: given }) => {
   const fromConfig = useBusiness()
@@ -28,19 +28,25 @@ const SiteFooter = ({ business: given }) => {
 
   const explore = [
     nav.services && { to: '/services', label: 'Services' },
-    nav.company && { to: '/company-orders', label: 'Company orders' },
     nav.work && { to: '/work', label: 'Our work' },
     nav.how_it_works && { to: '/how-it-works', label: 'How it works' },
+    nav.company && { to: '/company-orders', label: 'Company orders' },
     nav.about && { to: '/about', label: 'About' },
-    nav.faqs && { to: '/faqs', label: 'Questions' },
     nav.journal && { to: '/journal', label: 'Journal' },
     shopOn && { to: '/shop', label: 'Shop' },
+  ]
+    .filter(Boolean)
+    .slice(0, 5)
+  const clients = [
+    { to: primary.to, label: primary.short || 'Request an appointment' },
+    { to: '/track', label: 'Track your order' },
+    { to: '/account', label: 'My account' },
+    nav.faqs && { to: '/faqs', label: 'Questions' },
     { to: '/contact', label: 'Contact' },
-    { to: '/track', label: 'Track your job' },
   ].filter(Boolean)
-  const policies = [nav.privacy && { to: '/privacy', label: 'Privacy' }, nav.terms && { to: '/terms', label: 'Terms' }].filter(Boolean)
-  const hasBusiness = b.area || b.hours || b.address
-  const hasContact = b.phone || b.whatsapp || b.email
+  const legal = [nav.privacy && { to: '/privacy', label: 'Privacy' }, nav.terms && { to: '/terms', label: 'Terms' }].filter(Boolean)
+  const hasVisit = b.area || b.address || b.hours || b.phone || b.whatsapp || b.email
+  const line = `Men's tailoring made to measure${b.area ? ` in ${b.area}` : ''}. Every piece is cut to your own measurements.`
 
   return (
     <footer className="hc-footer">
@@ -48,22 +54,52 @@ const SiteFooter = ({ business: given }) => {
         <div className="hc-footer-cols">
           <div className="hc-footer-brand">
             <p className="hc-footer-name">{b.name}</p>
-            {hasBusiness && (
-              <>
-                {b.area && <p className="hc-footer-text">{b.area}</p>}
-                {b.address && <p className="hc-footer-text">{b.address}</p>}
-                {b.hours && <p className="hc-footer-text">{b.hours}</p>}
-              </>
-            )}
+            <p className="hc-footer-text">{line}</p>
             <Button to={primary.to} iconEnd="arrow-right" className="hc-footer-cta">
               {primary.short || primary.label}
             </Button>
           </div>
 
-          {hasContact && (
-            <div>
-              <h2>Contact</h2>
+          {explore.length > 0 && (
+            <nav aria-label="Explore">
+              <h2>Explore</h2>
               <ul>
+                {explore.map((l) => (
+                  <li key={l.to}>
+                    <Link to={l.to}>{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+
+          <nav aria-label="Clients">
+            <h2>Clients</h2>
+            <ul>
+              {clients.map((l) => (
+                <li key={l.label}>
+                  <Link to={l.to}>{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {hasVisit && (
+            <div>
+              <h2>Visit</h2>
+              <ul>
+                {(b.area || b.address) && (
+                  <li className="hc-footer-place">
+                    <span>{b.address || b.area}</span>
+                    {b.address && b.area && <span className="hc-footer-sub">{b.area}</span>}
+                  </li>
+                )}
+                {b.hours && (
+                  <li className="hc-footer-place">
+                    <span className="hc-footer-sub">Hours</span>
+                    <span>{b.hours}</span>
+                  </li>
+                )}
                 {b.phone && (
                   <li>
                     <a href={telHref(b.phone)}>
@@ -88,43 +124,7 @@ const SiteFooter = ({ business: given }) => {
               </ul>
             </div>
           )}
-
-          <nav aria-label="Explore">
-            <h2>Explore</h2>
-            <ul>
-              {explore.map((l) => (
-                <li key={l.to}>
-                  <Link to={l.to}>{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {policies.length > 0 && (
-            <nav aria-label="Policies">
-              <h2>Policies</h2>
-              <ul>
-                {policies.map((p) => (
-                  <li key={p.to}>
-                    <Link to={p.to}>{p.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
         </div>
-
-        {b.socials?.length > 0 && (
-          <ul className="hc-footer-socials" aria-label={`${b.name} on social media`}>
-            {b.socials.map((s) => (
-              <li key={s.key}>
-                <a href={s.url} className="hc-social" target="_blank" rel="noopener noreferrer">
-                  <Icon name={s.icon} label={s.label} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
 
         {b.name && (
           <p className="hc-footer-wordmark" aria-hidden="true">
@@ -136,7 +136,25 @@ const SiteFooter = ({ business: given }) => {
           <span>
             © {new Date().getFullYear()} {b.name}
           </span>
-          <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'}>{isAuthenticated ? 'Staff dashboard' : 'Staff sign in'}</Link>
+          <nav aria-label="Legal" className="hc-footer-legal">
+            {legal.map((p) => (
+              <Link key={p.to} to={p.to}>
+                {p.label}
+              </Link>
+            ))}
+            <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'}>{isAuthenticated ? 'Staff dashboard' : 'Staff sign in'}</Link>
+          </nav>
+          {b.socials?.length > 0 && (
+            <ul className="hc-footer-socials" aria-label={`${b.name} on social media`}>
+              {b.socials.map((s) => (
+                <li key={s.key}>
+                  <a href={s.url} className="hc-social" target="_blank" rel="noopener noreferrer">
+                    <Icon name={s.icon} label={s.label} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </footer>

@@ -3,6 +3,7 @@
    marquees or logo strips (the home hero slider is the one carousel,
    D-023): every section shows real data or is not rendered at all.
    ============================================================ */
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Section, SectionHead } from './ui/Section'
 import Button from './ui/Button'
@@ -157,19 +158,52 @@ export const ProcessSteps = ({ eyebrow, title, lead, steps, tone }) => (
   </Section>
 )
 
-/* Consented, published testimonials only. Not rendered when there are none. */
-export const Testimonials = ({ eyebrow, title, quotes }) => {
-  if (!quotes?.length) return null
+/*
+ * Consented, published testimonials only, as in the approved prototype: one
+ * large centred quote that rotates every 6.5s with dots to choose. It pauses
+ * on hover and focus, never moves under reduced motion, and is not rendered
+ * when there are no published reviews.
+ */
+export const Testimonials = ({ eyebrow = 'What clients say', quotes }) => {
+  const n = quotes?.length || 0
+  const [i, setI] = useState(0)
+  const [paused, setPaused] = useState(false)
+  useEffect(() => {
+    if (n < 2 || paused || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
+    const t = setInterval(() => setI((v) => (v + 1) % n), 6500)
+    return () => clearInterval(t)
+  }, [n, paused])
+  if (!n) return null
+  const q = quotes[i % n]
   return (
-    <Section tone="alt">
-      <SectionHead eyebrow={eyebrow} title={title} />
-      <div className="hc-grid hc-grid--2">
-        {quotes.map((q, i) => (
-          <figure key={`${q.name}-${i}`} className="hc-quote" data-reveal="">
-            <blockquote>{q.text}</blockquote>
-            <figcaption>{[q.name, q.role || q.location].filter(Boolean).join(', ')}</figcaption>
-          </figure>
-        ))}
+    <Section tone="alt" className="hc-section--voice" labelledBy="voice-title">
+      <div
+        className="hc-voice"
+        data-reveal=""
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}>
+        <h2 id="voice-title" className="hc-eyebrow">
+          {eyebrow}
+        </h2>
+        <figure key={i} className="hc-voice-quote" aria-live="polite">
+          <blockquote>“{q.text}”</blockquote>
+          <figcaption>{[q.name, q.role || q.location].filter(Boolean).join(', ')}</figcaption>
+        </figure>
+        {n > 1 && (
+          <div className="hc-voice-dots" role="group" aria-label="Choose a review">
+            {quotes.map((r, k) => (
+              <button
+                key={`${r.name}-${k}`}
+                type="button"
+                aria-label={`Review ${k + 1} of ${n}`}
+                aria-pressed={k === i % n}
+                onClick={() => setI(k)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </Section>
   )

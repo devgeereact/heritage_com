@@ -418,7 +418,12 @@ a.hc-service-card:hover .hc-service-card-foot .hc-icon { transform: translateX(4
 .hc-footer-name { font-family: var(--hc-font-serif); font-size: var(--hc-text-2xl); letter-spacing: -0.01em; color: var(--hc-text); }
 .hc-footer-text { margin-top: var(--hc-space-2); color: var(--hc-text-muted); }
 .hc-footer-cta { margin-top: var(--hc-space-5); }
-.hc-footer-socials { display: flex; flex-wrap: wrap; gap: var(--hc-space-2); margin-top: var(--hc-space-6); }
+.hc-footer-socials { display: flex; flex-wrap: wrap; gap: var(--hc-space-2); list-style: none; margin: 0; padding: 0; }
+.hc-footer-socials li { min-height: 0; }
+.hc-footer-legal { display: flex; flex-wrap: wrap; gap: var(--hc-space-2) var(--hc-space-5); }
+.hc-footer li.hc-footer-place { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: var(--hc-space-2) 0; color: var(--hc-text); }
+.hc-footer-sub { font-size: var(--hc-text-xs); color: var(--hc-text-muted); }
+.hc-footer-brand .hc-footer-text { max-width: 34ch; }
 .hc-footer .hc-social { justify-content: center; min-width: var(--hc-touch); border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-chip); text-decoration: none; }
 .hc-footer .hc-social:hover { border-color: var(--hc-accent); color: var(--hc-accent-text); }
 .hc-footer-wordmark {

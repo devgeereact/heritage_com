@@ -150,14 +150,11 @@ const HomePage = () => {
 
       {work.length > 0 && (
         <Section tone="alt" labelledBy="home-work">
-          <div className="hc-head-row">
-            <SectionHead
-              id="home-work"
-              eyebrow="Our work"
-              title="Recent pieces from the workroom"
-              lead="Open a piece to see the garment, the cloth and the photographs.">
-              <MoreLink to="/work">See all work</MoreLink>
-            </SectionHead>
+          <SectionHead
+            id="home-work"
+            eyebrow="Selected work"
+            title="Recent pieces from the workroom"
+            lead="Open a piece to see the garment, the cloth and the photographs.">
             {workServices.length > 1 && (
               <div className="hc-chip-group" role="group" aria-label="Filter work by service">
                 <button type="button" className="hc-chip" aria-pressed={workFilter === ''} onClick={() => setWorkFilter('')}>
@@ -170,7 +167,7 @@ const HomePage = () => {
                 ))}
               </div>
             )}
-          </div>
+          </SectionHead>
           <div className="hc-grid hc-grid--3" aria-live="polite">
             {shownWork.map((w) => (
               <WorkCard
@@ -181,6 +178,10 @@ const HomePage = () => {
                 to={`/work/${w.slug}`}
               />
             ))}
+          </div>
+          <div className="hc-section-foot">
+            <p>Each piece here was cut to one person&apos;s measurements.</p>
+            <MoreLink to="/work">See all work</MoreLink>
           </div>
         </Section>
       )}
@@ -197,7 +198,7 @@ const HomePage = () => {
       {d.about && (
         <Section tone="alt" labelledBy="home-about">
           <div className={`hc-pagetop ${aboutImg ? 'hc-pagetop--media' : ''}`.trim()}>
-            <SectionHead id="home-about" eyebrow="About" title={d.about.headline} lead={d.about.intro || undefined}>
+            <SectionHead id="home-about" eyebrow="About" title={d.about.headline} lead={d.about.intro || undefined} split={false}>
               <MoreLink to="/about">More about me</MoreLink>
             </SectionHead>
             {aboutImg && <HcImage {...aboutImg} sizes="(min-width: 1024px) 58vw, 100vw" ratio="4 / 3" />}
@@ -207,7 +208,7 @@ const HomePage = () => {
 
       {shopOn && <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />}
 
-      <Testimonials eyebrow="In their words" title="What clients say" quotes={quotes} />
+      <Testimonials eyebrow="What clients say" quotes={quotes} />
 
       {faqs.length > 0 && (
         <Section tone="paper" labelledBy="home-faqs">
@@ -216,7 +217,8 @@ const HomePage = () => {
               id="home-faqs"
               eyebrow="Before you ask"
               title="Questions people ask first"
-              lead="Anything else, send a message and I will get back to you.">
+              lead="Anything else, send a message and I will get back to you."
+              split={false}>
               {cfg?.nav?.faqs && <MoreLink to="/faqs">All questions</MoreLink>}
             </SectionHead>
             <div className="hc-faq-list">

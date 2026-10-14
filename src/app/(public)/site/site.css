@@ -200,6 +200,13 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 
 .hc-head { max-width: 46rem; margin-bottom: clamp(var(--hc-space-6), 5vw, var(--hc-space-8)); }
 .hc-head--center { margin-left: auto; margin-right: auto; text-align: center; }
+/* Split head (prototype): eyebrow and title left, lead and links right, bottom-aligned. */
+.hc-head--split { max-width: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--hc-space-6) var(--hc-space-8); align-items: end; }
+.hc-head--split .hc-head-side { display: grid; gap: var(--hc-space-4); justify-items: start; }
+.hc-head--split .hc-head-side > * { margin: 0; }
+.hc-head--split .hc-lead { max-width: 46ch; }
+.hc-head--split .hc-card-link { margin-top: 0; }
+@media (max-width: 860px) { .hc-head--split { grid-template-columns: minmax(0, 1fr); gap: var(--hc-space-4); } }
 .hc-head h1, .hc-head h2 { margin-top: var(--hc-space-4); }
 .hc-head p { margin-top: var(--hc-space-4); }
 .hc-head .hc-lead { color: var(--hc-text-muted); }
@@ -438,6 +445,22 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-glance dt { color: var(--hc-text-muted); }
 .hc-glance dd { color: var(--hc-text); }
 .hc-price-card .hc-actions { width: 100%; }
+
+/* Testimonial: one large centred quote with dots (prototype). */
+.hc-section--voice { border-block: 1px solid var(--hc-divider); }
+.hc-voice { max-width: 55rem; margin: 0 auto; text-align: center; }
+.hc .hc-voice .hc-eyebrow { justify-content: center; font-family: var(--hc-font-sans); font-size: var(--hc-text-xs); font-weight: var(--hc-w-semibold); line-height: 1.4; letter-spacing: 0.16em; color: var(--hc-accent-text); }
+.hc-voice-quote { margin: var(--hc-space-6) 0 0; animation: hc-fade-up 500ms var(--hc-ease) both; }
+.hc-voice-quote blockquote { margin: 0; font-family: var(--hc-font-serif); font-size: clamp(var(--hc-text-xl), 1.1rem + 2vw, 2.6rem); line-height: 1.25; letter-spacing: -0.015em; color: var(--hc-text); text-wrap: balance; }
+.hc-voice-quote figcaption { margin-top: var(--hc-space-5); font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); color: var(--hc-text-muted); }
+.hc-voice-dots { display: flex; justify-content: center; gap: var(--hc-space-2); margin-top: var(--hc-space-6); }
+.hc-voice-dots button { width: 28px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--hc-divider); cursor: pointer; position: relative; }
+.hc-voice-dots button::after { content: ""; position: absolute; inset: -20px -4px; }
+.hc-voice-dots button[aria-pressed="true"] { background: var(--hc-accent); }
+
+/* Note and link under a grid (home work). */
+.hc-section-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--hc-space-4); margin-top: var(--hc-space-7); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
+.hc-section-foot .hc-card-link { margin-top: 0; }
 
 /* Price line on a service card. */
 .hc-service-card-meta { font-size: var(--hc-text-sm); font-weight: var(--hc-w-medium); color: var(--hc-text); font-variant-numeric: tabular-nums; }
