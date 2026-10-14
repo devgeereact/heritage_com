@@ -52,7 +52,7 @@ const SignUp = () => {
           </Col>
           <Col xxl={5} className="d-none d-xxl-flex">
             <Card className="h-100 mb-0 overflow-hidden border-0">
-              <BrandSidePanel heading="Cut. Stitch. Ship." body="Run a heritage menswear brand the way it deserves — measurements, fabric, orders and money, all under one roof." />
+              <BrandSidePanel />
             </Card>
           </Col>
         </Row>

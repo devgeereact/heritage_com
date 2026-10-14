@@ -144,6 +144,8 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .hc-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .hc-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Four cards in a three-column grid would leave one alone: show four across. */
+@media (min-width: 992px) { .hc-grid--3:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 991px) { .hc-grid--3, .hc-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .hc-grid--2, .hc-grid--3, .hc-grid--4 { grid-template-columns: minmax(0, 1fr); } }
 
@@ -249,6 +251,11 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 }
 .hc-card-link:hover { text-decoration-thickness: 2px; }
 
+/* Pricing note beside "What's included" on a service page. */
+.hc-price-card { display: flex; flex-direction: column; align-items: flex-start; gap: var(--hc-space-4); padding: var(--hc-space-6); background: var(--hc-surface-raised); border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-card); }
+.hc-price-card-note { font-family: var(--hc-font-serif); font-size: var(--hc-text-xl); line-height: 1.3; color: var(--hc-text); }
+.hc-checklist li > .hc-icon { color: var(--hc-accent-text); }
+
 .hc-pillar { border-top: 1px solid var(--hc-divider); padding-top: var(--hc-space-4); }
 .hc-pillar h4 { font-size: var(--hc-text-md); }
 .hc-pillar p { margin-top: var(--hc-space-2); color: var(--hc-text-body); }
@@ -321,7 +328,16 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-product:hover .hc-product-name { text-decoration: underline; text-underline-offset: 4px; }
 
 /* ---------------------------------------------------------- journal cards */
-.hc-journal-card { display: flex; flex-direction: column; gap: var(--hc-space-3); }
+.hc-journal-card {
+  position: relative; display: flex; flex-direction: column; gap: var(--hc-space-3); height: 100%;
+  padding: var(--hc-space-5); background: var(--hc-surface-raised);
+  border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-card);
+  transition: border-color 450ms var(--hc-ease), transform 450ms var(--hc-ease-emph);
+}
+.hc-journal-card:hover { border-color: var(--hc-accent); transform: translateY(-4px); }
+.hc-journal-card > .hc-journal-media { margin: calc(var(--hc-space-5) * -1) calc(var(--hc-space-5) * -1) var(--hc-space-2); border-radius: var(--hc-radius-card) var(--hc-radius-card) 0 0; }
+.hc-journal-card h3 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.hc-journal-card .hc-card-link { position: relative; z-index: 1; margin-top: auto; }
 .hc-journal-media { position: relative; display: block; aspect-ratio: 3 / 2; background: var(--hc-surface-alt); border-radius: var(--hc-radius-card); overflow: hidden; }
 .hc-journal-cat {
   position: absolute; left: var(--hc-space-3); bottom: var(--hc-space-3);
@@ -352,6 +368,7 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 /* ---------------------------------------------------------- closing action band */
 .hc-cta-band { text-align: center; }
 .hc-cta-band .hc-eyebrow { justify-content: center; }
+.hc-cta-band .hc-actions { justify-content: center; margin-top: var(--hc-space-6); }
 .hc-cta-band h2 { color: var(--hc-text); max-width: 16ch; margin: var(--hc-space-4) auto 0; font-size: clamp(var(--hc-text-3xl), 1.4rem + 4vw, 5rem); line-height: 1.02; }
 .hc-cta-band p { max-width: 48ch; margin: var(--hc-space-5) auto 0; color: var(--hc-text-muted); font-size: var(--hc-text-md); }
 .hc-cta-actions { display: flex; gap: var(--hc-space-3); justify-content: center; flex-wrap: wrap; margin-top: var(--hc-space-6); }
@@ -363,6 +380,11 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-section--closing-media .hc-cta-band h2 { color: var(--hc-on-image); }
 .hc-section--closing-media .hc-cta-band p { color: var(--hc-on-image-muted); }
 
+/* CMS page header: a band with a divider; the photograph has card corners. */
+.hc-section--pagehead { padding-top: clamp(var(--hc-space-8), 8vw, var(--hc-space-10)); border-bottom: 1px solid var(--hc-divider); }
+.hc-section--pagehead .hc-h1 { font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
+.hc-pagetop-media { border-radius: var(--hc-radius-card); overflow: hidden; }
+
 /* Image band beside a heading block (home company orders). */
 .hc-band-media { border-radius: var(--hc-radius-card); overflow: hidden; }
 @media (min-width: 1024px) {
@@ -371,7 +393,7 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 }
 
 /* ---------------------------------------------------------- contact rows */
-.hc-contact-list { list-style: none; padding: 0; margin: var(--hc-space-5) 0 0; }
+.hc .hc-contact-list { list-style: none; padding: 0; margin: var(--hc-space-5) 0 0; }
 .hc-contact-list li { display: flex; gap: var(--hc-space-4); align-items: center; min-height: 56px; padding: var(--hc-space-3) 0; border-bottom: 1px solid var(--hc-divider); }
 .hc-contact-list li:first-child { border-top: 1px solid var(--hc-divider); }
 .hc-contact-ico { width: var(--hc-touch); height: var(--hc-touch); flex: 0 0 var(--hc-touch); display: flex; align-items: center; justify-content: center; color: var(--hc-text); font-size: var(--hc-text-lg); }

@@ -28,7 +28,7 @@ const SignIn = () => {
                   <AuthHeading
                     kicker="HeritOS · sign in"
                     title="Welcome back."
-                    sub="The operating system behind Herit Clothing — tailoring, catalogue, orders, stock and money, in one place."
+                    sub="Sign in to run Herit Clothing: jobs, clients, appointments, payments and the website."
                   />
                   <div className="mb-3">
                     <LoginFrom />

@@ -1,16 +1,10 @@
+/** Heading block for the staff auth screens: amber-rule eyebrow, Fraunces title, muted line. */
 const AuthHeading = ({ kicker, title, sub }) => (
-  <div className="mb-4">
-    {kicker && (
-      <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: '0.72rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--herit-ink-muted)', marginBottom: '0.4rem' }}>
-        {kicker}
-      </div>
-    )}
-    <h1 style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 600, fontSize: 'clamp(1.7rem, 2.6vw, 2.1rem)', letterSpacing: '-0.02em', lineHeight: 1.1, position: 'relative', display: 'inline-block', paddingBottom: '0.25rem' }}>
-      {title}
-      <span aria-hidden="true" style={{ position: 'absolute', left: 0, bottom: '-0.25rem', width: '2rem', height: '2px', background: 'var(--herit-accent)', borderRadius: '2px' }} />
-    </h1>
-    {sub && <p className="text-muted mt-3 mb-0" style={{ maxWidth: '28rem' }}>{sub}</p>}
+  <div className="hc-auth-heading">
+    {kicker && <div className="hc-auth-kicker">{kicker}</div>}
+    <h1>{title}</h1>
+    {sub && <p>{sub}</p>}
   </div>
-);
+)
 
-export default AuthHeading;
+export default AuthHeading

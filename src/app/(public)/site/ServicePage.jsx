@@ -52,22 +52,31 @@ const ServicePage = () => {
         </Section>
       )}
 
-      {s.includes?.length > 0 && (
-        <Section tone="alt" labelledBy="svc-includes">
-          <SectionHead id="svc-includes" title="What's included" />
-          <ul className="hc-checklist">
-            {s.includes.map((line) => (
-              <li key={line}>
-                <Icon name="check" /> <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {s.price_note && (
-        <Section labelledBy="svc-price">
-          <SectionHead id="svc-price" title="Pricing" lead={s.price_note} />
+      {(s.includes?.length > 0 || s.price_note) && (
+        <Section tone="paper" aria-label="What's included and pricing">
+          <div className="hc-split">
+            {s.includes?.length > 0 && (
+              <div>
+                <SectionHead id="svc-includes" eyebrow="The service" title="What's included" />
+                <ul className="hc-checklist">
+                  {s.includes.map((line) => (
+                    <li key={line}>
+                      <Icon name="check" /> <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {s.price_note && (
+              <div className="hc-price-card" data-reveal="">
+                <p className="hc-eyebrow">Pricing</p>
+                <p className="hc-price-card-note">{s.price_note}</p>
+                <Button to={`/contact?service=${encodeURIComponent(s.slug)}`} iconEnd="arrow-right">
+                  Ask for a quote
+                </Button>
+              </div>
+            )}
+          </div>
         </Section>
       )}
 

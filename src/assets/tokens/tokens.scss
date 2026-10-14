@@ -31,6 +31,12 @@ html[data-hc-public],
   color-scheme: dark;
 }
 
+/* An ink panel anywhere (sign-in side panel): the site palette, any theme. */
+.hc-ink {
+  @include hc-colours($hc-site);
+  color-scheme: dark;
+}
+
 .hc .hc-paper,
 .hc-paper {
   @include hc-colours($hc-paper);

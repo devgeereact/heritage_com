@@ -46,7 +46,7 @@ const ResetPassword = () => {
           </Col>
           <Col xxl={5} className="d-none d-xxl-flex">
             <Card className="h-100 mb-0 overflow-hidden border-0">
-              <BrandSidePanel heading="Back on the floor." body="A quick reset and you’re back in HeritOS — measurements, fabric and the day’s orders waiting for you." />
+              <BrandSidePanel heading="Back to the workroom." />
             </Card>
           </Col>
         </Row>

@@ -29,6 +29,51 @@ body,
 .page-content { background-color: var(--hc-surface-alt); }
 .card { background-color: var(--hc-surface); }
 
+/* ---- footer and alerts on the token palette ------------------------------ */
+.footer { background: transparent; border-top: 1px solid var(--hc-divider); color: var(--hc-text-muted); font-size: var(--hc-text-xs); }
+.footer .text-danger { color: var(--hc-accent-text) !important; }
+.alert { border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-card); color: var(--hc-text); }
+.alert-warning { background: var(--hc-warning-tint); border-color: var(--hc-divider); border-left: 3px solid var(--hc-warning); }
+.alert-info, .alert-secondary, .alert-light { background: var(--hc-surface-raised); border-left: 3px solid var(--hc-control-border); }
+.alert-success { background: var(--hc-success-tint); border-left: 3px solid var(--hc-success); }
+.alert-danger { background: var(--hc-danger-tint); border-left: 3px solid var(--hc-danger); }
+
+/* ---- staff auth screens (sign in, reset, lock, sign up) ----------------- */
+.hc-auth-kicker {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  font-family: var(--hc-font-sans); font-size: 0.6875rem; font-weight: var(--hc-w-semibold);
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--hc-accent-text);
+}
+.hc-auth-kicker::before { content: ""; width: 28px; height: 1px; background: currentColor; }
+.hc-auth-heading { margin-bottom: 2rem; }
+.hc-auth-heading h1 {
+  margin: 1rem 0 0; font-family: var(--hc-font-serif); font-weight: var(--hc-w-medium);
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.75rem); line-height: 1.05; letter-spacing: -0.03em; color: var(--hc-text);
+}
+.hc-auth-heading p { margin: 1rem 0 0; max-width: 28rem; color: var(--hc-text-muted); }
+.hc-auth-panel {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+  height: 100%; padding: 3rem; overflow: hidden; isolation: isolate;
+  background: radial-gradient(ellipse at 80% 10%, var(--hc-accent-tint), var(--hc-surface) 60%);
+  color: var(--hc-text-body);
+}
+.hc-auth-panel-top { display: flex; flex-direction: column; gap: 1.25rem; align-items: flex-start; }
+.hc-auth-panel-logo { height: 52px; width: auto; }
+.hc-auth-panel-copy h2 {
+  margin: 0; max-width: 14ch; font-family: var(--hc-font-serif); font-weight: var(--hc-w-medium); font-style: italic;
+  font-size: clamp(2.25rem, 1.6rem + 1.6vw, 3.25rem); line-height: 1.02; letter-spacing: -0.03em; color: var(--hc-text);
+}
+.hc-auth-panel-copy p { margin: 1.25rem 0 0; max-width: 26rem; line-height: 1.7; color: var(--hc-text-muted); }
+.hc-auth-panel-foot { position: relative; }
+.hc-auth-panel-foot .hc-auth-kicker { color: var(--hc-text-muted); }
+.hc-auth-panel-foot .hc-auth-kicker::before { display: none; }
+.hc-auth-panel-wordmark {
+  position: absolute; right: -0.5rem; bottom: -3.5rem; z-index: -1;
+  font-family: var(--hc-font-serif); font-size: 11rem; line-height: 1; letter-spacing: -0.04em;
+  color: transparent; -webkit-text-stroke: 1px var(--hc-divider); user-select: none; pointer-events: none;
+}
+.auth-logo .logo-lg, .auth-logo img { height: 40px; width: auto; }
+
 /* ---- amber is a fill, never text on light surfaces ---------------------- */
 .text-primary,
 .link-primary { color: var(--hc-accent-text) !important; }

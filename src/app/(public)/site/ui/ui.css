@@ -298,7 +298,7 @@ a.hc-service-card:hover .hc-service-card-foot .hc-icon { transform: translateX(4
   transition: border-color var(--hc-dur-ui) var(--hc-ease);
 }
 .hc textarea.hc-input { min-height: 128px; resize: vertical; }
-.hc select.hc-input { appearance: auto; }
+.hc select.hc-input { appearance: auto; height: var(--hc-control-h); padding-block: 0; }
 .hc .hc-input::placeholder { color: var(--hc-text-muted); opacity: 1; }
 .hc .hc-input:hover { border-color: var(--hc-text); }
 .hc .hc-input:focus-visible { outline: 2px solid var(--hc-focus); outline-offset: 2px; border-color: var(--hc-text); }
