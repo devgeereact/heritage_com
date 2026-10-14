@@ -177,6 +177,8 @@ Fixed during the check: a 1px line under the transparent header (its gradient re
 
 NOT TESTED: reduced motion on the new hero, keyboard and swipe on a real phone, screen readers, every other public page and admin screen in both themes, tablet widths, real photographs, production.
 
+Second pass, 14 October 2026, same setup at 1440px: swept `/services`, `/services/:slug`, `/work`, `/contact`, `/track`, `/journal`, `/auth/sign-in`, `/website` and a job page. Found and fixed: closing-band buttons touching their heading (`Actions` had no top margin inside `.hc-cta-band`), four service cards leaving one alone in a three-column grid, sparse "What's included" and "Pricing" bands, unstyled journal cards, the select box shorter than the inputs, the old patterned sign-in panel, the tan Bootstrap warning alert and the admin footer in link colour. Rechecked after the fix: service page, sign-in and journal cards PASS. Lint 0 errors, check-tokens, build and check-docs PASS.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

@@ -12,6 +12,7 @@ Changed
 - Home hero is a full-screen photograph slider: home page first, then up to four services with a photograph; Ken Burns crossfade, word-by-word headline, progress bars, arrows, keys and swipe, paused on hover, focus and hidden tabs, static under reduced motion. The header floats transparent over it on the home page.
 - Service cards are single links with equal heights and an aligned footer row; work cards carry the caption over the photograph; the closing band sits over a dimmed photograph; the footer gains the primary action and a large outline wordmark; eyebrows become small capitals with a leading amber rule.
 - Admin: ivory page with white cards (ink and charcoal in dark), 64px topbar, 248px sidebar with an amber-tint active item, Fraunces page titles, tinted status chips, 14px cards, and four summary tiles on Today built from the counts `today.php` already returns.
+- Second pass, 14 October 2026: staff sign-in, reset, lock and sign-up screens use the new heading and an ink side panel (no hard-coded colours, IBM Plex Mono or pattern; copy without em dashes); CMS page headers get a divider band and a rounded photograph; the service page shows "What's included" beside a pricing card on an ivory band; journal cards are cards; four cards in a three-column grid show four across; admin alerts and the admin footer use the token palette.
 
 Fixed
 
