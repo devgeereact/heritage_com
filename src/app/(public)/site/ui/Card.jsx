@@ -27,7 +27,11 @@ export const ServiceCard = ({ image, title, summary, to, linkLabel = 'View servi
   const body = (
     <>
       <span className="hc-service-card-media-wrap">
-        {image ? <HcImage {...image} ratio="4 / 5" className="hc-service-card-media" /> : <span className="hc-service-card-media hc-service-card-media--empty" aria-hidden="true" />}
+        {image ? (
+          <HcImage {...image} ratio="4 / 5" className="hc-service-card-media" />
+        ) : (
+          <span className="hc-service-card-media hc-service-card-media--empty" aria-hidden="true" />
+        )}
       </span>
       <span className="hc-service-card-body">
         <h3 className="hc-service-card-title">{title}</h3>
@@ -40,9 +44,15 @@ export const ServiceCard = ({ image, title, summary, to, linkLabel = 'View servi
       </span>
     </>
   )
-  return to
-    ? <Link to={to} className="hc-service-card" data-reveal="">{body}</Link>
-    : <article className="hc-service-card" data-reveal="">{body}</article>
+  return to ? (
+    <Link to={to} className="hc-service-card" data-reveal="">
+      {body}
+    </Link>
+  ) : (
+    <article className="hc-service-card" data-reveal="">
+      {body}
+    </article>
+  )
 }
 
 /** Finished work: 4:5 photograph with the title and the fabric or fit line over a soft scrim. The whole card is one link. */

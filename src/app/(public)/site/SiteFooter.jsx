@@ -55,7 +55,9 @@ const SiteFooter = ({ business: given }) => {
                 {b.hours && <p className="hc-footer-text">{b.hours}</p>}
               </>
             )}
-            <Button to={primary.to} iconEnd="arrow-right" className="hc-footer-cta">{primary.short || primary.label}</Button>
+            <Button to={primary.to} iconEnd="arrow-right" className="hc-footer-cta">
+              {primary.short || primary.label}
+            </Button>
           </div>
 
           {hasContact && (
@@ -124,7 +126,11 @@ const SiteFooter = ({ business: given }) => {
           </ul>
         )}
 
-        {b.name && <p className="hc-footer-wordmark" aria-hidden="true">{String(b.name).split(' ')[0]}</p>}
+        {b.name && (
+          <p className="hc-footer-wordmark" aria-hidden="true">
+            {String(b.name).split(' ')[0]}
+          </p>
+        )}
 
         <div className="hc-footer-bottom">
           <span>

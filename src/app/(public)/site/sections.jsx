@@ -3,21 +3,25 @@
    marquees or logo strips (the home hero slider is the one carousel,
    D-023): every section shows real data or is not rendered at all.
    ============================================================ */
-import { Link } from 'react-router-dom';
-import { Section, SectionHead } from './ui/Section';
-import Button from './ui/Button';
-import Icon from './ui/Icon';
-import HcImage from './ui/HcImage';
+import { Link } from 'react-router-dom'
+import { Section, SectionHead } from './ui/Section'
+import Button from './ui/Button'
+import Icon from './ui/Icon'
+import HcImage from './ui/HcImage'
 
-export { SectionHead };
+export { SectionHead }
 
 /* Published pieces from the live catalogue (shop only). Hidden when empty. */
 export const Lookbook = ({ eyebrow, title, products, formatNgn }) => {
-  if (!products?.length) return null;
+  if (!products?.length) return null
   return (
     <Section>
       <SectionHead eyebrow={eyebrow} title={title}>
-        <p><Link to="/shop" className="hc-card-link">View all pieces <Icon name="arrow-right" /></Link></p>
+        <p>
+          <Link to="/shop" className="hc-card-link">
+            View all pieces <Icon name="arrow-right" />
+          </Link>
+        </p>
       </SectionHead>
       <div className="hc-grid hc-grid--4">
         {products.map((p) => (
@@ -32,8 +36,8 @@ export const Lookbook = ({ eyebrow, title, products, formatNgn }) => {
         ))}
       </div>
     </Section>
-  );
-};
+  )
+}
 
 /* Numbered steps with the amber rule that fills as each step is revealed. */
 export const ProcessSteps = ({ eyebrow, title, lead, steps, tone }) => (
@@ -48,11 +52,11 @@ export const ProcessSteps = ({ eyebrow, title, lead, steps, tone }) => (
       ))}
     </ol>
   </Section>
-);
+)
 
 /* Consented, published testimonials only. Not rendered when there are none. */
 export const Testimonials = ({ eyebrow, title, quotes }) => {
-  if (!quotes?.length) return null;
+  if (!quotes?.length) return null
   return (
     <Section tone="alt">
       <SectionHead eyebrow={eyebrow} title={title} />
@@ -65,12 +69,12 @@ export const Testimonials = ({ eyebrow, title, quotes }) => {
         ))}
       </div>
     </Section>
-  );
-};
+  )
+}
 
 /* Published journal posts only. Not rendered when there are none. */
 export const JournalGrid = ({ eyebrow, title, posts }) => {
-  if (!posts?.length) return null;
+  if (!posts?.length) return null
   return (
     <Section>
       <SectionHead eyebrow={eyebrow} title={title} />
@@ -80,15 +84,17 @@ export const JournalGrid = ({ eyebrow, title, posts }) => {
             {p.cat && <span className="hc-journal-date">{p.cat}</span>}
             <div className="hc-journal-body">
               {p.date && <span className="hc-journal-date">{p.date}</span>}
-              <h3 className="hc-h4"><Link to={p.to || `/journal/${p.slug}`}>{p.title}</Link></h3>
+              <h3 className="hc-h4">
+                <Link to={p.to || `/journal/${p.slug}`}>{p.title}</Link>
+              </h3>
               {p.excerpt && <p>{p.excerpt}</p>}
             </div>
           </article>
         ))}
       </div>
     </Section>
-  );
-};
+  )
+}
 
 /* Closing action: one primary, one secondary, over an optional dimmed photograph. */
 export const ClosingAction = ({ eyebrow, title, text, primary, secondary, image }) => (
@@ -103,9 +109,17 @@ export const ClosingAction = ({ eyebrow, title, text, primary, secondary, image 
       <h2 className="hc-h2">{title}</h2>
       {text && <p>{text}</p>}
       <div className="hc-cta-actions">
-        {primary && <Button to={primary.to} iconEnd="arrow-right">{primary.label}</Button>}
-        {secondary && <Button to={secondary.to} variant="secondary">{secondary.label}</Button>}
+        {primary && (
+          <Button to={primary.to} iconEnd="arrow-right">
+            {primary.label}
+          </Button>
+        )}
+        {secondary && (
+          <Button to={secondary.to} variant="secondary">
+            {secondary.label}
+          </Button>
+        )}
       </div>
     </div>
   </Section>
-);
+)

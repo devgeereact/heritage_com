@@ -1,25 +1,30 @@
-import SiteLayout from './SiteLayout';
-import heritApi from '@/helpers/heritApi';
-import { useCatalogue, formatNgn } from './products';
-import { useBlog, useTestimonials } from './content';
-import { useShopEnabled } from './storeConfig';
-import { useBusiness } from './business';
-import { useSiteConfig, useSiteResource, previewItem, toImage, clip, loadSiteConfig } from './siteData';
-import useActions from './ui/useActions';
-import Hero from './ui/Hero';
-import { Section, SectionHead } from './ui/Section';
-import { ServiceCard, WorkCard } from './ui/Card';
-import HcImage from './ui/HcImage';
-import Icon from './ui/Icon';
-import { MoreLink, Rich } from './cmsBlocks';
-import { Lookbook, Testimonials, JournalGrid, ClosingAction } from './sections';
+import SiteLayout from './SiteLayout'
+import heritApi from '@/helpers/heritApi'
+import { useCatalogue, formatNgn } from './products'
+import { useBlog, useTestimonials } from './content'
+import { useShopEnabled } from './storeConfig'
+import { useBusiness } from './business'
+import { useSiteConfig, useSiteResource, previewItem, toImage, clip, loadSiteConfig } from './siteData'
+import useActions from './ui/useActions'
+import Hero from './ui/Hero'
+import { Section, SectionHead } from './ui/Section'
+import { ServiceCard, WorkCard } from './ui/Card'
+import HcImage from './ui/HcImage'
+import Icon from './ui/Icon'
+import { MoreLink, Rich } from './cmsBlocks'
+import { Lookbook, Testimonials, JournalGrid, ClosingAction } from './sections'
 
 /** A published page, or null when it is not published (asked only when the config lists it). */
-const pageOrNull = (key, published) => (!published.includes(key) ? Promise.resolve(null)
-  : heritApi.site.page(key).then((r) => r?.page || null).catch((e) => {
-    if (e?.status === 404) return null;
-    throw e;
-  }));
+const pageOrNull = (key, published) =>
+  !published.includes(key)
+    ? Promise.resolve(null)
+    : heritApi.site
+        .page(key)
+        .then((r) => r?.page || null)
+        .catch((e) => {
+          if (e?.status === 404) return null
+          throw e
+        })
 
 /**
  * Home and the three pages it previews (company, how it works, about). In
@@ -27,16 +32,16 @@ const pageOrNull = (key, published) => (!published.includes(key) ? Promise.resol
  * published, as visitors would see it.
  */
 const loadHome = async (preview) => {
-  const published = (await loadSiteConfig()).pages || [];
+  const published = (await loadSiteConfig()).pages || []
   const [home, company, how, about] = await Promise.all([
     heritApi.site.home(),
     pageOrNull('company', published),
     pageOrNull('how_it_works', published),
     pageOrNull('about', published),
-  ]);
-  const page = preview ? await previewItem('page', { key: 'home' }) : home?.page || null;
-  return { ...home, page, company, how, about };
-};
+  ])
+  const page = preview ? await previewItem('page', { key: 'home' }) : home?.page || null
+  return { ...home, page, company, how, about }
+}
 
 /**
  * Home (BUILD-SPEC 4.7). Sections in a fixed order, each hidden while its
@@ -46,41 +51,55 @@ const loadHome = async (preview) => {
  * text only, with the business name as its headline.
  */
 const HomePage = () => {
-  const cfg = useSiteConfig();
-  const business = useBusiness();
-  const { primary, secondary } = useActions();
-  const res = useSiteResource(() => loadHome(false), () => loadHome(true));
-  const shopOn = useShopEnabled();
-  const { products } = useCatalogue();
-  const quotes = useTestimonials();
-  const journal = useBlog(3);
+  const cfg = useSiteConfig()
+  const business = useBusiness()
+  const { primary, secondary } = useActions()
+  const res = useSiteResource(
+    () => loadHome(false),
+    () => loadHome(true),
+  )
+  const shopOn = useShopEnabled()
+  const { products } = useCatalogue()
+  const quotes = useTestimonials()
+  const journal = useBlog(3)
 
-  const d = res.data || {};
-  const page = d.page;
-  const services = d.services || [];
-  const work = d.work || [];
-  const faqs = d.faqs || [];
-  const aboutImg = toImage(d.about?.hero);
-  const proof = [business.area, business.hours].filter(Boolean).join(' · ');
-  const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4);
-  const book = { to: primary.to, label: primary.label };
+  const d = res.data || {}
+  const page = d.page
+  const services = d.services || []
+  const work = d.work || []
+  const faqs = d.faqs || []
+  const aboutImg = toImage(d.about?.hero)
+  const proof = [business.area, business.hours].filter(Boolean).join(' · ')
+  const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4)
+  const book = { to: primary.to, label: primary.label }
 
   // Hero slides come from published content only (D-023): the home page
   // first, then up to four services that have a photograph.
   const slides = [
-    { label: 'Made to measure', eyebrow: business.area ? `Made to measure in ${business.area}` : 'Made to measure', title: page?.headline || business.name, lead: page?.intro, image: toImage(page?.hero), primary: book, secondary },
-    ...services.filter((s) => s.hero?.url).slice(0, 4).map((s) => ({
-      label: s.title,
-      eyebrow: 'What I make',
-      title: s.title,
-      lead: s.summary,
-      image: toImage(s.hero),
-      primary: { to: `/services/${s.slug}`, label: 'View service' },
-      secondary: { to: book.to, label: primary.short || primary.label },
-    })),
-  ];
-  const companyImg = toImage(d.company?.hero);
-  const closingImg = toImage(page?.hero);
+    {
+      label: 'Made to measure',
+      eyebrow: business.area ? `Made to measure in ${business.area}` : 'Made to measure',
+      title: page?.headline || business.name,
+      lead: page?.intro,
+      image: toImage(page?.hero),
+      primary: book,
+      secondary,
+    },
+    ...services
+      .filter((s) => s.hero?.url)
+      .slice(0, 4)
+      .map((s) => ({
+        label: s.title,
+        eyebrow: 'What I make',
+        title: s.title,
+        lead: s.summary,
+        image: toImage(s.hero),
+        primary: { to: `/services/${s.slug}`, label: 'View service' },
+        secondary: { to: book.to, label: primary.short || primary.label },
+      })),
+  ]
+  const companyImg = toImage(d.company?.hero)
+  const closingImg = toImage(page?.hero)
 
   return (
     <SiteLayout
@@ -89,8 +108,7 @@ const HomePage = () => {
         description: page?.seo_description || clip(page?.intro),
         image: page?.hero?.url,
         jsonld: cfg?.jsonld || undefined,
-      }}
-    >
+      }}>
       <Hero slides={slides} note={proof || undefined} />
 
       {page?.body && (
@@ -119,7 +137,13 @@ const HomePage = () => {
           </SectionHead>
           <div className="hc-grid hc-grid--3">
             {work.map((w) => (
-              <WorkCard key={w.slug} image={toImage(w.cover)} title={w.title} meta={[w.garment, w.fabric].filter(Boolean).join(' · ')} to={`/work/${w.slug}`} />
+              <WorkCard
+                key={w.slug}
+                image={toImage(w.cover)}
+                title={w.title}
+                meta={[w.garment, w.fabric].filter(Boolean).join(' · ')}
+                to={`/work/${w.slug}`}
+              />
             ))}
           </div>
         </Section>
@@ -155,9 +179,7 @@ const HomePage = () => {
         </Section>
       )}
 
-      {shopOn && (
-        <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />
-      )}
+      {shopOn && <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />}
 
       <Testimonials eyebrow="In their words" title="What clients say" quotes={quotes} />
 
@@ -167,8 +189,12 @@ const HomePage = () => {
           <div className="hc-faq-list">
             {faqs.map((f) => (
               <details key={f.id} className="hc-faq">
-                <summary>{f.question} <Icon name="chevron-down" /></summary>
-                <div className="hc-faq-a"><Rich html={f.answer} /></div>
+                <summary>
+                  {f.question} <Icon name="chevron-down" />
+                </summary>
+                <div className="hc-faq-a">
+                  <Rich html={f.answer} />
+                </div>
               </details>
             ))}
           </div>
@@ -187,7 +213,7 @@ const HomePage = () => {
         image={closingImg}
       />
     </SiteLayout>
-  );
-};
+  )
+}
 
-export default HomePage;
+export default HomePage

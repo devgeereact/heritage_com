@@ -298,10 +298,42 @@ const TodayPage = () => {
   const blockOf = (id) => blocks.find((x) => x.id === id) || { count: 0 }
   const tiles = data
     ? [
-        { id: 'due', label: 'Due this week', value: blockOf('due').count, sub: 'Promised in the next 7 days', icon: 'solar:clock-circle-bold', tone: 'bad', to: '/jobs?due=week' },
-        { id: 'ready', label: 'Ready to hand over', value: blockOf('ready').count, sub: 'Waiting for collection', icon: 'solar:bag-check-bold', tone: 'ok', to: '/jobs?stage=ready' },
-        { id: 'balances', label: 'Balances to collect', value: naira(data.balances?.total_balance || 0), sub: `${blockOf('balances').count} open job${blockOf('balances').count === 1 ? '' : 's'}`, icon: 'solar:wallet-money-bold', tone: 'amber', to: '/payments' },
-        { id: 'enquiries', label: 'Enquiries to answer', value: blockOf('enquiries').count, sub: 'New or due a follow-up', icon: 'solar:inbox-line-bold', tone: 'info', to: '/enquiries' },
+        {
+          id: 'due',
+          label: 'Due this week',
+          value: blockOf('due').count,
+          sub: 'Promised in the next 7 days',
+          icon: 'solar:clock-circle-bold',
+          tone: 'bad',
+          to: '/jobs?due=week',
+        },
+        {
+          id: 'ready',
+          label: 'Ready to hand over',
+          value: blockOf('ready').count,
+          sub: 'Waiting for collection',
+          icon: 'solar:bag-check-bold',
+          tone: 'ok',
+          to: '/jobs?stage=ready',
+        },
+        {
+          id: 'balances',
+          label: 'Balances to collect',
+          value: naira(data.balances?.total_balance || 0),
+          sub: `${blockOf('balances').count} open job${blockOf('balances').count === 1 ? '' : 's'}`,
+          icon: 'solar:wallet-money-bold',
+          tone: 'amber',
+          to: '/payments',
+        },
+        {
+          id: 'enquiries',
+          label: 'Enquiries to answer',
+          value: blockOf('enquiries').count,
+          sub: 'New or due a follow-up',
+          icon: 'solar:inbox-line-bold',
+          tone: 'info',
+          to: '/enquiries',
+        },
       ]
     : []
 
