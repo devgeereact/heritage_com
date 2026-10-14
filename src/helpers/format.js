@@ -87,6 +87,16 @@ export const GARMENT_LABELS = {
   agbada: 'Agbada', kaftan: 'Kaftan', senator: 'Senator', suit: 'Suit', shirt: 'Shirt', trouser: 'Trousers', other: 'Other',
 };
 
+/** Up to two initials for a row avatar: "Ada Okafor" -> "AO". */
+export const initials = (name) =>
+  String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('') || '?';
+
 export const titleCase = (s) => String(s || '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 
 /** wa.me link from a Nigerian or international phone number. */

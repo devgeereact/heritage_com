@@ -5,7 +5,7 @@ import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
 import { useAuthContext } from '@/context/useAuthContext';
-import { naira } from '@/helpers/format';
+import { initials, naira } from '@/helpers/format';
 import LoadError from '@/components/herit/LoadError';
 import PageHeader from '@/components/herit/PageHeader';
 import StatusChip from '@/components/herit/StatusChip';
@@ -62,6 +62,7 @@ const ClientsPage = () => {
             </Card.Body>
           ) : rows.map((c) => (
             <Link key={c.id} to={`/clients/${c.id}`} className="hd-row">
+              <span className="hd-avatar" aria-hidden="true">{initials(c.name)}</span>
               <span className="hd-row-main">
                 <span className="hd-row-title d-block text-truncate">{c.name}{c.company_name ? ` · ${c.company_name}` : ''}</span>
                 <span className="hd-row-sub d-block text-truncate">{[c.client_ref, c.phone, c.email].filter(Boolean).join(' · ')}</span>

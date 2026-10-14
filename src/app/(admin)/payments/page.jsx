@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button, Card, Spinner } from 'react-bootstrap';
 import { Link, useSearchParams } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
-import { fmtDate, METHOD_LABELS, naira, STAGE_LABELS } from '@/helpers/format';
+import { fmtDate, lagosToday, METHOD_LABELS, naira, STAGE_LABELS } from '@/helpers/format';
 import LoadError from '@/components/herit/LoadError';
 import PageHeader from '@/components/herit/PageHeader';
 import RecordPaymentModal from '@/components/herit/RecordPaymentModal';
@@ -23,6 +24,21 @@ const PaymentsPage = () => {
   const [payFor, setPayFor] = useState(null);
   const [save, setSave] = useState({ state: null, error: '' });
   const [verifiedMethods, setVerifiedMethods] = useState(['cash']);
+  const [sum, setSum] = useState(null);
+
+  // Summary tiles: this month's verified net, balances due, entries to verify.
+  const loadSum = useCallback(async () => {
+    const today = lagosToday();
+    try {
+      const [month, due, verify] = await Promise.all([
+        heritApi.ledger.list({ from: `${today.slice(0, 8)}01`, to: today }),
+        heritApi.ledger.due(),
+        heritApi.ledger.list({ verified: 0 }),
+      ]);
+      setSum({ month: month?.verified_net || 0, due: due?.total || 0, dueJobs: (due?.items || []).length, verify: (verify?.entries || []).length });
+    } catch { setSum(null); }
+  }, []);
+  useEffect(() => { loadSum(); }, [loadSum]);
 
   const load = useCallback(async () => {
     setState((s) => (s === 'ready' ? s : 'loading'));
@@ -32,9 +48,9 @@ const PaymentsPage = () => {
       else if (tab === 'credits') r = await heritApi.ledger.credits();
       else if (tab === 'verify') r = await heritApi.ledger.list({ verified: 0 });
       else r = await heritApi.ledger.list({});
-      setData(r); setState('ready');
+      setData(r); setState('ready'); loadSum();
     } catch (e) { setError(e); setState('error'); }
-  }, [tab]);
+  }, [tab, loadSum]);
   useEffect(() => { setData(null); setState('loading'); load(); }, [load]);
   useEffect(() => { heritApi.tailoring.meta().then((m) => m?.verified_methods && setVerifiedMethods(m.verified_methods)).catch(() => {}); }, []);
 
@@ -52,6 +68,24 @@ const PaymentsPage = () => {
         title="Payments"
         subtitle={<>Tailoring jobs only. Shop sales and expenses are in <Link to="/finance">Finance</Link>.</>}
       />
+      {sum && (
+        <div className="hd-stats hd-stats--3" aria-label="Summary">
+          {[
+            { id: 'month', label: 'Received this month', value: naira(sum.month), sub: 'Verified payments, less refunds', icon: 'solar:wallet-money-bold', tone: 'ok', tab: 'recent' },
+            { id: 'due', label: 'Balances to collect', value: naira(sum.due), sub: `${sum.dueJobs} job${sum.dueJobs === 1 ? '' : 's'} with a balance`, icon: 'solar:clock-circle-bold', tone: 'amber', tab: 'due' },
+            { id: 'verify', label: 'To verify', value: sum.verify, sub: 'Check against your bank or POS', icon: 'solar:shield-check-bold', tone: sum.verify ? 'bad' : 'info', tab: 'verify' },
+          ].map((t) => (
+            <Link key={t.id} to={`/payments?tab=${t.tab}`} className="hd-stat">
+              <span className="hd-stat-top">
+                <span>{t.label}</span>
+                <span className={`hd-stat-ic hd-stat-ic--${t.tone}`} aria-hidden="true"><IconifyIcon icon={t.icon} /></span>
+              </span>
+              <b className="hd-stat-value tnum">{t.value}</b>
+              <span className="hd-stat-sub">{t.sub}</span>
+            </Link>
+          ))}
+        </div>
+      )}
       <nav className="hd-tabs mb-3" aria-label="Payments views">
         {TABS.map(([k, l]) => (
           <Button key={k} variant="outline-secondary" className={k === tab ? 'active' : ''} aria-current={k === tab ? 'page' : undefined} onClick={() => setParams({ tab: k })}>{l}</Button>

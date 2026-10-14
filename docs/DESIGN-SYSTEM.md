@@ -175,6 +175,17 @@ Built on `feat/phase4-website` (`src/app/(public)/site/ui/ui.css`, `Hero.jsx`, `
 - Admin: 180 to 250ms colour transitions and a 0.98 button press; the old card lift and settle-in animation are gone.
 - Never: autoplay carousels other than the home hero (D-023), scroll hijacking, parallax, cursor effects, tickers or marquees, counters, forced viewport-height text clipping, animation during measurement entry or amount editing.
 
+## Admin components (D-023)
+
+Styled in `src/components/herit/herit-daily.css` under `.hd`, tokens only. Built 13 and 14 October 2026 to the approved admin prototype.
+
+| Component | Contract |
+|---|---|
+| Summary tiles (`.hd-stats`, `a.hd-stat`) | Four across from 1200px, two below (`.hd-stats--3`: three across, one column below 768px); label and tinted icon, Fraunces figure, short line; each tile is one link. Below 420px the figure is 1.3rem on one line. Used on Today and Payments |
+| `.hd-avatar` | 38px circle, amber tint with amber-text initials (`initials()` in `src/helpers/format.js`), decorative (`aria-hidden`). Leads rows on Jobs, Clients and Enquiries |
+| `.hd-seg` | Pill switch of two buttons with `aria-pressed`; the pressed one is ink on surface. Jobs List or Board |
+| Board (`.hd-board`, `.hd-col`, `a.hd-kcard`) | One column per stage with a count; columns at least 250px, scrolling sideways inside the board on narrow screens; each card is one link to the job |
+
 ## Public components
 
 Built in `src/app/(public)/site/ui/` (barrel `ui/index.js`), styled in `ui/ui.css`, tokens only. No new dependencies.

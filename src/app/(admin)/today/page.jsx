@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import PageTitle from '@/components/PageTitle'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import heritApi from '@/helpers/heritApi'
+import { useAuthContext } from '@/context/useAuthContext'
 import {
   fmtDate,
   fmtUtc,
@@ -16,6 +17,7 @@ import {
   APPT_TYPE_LABELS,
   CHANGE_KIND_LABELS,
   daysFromToday,
+  TZ,
 } from '@/helpers/format'
 import LoadError from '@/components/herit/LoadError'
 import StatusChip, { ApptChip, StageChip } from '@/components/herit/StatusChip'
@@ -23,6 +25,14 @@ import InviteModal from '@/components/herit/InviteModal'
 import NewEnquiryModal from '@/app/(admin)/enquiries/components/NewEnquiryModal'
 import NewOrderModal from '@/app/(admin)/tailoring/components/NewOrderModal'
 import TodayBlock from './components/TodayBlock'
+
+/** Lagos time-of-day greeting with the first name, as in the approved prototype. */
+const greeting = (name) => {
+  const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', hourCycle: 'h23' }).format(new Date()))
+  const part = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+  const first = (name || '').trim().split(/\s+/)[0]
+  return first ? `${part}, ${first}` : part
+}
 
 const garment = (j) => `${GARMENT_LABELS[j.garment_type] || j.garment_type || 'Job'}${j.quantity > 1 ? ` × ${j.quantity}` : ''}`
 const jobRow = (j, extra = {}) => ({
@@ -41,6 +51,7 @@ const ago = (ymd) => {
 }
 
 const TodayPage = () => {
+  const { user } = useAuthContext()
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading')
   const [error, setError] = useState(null)
@@ -342,9 +353,9 @@ const TodayPage = () => {
       <PageTitle title="Today" />
       <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
         <div>
-          <h1 className="hd-title">Today</h1>
+          <h1 className="hd-title">{greeting(user?.name)}</h1>
           <div className="text-muted">
-            {data ? fmtDate(data.date) : ' '}
+            {data ? `Today, ${fmtDate(data.date)}` : ' '}
             {data ? ' · Lagos' : ''}
           </div>
         </div>

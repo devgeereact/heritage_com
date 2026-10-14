@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
-import { ENQUIRY_LABELS, fmtDate, fmtUtc, daysFromToday } from '@/helpers/format';
+import { ENQUIRY_LABELS, fmtDate, fmtUtc, daysFromToday, initials } from '@/helpers/format';
 import LoadError from '@/components/herit/LoadError';
 import PageHeader from '@/components/herit/PageHeader';
 import StatusChip from '@/components/herit/StatusChip';
@@ -76,6 +76,7 @@ const EnquiriesPage = () => {
                 const fu = daysFromToday(e.next_follow_up);
                 return (
                   <Link key={e.id} to={`/enquiries/${e.id}`} className="hd-row">
+                    <span className="hd-avatar" aria-hidden="true">{initials(e.name)}</span>
                     <span className="hd-row-main">
                       <span className="hd-row-title d-block text-truncate">{e.name}{e.company ? ` · ${e.company}` : ''}</span>
                       <span className="hd-row-sub d-block text-truncate">

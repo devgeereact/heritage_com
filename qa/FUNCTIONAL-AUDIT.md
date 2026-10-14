@@ -187,6 +187,8 @@ Consistency pass, 14 October 2026: checked at 1440px on staging: Questions (spli
 
 Build pass, 14 October 2026: at 390px, `scrollWidth` 375 in a 390 window and an h1 rendered on all 14 public routes (home, services, a service, work, a piece, about, company orders, questions, contact, journal, track, account, book, privacy). PASS. At 1440px: Booking with the "How booking works" card, Website admin with the hero slides preview (5 slides, crossfade, thumbnails, edit links) and Clients in the light theme. PASS. NOT TESTED: the Business details shortcut list after it was added, My account signed in, admin screens in dark beyond Jobs. Lint 0 errors, check-tokens, build and check-docs PASS.
 
+Admin (CMS) pass, 14 October 2026, same setup: Jobs board at 1440px light (five stage columns with counts, late days in red, payment chips) and 390px (board scrolls inside itself, page `scrollWidth` within the window); Payments at 1440px (three tiles: ₦778,000 received this month, ₦1,834,000 across 54 jobs to collect, 17 to verify, matching the Balances due total); Today at 390px ("Good afternoon, Staging"); Clients at 390px in dark (79 avatars, no sideways scroll). Found and fixed: tile figures broke across two lines at 390px; the Payments tile first read "Owed on open jobs" although the due list includes collected jobs, now "Balances to collect". Checks: lint 0 errors, check-tokens, build, 374 helper tests PASS. NOT TESTED: Enquiries avatars on screen (code only), the board with the stage filter set, keyboard use of the List or Board switch, screen readers, real phones.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).
