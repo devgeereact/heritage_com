@@ -114,6 +114,10 @@ Owner of every entity: the business owner.
 
 The business profile is not a table: it is the `business_*`, `socials` and `journal_enabled` keys in `settings` ([API-SPEC.md](API-SPEC.md#phase-4-settings-keys)). Nothing is seeded: an empty profile and no content mean the public site hides those sections.
 
+## Home hero slides (schema_phase28)
+
+Branch `feat/redesign-dark-luxury` (D-023). `cms_items.entity` gains `'slide'`; slides use the same `live`, `draft` and `prev` JSON and the same `sort` order as other CMS items. No new table and no seeded rows. Fields and limits: [API-SPEC.md](API-SPEC.md#cmsphp-staff).
+
 ## Phase 5 tables and columns (schema_phase27)
 
 Branch `feat/phase5-company-orders`. Additive and re-runnable (`IF NOT EXISTS` throughout); existing jobs keep `job_kind = 'individual'` and are unchanged. Numbered 27 because the Phase 4 `schema_phase27` was not needed ([DECISIONS.md](DECISIONS.md) D-022). A company order is one `tailoring_orders` row with `job_kind = 'company'`; groups (`tailoring_groups`) stay "coordinated, separate payers" and are not the company parent.

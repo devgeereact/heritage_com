@@ -195,7 +195,7 @@ Branch `feat/phase4-website` (no PR yet). Verified on local staging, 11 October 
 
 ### Content model
 
-Entities: `service`, `project` (portfolio), `faq`, `policy` (keys `privacy`, `terms`) and `page` (keys `home`, `about`, `how_it_works`, `company`, `services_intro`, `contact`). Each item keeps a public `live` copy, an unpublished `draft` and one earlier version (`prev`). Saving a draft never changes the public site. Publishing copies the draft to live and keeps the old live copy; rolling back swaps live and the earlier version, so a second rollback undoes the first. Unpublishing hides the item and keeps its content. An item that was ever published is never deleted (unpublish it), and its slug never changes.
+Entities: `service`, `project` (portfolio), `faq`, `policy` (keys `privacy`, `terms`), `page` (keys `home`, `about`, `how_it_works`, `company`, `services_intro`, `contact`) and `slide` (home hero slides, D-023; needs `schema_phase28.sql`, otherwise `save_draft` answers 409 "Hero slides are not set up yet"). A slide's fields are `label` (30), `eyebrow` (40), `headline` (90, required), `lead` (220), `hero_media_id` (required, with alt text) and an optional button: `cta_label` (40) and `cta_path` (120, an internal path starting with one `/`; outside links, `//` and `..` are refused). Each item keeps a public `live` copy, an unpublished `draft` and one earlier version (`prev`). Saving a draft never changes the public site. Publishing copies the draft to live and keeps the old live copy; rolling back swaps live and the earlier version, so a second rollback undoes the first. Unpublishing hides the item and keeps its content. An item that was ever published is never deleted (unpublish it), and its slug never changes.
 
 Fields (`data` in `save_draft`; required ones are checked only at publish):
 
@@ -238,7 +238,7 @@ Answers carry an ETag (304 on a match) and `Cache-Control: public, max-age=60, s
 | Action | Response |
 |---|---|
 | `config` | `{business:{name?, phone?, whatsapp?, whatsapp_url?, email?, address? (only when business_address_public is 1), area?, hours_text?}, socials:[{platform, url}], nav:{services, work, faqs, about, how_it_works, company, contact, journal, privacy, terms, book, shop}, pages:[published page keys], booking_enabled, site_url, jsonld (LocalBusiness or null), rev}`. Empty facts are omitted; `jsonld` is null without a business name and never has ratings |
-| `home` | `{page (home page or null), services (up to 6), work (up to 6, featured first), faqs (up to 4 with show_on_home)}` |
+| `home` | `{page (home page or null), services (up to 6), work (up to 6, featured first), faqs (up to 4 with show_on_home), slides (up to 6 published slides with a photograph, in staff order: `{id, label, eyebrow, headline, lead, hero, cta_label, cta_path}`; empty before `schema_phase28.sql`)}`. With no slide the site builds the hero from the home page and photographed services |
 | `page&key=K` | `{page:{key, headline, intro, body, hero, seo_title, seo_description, updated_at}}` |
 | `services` | `{intro (services_intro page or null), items:[service]}`; service: `{slug, title, summary, body, includes, price_note, hero, seo_title, seo_description, published_at, updated_at}` |
 | `service&slug=S` | `{service, work:[up to 6 projects with this service_slug]}` |

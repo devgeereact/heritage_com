@@ -13,7 +13,7 @@
  * whitelist projections below, never by returning a stored array.
  */
 
-const CMS_ENTITIES = ['service', 'project', 'faq', 'policy', 'page'];
+const CMS_ENTITIES = ['service', 'project', 'faq', 'policy', 'page', 'slide'];
 /** Pages and policies are fixed keys; their slug is the key. */
 const CMS_PAGE_KEYS = ['home', 'about', 'how_it_works', 'company', 'services_intro', 'contact'];
 const CMS_POLICY_KEYS = ['privacy', 'terms'];
@@ -54,6 +54,12 @@ const CMS_FIELDS = [
   'page' => [
     'headline' => ['text', 160, true], 'intro' => ['text', 600, false], 'body' => ['html', 20000, false],
     'hero_media_id' => ['media', 0, false], 'seo_title' => ['text', 70, false], 'seo_description' => ['text', 170, false],
+  ],
+  // Home hero slides (schema_phase28.sql, D-023). A slide needs a headline and a photograph to go live.
+  'slide' => [
+    'label' => ['text', 30, false], 'eyebrow' => ['text', 40, false], 'headline' => ['text', 90, true],
+    'lead' => ['text', 220, false], 'hero_media_id' => ['media', 0, true],
+    'cta_label' => ['text', 40, false], 'cta_path' => ['path', 120, false],
   ],
 ];
 
@@ -338,6 +344,12 @@ function cms_clean($entity, array $in) {
         if ($s === '') { $clean[$f] = null; break; }
         if (!slug_ok($s)) $err[$f] = 'Not a valid slug'; else $clean[$f] = $s;
         break;
+      case 'path':
+        $s = cms_text($v);
+        if ($s === '') { $clean[$f] = ''; break; }
+        if (!cms_path_ok($s, $max)) $err[$f] = 'Use a page of this website, starting with / (for example /services)';
+        else $clean[$f] = $s;
+        break;
       case 'images':
         if ($v === null || $v === '') { $clean[$f] = []; break; }
         if (!is_array($v)) { $err[$f] = 'Must be a list'; break; }
@@ -360,6 +372,12 @@ function cms_clean($entity, array $in) {
     }
   }
   return [$clean, $err];
+}
+
+/** An internal site path for a button: starts with one "/", no scheme, no "//", safe characters only. */
+function cms_path_ok($s, $max = 120) {
+  $s = (string)$s;
+  return $s !== '' && cms_len($s) <= $max && preg_match('~^/(?!/)[A-Za-z0-9/_\-.?=&#%]*$~', $s) === 1 && strpos($s, '..') === false;
 }
 
 /** Every media id an entity's content refers to. */
@@ -524,6 +542,11 @@ function cms_public($entity, array $item, array $data, array $media, $baseUrl) {
       return ['key' => $item['slug'], 'headline' => $s('headline'), 'intro' => $s('intro'), 'body' => $s('body'),
         'hero' => $m($data['hero_media_id'] ?? null), 'seo_title' => $s('seo_title'),
         'seo_description' => $s('seo_description'), 'updated_at' => $item['live_updated_at'] ?? $published];
+    case 'slide':
+      $path = $s('cta_path');
+      return ['id' => (int)$item['id'], 'label' => $s('label'), 'eyebrow' => $s('eyebrow'), 'headline' => $s('headline'),
+        'lead' => $s('lead'), 'hero' => $m($data['hero_media_id'] ?? null),
+        'cta_label' => $s('cta_label'), 'cta_path' => cms_path_ok($path) ? $path : ''];
   }
   return null;
 }

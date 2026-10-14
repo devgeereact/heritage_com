@@ -21,6 +21,16 @@ export const PAGE_PATHS = {
 export const POLICY_LABELS = { privacy: 'Privacy', terms: 'Terms' }
 
 export const ENTITIES = {
+  slide: {
+    entity: 'slide',
+    path: 'slides',
+    label: 'Hero slides',
+    one: 'slide',
+    ordered: true,
+    publicPath: () => '/',
+    intro:
+      'The full-screen photographs at the top of Home, in this order. A slide needs a headline and a photograph. With none published, Home uses the home page and service photographs.',
+  },
   service: {
     entity: 'service',
     path: 'services',
@@ -88,6 +98,40 @@ const SEO = [
 
 /** Field list per entity: type text, textarea, rich, list, media, images, bool, date, service. */
 export const FIELDS = {
+  slide: [
+    {
+      k: 'headline',
+      label: 'Headline',
+      type: 'text',
+      max: 90,
+      required: true,
+      help: 'Short and strong, for example "Cut for you. Finished by hand."',
+    },
+    {
+      k: 'hero_media_id',
+      label: 'Photograph',
+      type: 'media',
+      required: true,
+      help: 'A wide photograph works best. It needs alt text before the slide can go live.',
+    },
+    { k: 'eyebrow', label: 'Small label above the headline (optional)', type: 'text', max: 40 },
+    { k: 'lead', label: 'Supporting line (optional)', type: 'textarea', max: 220 },
+    {
+      k: 'label',
+      label: 'Name in the slide bar (optional)',
+      type: 'text',
+      max: 30,
+      help: 'Shown under the progress bar. Without it the headline is used.',
+    },
+    { k: 'cta_label', label: 'Button text (optional)', type: 'text', max: 40, help: 'Without it the button asks for a measurement appointment.' },
+    {
+      k: 'cta_path',
+      label: 'Button goes to (optional)',
+      type: 'text',
+      max: 120,
+      help: 'A page of this website, starting with /, for example /services or /contact?type=company.',
+    },
+  ],
   service: [
     { k: 'title', label: 'Title', type: 'text', max: 120, required: true },
     { k: 'summary', label: 'Summary', type: 'textarea', max: 300, help: 'One or two sentences for the card and the page header.' },

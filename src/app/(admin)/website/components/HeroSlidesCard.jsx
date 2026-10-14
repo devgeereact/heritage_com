@@ -49,7 +49,17 @@ const HeroSlidesCard = () => {
         const waiting = services
           .filter((s) => !s.hero?.url)
           .map((s) => ({ key: s.slug, title: s.title, to: ids[s.slug] ? `/website/services/${ids[s.slug]}` : '/website/services' }))
-        setState({ ready: true, slides, waiting })
+        // Owner-made slides replace the automatic ones on Home.
+        const own = (home?.slides || []).map((s) => ({
+          key: `slide-${s.id}`,
+          label: 'Your slide',
+          title: s.headline,
+          lead: s.lead,
+          image: toImage(s.hero),
+          to: `/website/slides/${s.id}`,
+        }))
+        if (own.length) setState({ ready: true, slides: own, waiting: [], own: true })
+        else setState({ ready: true, slides, waiting })
       })
       .catch(() => live && setState({ ready: true, slides: [], waiting: [], error: true }))
     return () => {
@@ -70,7 +80,14 @@ const HeroSlidesCard = () => {
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-bottom">
           <div>
             <h2 className="h5 mb-0">Home hero slides</h2>
-            <div className="small text-muted">The home page photograph first, then each published service that has a photograph (up to four).</div>
+            <div className="small text-muted">
+              {state.own
+                ? 'Your own slides, in the order set in Hero slides.'
+                : 'Built automatically: the home page photograph first, then each service that has a photograph (up to four). Add your own slides to choose the photographs and words.'}{' '}
+              <Link to={state.own ? '/website/slides' : '/website/slides/new'} className="fw-semibold">
+                {state.own ? 'Manage slides' : 'Add your own slide'}
+              </Link>
+            </div>
           </div>
           {state.ready && !state.error && (
             <StatusChip tone={n > 1 ? 'ok' : 'neutral'}>

@@ -134,3 +134,14 @@ check('sitemap: & escaped, lastmod as a date', [str_contains($xml, '&amp;y=2'), 
 check('upload mime: allowed types only', [upload_mime_ok('image/jpeg'), upload_mime_ok('image/webp'), upload_mime_ok('image/gif'), upload_mime_ok('text/x-php')], ['jpg', 'webp', null, null]);
 check('variant plan: large, mid, exact and small images', [image_variant_plan(3000), image_variant_plan(1200), image_variant_plan(800), image_variant_plan(500)],
   [[800, 1600], [800, 1200], [800], [500]]);
+
+// ---- Home hero slides (schema_phase28.sql, D-023)
+check('slide: entity known', in_array('slide', CMS_ENTITIES, true), true);
+check('slide: internal paths accepted', [cms_path_ok('/services'), cms_path_ok('/contact?type=company'), cms_path_ok('/work/navy-suit')], [true, true, true]);
+check('slide: unsafe paths refused', [cms_path_ok('https://evil.test'), cms_path_ok('//evil.test'), cms_path_ok('javascript:alert(1)'), cms_path_ok('/a/../b'), cms_path_ok('services')], [false, false, false, false, false]);
+check('slide: clean refuses an outside link', isset(cms_clean('slide', ['cta_path' => 'https://evil.test'])[1]['cta_path']), true);
+check('slide: clean keeps the fields', cms_clean('slide', ['headline' => ' Cut for you ', 'cta_path' => '/services', 'evil' => 1])[0], ['headline' => 'Cut for you', 'cta_path' => '/services']);
+check('slide: needs a headline and a photograph to publish', array_keys(array_intersect_key(cms_publish_problems('slide', [], []), ['headline' => 1, 'hero_media_id' => 1])), ['headline', 'hero_media_id']);
+check('slide: photograph without alt text refused', isset(cms_publish_problems('slide', ['headline' => 'Hi', 'hero_media_id' => 9], [9 => ['alt_text' => '', 'deleted_at' => null]])['media.9']), true);
+$sp = cms_public('slide', ['id' => 4, 'slug' => 'slide-x'], ['headline' => 'Cut for you', 'cta_path' => '//evil', 'secret' => 'x'], [], '/u');
+check('slide: public projection is a whitelist', [array_keys($sp), $sp['cta_path']], [['id', 'label', 'eyebrow', 'headline', 'lead', 'hero', 'cta_label', 'cta_path'], '']);

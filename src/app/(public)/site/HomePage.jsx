@@ -78,7 +78,17 @@ const HomePage = () => {
 
   // Hero slides come from published content only (D-023): the home page
   // first, then up to four services that have a photograph.
-  const slides = [
+  // Owner-made slides (Website > Hero slides) win; without any, the slides are built automatically below.
+  const ownSlides = (d.slides || []).map((s) => ({
+    label: s.label || s.headline,
+    eyebrow: s.eyebrow || undefined,
+    title: s.headline,
+    lead: s.lead || undefined,
+    image: toImage(s.hero),
+    primary: s.cta_path ? { to: s.cta_path, label: s.cta_label || 'Find out more' } : book,
+    secondary,
+  }))
+  const autoSlides = [
     {
       label: 'Made to measure',
       eyebrow: business.area ? `Made to measure in ${business.area}` : 'Made to measure',
@@ -101,6 +111,7 @@ const HomePage = () => {
         secondary: { to: book.to, label: primary.short || primary.label },
       })),
   ]
+  const slides = ownSlides.length ? ownSlides : autoSlides
   const firstCover = work.find((w) => w.cover?.url)?.cover
   const companyImg = toImage(d.company?.hero) || toImage(firstCover)
   const closingImg = toImage(page?.hero)

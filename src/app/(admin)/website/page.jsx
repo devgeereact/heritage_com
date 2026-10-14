@@ -20,7 +20,7 @@ const MISSING = {
   socials: ['Social links', 'the social icons in the footer'],
 }
 
-const SECTIONS = [ENTITIES.page, ENTITIES.service, ENTITIES.project, ENTITIES.faq, ENTITIES.policy]
+const SECTIONS = [ENTITIES.slide, ENTITIES.page, ENTITIES.service, ENTITIES.project, ENTITIES.faq, ENTITIES.policy]
 
 /** Website hub: what is missing from the profile, and what is published where. */
 const WebsitePage = () => {

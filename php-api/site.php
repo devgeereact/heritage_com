@@ -137,8 +137,10 @@ if ($action === 'home') {
   $work = site_project('project', site_rows('project'));
   usort($work, fn($a, $b) => (int)$b['featured'] <=> (int)$a['featured']);   // stable since PHP 8
   $faqs = array_values(array_filter(site_project('faq', site_rows('faq')), fn($f) => $f['show_on_home']));
+  // Hero slides (D-023): published ones with a photograph, in the staff order; empty before schema_phase28.sql.
+  $slides = array_values(array_filter(site_project('slide', site_rows('slide')), fn($s) => !empty($s['hero'])));
   site_json(['page' => site_page('home'), 'services' => array_slice(site_project('service', site_rows('service')), 0, 6),
-    'work' => array_slice($work, 0, 6), 'faqs' => array_slice($faqs, 0, 4)]);
+    'work' => array_slice($work, 0, 6), 'faqs' => array_slice($faqs, 0, 4), 'slides' => array_slice($slides, 0, 6)]);
 }
 
 if ($action === 'page') {

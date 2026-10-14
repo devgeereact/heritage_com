@@ -4,7 +4,7 @@
  * FAQs, policies and pages with draft, preview, publish, unpublish and a
  * one-step rollback; website images; the business profile.
  *
- * Entities (&entity=): service, project, faq, policy, page.
+ * Entities (&entity=): service, project, faq, policy, page, slide (home hero; schema_phase28.sql).
  *
  *   GET  ?action=list&entity=E                 {items:[summary]}
  *   GET  ?action=get&entity=E&id=N             {item} (id, or &key=K for page/policy)
@@ -54,7 +54,7 @@ const CMS_ERRORS = [
 
 function cms_entity_param() {
   $e = $_GET['entity'] ?? '';
-  if (!in_array($e, CMS_ENTITIES, true)) fail('Unknown entity (service, project, faq, policy or page)');
+  if (!in_array($e, CMS_ENTITIES, true)) fail('Unknown entity (service, project, faq, policy, page or slide)');
   return $e;
 }
 
@@ -71,7 +71,7 @@ function cms_find($entity, $id, $lock = false) {
 
 function cms_title($entity, $d) {
   if (!is_array($d)) return '';
-  return (string)($d[['faq' => 'question', 'page' => 'headline'][$entity] ?? 'title'] ?? '');
+  return (string)($d[['faq' => 'question', 'page' => 'headline', 'slide' => 'headline'][$entity] ?? 'title'] ?? '');
 }
 
 function cms_staff_view(array $r, $full = true) {
@@ -224,6 +224,10 @@ if ($action === 'get' && method() === 'GET') {
 
 if ($action === 'save_draft' && method() === 'POST') {
   $entity = cms_entity_param();
+  if ($entity === 'slide') {
+    $col = db_row("SHOW COLUMNS FROM cms_items LIKE 'entity'");
+    if (!$col || strpos((string)$col['Type'], "'slide'") === false) fail('Hero slides are not set up yet (import schema_phase28.sql)', 409);
+  }
   $b = body();
   if (!is_array($b['data'] ?? null)) fail('Send the content as data:{…}');
   [$clean, $errors] = cms_clean($entity, $b['data']);
