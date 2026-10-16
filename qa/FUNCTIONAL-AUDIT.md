@@ -191,6 +191,8 @@ Admin (CMS) pass, 14 October 2026, same setup: Jobs board at 1440px light (five 
 
 Job page pass, 16 October 2026, same setup, job HC-0006 (part paid): at 1440px light the stage bar sits above the tabs, Overview shows the stage and dates on the left and the Money card on the right (₦120,000 price, ₦60,000 verified, ₦60,000 balance, 50% paid); at 390px dark the Money card comes first, no sideways scroll, and on loading `?tab=payments` the stage bar scrolls the current step into view. Found and fixed: every card in the Overview row stretched to the row height (admin equal-height rule), now `.hd-stack`. NOT TESTED: a tailor account (no Money card, full-width column), a company job, a job without a price, keyboard and screen readers.
 
+Admin sweep, 16 October 2026, 390px in dark on staging: Enquiries, Appointments, Messages, Website, Hero slides, Settings, Companies and Aso-ebi groups load with an h1, no error alert and no sideways page scroll (tab strips scroll inside themselves by design). Groups had the old Larkon heading (an h4, no `.hd` wrapper); moved to the shared page header. Console: only the known react-helmet `UNSAFE_componentWillMount` warning. NOT TESTED: forms and modals on these screens at 390px, real phones.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

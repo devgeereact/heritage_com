@@ -7,6 +7,7 @@ import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
 import DuplicateCandidates from '@/components/herit/DuplicateCandidates';
 import LoadError from '@/components/herit/LoadError';
+import PageHeader from '@/components/herit/PageHeader';
 import { StageChip } from '@/components/herit/StatusChip';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
@@ -119,7 +120,7 @@ const GroupCard = ({ g }) => {
     if (!detail) { try { setDetail(await heritApi.tailoring.groupGet(g.id)); } catch { /* ignore */ } }
   };
   return (
-    <Card className="mb-2">
+    <Card className="hd-card mb-2">
       <CardBody>
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2" role="button" onClick={toggle}>
           <div>
@@ -161,25 +162,23 @@ const GroupsPage = () => {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <>
+    <div className="hd">
       <PageTitle title="Aso-ebi groups" />
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-          <Link to="/jobs" className="btn btn-sm btn-light mb-1"><IconifyIcon icon="solar:arrow-left-linear" /> Jobs</Link>
-          <h4 className="mb-1">Aso-ebi &amp; group orders</h4>
-          <p className="text-muted mb-0">Coordinated pieces where each person pays for their own. No automatic discount. For one company paying for many pieces, use <Link to="/clients/companies">Companies</Link>.</p>
-        </div>
-        <Button variant="primary" onClick={() => setShow(true)}><IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" /> New group</Button>
-      </div>
+      <PageHeader
+        back={{ to: '/jobs', label: 'Jobs' }}
+        title="Aso-ebi and group orders"
+        subtitle={<>Coordinated pieces where each person pays for their own. No automatic discount. For one company paying for many pieces, use <Link to="/clients/companies">Companies</Link>.</>}
+        actions={<Button variant="primary" onClick={() => setShow(true)}><IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" aria-hidden="true" /> New group</Button>}
+      />
 
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
       {state === 'offline' && <LoadError what="groups" error={error} onRetry={() => { setState('loading'); load(); }} />}
       {state === 'ready' && (rows.length === 0
-        ? <p className="text-muted">No groups yet. Create one for the next wedding or owambe.</p>
+        ? <Card className="hd-card"><CardBody className="text-muted">No groups yet. Create one for the next wedding or owambe.</CardBody></Card>
         : rows.map((g) => <GroupCard key={g.id} g={g} />))}
 
       <NewGroupModal show={show} onHide={() => setShow(false)} onCreated={load} />
-    </>
+    </div>
   );
 };
 
