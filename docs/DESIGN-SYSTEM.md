@@ -186,6 +186,8 @@ Styled in `src/components/herit/herit-daily.css` under `.hd`, tokens only. Built
 | `.hd-seg` | Pill switch of two buttons with `aria-pressed`; the pressed one is ink on surface. Jobs List or Board |
 | Stage bar (`StageStepper`, `.hd-stepper`) | One 4px bar and label per stage under the job header on every tab: done in muted, current in amber with `aria-current="step"`; scrolls sideways on phones with the current step brought into view |
 | Money card (job Overview) | Owner roles only, from `job.money`: price, verified paid, waiting to verify when any, balance or credit, an 8px amber paid bar (`.hd-paid-bar`) and "Open payments". Sticky beside the main column from 992px (`.hd-sticky`), first on phones. Rows of stacked cards use `.hd-stack` so cards keep their own height |
+| Tab count (`.hd-tab-n`) | Small pill after a tab label: muted on the surface tint, amber with `on-accent` text on the active tab. Tab strips (`.hd-tabs`, `.hd-seg`) scroll sideways without a visible scrollbar |
+| Publish bar (`.hd-publish-bar`) | Website hub: a green dot and "Everything here is live" or, with `.is-dirty`, the warning tint, an amber dot, the count of items with unpublished changes and a link per list. Built from each list's `has_draft`; it never publishes anything itself |
 | Board (`.hd-board`, `.hd-col`, `a.hd-kcard`) | One column per stage with a count; columns at least 250px, scrolling sideways inside the board on narrow screens; each card is one link to the job |
 
 ## Public components

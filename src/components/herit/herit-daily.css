@@ -189,6 +189,18 @@ button.hd-row { width: 100%; background: none; border-left: 0; border-right: 0; 
 .hd .hd-tabs .btn { white-space: nowrap; flex: none; }
 .hd .hd-tabs .btn { border-radius: 999px; }
 .hd .hd-tabs .btn.active { background: var(--hd-ink); color: var(--hc-surface); border-color: var(--hd-ink); }
+.hd .hd-tabs .hd-tab-n { display: inline-block; min-width: 1.5rem; margin-left: .375rem; padding: 0 .4rem; border-radius: 999px; background: var(--hd-surface-alt); color: var(--hd-muted); font-size: .75rem; line-height: 1.5rem; text-align: center; }
+.hd .hd-tabs .btn.active .hd-tab-n { background: var(--hd-amber); color: var(--hc-on-accent); }
+.hd .hd-seg button { white-space: nowrap; }
+/* Tab strips scroll sideways on phones without a visible scrollbar. */
+.hd .hd-tabs, .hd .hd-seg { scrollbar-width: none; }
+.hd .hd-tabs::-webkit-scrollbar, .hd .hd-seg::-webkit-scrollbar { display: none; }
+
+/* Website publish bar: is anything waiting to go live? */
+.hd .hd-publish-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .75rem 1rem; border: 1px solid var(--hd-divider); border-radius: var(--hc-radius-card); background: var(--hc-surface); color: var(--hd-body); }
+.hd .hd-publish-bar.is-dirty { background: var(--hc-warning-tint); }
+.hd .hd-publish-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--hd-ok); }
+.hd .hd-publish-bar.is-dirty .hd-publish-dot { background: var(--hd-warn); }
 
 .hd .nav-tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
 .hd .nav-tabs .nav-link { white-space: nowrap; color: var(--hd-muted); display: flex; align-items: center; }

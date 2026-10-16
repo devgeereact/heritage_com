@@ -52,7 +52,7 @@ const EnquiriesPage = () => {
         {TABS.map((t) => (
           <Button key={t} variant="outline-secondary" className={t === tab ? 'active' : ''} aria-current={t === tab ? 'page' : undefined}
             onClick={() => setParams({ status: t })}>
-            {ENQUIRY_LABELS[t]} <span className="tnum ms-1">({data.counts[t] ?? 0})</span>
+            {ENQUIRY_LABELS[t]} <span className="hd-tab-n tnum">{data.counts[t] ?? 0}</span>
           </Button>
         ))}
       </nav>

@@ -58,6 +58,25 @@ const WebsitePage = () => {
       />
       {error && <LoadError what="the website overview" onRetry={load} error={error} />}
       {!data && !error && <Spinner animation="border" role="status" />}
+      {data && (() => {
+        const waiting = SECTIONS.filter((s) => data.counts[s.entity].drafts > 0)
+        const n = waiting.reduce((a, s) => a + data.counts[s.entity].drafts, 0)
+        return (
+          <div className={`hd-publish-bar mb-3${n ? ' is-dirty' : ''}`} role="status">
+            <span className="hd-publish-dot" aria-hidden="true" />
+            <span className="flex-grow-1">
+              {n
+                ? `${n} ${n === 1 ? 'item has' : 'items have'} changes that are not live yet. Open each one to preview and publish it.`
+                : 'Everything here is live on the website.'}
+            </span>
+            {waiting.map((s) => (
+              <Link key={s.entity} to={`/website/${s.path}`} className="fw-semibold small">
+                {s.label} ({data.counts[s.entity].drafts})
+              </Link>
+            ))}
+          </div>
+        )
+      })()}
       {data && (
         <div className="mb-3">
           <HeroSlidesCard />

@@ -193,6 +193,8 @@ Job page pass, 16 October 2026, same setup, job HC-0006 (part paid): at 1440px l
 
 Admin sweep, 16 October 2026, 390px in dark on staging: Enquiries, Appointments, Messages, Website, Hero slides, Settings, Companies and Aso-ebi groups load with an h1, no error alert and no sideways page scroll (tab strips scroll inside themselves by design). Groups had the old Larkon heading (an h4, no `.hd` wrapper); moved to the shared page header. Console: only the known react-helmet `UNSAFE_componentWillMount` warning. NOT TESTED: forms and modals on these screens at 390px, real phones.
 
+Publish bar, method filter and tab pills, 16 October 2026, staging: Website at 1440px shows "9 items have changes that are not live yet" with links to Our work (1) and Questions (8), matching the list chips below; Payments Recent offers All methods, Bank transfer, Not recorded and Cash (the methods present), Bank transfer narrows 76 rows to 17 and sets `?tab=recent&method=transfer`; Enquiries at 390px in dark shows count pills (25, 10, 1, 9, 1), no sideways page scroll. NOT TESTED: the publish bar with nothing waiting (staging has drafts), the filter on To verify, keyboard and screen readers.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).
