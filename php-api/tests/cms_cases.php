@@ -145,3 +145,25 @@ check('slide: needs a headline and a photograph to publish', array_keys(array_in
 check('slide: photograph without alt text refused', isset(cms_publish_problems('slide', ['headline' => 'Hi', 'hero_media_id' => 9], [9 => ['alt_text' => '', 'deleted_at' => null]])['media.9']), true);
 $sp = cms_public('slide', ['id' => 4, 'slug' => 'slide-x'], ['headline' => 'Cut for you', 'cta_path' => '//evil', 'secret' => 'x'], [], '/u');
 check('slide: public projection is a whitelist', [array_keys($sp), $sp['cta_path']], [['id', 'label', 'eyebrow', 'headline', 'lead', 'hero', 'cta_label', 'cta_path'], '']);
+
+/* ---- link previews (spa.php, K-06) ------------------------------------------- */
+check('spa route: home, pages, service, project', [spa_route('/'), spa_route('/about/'), spa_route('/company-orders'), spa_route('/services/wedding-suits'), spa_route('/work/navy-agbada?x=1')],
+  [['page', 'home'], ['page', 'about'], ['page', 'company'], ['service', 'wedding-suits'], ['project', 'navy-agbada']]);
+check('spa route: staff, unknown and odd paths give null', [spa_route('/today'), spa_route('/services/a/b'), spa_route('/services/UPPER'), spa_route('/journal/x')], [null, null, null, null]);
+check('spa cut: short text unchanged', spa_cut('  Made  to measure. '), 'Made to measure.');
+check('spa cut: long text cut at a word with an ellipsis', [cms_len(spa_cut(str_repeat('word ', 60))) <= 156, str_ends_with(spa_cut(str_repeat('word ', 60)), 'word…')], [true, true]);
+check('spa cut: tags stripped', spa_cut('<b>Bold</b> claim'), 'Bold claim');
+$sm = spa_meta('service', 'suits', ['title' => 'Suits', 'summary' => 'Two fittings.', 'hero' => ['url' => '/uploads/site/a.jpg']], '/services/suits', 'https://heritclothing.com/');
+check('spa meta: service title, summary, absolute image and URL', [$sm['title'], $sm['description'], $sm['image'], $sm['url'], $sm['type']],
+  ['Suits | Herit Clothing', 'Two fittings.', 'https://heritclothing.com/uploads/site/a.jpg', 'https://heritclothing.com/services/suits', 'website']);
+$sm = spa_meta('service', 'suits', ['title' => 'Suits', 'seo_title' => 'Suits in Lagos', 'seo_description' => 'SEO text', 'summary' => 'Other'], '/services/suits', 'https://heritclothing.com');
+check('spa meta: SEO fields win', [$sm['title'], $sm['description'], $sm['image']], ['Suits in Lagos | Herit Clothing', 'SEO text', '']);
+$sm = spa_meta('page', 'home', null, '/', 'https://heritclothing.com');
+check('spa meta: home and missing content use the defaults', [$sm['title'], $sm['description'], $sm['url']], [SPA_HOME_TITLE, SPA_DEFAULT_DESCRIPTION, 'https://heritclothing.com/']);
+check('spa meta: unpublished item gets no canonical URL', spa_meta('service', 'gone', null, '/services/gone', 'https://h.com')['url'], '');
+check('spa meta: http or javascript images dropped', [spa_meta('project', 'x', ['cover' => ['url' => 'http://x/a.jpg']], '/work/x', 'https://h.com')['image'], spa_meta('project', 'x', ['cover' => ['url' => 'javascript:alert(1)']], '/work/x', 'https://h.com')['image']], ['', '']);
+$hh = spa_head_html(['title' => 'A "quoted" <b>', 'description' => "It's & more", 'url' => 'https://h.com/a', 'image' => '', 'type' => 'website']);
+check('spa head: escaped, no image means summary card', [str_contains($hh, 'A &quot;quoted&quot; &lt;b&gt;'), str_contains($hh, 'It&#039;s &amp; more'), str_contains($hh, '<b>'), str_contains($hh, 'content="summary"'), str_contains($hh, 'og:image')], [true, true, false, true, false]);
+$page = "<head>\n  <!--hc:head-->\n  <title>Old</title>\n  <!--/hc:head-->\n</head>";
+check('spa inject: replaces only the marked block', [str_contains(spa_inject($page, '<title>New $1 \\0</title>'), '<title>New $1 \\0</title>'), str_contains(spa_inject($page, '<title>New</title>'), 'Old')], [true, false]);
+check('spa inject: page without markers unchanged', spa_inject('<head><title>X</title></head>', '<title>Y</title>'), '<head><title>X</title></head>');

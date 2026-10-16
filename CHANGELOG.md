@@ -4,6 +4,12 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### `feat/link-previews` (no PR yet), 16 October 2026
+
+Added
+
+- Link previews (K-06): the page head now carries public defaults (title "Herit Clothing | Men's tailoring in Lagos", a description and Open Graph tags) for every crawler, replacing the staff title "HeritOS | Herit Clothing". `spa.php` can fill each service, portfolio project and page with its own title, description and photograph for WhatsApp and Facebook; it stays off (`SPA_HEAD_INJECTION`) until a live share test needs it, and serves the plain page on any error. 13 new helper tests.
+
 ### PR #15 `feat/staff-password-reset`, 16 October 2026
 
 Added

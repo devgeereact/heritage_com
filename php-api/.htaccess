@@ -15,6 +15,10 @@
   <Files "sitemap.php">
     Header unset X-Robots-Tag
   </Files>
+  # spa.php serves public pages when link previews are switched on (K-06).
+  <Files "spa.php">
+    Header unset X-Robots-Tag
+  </Files>
 </IfModule>
 
 RewriteEngine On
@@ -32,4 +36,8 @@ RewriteRule ^ - [L]
 RewriteRule \.php$ - [L]
 
 # Everything else → index.html so React Router handles the route.
+# Link previews (K-06): to fill each page's title, description and photograph
+# for WhatsApp and Facebook, set SPA_HEAD_INJECTION to true in config.php, then
+# swap the next two lines (comment the index.html rule, uncomment spa.php).
 RewriteRule ^ index.html [L]
+# RewriteRule ^ spa.php [L]
