@@ -4,7 +4,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
-### `feat/link-previews` (no PR yet), 16 October 2026
+### PR #16 `feat/link-previews`, 16 October 2026
 
 Added
 
