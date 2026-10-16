@@ -1,0 +1,51 @@
+/* Connection notice (A16). Tokens only; sits above every layout. */
+.hc-net {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+.hc-net-bar {
+  padding: .625rem 1rem;
+  padding-top: calc(.625rem + env(safe-area-inset-top, 0px));
+  text-align: center;
+  font: 600 .875rem/1.4 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--hc-text);
+  color: var(--hc-surface);
+}
+.hc-net-bar.is-back {
+  background: var(--hc-success-tint);
+  color: var(--hc-success);
+}
+
+/* A page that could not open (RouteErrorBoundary). System colours stand in
+   when no layout, and so no token, has loaded yet. */
+.hc-crash {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--hc-surface-alt, Canvas);
+  color: var(--hc-text-body, CanvasText);
+}
+.hc-crash h1 { margin: 0; font-size: 1.5rem; color: var(--hc-text, CanvasText); }
+.hc-crash p { margin: 0 auto; max-width: 34rem; }
+.hc-crash-actions { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+.hc-crash-actions button {
+  min-height: 44px;
+  padding: 0 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--hc-accent, ButtonBorder);
+  background: var(--hc-accent, ButtonFace);
+  color: var(--hc-on-accent, ButtonText);
+  font-family: inherit;
+  font-size: .9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hc-crash-actions button.is-quiet { background: transparent; color: var(--hc-text, CanvasText); border-color: var(--hc-control-border, ButtonBorder); }

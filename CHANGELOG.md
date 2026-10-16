@@ -4,6 +4,16 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### `feat/offline-a16` (no PR yet), 16 October 2026
+
+Added
+
+- Offline behaviour (A16, D-016): a bar on the website, sign-in and admin says "You are offline. Changes cannot be saved until the connection returns." and then "Back online"; saves are refused while offline with that message and the typed values stay on screen; failed loads say the device is offline, with Retry; network failures read as plain sentences instead of "Failed to fetch".
+
+Fixed
+
+- Opening a page offline whose code had not loaded yet blanked the whole app; a route error boundary now shows "This page could not open" with Try again and Go back (found in the A16 browser check).
+
 ### PR #16 `feat/link-previews`, 16 October 2026
 
 Added

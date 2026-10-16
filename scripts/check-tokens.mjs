@@ -12,6 +12,7 @@ const STYLESHEETS = [
   'src/app/(public)/site/portal/portal.css',
   'src/assets/scss/heritos-admin.css',
   'src/components/herit/herit-daily.css',
+  'src/components/OfflineBanner.css',
 ];
 const PUBLIC_DIR = 'src/app/(public)';
 const COLOUR = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(/g;

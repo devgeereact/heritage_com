@@ -157,8 +157,11 @@ Decision D-016 (Plans 2026, approved 10 October 2026): the service worker is an 
 
 - The shell and static files load offline; navigations fall back to the cached `index.html` (`public/sw.js:28-30`).
 - API calls are never cached (`public/sw.js:25`), so every data request fails offline.
-- The app has no connection detection: no `navigator.onLine` or `offline` event handling in `src/`. Some admin pages name their failed-request state "offline" in code (for example `tailoring/groups/page.jsx`); it means "request failed". Since PR #9 the daily pages show a plain message with Retry through the shared `LoadError` component (K-02 fixed); no page shows the old upload instruction.
-- Write blocking while offline: not implemented.
+- Connection notice (A16, `feat/offline-a16`, 16 October 2026): `src/components/OfflineBanner.jsx`, mounted once in `src/routes/router.jsx` above every layout, shows "You are offline. Changes cannot be saved until the connection returns." while the browser reports no connection, then "Back online. You can save again." for four seconds.
+- Write blocking: `src/helpers/heritApi.js` refuses every non-GET request while `navigator.onLine` is false, with that message (`err.code` `offline`, status 0). A request that cannot reach the server becomes a plain message (`offline` or `network`) instead of the browser's "Failed to fetch". Nothing is queued; forms keep the typed values on screen.
+- Failed loads: `LoadError` says the page cannot load because the device is offline, with Retry. Some admin pages still name their failed-request state "offline" in code (for example `tailoring/groups/page.jsx`); it means "request failed".
+- A page whose code has not been downloaded on this device cannot open offline. `src/components/RouteErrorBoundary.jsx` (keyed by path in the router) shows "This page could not open" with Try again and Go back instead of a blank screen; it also catches any other render failure.
+- Verified 16 October 2026 in a browser on local staging with the browser set offline ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)). On a real phone, on slow or intermittent connections, and with the production service worker: NOT TESTED.
 
 #### Target behaviour
 

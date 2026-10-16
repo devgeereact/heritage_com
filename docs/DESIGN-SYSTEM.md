@@ -188,6 +188,8 @@ Styled in `src/components/herit/herit-daily.css` under `.hd`, tokens only. Built
 | Money card (job Overview) | Owner roles only, from `job.money`: price, verified paid, waiting to verify when any, balance or credit, an 8px amber paid bar (`.hd-paid-bar`) and "Open payments". Sticky beside the main column from 992px (`.hd-sticky`), first on phones. Rows of stacked cards use `.hd-stack` so cards keep their own height |
 | Tab count (`.hd-tab-n`) | Small pill after a tab label: muted on the surface tint, amber with `on-accent` text on the active tab. Tab strips (`.hd-tabs`, `.hd-seg`) scroll sideways without a visible scrollbar |
 | Publish bar (`.hd-publish-bar`) | Website hub: a green dot and "Everything here is live" or, with `.is-dirty`, the warning tint, an amber dot, the count of items with unpublished changes and a link per list. Built from each list's `has_draft`; it never publishes anything itself |
+| Connection notice (`OfflineBanner`, `.hc-net-bar`) | Fixed full-width bar at the top of every layout: `--hc-text` background with `--hc-surface` text while offline (so it inverts on the dark website), success tint for "Back online"; `role="status"`, never blocks clicks. Styles in `src/components/OfflineBanner.css` |
+| Page could not open (`RouteErrorBoundary`, `.hc-crash`) | Centred h1, one plain sentence, an amber Try again and a quiet Go back (44px pills). System colours (`Canvas`, `CanvasText`, `ButtonFace`) stand in when no layout, and so no token, has loaded |
 | Board (`.hd-board`, `.hd-col`, `a.hd-kcard`) | One column per stage with a count; columns at least 250px, scrolling sideways inside the board on narrow screens; each card is one link to the job |
 
 ## Public components
