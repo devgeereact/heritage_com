@@ -4,7 +4,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
-### `feat/staff-password-reset` (no PR yet), 16 October 2026
+### PR #15 `feat/staff-password-reset`, 16 October 2026
 
 Added
 
