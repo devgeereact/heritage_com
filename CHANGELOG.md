@@ -4,7 +4,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
-### `feat/offline-a16` (no PR yet), 16 October 2026
+### PR #17 `feat/offline-a16`, 16 October 2026
 
 Added
 
