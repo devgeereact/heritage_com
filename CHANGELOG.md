@@ -4,7 +4,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
-### `feat/redesign-dark-luxury` (no PR yet), 13 October 2026
+### PR #14 `feat/redesign-dark-luxury`, 13 October 2026
 
 Changed
 
@@ -25,7 +25,7 @@ Fixed
 
 - A 1px line under the transparent home header, the home questions list centred under a left-aligned heading, and the admin logo box taller than the topbar (found in the browser check, [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)).
 
-### `feat/phase5-company-orders` (no PR yet), 12 October 2026
+### PR #13 `feat/phase5-company-orders`, 12 October 2026
 
 Added
 
@@ -45,7 +45,7 @@ Changed
 
 - The handover completion helper moved from `tailoring.php` to `_jobs.php`, and the owner invite link from `access.php` to `customer_invite_create()` in `_portal.php`, unchanged, so company jobs reuse them (`e2e-phase2.sh` and `e2e-phase3.sh` still pass).
 
-### `feat/phase4-website` (no PR yet), 11 October 2026
+### PR #12 `feat/phase4-website`, 11 October 2026
 
 Added
 
@@ -94,7 +94,7 @@ Changed
 - Social links (A12): `store.php?action=config`, `site.php` and `settings.php` accept and return only `https://` links on each platform's own host with an account path, and WhatsApp only as `https://wa.me/<digits>`; fallbacks and home-page links are left out. `robots.txt` now covers every current admin and portal path and points at the new sitemap.
 - One design token layer (A23): `src/assets/tokens/` holds every colour once and emits `--hc-*` custom properties; Larkon's SCSS variables, `heritos-admin.css`, the Phase 2 `--hd-*` set and `portal.css` all read it. Admin primary buttons become amber with ink text, `.text-primary` uses the accessible amber text colour, and the warm shadows, glass topbar, gradients and mono uppercase labels are gone. The public site stays light whatever the admin theme is.
 
-### `feat/phase3-appointments-portal` (no PR yet), 10 October 2026
+### PR #11 `feat/phase3-appointments-portal`, 10 October 2026
 
 Added
 
@@ -127,7 +127,7 @@ Removed
 
 - The Larkon `/apps/calendar` demo (A08, A18): its route, seven files and `SelectFormInput.jsx`, and the packages only it used, the seven `@fullcalendar/*` packages and `react-select`. The old URL redirects to `/appointments`. The disabled Messages tab on client details.
 
-### `chore/cleanup-docs-sync` (no PR yet), 10 October 2026
+### PR #10 `chore/cleanup-docs-sync`, 10 October 2026
 
 Added
 
