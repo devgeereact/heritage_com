@@ -195,6 +195,8 @@ Admin sweep, 16 October 2026, 390px in dark on staging: Enquiries, Appointments,
 
 Publish bar, method filter and tab pills, 16 October 2026, staging: Website at 1440px shows "9 items have changes that are not live yet" with links to Our work (1) and Questions (8), matching the list chips below; Payments Recent offers All methods, Bank transfer, Not recorded and Cash (the methods present), Bank transfer narrows 76 rows to 17 and sets `?tab=recent&method=transfer`; Enquiries at 390px in dark shows count pills (25, 10, 1, 9, 1), no sideways page scroll. NOT TESTED: the publish bar with nothing waiting (staging has drafts), the filter on To verify, keyboard and screen readers.
 
+Gap checks, 16 October 2026, staging: tailor account (`tailor` role) on job HC-0006: no Money card, no naira amounts, full-width column, tabs Overview, Measurements, Handover and Timeline, stage bar shown; the tailor's Jobs board shows 42 cards and no payment states (PASS). Company job HC-0038 as owner: tabs Overview, Items, Sample, Company, Messages, Quote, Payments, Handover, Timeline; stage bar; Money card shows "No price yet" for a job without a price; no sideways scroll (PASS). Home hero under emulated `prefers-reduced-motion: reduce`: no Ken Burns zoom (`animation: none`, `transform: none`), headline words shown without the reveal (opacity 1) (PASS). Autoplay under reduced motion: Verified in code only (`src/app/(public)/site/ui/Hero.jsx` line 65, `still` pauses the slider); staging has one published slide, so it was not observed in the browser.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).
