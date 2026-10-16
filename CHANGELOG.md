@@ -4,6 +4,12 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### `feat/staff-password-reset` (no PR yet), 16 October 2026
+
+Added
+
+- Staff password reset by email (K-04): "Reset password" on the sign-in page sends a single-use link that expires in 30 minutes; the request answers the same whether or not the address has an account; only a hash of the link token is stored (`password_resets`, `schema_phase29.sql`); a new request retires earlier links; choosing a new password signs the person out on every device; requests and failed attempts are throttled. `scripts/staging/e2e-reset.sh` checks it end to end on local staging.
+
 ### PR #14 `feat/redesign-dark-luxury`, 13 October 2026
 
 Changed

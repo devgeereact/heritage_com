@@ -17,12 +17,12 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | A16 | P1 | PWA | Writes not blocked offline | None | Business owner | Open |
 | K-07 | P2 | Today | Today's enquiry block lists `new` enquiries first and stops at 20 (`today.php:29`, order `status = 'new' DESC, next_follow_up`), so with more than 20 unanswered enquiries a due follow-up drops off the list (the count still includes it). Found when staging test data passed 20 new enquiries: `e2e-phase2.sh` E15c fails on that data, 12 October 2026 | Open Enquiries and filter by follow-up | Business owner (ordering is a Phase 2 rule) | Open |
 | K-06 | P2 | SEO | Link previews for crawlers that do not run JavaScript (WhatsApp, Facebook) see only the static `index.html` title and description; `spa.php` head injection (BUILD-SPEC 4.6) is not built, by the spec's own rule that it waits for a live crawler test | None; owner can share pages with their own text | Developer | Open |
-| K-04 | P2 | Auth | `/auth/reset-pass` shows a form whose submit does nothing (`ResetPassword.jsx:33`, `handleSubmit(() => {})`); there is no recovery endpoint | Owner password reset by hash in phpMyAdmin ([DEPLOYMENT.md](docs/DEPLOYMENT.md#database-and-schema-files)) | Business owner | Open; owner recovery is launch core ([SECURITY.md](docs/SECURITY.md#staff)) |
 
 ## Fixed in code, awaiting merge and deploy
 
 | ID | Severity | Area | Fix | Evidence | Status |
 |---|---|---|---|---|---|
+| K-04 | P2 | Auth | Staff password reset by email: `reset_request` and `reset_confirm` in `auth.php`, `password_resets` (`schema_phase29.sql`), a two-step `/auth/reset-pass` screen (`feat/staff-password-reset`) | `e2e-reset.sh` 19 of 19 on local staging; screens at 390px in a browser PASS; real email delivery NOT TESTED | In code; needs the import and working outgoing email |
 | A22 | P2 | Promotions | HERIT10 and FREESHIP no longer seeded; switched off where unused (`schema_phase26.sql`, `feat/phase4-website`) | Staging check PASS | In code |
 | A24 | P2 | SEO | `sitemap.php` at `/sitemap.xml`, published content only; robots.txt rewritten (`feat/phase4-website`) | Staging check PASS; live `.htaccess` rewrite NOT TESTED | In code |
 | A04 | P0 | Content safety | Server allowlist sanitiser (PR #6) | Helper tests PASS; rendered page NOT TESTED | In code |

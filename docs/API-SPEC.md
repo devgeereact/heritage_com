@@ -19,7 +19,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 |---|---|---|---|
 | `_lib.php` | Shared helpers: CORS, JSON, auth, audit, throttle, sanitiser, `cfg()`, coupon and referral helpers, payment helpers, staff codes and public references. Loads `config.local.php` instead of `config.php` only when the local staging router defines `HERITOS_STAGING` | Not an endpoint | CI |
 | `api.php` | Smoke test: `items` list (public) and insert | List public; insert all seven staff roles (`api.php:23`) | CI |
-| `auth.php` | Staff login, logout, me; email and PIN throttling | Login public; other actions any signed-in staff | CI |
+| `auth.php` | Staff login, logout, me; email and PIN throttling; password reset by email (`reset_request {email}` answers the same whether or not the address has an account; `reset_confirm {token, password}`, 8 to 72 characters, single-use link, signs out every device; K-04, `feat/staff-password-reset`) | Login and both reset actions public; other actions any signed-in staff | CI |
 | `ai.php` | OpenRouter text proxy | Any signed-in staff (`ai.php:14`) | CI |
 | `products.php` | Catalogue, variants, stock | super_admin, admin, manager, editor, employee | CI |
 | `customers.php` | Clients: search, match, duplicate warning, measurement sets | super_admin, admin, manager, tailor, employee (`ROLES_CLIENTS`) | CI |

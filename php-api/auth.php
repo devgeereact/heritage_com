@@ -4,6 +4,8 @@
  *   POST /auth.php?action=login   {email, password}  → {token, user}
  *   POST /auth.php?action=logout  (Bearer token)     → {ok:true}
  *   GET  /auth.php?action=me      (Bearer token)      → {user}
+ *   POST /auth.php?action=reset_request {email}          → {ok, message} (same answer either way)
+ *   POST /auth.php?action=reset_confirm {token, password} → {ok, message}; signs out every device
  *
  * Tokens are random 64-char strings stored in auth_tokens with an expiry.
  * Passwords are verified with password_verify against a bcrypt hash.
@@ -87,6 +89,84 @@ if ($action === 'login' && method() === 'POST') {
   audit($user['id'], 'login');
   unset($user['password_hash']);
   json(['token' => $token, 'user' => $user]);
+}
+
+/* ---- PASSWORD RESET BY EMAIL (K-04, schema_phase29.sql) ------------------ */
+/* reset_request always answers the same way, whether or not the address has an
+ * account, so it cannot be used to find staff emails. The emailed link holds a
+ * random token; only its SHA-256 hash is stored. A link works once, expires
+ * (RESET_TTL_MINUTES, default 30) and retires earlier unused links. A reset
+ * signs the person out on every device. Requests and failed confirmations are
+ * throttled through audit_log like login. */
+$THROTTLE_LIMITS['reset_req_ip'] = (int) cfg('RESET_MAX_PER_IP', 5);
+$THROTTLE_LIMITS['reset_req_acct'] = (int) cfg('RESET_MAX_PER_ACCOUNT', 3);
+$THROTTLE_LIMITS['reset_fail_ip'] = (int) cfg('RESET_FAIL_MAX_PER_IP', 10);
+
+if ($action === 'reset_request' && method() === 'POST') {
+  require_once __DIR__ . '/_jobs.php';
+  require_once __DIR__ . '/_mail.php';
+  $email = trim(strtolower((string)(body()['email'] ?? '')));
+  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Enter the email address you sign in with.');
+  $ipKey = 'ip:' . client_ip();
+  $acctKey = account_key($email);
+  throttle_guard([
+    ['reset_req_ip', 'reset_req_ip', $ipKey],
+    ['reset_req_acct', 'reset_req_acct', $acctKey],
+  ]);
+  // Every request counts towards the limits, found or not.
+  audit(null, 'reset_req_ip', $ipKey);
+  audit(null, 'reset_req_acct', $acctKey);
+
+  $user = db_row('SELECT id, name, email FROM users WHERE email = ? AND deleted_at IS NULL', 's', $email);
+  if ($user) {
+    $token = bin2hex(random_bytes(32));
+    $ttl = max(5, min(240, (int) cfg('RESET_TTL_MINUTES', 30)));
+    db_tx(function () use ($user, $token, $ttl) {
+      db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$user['id']);
+      db_exec('INSERT INTO password_resets (user_id, token_hash, expires_at, ip) VALUES (?, ?, UTC_TIMESTAMP() + INTERVAL ? MINUTE, ?)',
+        'isis', (int)$user['id'], token_hash($token), $ttl, client_ip());
+    });
+    $site = rtrim((string) cfg('SITE_URL', CORS_ORIGIN), '/');
+    $url = $site . '/auth/reset-pass?token=' . $token;
+    $first = htmlspecialchars(trim(explode(' ', trim((string)$user['name']))[0] ?? ''), ENT_QUOTES, 'UTF-8');
+    $link = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    $html = '<p>Hello ' . $first . ',</p>'
+      . '<p>Someone asked to reset the password for your HeritOS account. If it was you, choose a new password here:</p>'
+      . '<p><a href="' . $link . '">' . $link . '</a></p>'
+      . '<p>The link works once and expires in ' . $ttl . ' minutes. If you did not ask, ignore this email: your password stays the same.</p>';
+    mail_send_html($user['email'], 'Reset your HeritOS password', $html, ['user_id' => (int)$user['id'], 'entity' => 'password_reset']);
+    audit((int)$user['id'], 'password_reset_requested');
+  }
+  json(['ok' => true, 'message' => 'If that address has a HeritOS account, a reset link is on its way. Check your inbox and spam folder.']);
+}
+
+if ($action === 'reset_confirm' && method() === 'POST') {
+  require_once __DIR__ . '/_jobs.php';
+  $b = body();
+  $token = (string)($b['token'] ?? '');
+  $password = (string)($b['password'] ?? '');
+  $ipKey = 'ip:' . client_ip();
+  throttle_guard([['reset_fail_ip', 'reset_fail_ip', $ipKey]]);
+  if (strlen($password) < 8) fail('Choose a password of at least 8 characters.');
+  if (strlen($password) > 72) fail('Choose a password of at most 72 characters.');
+  // Null when the link is unknown, used or expired; the audit row is written
+  // outside the transaction so a failed attempt always counts.
+  $userId = !preg_match('/^[a-f0-9]{64}$/', $token) ? null : db_tx(function () use ($token, $password) {
+    $r = db_row('SELECT r.id, r.user_id FROM password_resets r JOIN users u ON u.id = r.user_id
+                  WHERE r.token_hash = ? AND r.used_at IS NULL AND r.expires_at > UTC_TIMESTAMP() AND u.deleted_at IS NULL
+                  FOR UPDATE', 's', token_hash($token));
+    if (!$r) return null;
+    db_exec('UPDATE users SET password_hash = ? WHERE id = ?', 'si', password_hash($password, PASSWORD_BCRYPT), (int)$r['user_id']);
+    db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$r['user_id']);
+    db_exec('DELETE FROM auth_tokens WHERE user_id = ?', 'i', (int)$r['user_id']);
+    return (int)$r['user_id'];
+  });
+  if (!$userId) {
+    audit(null, 'reset_fail_ip', $ipKey);
+    fail('This reset link has expired or was already used. Ask for a new one.', 400);
+  }
+  audit($userId, 'password_reset');
+  json(['ok' => true, 'message' => 'Your password has changed. Sign in with the new one.']);
 }
 
 /* ---- PIN LOGIN (shared market-stall device) ------------------------------ */

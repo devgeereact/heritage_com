@@ -114,6 +114,10 @@ Owner of every entity: the business owner.
 
 The business profile is not a table: it is the `business_*`, `socials` and `journal_enabled` keys in `settings` ([API-SPEC.md](API-SPEC.md#phase-4-settings-keys)). Nothing is seeded: an empty profile and no content mean the public site hides those sections.
 
+## Staff password reset (schema_phase29)
+
+`password_resets` (K-04, `feat/staff-password-reset`): `user_id`, `token_hash` (SHA-256 of the emailed token; the token itself is never stored), `expires_at` and `used_at` (UTC), `ip`, `created_at`. A link works once; asking again retires every earlier unused link for that person; a reset deletes all their `auth_tokens`. Rows are never shown in the app.
+
 ## Home hero slides (schema_phase28)
 
 Branch `feat/redesign-dark-luxury` (D-023). `cms_items.entity` gains `'slide'`; slides use the same `live`, `draft` and `prev` JSON and the same `sort` order as other CMS items. No new table and no seeded rows. Fields and limits: [API-SPEC.md](API-SPEC.md#cmsphp-staff).
