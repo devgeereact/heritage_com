@@ -189,6 +189,8 @@ Build pass, 14 October 2026: at 390px, `scrollWidth` 375 in a 390 window and an 
 
 Admin (CMS) pass, 14 October 2026, same setup: Jobs board at 1440px light (five stage columns with counts, late days in red, payment chips) and 390px (board scrolls inside itself, page `scrollWidth` within the window); Payments at 1440px (three tiles: ₦778,000 received this month, ₦1,834,000 across 54 jobs to collect, 17 to verify, matching the Balances due total); Today at 390px ("Good afternoon, Staging"); Clients at 390px in dark (79 avatars, no sideways scroll). Found and fixed: tile figures broke across two lines at 390px; the Payments tile first read "Owed on open jobs" although the due list includes collected jobs, now "Balances to collect". Checks: lint 0 errors, check-tokens, build, 374 helper tests PASS. NOT TESTED: Enquiries avatars on screen (code only), the board with the stage filter set, keyboard use of the List or Board switch, screen readers, real phones.
 
+Job page pass, 16 October 2026, same setup, job HC-0006 (part paid): at 1440px light the stage bar sits above the tabs, Overview shows the stage and dates on the left and the Money card on the right (₦120,000 price, ₦60,000 verified, ₦60,000 balance, 50% paid); at 390px dark the Money card comes first, no sideways scroll, and on loading `?tab=payments` the stage bar scrolls the current step into view. Found and fixed: every card in the Overview row stretched to the row height (admin equal-height rule), now `.hd-stack`. NOT TESTED: a tailor account (no Money card, full-width column), a company job, a job without a price, keyboard and screen readers.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).

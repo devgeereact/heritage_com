@@ -7,7 +7,31 @@ import SaveState from '@/components/herit/SaveState';
 const FLOW = ['quote', 'confirmed', 'measurements_approved', 'in_production', 'fitting', 'quality_check', 'ready', 'handed_over'];
 
 /**
- * Stage control: the stepper, the next steps the server allows, an owner-only
+ * Stage progress bar shown under the job header on every tab (D-023 prototype).
+ * The current step scrolls into view on narrow screens.
+ */
+export const StageStepper = ({ current, stages = [] }) => {
+  const label = (k) => stages.find((s) => s.key === k)?.label || STAGE_LABELS[k] || k;
+  const idx = FLOW.indexOf(current);
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current?.querySelector('.hd-step--current');
+    if (el && ref.current) ref.current.scrollLeft = el.offsetLeft - ref.current.offsetLeft - 16;
+  }, [current]);
+  return (
+    <ol ref={ref} className="hd-stepper list-unstyled mb-3" aria-label="Job stages">
+      {FLOW.map((s, i) => (
+        <li key={s} className={`hd-step ${current !== 'cancelled' && i < idx ? 'hd-step--done' : ''} ${s === current ? 'hd-step--current' : ''}`}
+          aria-current={s === current ? 'step' : undefined}>
+          {label(s)}
+        </li>
+      ))}
+    </ol>
+  );
+};
+
+/**
+ * Stage control:  the next steps the server allows, an owner-only
  * forced move with a reason, and the "ready or collected?" prompt for jobs
  * carried over as "done" from the old board.
  */
@@ -18,15 +42,9 @@ const StagePanel = ({ job, stages, isOwner, onChanged }) => {
   const [cancelAsk, setCancelAsk] = useState(false);
   const label = (k) => stages.find((s) => s.key === k)?.label || STAGE_LABELS[k] || k;
   const current = job.job_stage;
-  const idx = FLOW.indexOf(current);
   const next = (allowed || job.allowed_next || []).filter((s) => s !== 'handed_over');
   const forward = next.filter((s) => s !== 'cancelled');
   const canCancel = next.includes('cancelled');
-  const stepper = useRef(null);
-  useEffect(() => {
-    const el = stepper.current?.querySelector('.hd-step--current');
-    if (el && stepper.current) stepper.current.scrollLeft = el.offsetLeft - stepper.current.offsetLeft - 16;
-  }, [current]);
 
   const move = async (to, extra = {}) => {
     setSave({ state: 'saving', error: '' });
@@ -51,14 +69,6 @@ const StagePanel = ({ job, stages, isOwner, onChanged }) => {
     <Card className="hd-card mb-3">
       <Card.Body>
         <h2 className="h6">Stage</h2>
-        <ol ref={stepper} className="hd-stepper list-unstyled mb-3" aria-label="Job stages">
-          {FLOW.map((s, i) => (
-            <li key={s} className={`hd-step ${current !== 'cancelled' && i < idx ? 'hd-step--done' : ''} ${s === current ? 'hd-step--current' : ''}`}
-              aria-current={s === current ? 'step' : undefined}>
-              {label(s)}
-            </li>
-          ))}
-        </ol>
         {current === 'cancelled' && <Alert variant="secondary">This job was cancelled.</Alert>}
 
         {job.stage_review ? (

@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Card, Nav, Spinner } from 'react-bootstrap';
+import { Alert, Card, Col, Nav, ProgressBar, Row, Spinner } from 'react-bootstrap';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
 import { useAuthContext } from '@/context/useAuthContext';
-import { fmtDate, fmtUtc, GARMENT_LABELS, STAGE_LABELS, waLink } from '@/helpers/format';
+import { fmtDate, fmtUtc, GARMENT_LABELS, naira, STAGE_LABELS, waLink } from '@/helpers/format';
 import LoadError from '@/components/herit/LoadError';
 import PageHeader from '@/components/herit/PageHeader';
 import { PaymentChip, StageChip } from '@/components/herit/StatusChip';
-import StagePanel from '../components/StagePanel';
+import StagePanel, { StageStepper } from '../components/StagePanel';
 import DatesPanel from '../components/DatesPanel';
 import MeasurementsPanel from '../components/MeasurementsPanel';
 import QuotePanel from '../components/QuotePanel';
@@ -20,6 +20,39 @@ import { CompanyItemsPanel, CompanySamplePanel, CompanyDetailsPanel, CompanyHand
 import StatusChip from '@/components/herit/StatusChip';
 
 const OWNER = ['super_admin', 'admin', 'manager'];
+
+/** Owner-only money at a glance on Overview: price, verified paid, balance and a paid bar. */
+const MoneySummary = ({ money, onOpen }) => {
+  const price = Number(money.price) || 0;
+  const paid = Number(money.paid_verified) || 0;
+  const pct = price > 0 ? Math.min(100, Math.round((paid / price) * 100)) : 0;
+  const credit = Number(money.credit) || 0;
+  const waiting = Number(money.awaiting_verification) || 0;
+  return (
+    <Card className="hd-card hd-sticky">
+      <Card.Body>
+        <h2 className="h6">Money</h2>
+        {price > 0 ? (
+          <>
+            <dl className="hd-dl mb-3">
+              <dt>Price</dt><dd className="money">{naira(money.price)}</dd>
+              <dt>Paid (verified)</dt><dd className="money">{naira(money.paid_verified)}</dd>
+              {waiting > 0 && (<><dt>Waiting to verify</dt><dd className="money">{naira(money.awaiting_verification)}</dd></>)}
+              {credit > 0
+                ? (<><dt>Credit to the client</dt><dd className="money fw-semibold">{naira(money.credit)}</dd></>)
+                : (<><dt>Balance</dt><dd className="money fw-semibold">{naira(money.balance)}</dd></>)}
+            </dl>
+            <ProgressBar now={pct} className="hd-paid-bar mb-1" aria-label={`${pct}% paid`} />
+            <div className="small text-muted mb-3">{pct}% paid</div>
+          </>
+        ) : (
+          <p className="text-muted small">No price yet. Set it on the quote.</p>
+        )}
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onOpen}>Open payments</button>
+      </Card.Body>
+    </Card>
+  );
+};
 
 /**
  * One job: stage, dates, messages, measurements, quote, payments, handover, timeline.
@@ -95,14 +128,25 @@ const JobDetailPage = () => {
         {job.next_action ? ` · Next: ${job.next_action}${job.next_action_date ? ` (${fmtDate(job.next_action_date)})` : ''}` : ''}
       </p>
 
+      <StageStepper current={job.job_stage} stages={stages} />
+
       <Nav variant="tabs" className="mb-3" activeKey={tab} onSelect={(k) => setParams({ tab: k })} role="tablist">
         {tabs.map((t) => <Nav.Item key={t}><Nav.Link eventKey={t} role="tab" aria-selected={t === tab}>{TAB_LABEL[t]}</Nav.Link></Nav.Item>)}
       </Nav>
 
       {tab === 'overview' && (
         <>
-          <StagePanel job={job} stages={stages} isOwner={isOwner} onChanged={load} />
-          <DatesPanel job={job} tailors={tailors} onSaved={load} onReload={load} />
+          <Row className="g-3 hd-stack">
+            <Col lg={isOwner && job.money ? 8 : 12}>
+              <StagePanel job={job} stages={stages} isOwner={isOwner} onChanged={load} />
+              <DatesPanel job={job} tailors={tailors} onSaved={load} onReload={load} />
+            </Col>
+            {isOwner && job.money && (
+              <Col lg={4} className="order-first order-lg-0">
+                <MoneySummary money={job.money} onOpen={() => setParams({ tab: 'payments' })} />
+              </Col>
+            )}
+          </Row>
         </>
       )}
       {tab === 'messages' && isOwner && <MessagesPanel job={job} />}

@@ -184,6 +184,8 @@ Styled in `src/components/herit/herit-daily.css` under `.hd`, tokens only. Built
 | Summary tiles (`.hd-stats`, `a.hd-stat`) | Four across from 1200px, two below (`.hd-stats--3`: three across, one column below 768px); label and tinted icon, Fraunces figure, short line; each tile is one link. Below 420px the figure is 1.3rem on one line. Used on Today and Payments |
 | `.hd-avatar` | 38px circle, amber tint with amber-text initials (`initials()` in `src/helpers/format.js`), decorative (`aria-hidden`). Leads rows on Jobs, Clients and Enquiries |
 | `.hd-seg` | Pill switch of two buttons with `aria-pressed`; the pressed one is ink on surface. Jobs List or Board |
+| Stage bar (`StageStepper`, `.hd-stepper`) | One 4px bar and label per stage under the job header on every tab: done in muted, current in amber with `aria-current="step"`; scrolls sideways on phones with the current step brought into view |
+| Money card (job Overview) | Owner roles only, from `job.money`: price, verified paid, waiting to verify when any, balance or credit, an 8px amber paid bar (`.hd-paid-bar`) and "Open payments". Sticky beside the main column from 992px (`.hd-sticky`), first on phones. Rows of stacked cards use `.hd-stack` so cards keep their own height |
 | Board (`.hd-board`, `.hd-col`, `a.hd-kcard`) | One column per stage with a count; columns at least 250px, scrolling sideways inside the board on narrow screens; each card is one link to the job |
 
 ## Public components

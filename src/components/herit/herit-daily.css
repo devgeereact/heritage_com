@@ -207,6 +207,11 @@ button.hd-row { width: 100%; background: none; border-left: 0; border-right: 0; 
 .hd dl.hd-dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem 1rem; margin: 0; }
 .hd dl.hd-dl dt { font-weight: 400; color: var(--hd-muted); }
 .hd dl.hd-dl dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--hd-ink); font-weight: 600; }
+.hd .hd-paid-bar { height: 8px; border-radius: 999px; background: var(--hd-divider); }
+.hd .hd-paid-bar .progress-bar { background: var(--hd-amber); border-radius: 999px; }
+/* Columns that stack several cards opt out of the admin equal-height cards. */
+.row.hd-stack > [class*="col"] > .card { height: auto; }
+@media (min-width: 992px) { .hd .hd-sticky { position: sticky; top: calc(64px + 1rem); } }
 
 /* Measurement entry: big tap fields with the unit always visible */
 .hd .hd-measure .input-group-text { min-width: 3rem; justify-content: center; font-weight: 600; }
