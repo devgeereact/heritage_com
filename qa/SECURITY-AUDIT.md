@@ -55,3 +55,14 @@ Open items not fixed are listed in [SECURITY.md](../docs/SECURITY.md#open-items-
 | Manifest on staff pages only (K-20) | PASS in Chromium: no manifest link on `/`; manifest with `start_url` `/today` on `/auth/sign-in` |
 | AI drafter prompt (K-12) | Source only; NOT TESTED at runtime (no AI key on staging) |
 | Regression | Helper tests 374; e2e phase3 93, phase4 63, phase5 25; phase2 46 of 48 (E9b and E15c: Today's 20-item cap on accumulated staging data, K-07); lint 0 errors; build |
+
+### Shared PINs, 17 October 2026 (K-23)
+
+Two synthetic `example.test` tailors on local staging (script in the session scratchpad; PINs cleared afterwards).
+
+| Check | Result |
+|---|---|
+| Second user sets a PIN the first already uses | PASS: 409 "That PIN cannot be used. Choose a different one." |
+| Sign-in with a unique PIN | PASS: 200 |
+| Sign-in with a PIN forced onto both accounts in the database | PASS: 401, `pin_login_ambiguous` audited |
+| Repeated refusals | PASS: 409 four more times, then 429 |

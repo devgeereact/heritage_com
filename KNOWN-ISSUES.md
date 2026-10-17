@@ -21,7 +21,7 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | K-14 | P2 | Privacy | The legacy order lookup sends the phone number in a GET query string (`TrackPage.jsx:46`, `store.php:627`), so it reaches server access logs | Switch off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021) | Business owner | Open |
 | K-18 | P2 | Privacy | No retention job exists: expired sessions, access attempts with IP, audit and WhatsApp logs, abandoned carts and old enquiries are kept indefinitely ([schedule](docs/DATA-PRIVACY.md#retention-schedule)) | Manual clean-up | Business owner, developer | Open: periods need owner and legal review |
 | K-19 | P3 | SEO | No 1200x630 link-preview image; the default is the square brand icon (`icon-512.png`, small card) | Owner photographs per page through the CMS | Business owner | Open |
-| K-23 | P3 | Security | Two staff with the same PIN sign in as whoever matches first; no script-src CSP. Login timing and 64-bit gift-card codes fixed 17 October 2026 (in code; older 8-character codes still valid) | Throttles; gift checks throttled | Developer | Partly fixed (in code) |
+| K-23 | P3 | Security | No script-src Content Security Policy (needs a tested allowlist on the live build). Fixed 17 October 2026 (in code): login timing, 64-bit gift-card codes, one PIN per person (a shared PIN signs in nobody) | Throttles; frame-ancestors CSP | Developer | Partly fixed (in code) |
 
 ## Fixed in code, awaiting merge and deploy
 

@@ -38,7 +38,7 @@ Redesign branch (`feat/redesign-dark-luxury`), verified on local staging; eviden
 ### Open items (not fixed)
 
 - Fixed 17 October 2026 (second batch): staff tokens are stored as SHA-256 (`staff_token_hash`, `_lib.php`); tokens issued before the change still work until they expire, then the plain fallback in `require_auth`, logout and password change should be removed (K-15). Email sign-in checks a password against a dummy bcrypt hash when no account matches, so timing no longer reveals which emails exist (K-23).
-- Two staff may hold the same PIN; whoever matches first signs in (K-23).
+- One PIN per person (17 October 2026, K-23): `set_pin` refuses a PIN another account uses (409; at most 5 refusals per user per day, then 429, audited as `set_pin_taken`), and `pin_login` signs in nobody when a PIN matches two accounts (audited as `pin_login_ambiguous`).
 - New gift card codes are 64-bit (`HG-` plus 16 hex characters, 17 October 2026); codes issued earlier are 32-bit and still valid, guarded by the per-IP failure limit (K-23).
 - No `script-src` Content Security Policy.
 

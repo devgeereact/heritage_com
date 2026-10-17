@@ -80,7 +80,7 @@ Redesign branch (`feat/redesign-dark-luxury`). Why each change was made is in [S
 |---|---|
 | `whatsapp.php` `broadcast`; `engage.php` `waitlist_notify`, `abandoned_nudge` | Answer 403 "Promotional messages are switched off until customers can opt in (D-024)." after the staff check; `send` and the read actions are unchanged (K-11) |
 | `auth.php` `login`, `_lib.php` `require_auth()` | Refuse users with `status = 'suspended'` (`invited` still allowed); staff tokens stored as SHA-256 with a plain fallback for older tokens (K-15) |
-| `auth.php` `pin_login`, `set_pin` | `pin_login` ignores `super_admin` and `admin`; `set_pin` answers 403 for them |
+| `auth.php` `pin_login`, `set_pin` | `pin_login` ignores `super_admin` and `admin`, and answers 401 when a PIN matches more than one account; `set_pin` answers 403 for them, 409 when another account uses the PIN (5 refusals per user per day, then 429) |
 | `users.php` create, update, reset, deactivate | `guard_super_admin()`: only a super_admin may create, promote to, edit, reset or deactivate a super_admin (403). Tokens are deleted when status leaves `active` |
 | `loyalty.php` `credit_balance` | Public; answers `{customer_id:null, balance}` for a verified customer session (`customer_session_optional()` in `_portal.php`), else balance 0. `phone` is ignored |
 | `loyalty.php` `gift_check` | 10 failed checks per IP per hour (`GIFT_CHECK_MAX_FAILS_PER_IP`) |

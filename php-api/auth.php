@@ -115,14 +115,17 @@ if ($action === 'pin_login' && method() === 'POST') {
       WHERE pin_hash IS NOT NULL AND pin_hash <> '' AND status = 'active'
         AND deleted_at IS NULL AND role NOT IN ('customer', 'super_admin', 'admin')"
   );
-  $match = null;
+  // Check every account: a PIN shared by two people signs in nobody (K-23).
+  $matches = [];
   while ($res && $row = $res->fetch_assoc()) {
-    if (password_verify($pin, $row['pin_hash'])) { $match = $row; break; }
+    if (password_verify($pin, $row['pin_hash'])) $matches[] = $row;
   }
-  if (!$match) {
+  if (count($matches) !== 1) {
     audit(null, 'pin_login_fail', $ipKey);
+    if (count($matches) > 1) audit(null, 'pin_login_ambiguous', $ipKey, null, ['users' => array_map(fn($m) => (int)$m['id'], $matches)]);
     fail('PIN not recognised', 401);
   }
+  $match = $matches[0];
 
   $token = issue_token($match['id']);
   audit($match['id'], 'pin_login');
@@ -146,6 +149,20 @@ if ($action === 'set_pin' && method() === 'POST') {
   // A short PIN is guessable from the internet, so owner-level roles sign in
   // with email and password only (pin_login refuses them too).
   if (in_array($user['role'], ['super_admin', 'admin'], true)) fail('Owner and admin accounts sign in with email and password, not a PIN', 403);
+  // Each PIN must belong to one person (K-23). Rejections are capped per user
+  // per day, so this cannot be used to discover a colleague's PIN.
+  $userKey = 'user:' . (int)$user['id'];
+  throttle_enforce([[5, 'set_pin_taken', $userKey]], 86400);
+  $others = $conn->prepare("SELECT pin_hash FROM users WHERE id <> ? AND pin_hash IS NOT NULL AND pin_hash <> '' AND deleted_at IS NULL");
+  $others->bind_param('i', $user['id']);
+  $others->execute();
+  $or = $others->get_result();
+  while ($row = $or->fetch_assoc()) {
+    if (password_verify($pin, $row['pin_hash'])) {
+      audit($user['id'], 'set_pin_taken', $userKey);
+      fail('That PIN cannot be used. Choose a different one.', 409);
+    }
+  }
   $hash = password_hash($pin, PASSWORD_DEFAULT);
   $stmt = $conn->prepare('UPDATE users SET pin_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $user['id']);
