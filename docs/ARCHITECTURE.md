@@ -159,8 +159,8 @@ Decision D-016 (Plans 2026, approved 10 October 2026): the service worker is an 
 
 - The shell and static files load offline; navigations fall back to the cached `index.html` (`public/sw.js:28-30`).
 - API calls are never cached (`public/sw.js:25`), so every data request fails offline.
-- The app has no connection detection: no `navigator.onLine` or `offline` event handling in `src/`. Some admin pages name their failed-request state "offline" in code (for example `tailoring/groups/page.jsx`); it means "request failed". Since PR #9 the daily pages show a plain message with Retry through the shared `LoadError` component (K-02 fixed); no page shows the old upload instruction.
-- Write blocking while offline: not implemented.
+- Some admin pages name their failed-request state "offline" in code (for example `tailoring/groups/page.jsx`); it means "request failed". Since PR #9 the daily pages show a plain message with Retry through the shared `LoadError` component (K-02 fixed).
+- Write blocking while offline (17 October 2026, A16, in code): every API call goes through `send()` in `src/helpers/heritApi.js`. A POST, or any non-GET, made while `navigator.onLine` is false is refused before anything is sent ("You are offline, so nothing was saved. Reconnect and try again."). A request that cannot reach the server becomes a plain error with `network = true` and status 0; for writes it says the change may not have been saved. Staff screens show `OfflineBanner` (`src/components/OfflineBanner.jsx`) while offline. The POS keeps its own offline sale queue, which now also recognises the `network` flag (`pos/offline.js`). Verified in Chromium offline mode on local staging: banner appears and clears; the contact form sends no request and shows the offline message. NOT TESTED: real phones, flaky rather than absent connections.
 
 #### Target behaviour
 

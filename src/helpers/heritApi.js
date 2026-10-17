@@ -17,13 +17,38 @@ function token() {
   }
 }
 
+/**
+ * Offline handling (D-016, A16): writes are refused while the device is
+ * offline, before anything is sent, so nothing half-saves. A request that fails
+ * to reach the server becomes a plain-language error marked `network` (status
+ * 0); the POS checks that flag to queue a sale.
+ */
+const OFFLINE_WRITE = 'You are offline, so nothing was saved. Reconnect and try again.'
+const NO_CONNECTION = 'Could not reach the server. Check your connection and try again.'
+const NO_CONNECTION_WRITE = 'Could not reach the server, so this may not have been saved. Check your connection, then check before trying again.'
+function networkError(message) {
+  const err = new Error(message)
+  err.status = 0
+  err.network = true
+  return err
+}
+async function send(url, init) {
+  const write = (init.method || 'GET') !== 'GET'
+  if (write && typeof navigator !== 'undefined' && navigator.onLine === false) throw networkError(OFFLINE_WRITE)
+  try {
+    return await fetch(url, init)
+  } catch {
+    throw networkError(write ? NO_CONNECTION_WRITE : NO_CONNECTION)
+  }
+}
+
 async function request(path, { method = 'GET', body, auth = true } = {}) {
   const headers = { 'Content-Type': 'application/json' }
   if (auth) {
     const t = token()
     if (t) headers.Authorization = `Bearer ${t}`
   }
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await send(`${API_BASE}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
@@ -95,7 +120,7 @@ async function crequest(path, { method = 'GET', body } = {}) {
   const headers = { 'Content-Type': 'application/json' }
   const t = customerToken()
   if (t) headers.Authorization = `Bearer ${t}`
-  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined })
+  const res = await send(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)
   return data
@@ -112,7 +137,7 @@ async function upload(path, file, fields = {}) {
   const headers = {}
   const t = token()
   if (t) headers.Authorization = `Bearer ${t}`
-  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: form })
+  const res = await send(`${API_BASE}${path}`, { method: 'POST', headers, body: form })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)
   return data

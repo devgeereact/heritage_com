@@ -118,7 +118,7 @@ if ($action === 'gift_issue' && method() === 'POST') {
   // Unique HG-XXXXXXXX code.
   $code = '';
   for ($i = 0; $i < 5; $i++) {
-    $try = 'HG-' . strtoupper(bin2hex(random_bytes(4)));
+    $try = 'HG-' . strtoupper(bin2hex(random_bytes(8)));   // 64-bit; older 32-bit codes still work (K-23)
     $chk = $conn->prepare('SELECT id FROM gift_cards WHERE code = ?');
     $chk->bind_param('s', $try);
     $chk->execute();

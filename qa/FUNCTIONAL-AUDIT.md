@@ -240,3 +240,15 @@ Proposed goals to test, not guaranteed outcomes: routine status and payment acti
 | Today | 390px and 1280px | Blocks with work first, counts, one-tap rows, one next step when empty, no charts | Screenshots, 10 Oct 2026 | None | Owner to confirm block order | Built; owner review NOT TESTED |
 
 Check comprehension, hierarchy, navigation, calls to action, forms, feedback, error recovery, trust, overflow, touch behaviour and the next step.
+
+## Offline behaviour, 17 October 2026 (A16)
+
+Chromium (Playwright) offline mode, `npm run dev` against local staging, `feat/redesign-dark-luxury`.
+
+| Check | Result |
+|---|---|
+| Staff screen (`/today`) online, offline, online again | PASS: offline banner hidden, shown, hidden |
+| Contact form submitted while offline | PASS: no request to `contact.php`; alert "You are offline, so nothing was saved. Reconnect and try again." |
+| Gift card issued on staging (synthetic) | PASS: `HG-` plus 16 hex characters; `gift_check` accepts it |
+| POS offline queue | Source only: `isNetworkError` also accepts the new `network` flag; NOT TESTED in a browser |
+| Real phones, flaky connections, update after a deploy | NOT TESTED |

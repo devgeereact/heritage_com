@@ -35,6 +35,11 @@ Removed
 
 - Larkon template pages `/pages-404`, `/auth/sign-up` and `/auth/lock-screen`, whose forms did nothing.
 
+Fixed (third batch, 17 October 2026)
+
+- Saving is refused while the device is offline, with a plain message, and staff screens show an offline banner; connection failures read as plain sentences instead of "Failed to fetch" (A16, D-016).
+- New gift card codes are 64-bit (K-23).
+
 Changed (owner decisions D-024, 17 October 2026)
 
 - Promotional WhatsApp sends (broadcast, waitlist and abandoned-cart nudges) are switched off until customers can opt in; the admin buttons are disabled with an explanation (K-11).
