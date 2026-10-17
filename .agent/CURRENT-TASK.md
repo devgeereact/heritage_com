@@ -51,7 +51,7 @@ Local staging residue from the audit: synthetic staff `audit-hash@example.test` 
 
 Everything is on GitHub; nothing needed lives only on the Mac. On the other machine:
 
-1. `git fetch origin && git switch feat/redesign-dark-luxury && git pull --ff-only`. The PR stack, in merge order: #6, #7, #8, #9, #10, #11, #12 (Phase 4), #13 (Phase 5), #14 (redesign).
+1. `git fetch origin && git switch feat/redesign-dark-luxury && git pull --ff-only`. The PR stack, in merge order: #6, #7, #8, #9, #10, #11, #12 (Phase 4), #13 (Phase 5), #14 (redesign), #15 (`feat/staff-password-reset`, K-04), #16 (`feat/link-previews`, K-06), #17 (`feat/offline-a16`, A16). GitHub runs no CI on stacked PRs (only on PRs to `main`), so run the checks in step 5 locally; latest stack verification is in [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results) (17 October 2026).
 2. `npm ci`. For local staging you need PHP 8.x (mysqli, dom, mbstring, gd) and MariaDB or MySQL: `npm run staging:setup` (prints a fresh staging admin password), `npm run staging:serve`, then `npm run dev` ([docs/LOCAL-STAGING.md](../docs/LOCAL-STAGING.md)). Never point a dev build at production.
 3. Before any work, read [docs/ROADMAP.md](../docs/ROADMAP.md), [KNOWN-ISSUES.md](../KNOWN-ISSUES.md), the Unreleased part of [CHANGELOG.md](../CHANGELOG.md) and this file, as `.claude/rules/docs-sync.md` requires.
 4. Remaining build: [docs/BUILD-SPEC.md](../docs/BUILD-SPEC.md) Phase 5 company orders (Phase 4 is built; see the table above). Plan of record: `docs/Plans 2026/`.

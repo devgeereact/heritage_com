@@ -55,6 +55,7 @@ Fixed (second batch, 17 October 2026)
 - Staff sign-in takes the same time whether or not the email exists (K-23).
 - Form focus and announcements on booking, access, track, contact and company brief; names for shop inputs (K-16).
 - `e2e-phase5.sh` runs on macOS (K-17).
+- Stack verification recorded in `docs/TEST-STRATEGY.md`: local CI steps PASS on PR #14 and PR #17, e2e phases 2 to 5 PASS on fresh staging, and a note that stacked PRs get no GitHub CI (K-17).
 - Sitemap lists the shop, gifting and products while the shop is on; the service worker caches only unchanging files and keeps a fresh offline shell (K-20).
 
 ### PR #14 `feat/redesign-dark-luxury`, 13 October 2026
