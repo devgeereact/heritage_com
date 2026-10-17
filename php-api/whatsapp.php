@@ -29,7 +29,7 @@ if ($action === 'webhook') {
     $challenge = $_GET['hub_challenge'] ?? ($_GET['hub.challenge'] ?? '');
     if ($mode === 'subscribe' && $token !== '' && $token === cfg('WHATSAPP_VERIFY_TOKEN')) {
       header('Content-Type: text/plain');
-      echo preg_replace("/[^A-Za-z0-9_-]/", "", (string)$challenge); // Meta sends a plain token; nothing else is echoed
+      echo htmlspecialchars(preg_replace("/[^A-Za-z0-9_-]/", "", (string)$challenge), ENT_QUOTES, "UTF-8"); // Meta sends a plain token; nothing else is echoed
       exit;
     }
     http_response_code(403);
