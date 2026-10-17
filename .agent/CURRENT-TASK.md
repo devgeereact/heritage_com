@@ -19,6 +19,34 @@ Build the full Plans 2026 roadmap (owner instruction, 10 October 2026: "build ev
 
 Phase 6 (release, pilot, social publishing) and Phase 7 (learn and simplify) need the owner and live systems; this task prepares their checklists only.
 
+## Handoff: production-readiness and privacy audit (17 October 2026)
+
+State at handoff: all audit work is committed and pushed on `feat/redesign-dark-luxury` (PR #14), commits `83a6d38` to the formatter pass after `ca32587`; nothing is deployed and `main` is untouched. Working tree clean.
+
+Where the facts live (do not copy them here):
+
+- Every finding and its status: [KNOWN-ISSUES.md](../KNOWN-ISSUES.md) (K-04 to K-24, A15, A16) and [docs/ROADMAP.md](../docs/ROADMAP.md#findings).
+- What changed: the Unreleased audit entries in [CHANGELOG.md](../CHANGELOG.md).
+- Evidence: [qa/SECURITY-AUDIT.md](../qa/SECURITY-AUDIT.md), [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md), [qa/ACCESSIBILITY-AUDIT.md](../qa/ACCESSIBILITY-AUDIT.md), [qa/PERFORMANCE-AUDIT.md](../qa/PERFORMANCE-AUDIT.md).
+- Privacy inventory, retention schedule, sources and owner questions: [docs/DATA-PRIVACY.md](../docs/DATA-PRIVACY.md); draft notice (not publication-ready): [docs/PRIVACY-NOTICE-DRAFT.md](../docs/PRIVACY-NOTICE-DRAFT.md).
+- Owner decisions taken during the audit: D-024 in [docs/DECISIONS.md](../docs/DECISIONS.md).
+- Deploy steps for this work (seed-account lock, hand uploads, `.htaccess` after the deploy): the "#14 (audit fixes, 17 October 2026)" row in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+
+Launch decision at handoff: NOT READY FOR PRODUCTION (A02, A03, A20 open; privacy facts missing). Privacy readiness: BLOCKED, owner information required.
+
+Next for a developer:
+
+1. A15: move the staff token out of the script-readable cookie (HttpOnly cookie plus CSRF protection). It changes sign-in and local development (the dev API is another origin), so agree a plan with the owner first. The CSP (K-23) reduces the risk meanwhile.
+2. K-15 follow-up: once `TOKEN_TTL_DAYS` has passed after the deploy, remove the plain-token fallback in `require_auth`, logout and password change.
+3. K-18: retention jobs, after the owner sets periods.
+4. K-07: Today's lists stop at 20 items (enquiries and unverified payments); `e2e-phase2.sh` E9b and E15c fail on accumulated staging data. Clear old staging rows or fix the ordering rule with the owner.
+
+Waiting on the owner: legal name, privacy contact, retention periods, Terms commercial rules, counsel on GAID Article 19 (attribution), photographs for link previews (K-19), switching off the legacy order-code login (K-14).
+
+Checks to rerun before any further change: `npm run lint`, `npm run build`, `npm run check:tokens`, `node scripts/check-docs.mjs`, `php php-api/tests/run.php`, `bash scripts/staging/e2e-phase{2,3,4,5}.sh` (phase 5 now runs on macOS). Last results: helper tests 374; e2e phase3 93, phase4 63, phase5 25, phase2 46 of 48 (K-07).
+
+Local staging residue from the audit: synthetic staff `audit-hash@example.test` and `audit-pin2@example.test`, one synthetic gift card, extra e2e rows. All `example.test`; safe to delete.
+
 ## Continue on another computer
 
 Everything is on GitHub; nothing needed lives only on the Mac. On the other machine:
@@ -27,7 +55,7 @@ Everything is on GitHub; nothing needed lives only on the Mac. On the other mach
 2. `npm ci`. For local staging you need PHP 8.x (mysqli, dom, mbstring, gd) and MariaDB or MySQL: `npm run staging:setup` (prints a fresh staging admin password), `npm run staging:serve`, then `npm run dev` ([docs/LOCAL-STAGING.md](../docs/LOCAL-STAGING.md)). Never point a dev build at production.
 3. Before any work, read [docs/ROADMAP.md](../docs/ROADMAP.md), [KNOWN-ISSUES.md](../KNOWN-ISSUES.md), the Unreleased part of [CHANGELOG.md](../CHANGELOG.md) and this file, as `.claude/rules/docs-sync.md` requires.
 4. Remaining build: [docs/BUILD-SPEC.md](../docs/BUILD-SPEC.md) Phase 5 company orders (Phase 4 is built; see the table above). Plan of record: `docs/Plans 2026/`.
-5. Checks per change: `npm run build`, `npm run lint`, `npm run check:tokens`, `npm run docs:check`, `php php-api/tests/run.php`, and `bash scripts/staging/e2e-phase2.sh`, `e2e-phase3.sh`, `e2e-phase4.sh` against staging.
+5. Checks per change: `npm run build`, `npm run lint`, `npm run check:tokens`, `npm run docs:check`, `php php-api/tests/run.php`, and `bash scripts/staging/e2e-phase2.sh`, `e2e-phase3.sh`, `e2e-phase4.sh`, `e2e-phase5.sh` against staging.
 6. Lint (A13): the JS/JSX config is applied in `eslint.config.js` (11 October 2026); `npm run lint` must report 0 errors.
 7. Env files and `config.php` never move between computers; the Ubuntu machine uses its own staging `config.local.php`, created by `npm run staging:setup`.
 
