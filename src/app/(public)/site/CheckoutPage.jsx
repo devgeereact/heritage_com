@@ -310,7 +310,7 @@ const CheckoutPage = () => {
             {!applied ? (
               <div style={{ marginBottom: '0.8rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Promo code" value={coupon}
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Promo code" placeholder="Promo code" value={coupon}
                     onChange={(e) => setCoupon(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyCoupon} disabled={couponBusy || !coupon.trim()} style={{ whiteSpace: 'nowrap' }}>
@@ -330,7 +330,7 @@ const CheckoutPage = () => {
             {!giftCard ? (
               <div style={{ marginBottom: '0.8rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Gift card code" value={gift}
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Gift card code" placeholder="Gift card code" value={gift}
                     onChange={(e) => setGift(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyGift(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyGift} disabled={!gift.trim()} style={{ whiteSpace: 'nowrap' }}>Apply</button>
@@ -354,7 +354,7 @@ const CheckoutPage = () => {
 
             {/* Referral — first-time buyers only; both you and your friend earn credit */}
             <div style={{ marginBottom: '0.8rem' }}>
-              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
+              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Referral code (optional)" placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
               {referral.trim() && <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', margin: '0.3rem 0 0' }}>New here? You and your friend each earn store credit once this order is paid.</p>}
             </div>
 

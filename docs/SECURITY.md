@@ -37,9 +37,8 @@ Redesign branch (`feat/redesign-dark-luxury`), verified on local staging; eviden
 
 ### Open items (not fixed)
 
-- Staff tokens are stored in plain text in `auth_tokens` (customer sessions are hashed).
-- Login response time can reveal whether a staff email exists.
-- Two staff may hold the same PIN.
+- Fixed 17 October 2026 (second batch): staff tokens are stored as SHA-256 (`staff_token_hash`, `_lib.php`); tokens issued before the change still work until they expire, then the plain fallback in `require_auth`, logout and password change should be removed (K-15). Email sign-in checks a password against a dummy bcrypt hash when no account matches, so timing no longer reveals which emails exist (K-23).
+- Two staff may hold the same PIN; whoever matches first signs in (K-23).
 - Gift card codes are short; the per-IP failure limit is the only guard.
 - No `script-src` Content Security Policy.
 

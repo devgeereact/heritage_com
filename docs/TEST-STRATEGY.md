@@ -27,6 +27,8 @@ This file owns how HeritOS is checked: the risk priorities, the commands and the
 
 There is no committed frontend test script and no type check (JavaScript project). CI runs lint, the build, PHP syntax, helper tests and the documentation check on every pull request to `main`; the deploy job repeats lint, PHP checks and the build ([DEPLOYMENT.md](DEPLOYMENT.md#ci-and-deploy)).
 
+Second batch, 17 October 2026: the staging end-to-end scripts mint staff tokens as `SHA2(token, 256)`, as the server now stores them (K-15), and `e2e-phase5.sh` no longer uses `mapfile`, so it runs on macOS bash 3.2 (K-17). Results on the Mac: helper tests 374 passed; `e2e-phase3.sh` 93, `e2e-phase4.sh` 63, `e2e-phase5.sh` 25 of 25; `e2e-phase2.sh` 47 of 48, E15c failing only because staging holds 23 new enquiries (K-07). Evidence: [qa/SECURITY-AUDIT.md](../qa/SECURITY-AUDIT.md#audit-fixes-17-october-2026).
+
 ## Coverage plan
 
 | Level | Purpose | Target behaviour | Environment | Command or method | Owner |

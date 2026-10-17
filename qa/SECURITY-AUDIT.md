@@ -36,3 +36,12 @@ Branch `feat/redesign-dark-luxury`, local staging. Controls are described in [SE
 | Live seed tailors | Check the live `users` table | NOT TESTED: owner action ([DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request)) |
 
 Open items not fixed are listed in [SECURITY.md](../docs/SECURITY.md#open-items-not-fixed).
+
+### Second batch, 17 October 2026
+
+| Area | Test performed | Result |
+|---|---|---|
+| Staff token storage (K-15) | Sign in a synthetic `example.test` tailor on staging; compare `auth_tokens` with the raw and the SHA-256 token; call `me` and `sessions`; log out | PASS: 64-character token returned, only its SHA-256 stored, `me` 200, current session marked, row gone and `me` 401 after logout |
+| Login timing (K-23) | Two wrong-password sign-ins each for an existing and an unknown email | PASS: 0.18s for both (was 0.19s and 0.05s) |
+| End-to-end with hashed tokens | `e2e-phase3.sh`, `e2e-phase4.sh`, `e2e-phase5.sh`, `e2e-phase2.sh` | PASS 93, 63, 25; phase 2 47 of 48 (E15c, K-07 staging data) |
+| Sitemap with the shop on (K-20) | Switch `shop_enabled` on in staging, fetch `sitemap.php`, restore | PASS: `/shop`, `/gifting` and published products listed only while on |

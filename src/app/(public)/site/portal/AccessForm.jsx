@@ -27,7 +27,10 @@ const AccessForm = ({ onSignedIn, notice, intro }) => {
     if (!reference.trim()) errs.reference = 'Enter your reference';
     if (!contact.trim()) errs.contact = 'Enter the phone number or email you gave us';
     setErrors(errs);
-    if (Object.keys(errs).length) return;
+    if (errs.reference || errs.contact) {
+      document.getElementById(errs.reference ? 'acc-ref' : 'acc-contact')?.focus();
+      return;
+    }
     setBusy(true);
     try {
       const r = await heritApi.access.start(reference.trim(), contact.trim(), hp);
@@ -63,14 +66,14 @@ const AccessForm = ({ onSignedIn, notice, intro }) => {
           <div className="hp-field">
             <label htmlFor="acc-ref">Reference</label>
             <input id="acc-ref" className="hp-input" value={reference} onChange={(e) => setReference(e.target.value)} autoComplete="off" autoCapitalize="characters"
-              aria-invalid={!!errors.reference} aria-describedby="acc-ref-help acc-ref-err" />
+              aria-invalid={!!errors.reference} aria-describedby={errors.reference ? 'acc-ref-help acc-ref-err' : 'acc-ref-help'} />
             <p id="acc-ref-help" className="hp-help">For example K7M2P9QX4R.</p>
             {errors.reference && <p id="acc-ref-err" className="hp-error">{errors.reference}</p>}
           </div>
           <div className="hp-field">
             <label htmlFor="acc-contact">Phone number or email</label>
-            <input id="acc-contact" className="hp-input" value={contact} onChange={(e) => setContact(e.target.value)} autoComplete="email"
-              aria-invalid={!!errors.contact} aria-describedby="acc-contact-help acc-contact-err" />
+            <input id="acc-contact" className="hp-input" value={contact} onChange={(e) => setContact(e.target.value)} autoComplete="on"
+              aria-invalid={!!errors.contact} aria-describedby={errors.contact ? 'acc-contact-help acc-contact-err' : 'acc-contact-help'} />
             <p id="acc-contact-help" className="hp-help">The one you gave us when you ordered.</p>
             {errors.contact && <p id="acc-contact-err" className="hp-error">{errors.contact}</p>}
           </div>

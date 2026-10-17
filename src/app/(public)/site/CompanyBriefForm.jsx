@@ -5,6 +5,9 @@ import { Field, ErrorSummary } from './ui/Field'
 import Button from './ui/Button'
 import Icon from './ui/Icon'
 
+// Focus the thank-you panel when it replaces the form, so it is read out (K-16).
+const focusOnMount = (el) => el?.focus()
+
 const MATERIAL = [
   { v: 'client', l: 'We will supply the fabric' },
   { v: 'herit', l: 'Please source the fabric' },
@@ -93,7 +96,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
 
   if (status === 'sent') {
     return (
-      <div className="hc-success-panel" role="status">
+      <div className="hc-success-panel" role="status" tabIndex={-1} ref={focusOnMount}>
         <h3>
           <Icon name="check-circle" /> Brief received
         </h3>

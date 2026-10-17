@@ -5,7 +5,7 @@
  *   POST /auth.php?action=logout  (Bearer token)     → {ok:true}
  *   GET  /auth.php?action=me      (Bearer token)      → {user}
  *
- * Tokens are random 64-char strings stored in auth_tokens with an expiry.
+ * Tokens are random 64-char strings; auth_tokens keeps their SHA-256 and an expiry.
  * Passwords are verified with password_verify against a bcrypt hash.
  */
 require __DIR__ . '/_lib.php';
@@ -24,7 +24,8 @@ function issue_token($userId) {
     'INSERT INTO auth_tokens (user_id, token, device, ip, last_seen, expires_at)
      VALUES (?,?,?,?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY))'
   );
-  $stmt->bind_param('isssi', $userId, $token, $device, $ip, $ttl);
+  $stored = staff_token_hash($token);   // only the hash is kept (K-15)
+  $stmt->bind_param('isssi', $userId, $stored, $device, $ip, $ttl);
   $stmt->execute();
   return $token;
 }
@@ -77,7 +78,11 @@ if ($action === 'login' && method() === 'POST') {
   $stmt->bind_param('s', $email);
   $stmt->execute();
   $user = $stmt->get_result()->fetch_assoc();
-  if (!$user || !password_verify($password, $user['password_hash'])) {
+  // Check a password even when no account matches, so the answer takes the
+  // same time either way and does not reveal which emails exist (K-23).
+  $hashToCheck = $user['password_hash'] ?? '$2y$12$2HDF/gO2EmxrmeT1t9ZYo.YSyrW/ZXeeYtBTCYYzGA4z76AkayD.K';
+  $ok = password_verify($password, $hashToCheck);
+  if (!$user || !$ok) {
     // Two rows so each limit is a plain action + entity match (no JSON queries).
     audit(null, 'login_fail_ip', $ipKey);
     audit(null, 'login_fail_acct', $acctKey);
@@ -162,7 +167,7 @@ if ($action === 'sessions' && method() === 'GET') {
     $rows[] = [
       'id' => (int)$row['id'], 'device' => $row['device'], 'ip' => $row['ip'],
       'last_seen' => $row['last_seen'], 'created_at' => $row['created_at'], 'expires_at' => $row['expires_at'],
-      'current' => hash_equals((string)$row['token'], (string)$current),
+      'current' => $current !== null && (hash_equals((string)$row['token'], staff_token_hash($current)) || hash_equals((string)$row['token'], (string)$current)),
     ];
   }
   json($rows);
@@ -182,8 +187,9 @@ if ($action === 'revoke' && method() === 'POST') {
 if ($action === 'logout' && method() === 'POST') {
   $tok = bearer();
   if ($tok) {
-    $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE token = ?');
-    $stmt->bind_param('s', $tok);
+    $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE token IN (?, ?)');
+    $hash = staff_token_hash($tok);
+    $stmt->bind_param('ss', $hash, $tok);
     $stmt->execute();
   }
   json(['ok' => true]);

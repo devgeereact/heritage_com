@@ -33,6 +33,17 @@ Chromium (Playwright) against `npm run dev` on 5112 with the staging API on 8088
 
 NOT TESTED: testimonial pause in the browser beyond source, screen readers, real phones, keyboard-only use of the new pause buttons.
 
+
+### Second batch, 17 October 2026 (K-16)
+
+| Check | Result |
+|---|---|
+| Access form, empty submit | PASS: focus moves to Reference; error ids are linked only while shown |
+| Contact form, successful send (synthetic enquiry, then deleted) | PASS: focus moves to the thank-you panel (`role=status`) |
+| Booking steps and errors | Source only: focus moves to each step heading and to the first invalid field; NOT TESTED in a browser (online booking off on staging) |
+| Track lookup | Source only: phone input `type=tel`, error `role=alert`, result takes focus; NOT TESTED (legacy lookup) |
+| Shop inputs (notify, question, promo, gift, referral) | Source only: accessible names added; shop off for visitors |
+
 ## Phase 4 public foundation, 11 October 2026
 
 Chromium (Playwright 1.63) against `npm run dev` with local staging, `feat/phase4-website`. Pages `/`, `/about`, `/contact`, `/track`, `/book` at 320, 390, 768, 1024 and 1440px, with the staff dark theme saved in the browser. Screenshots are kept outside the repository (agent scratchpad `phase4-shots/foundation/`).

@@ -8,7 +8,8 @@
  * booking page while public requests are on, each published page and policy,
  * the services and work indexes when something is published under them, every
  * published service and project, and the journal and its published posts while
- * journal_enabled is on. Drafts, unpublished items, admin and portal paths are
+ * journal_enabled is on, and the shop, gifting and published products while
+ * shop_enabled is on. Drafts, unpublished items, admin and portal paths are
  * never listed. Paths are the React routes in CMS_PAGE_PATHS (_cms.php).
  */
 require __DIR__ . '/_lib.php';
@@ -54,6 +55,17 @@ if (setting_flag('journal_enabled', false) && has_table('blog_posts')) {
   $posts = db_rows("SELECT slug, published_at, updated_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC LIMIT 1000");
   if ($posts) $add('/journal');
   foreach ($posts as $p) $add('/journal/' . rawurlencode($p['slug']), $p['updated_at'] ?? $p['published_at']);
+}
+
+// The retail shop only while an admin has switched it on (the pages are a
+// not-found page for visitors otherwise): the shop, gifting and published products.
+if (setting_flag('shop_enabled', false) && has_table('products')) {
+  $add('/shop');
+  $add('/gifting');
+  $products = db_rows("SELECT slug, updated_at FROM products
+                        WHERE deleted_at IS NULL AND published = 1 AND status = 'active' AND slug IS NOT NULL AND slug <> ''
+                        ORDER BY id LIMIT 1000");
+  foreach ($products as $p) $add('/shop/' . rawurlencode($p['slug']), $p['updated_at'] ?? null);
 }
 
 header('Content-Type: application/xml; charset=utf-8');

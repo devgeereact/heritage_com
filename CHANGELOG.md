@@ -35,6 +35,14 @@ Removed
 
 - Larkon template pages `/pages-404`, `/auth/sign-up` and `/auth/lock-screen`, whose forms did nothing.
 
+Fixed (second batch, 17 October 2026)
+
+- Staff tokens are stored as SHA-256; tokens issued earlier keep working until they expire (K-15).
+- Staff sign-in takes the same time whether or not the email exists (K-23).
+- Form focus and announcements on booking, access, track, contact and company brief; names for shop inputs (K-16).
+- `e2e-phase5.sh` runs on macOS (K-17).
+- Sitemap lists the shop, gifting and products while the shop is on; the service worker caches only unchanging files and keeps a fresh offline shell (K-20).
+
 ### PR #14 `feat/redesign-dark-luxury`, 13 October 2026
 
 Changed

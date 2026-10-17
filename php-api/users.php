@@ -77,8 +77,9 @@ if ($action === 'password' && method() === 'POST') {
   $stmt->execute();
   // Drop all other sessions for this user; keep the current one.
   $tok = bearer();
-  $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE user_id = ? AND token <> ?');
-  $stmt->bind_param('is', $user['id'], $tok);
+  $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE user_id = ? AND token NOT IN (?, ?)');
+  $hash = staff_token_hash($tok);
+  $stmt->bind_param('iss', $user['id'], $hash, $tok);
   $stmt->execute();
   audit($user['id'], 'password_change');
   json(['ok' => true]);
