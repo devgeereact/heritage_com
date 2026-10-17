@@ -19,4 +19,20 @@ The GEE OS automated gate (`./scripts/project security` writing `.agent/evidence
 | Shared includes | Direct requests to `_*.php` or `config*.php` | `php-api/.htaccess` rule (Phase 2 branch); staging router refuses them | PASS on staging; live `.htaccess` NOT TESTED | P1 | `php-api/.htaccess`, `scripts/staging/router.php` | Business owner |
 | CORS | Localhost origins in production (A15) | Helper tests of the CORS decision | PASS (unit); live server NOT TESTED | P1 | `php-api/tests/run.php` | Business owner |
 | Deployed state | Unknown hand-uploaded endpoints (A02, A20) | None | NOT TESTED | P0 | None | Business owner |
-| Uploads, CSRF, headers, cookies | Per SECURITY.md | None | NOT TESTED | Unknown | None | Business owner |
+| Uploads, CSRF, headers, cookies | Per SECURITY.md | Headers: see below. Uploads, CSRF, cookies: none | Headers PARTIAL (local Apache); others NOT TESTED | Unknown | None | Business owner |
+
+## Audit fixes, 17 October 2026
+
+Branch `feat/redesign-dark-luxury`, local staging. Controls are described in [SECURITY.md](../docs/SECURITY.md#audit-fixes-17-october-2026).
+
+| Area | Test performed | Result |
+|---|---|---|
+| Helper tests and syntax | `php php-api/tests/run.php`; `php -l` on every PHP file | PASS: 374 passed, 0 failed; syntax OK |
+| API journeys | `e2e-phase2.sh`, `e2e-phase3.sh`, `e2e-phase4.sh` (new O2a: shop writes 403 while the shop is off) | PASS: 48 of 48, 93 of 93, 63 of 63. `e2e-phase5.sh` BLOCKED on macOS (bash 3.2 has no `mapfile`; C1 to C5 passed before it stopped) |
+| `.htaccess` headers and redirect | Local Apache 2.4.67 on port 8099 with `php-api/.htaccess` | PASS: HTTP answers 301 to HTTPS; nosniff, Referrer-Policy, X-Frame-Options, `frame-ancestors` CSP and Permissions-Policy present; hashed build files `immutable`, `index.html` `no-cache`. HSTS under real TLS NOT TESTED |
+| WhatsApp webhook signature | None at runtime | NOT TESTED (source review only) |
+| AI daily caps | None at runtime (no key on staging) | NOT TESTED (source review only) |
+| Third-party requests | Browser network log on public pages | PASS: only localhost and the staging API requested; no Google Fonts |
+| Live seed tailors | Check the live `users` table | NOT TESTED: owner action ([DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request)) |
+
+Open items not fixed are listed in [SECURITY.md](../docs/SECURITY.md#open-items-not-fixed).

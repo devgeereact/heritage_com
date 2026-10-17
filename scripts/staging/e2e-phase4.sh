@@ -275,8 +275,15 @@ check O1 "no free-delivery offer in the catalogue reply" eq "$(j .free_ship_over
 # heritage-accessory was only in the removed fallback list, never a seeded product.
 FALLBACK_SLUG=heritage-accessory
 [ "$(sql "SELECT COUNT(*) FROM products WHERE slug = '$FALLBACK_SLUG' AND published = 1 AND deleted_at IS NULL")" = 0 ] || FALLBACK_SLUG="e2e-no-such-piece-$RUN"
+# The retail shop is deferred: its public writes answer 403 while shop_enabled is off.
+SHOP_WAS="$(sql "SELECT svalue FROM settings WHERE skey = 'shop_enabled'")"
+sql "INSERT INTO settings (skey, svalue) VALUES ('shop_enabled','0') ON DUPLICATE KEY UPDATE svalue = '0'"
+req POST "store.php?action=checkout" "{\"customer\":\"E2E\",\"phone\":\"08000000001\",\"delivery\":\"pickup\",\"items\":[{\"slug\":\"$FALLBACK_SLUG\",\"qty\":1}]}" -
+check O2a "checkout refused while the shop is switched off" eq "$CODE" 403
+sql "UPDATE settings SET svalue = '1' WHERE skey = 'shop_enabled'"
 req POST "store.php?action=checkout" "{\"customer\":\"E2E\",\"phone\":\"08000000001\",\"delivery\":\"pickup\",\"items\":[{\"slug\":\"$FALLBACK_SLUG\",\"qty\":1}]}" -
 check O2 "slug from the removed fallback list refused at checkout" bash -c "[ '$CODE' = 400 ] && echo '$BODY' | grep -q 'Unknown item'"
+sql "UPDATE settings SET svalue = '${SHOP_WAS:-0}' WHERE skey = 'shop_enabled'"
 check O3 "seeded HERIT10 and FREESHIP codes switched off" \
   eq "$(sql "SELECT COUNT(*) FROM coupons WHERE code IN ('HERIT10','FREESHIP') AND active = 1")" 0
 

@@ -56,7 +56,7 @@ const TrackPage = () => {
   const cancelled = order?.status === 'cancelled'
 
   return (
-    <SiteLayout title="Track your order">
+    <SiteLayout title="Track your order" noindex>
       <section className="hc-pagehead">
         <div className="hc-container">
           <div className="hc-crumb">

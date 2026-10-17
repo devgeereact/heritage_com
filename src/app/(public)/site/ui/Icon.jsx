@@ -209,6 +209,12 @@ const P = {
       <path d="M10 8.5l5 3.5-5 3.5z" />
     </>
   ),
+  pause: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M10 9v6M14 9v6" />
+    </>
+  ),
   send: <path d="M20.5 3.5L10 14M20.5 3.5L14 20.5l-4-6.5-6.5-4z" />,
   target: (
     <>

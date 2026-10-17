@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PrivacyNote from './PrivacyNote';
 import heritApi from '@/helpers/heritApi';
 import { Field, ErrorSummary } from './ui/Field';
 import Button from './ui/Button';
@@ -108,7 +109,8 @@ const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shop
           <input id="cf-hp" type="text" name="website_url_confirm" tabIndex={-1} autoComplete="off" value={form.website_url_confirm} onChange={set('website_url_confirm')} />
         </div>
         <div className="hc-field--full">
-          <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'}>
+          <PrivacyNote>Your details are used to reply to this enquiry.</PrivacyNote>
+          <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'} className="hc-mt-3">
             {status === 'sending' ? 'Sending…' : 'Send enquiry'}
           </Button>
           <p className="hc-field-help hc-mt-2" aria-live="polite">{status === 'sending' ? 'Sending your message.' : ''}</p>

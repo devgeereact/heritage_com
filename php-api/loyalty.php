@@ -21,21 +21,32 @@ cors();
 
 $action = $_GET['action'] ?? 'balances';
 
-/* ---- PUBLIC: credit balance by phone ------------------------------------- */
+/* ---- PUBLIC: credit balance of the signed-in customer -------------------- */
+/* A phone number alone no longer reveals whether someone is a customer or what
+ * credit they hold: only a verified customer session (portal sign-in) sees its
+ * own balance. Anyone else gets a zero balance, so checkout simply hides the
+ * credit option. The phone parameter is ignored. */
 if ($action === 'credit_balance' && method() === 'GET') {
-  $cid = customer_id_by_phone($_GET['phone'] ?? '');
-  json(['customer_id' => $cid, 'balance' => $cid ? credit_balance($cid) : 0]);
+  require_once __DIR__ . '/_portal.php';
+  $me = customer_session_optional();
+  json(['customer_id' => null, 'balance' => $me ? credit_balance((int)$me['id']) : 0]);
 }
 
 /* ---- PUBLIC: gift-card balance check ------------------------------------- */
 if ($action === 'gift_check' && method() === 'GET') {
   $code = strtoupper(trim($_GET['code'] ?? ''));
   if ($code === '') fail('Enter a gift card code');
+  // Codes are short, so failed checks are limited per IP to stop guessing.
+  $ipKey = 'ip:' . client_ip();
+  throttle_enforce([[(int)cfg('GIFT_CHECK_MAX_FAILS_PER_IP', 10), 'gift_check_fail', $ipKey]], 3600);
   $stmt = $conn->prepare('SELECT code, balance, active FROM gift_cards WHERE UPPER(code) = ? LIMIT 1');
   $stmt->bind_param('s', $code);
   $stmt->execute();
   $g = $stmt->get_result()->fetch_assoc();
-  if (!$g || !(int)$g['active']) json(['ok' => false, 'error' => 'That gift card is not valid']);
+  if (!$g || !(int)$g['active']) {
+    audit(null, 'gift_check_fail', $ipKey);
+    json(['ok' => false, 'error' => 'That gift card is not valid']);
+  }
   json(['ok' => true, 'code' => $g['code'], 'balance' => (float)$g['balance']]);
 }
 

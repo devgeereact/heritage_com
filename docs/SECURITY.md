@@ -16,12 +16,32 @@ This file owns the threat picture, the baseline controls and their current state
 | Secrets outside client bundles, source and logs | `config.php` gitignored and server-only; FTP secrets in GitHub; only `VITE_*` values reach the browser (`.env.example`). Log contents NOT TESTED |
 | Server-side authorisation | `require_auth($roles)` in every staff endpoint ([API-SPEC.md](API-SPEC.md#endpoint-inventory)); object ownership for customers is not yet enforced everywhere (A03). Shared includes (`_*.php`) and `config*.php` are refused when requested directly by `php-api/.htaccess` (Phase 2 branch; the server copy is replaced by hand) |
 | Input validation and output encoding | Prepared statements throughout; blog HTML sanitised on save with an allowlist (`_lib.php:430-520`, `content.php:56`) (A04, PR #6; rendered-page check NOT TESTED) |
-| Rate limiting | Staff login and PIN; customer login and tracking since phase 1 (A03); public enquiry form uses a honeypot (`website_url_confirm`, A11) and no rate limit. Phase 3 branch: customer access start (per IP and per hashed reference), verify and invite redemption (per IP), and public slot reads and appointment requests (per IP), all through `throttle_enforce()` |
+| Rate limiting | Staff login and PIN; customer login and tracking since phase 1 (A03); public enquiry form uses a honeypot (`website_url_confirm`, A11) and no rate limit. Phase 3 branch: customer access start (per IP and per hashed reference), verify and invite redemption (per IP), and public slot reads and appointment requests (per IP), all through `throttle_enforce()`. Redesign branch (17 October 2026): shop checkout, waitlist, saved cart, product reviews and failed gift card checks are limited per IP per hour, and AI calls per staff member per day ([audit fixes](#audit-fixes-17-october-2026)) |
 | CORS | Same-origin in production; localhost allowed only when `ALLOW_LOCALHOST_CORS` is on (A15) |
 | CSRF | Bearer tokens in headers today; a cookie migration would need a deliberate CSRF design (see [Authentication](#authentication)) |
-| Headers, cookies, production settings | `GK_DEBUG` false in production; HTTPS through cPanel AutoSSL. Security headers: Unknown |
+| Headers, cookies, production settings | `GK_DEBUG` false in production; HTTPS through cPanel AutoSSL. Redesign branch: `php-api/.htaccess` forces HTTPS and sets nosniff, Referrer-Policy, X-Frame-Options, a `frame-ancestors 'self'` CSP, Permissions-Policy and HSTS (HTTPS only). No `script-src` CSP yet. Headers checked on local Apache; HSTS under real TLS NOT TESTED |
 | Dependencies | No vulnerability audit run (NOT TESTED); no blind upgrades |
 | Monitoring and incident response | [DEPLOYMENT.md](DEPLOYMENT.md#monitoring) |
+
+## Audit fixes (17 October 2026)
+
+Redesign branch (`feat/redesign-dark-luxury`), verified on local staging; evidence in [qa/SECURITY-AUDIT.md](../qa/SECURITY-AUDIT.md#audit-fixes-17-october-2026).
+
+- **Seed tailors:** `tunde@` and `bola@` in `schema.sql` now carry password hash `!` and status `suspended`. The live `users` table must be checked and those rows locked by hand ([DEPLOYMENT.md](DEPLOYMENT.md#owner-actions-per-pull-request)).
+- **Store credit:** `loyalty.php?action=credit_balance` answers only for a verified customer session (`customer_session_optional()` in `_portal.php`); the phone parameter is ignored. `store.php` checkout spends credit only for that session's own customer.
+- **Shop closed:** shop writes (checkout, waitlist, saved cart) and review submission answer 403 "The shop is not open." while `shop_enabled` is not `'1'`.
+- **Reviews:** marked verified only from a verified customer session; `photo_url` must be `https://`.
+- **Public writes:** per-IP hourly limits and length caps ([API-SPEC.md](API-SPEC.md#audit-fixes-17-october-2026)).
+- **AI:** per-user daily caps and prompt length caps on `ai.php` and `ai_image.php`; `curl_error` text reaches the reply only under `GK_DEBUG` (also `weather.php`). Runtime NOT TESTED (no key on staging).
+- **WhatsApp webhook:** POSTs must carry a valid `X-Hub-Signature-256` when `WA_APP_SECRET` is set; without it the webhook still accepts and logs a warning. Runtime NOT TESTED.
+
+### Open items (not fixed)
+
+- Staff tokens are stored in plain text in `auth_tokens` (customer sessions are hashed).
+- Login response time can reveal whether a staff email exists.
+- Two staff may hold the same PIN.
+- Gift card codes are short; the per-IP failure limit is the only guard.
+- No `script-src` Content Security Policy.
 
 ## Private files and content safety
 
@@ -30,7 +50,7 @@ This file owns the threat picture, the baseline controls and their current state
 - Website images (Phase 4 branch, `cms.php` and `_media.php`): staff upload only (CMS roles); JPEG, PNG or WebP by content (finfo and `getimagesize()` must agree; the name and browser type are ignored), at most `MEDIA_MAX_MB` (8) and 40 megapixels; decoded and re-encoded with GD, which drops EXIF, GPS, XMP and anything appended, and the original is never stored; random 32-hex file names; written to `uploads/site/`, whose `.htaccess` (`public/uploads/.htaccess`) refuses every file except those image names and switches PHP off. Without GD uploads are refused (501). Staging checks: PHP renamed `.jpg` refused, a JPEG with PHP appended re-encoded clean, EXIF and GPS gone from served files ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#phase-4-api-checks-on-staging-11-october-2026)). The Apache and LiteSpeed behaviour of that `.htaccess` on the live host is NOT TESTED.
 - Website content (Phase 4 branch): rich text is sanitised on save and again on public read (`site.php` runs `sanitize_html()` over `body` and `answer` before sending), and the browser applies a third allowlist (`site/safeHtml.js`: a few text tags and `a[href]` with http, https, mailto, tel or root-relative URLs) before rendering CMS and journal HTML; the public projection (`site.php`) is built from whitelists in `_cms.php`, so drafts, earlier versions, portfolio consent records and client links never leave the server; publishing a portfolio project needs recorded image consent and client consent (unless it is own work); public text that looks like a phone number, email address or staff code needs an explicit confirmation; social links must be `https://` on the platform's own host (WhatsApp exactly `https://wa.me/<digits>`). Policy publishing and the business profile are owner-only.
 - Company orders (Phase 5 branch): company contacts and wearers reach company jobs only while `company_portal_enabled` is on, and only through `portal_job_access()` in `_portal.php` (an active contact with `can_view_jobs`, or the wearer of an item), never through the job's `customer_id`; a deactivated contact loses access on the next request. Their answers are allowlists (`company_job_public_view`, `wearer_item_public_view` in `_company.php`) with exact key sets tested: no wearer, measurement, notes, cost or other company. Any other portal action stays limited to the job's own client, and another company's reference answers exactly like a missing one. Company and company-job management is owner-only; tailors see items without money or company fields.
-- CSV exports need formula-injection protection; privileged exports are logged and downloaded securely.
+- CSV exports neutralise spreadsheet formulas: `csv_safe()` in `export.php` prefixes an apostrophe to a text cell starting with `=`, `+`, `-`, `@`, tab or CR, and leaves plain numbers and phone numbers (`+234...`, `-500`) unchanged (redesign branch, 17 October 2026). Privileged exports are logged and downloaded securely.
 - Never put credentials, private IDs or internal notes in public JSON ([ARCHITECTURE.md](ARCHITECTURE.md#cms-and-public-projection)).
 
 ## Authentication
@@ -41,10 +61,12 @@ How staff and customers sign in, how sessions live and end, and the approved tar
 
 - **Method:** email and password, or a staff PIN for a shared device (`users.pin_hash`, schema_phase12). `auth.php` issues a random token stored in `auth_tokens` with device, IP and last-seen columns.
 - **Throttling:** failed email and PIN logins are throttled (`LOGIN_*`, `PIN_*` settings, [DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
+- **PIN scope (redesign branch):** `pin_login` refuses `super_admin` and `admin`, and `set_pin` answers 403 for them; owner-level roles sign in with email and password only.
+- **Suspended accounts (redesign branch):** email login and `require_auth()` refuse `status = 'suspended'`; `users.php` deletes the user's tokens when status leaves `active`. `invited` is still allowed, because no flow promotes an invited user to active.
 - **Storage in the browser:** React keeps the token in the `_LARKON_AUTH_KEY_` cookie, which is JavaScript-readable (A15).
 - **Expiry:** `TOKEN_TTL_DAYS` server setting. Logout revokes the token through `auth.php`.
-- **Registration:** no self-registration; staff are created in Team and access (`users.php`, admin only). The kit `/auth/sign-up` screen is template UI.
-- **Recovery:** the seed account's password is set by hash in phpMyAdmin ([DEPLOYMENT.md](DEPLOYMENT.md#database-and-schema-files)); in-app owner recovery is a launch-core requirement and is not built. The kit `/auth/reset-pass` screen must not show usable controls until a recovery endpoint is verified.
+- **Registration:** no self-registration; staff are created in Team and access (`users.php`, admin only). The kit `/auth/sign-up` and `/auth/lock-screen` screens were removed on the redesign branch. Only a `super_admin` may create, promote to, edit, reset or deactivate a `super_admin` (`guard_super_admin()` in `users.php`).
+- **Recovery:** the seed account's password is set by hash in phpMyAdmin ([DEPLOYMENT.md](DEPLOYMENT.md#database-and-schema-files)); in-app owner recovery is a launch-core requirement and is not built. Since the redesign branch `/auth/reset-pass` has no form: it says email reset is not available and how staff and the owner recover (K-04).
 - **Multi-factor:** none in the app. Assess app MFA before launch; at minimum hosting, source control, mailbox and social accounts use their own MFA. Recovery codes never go in the repository or app content.
 
 ### Customers

@@ -78,16 +78,15 @@ const CheckoutPage = () => {
   const creditApplied = useCredit ? Math.min(creditBalance, afterGift) : 0;
   const total = Math.max(0, afterGift - creditApplied);
 
-  // Look up store credit for the entered phone (privacy: returns a number only).
+  // Store credit belongs to the signed-in customer only (verified portal session);
+  // a typed phone number never reveals or spends anyone's balance.
   useEffect(() => {
-    const digits = (form.phone || '').replace(/\D/g, '');
-    if (digits.length < 10) { setCreditBalance(0); setUseCredit(false); return; }
     let live = true;
-    heritApi.store.creditBalance(form.phone)
+    heritApi.store.creditBalance()
       .then((r) => { if (live) setCreditBalance(Number(r.balance || 0)); })
       .catch(() => { if (live) setCreditBalance(0); });
     return () => { live = false; };
-  }, [form.phone]);
+  }, []);
 
   const applyGift = async () => {
     const code = gift.trim();
@@ -170,7 +169,7 @@ const CheckoutPage = () => {
   // ---- Confirmation / verify states ----
   if (verifying) {
     return (
-      <SiteLayout title="Confirming payment">
+      <SiteLayout title="Confirming payment" noindex>
         <section className="hc-section hc-text-center"><div className="hc-container">
           <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:refresh-bold" /></span>
           <h1 className="hc-h2">Confirming your payment…</h1>
@@ -183,7 +182,7 @@ const CheckoutPage = () => {
   if (done) {
     const paidNow = done.status === 'paid';
     return (
-      <SiteLayout title="Order received">
+      <SiteLayout title="Order received" noindex>
         <section className="hc-section"><div className="hc-container" style={{ maxWidth: '40rem' }}>
           <div className="hc-card hc-text-center" style={{ padding: '3rem 2rem' }}>
             <span className="hc-card-ico" style={{ margin: '0 auto 1rem', background: 'var(--hc-accent)', color: 'var(--hc-on-accent)' }}>
@@ -224,7 +223,7 @@ const CheckoutPage = () => {
   // ---- Empty bag guard ----
   if (items.length === 0) {
     return (
-      <SiteLayout title="Checkout">
+      <SiteLayout title="Checkout" noindex>
         <section className="hc-section hc-text-center"><div className="hc-container">
           <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:bag-4-bold" /></span>
           <h1 className="hc-h2">Your bag is empty</h1>
@@ -237,7 +236,7 @@ const CheckoutPage = () => {
 
   // ---- Checkout form ----
   return (
-    <SiteLayout title="Checkout">
+    <SiteLayout title="Checkout" noindex>
       <section className="hc-pagehead"><div className="hc-container">
         <div className="hc-crumb"><Link to="/cart">Bag</Link> / <span>Checkout</span></div>
         <h1 className="hc-h1">Checkout.</h1>

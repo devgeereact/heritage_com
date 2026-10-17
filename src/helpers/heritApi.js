@@ -338,7 +338,8 @@ export const heritApi = {
   // Reviews + UGC
   reviews: {
     list: (slug) => request(`/reviews.php?action=list&slug=${encodeURIComponent(slug)}`, { auth: false }),
-    submit: (data) => request('/reviews.php?action=submit', { method: 'POST', body: data, auth: false }),
+    // Carries the customer session when signed in: only a verified session marks a review verified.
+    submit: (data) => crequest('/reviews.php?action=submit', { method: 'POST', body: data }),
     gallery: () => request('/reviews.php?action=gallery', { auth: false }),
     moderate: (status = 'pending') => request(`/reviews.php?action=moderate&status=${status}`),
     setStatus: (id, status) => request(`/reviews.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
@@ -432,12 +433,13 @@ export const heritApi = {
     blog: (limit = 24) => request(`/store.php?action=blog&limit=${limit}`, { auth: false }),
     blogPost: (slug) => request(`/store.php?action=blog&slug=${encodeURIComponent(slug)}`, { auth: false }),
     testimonials: () => request('/store.php?action=testimonials', { auth: false }),
-    checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
+    // Store credit applies only for the signed-in customer's own session (server rule).
+    checkout: (data) => crequest('/store.php?action=checkout', { method: 'POST', body: data }),
     payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
     validateCoupon: (code, subtotal, shipping = 0) =>
       request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
-    creditBalance: (phone) => request(`/loyalty.php?action=credit_balance&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    creditBalance: () => crequest('/loyalty.php?action=credit_balance'),
     giftCheck: (code) => request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
     track: (code, phone) => request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
     waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),

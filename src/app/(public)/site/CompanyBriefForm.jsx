@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import PrivacyNote from './PrivacyNote'
 import heritApi from '@/helpers/heritApi'
 import { Field, ErrorSummary } from './ui/Field'
 import Button from './ui/Button'
@@ -212,9 +212,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
           />
         </div>
         <div className="hc-field--full">
-          <p className="hc-field-help">
-            I use these details only to reply to this brief. <Link to="/privacy">How I handle your details</Link>.
-          </p>
+          <PrivacyNote>I use these details only to reply to this brief.</PrivacyNote>
           <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'} className="hc-mt-3">
             {status === 'sending' ? 'Sending…' : 'Send your company brief'}
           </Button>

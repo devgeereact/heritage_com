@@ -133,8 +133,31 @@ if ($action === 'catalogue' && method() === 'GET') {
   json(['products' => $out, 'free_ship_over' => null]);
 }
 
+/** The retail shop is deferred: its public writes answer 403 until an admin
+ * switches shop_enabled on (Channels settings). */
+function require_shop_open() {
+  global $conn;
+  $r = $conn->query("SELECT svalue FROM settings WHERE skey = 'shop_enabled' LIMIT 1");
+  $row = $r ? $r->fetch_assoc() : null;
+  if ((string)($row['svalue'] ?? '') !== '1') fail('The shop is not open.', 403);
+}
+
+/** Anonymous writes: limit per IP per hour (audit_log rows, as booking.php does). */
+function public_write_guard($auditAction, $cfgName, $default) {
+  $ipKey = 'ip:' . client_ip();
+  throttle_enforce([[(int)cfg($cfgName, $default), $auditAction, $ipKey]], 3600);
+  audit(null, $auditAction, $ipKey);
+}
+
+/** Refuse over-long free text from public forms. $fields: [value, max chars]. */
+function public_lengths(array $fields) {
+  foreach ($fields as [$v, $max]) if (mb_strlen((string)$v) > $max) fail('Some details are too long. Please shorten them.');
+}
+
 /* ---- CHECKOUT ------------------------------------------------------------ */
 if ($action === 'checkout' && method() === 'POST') {
+  require_shop_open();
+  public_write_guard('store_checkout_ip', 'CHECKOUT_MAX_PER_IP', 10);
   $b = body();
   $name = trim($b['customer'] ?? '');
   $phone = trim($b['phone'] ?? '');
@@ -151,6 +174,8 @@ if ($action === 'checkout' && method() === 'POST') {
   if ($phone === '') fail('Please enter a phone number');
   if ($delivery !== 'pickup' && $address === '') fail('Please enter a delivery address');
   if (!$reqItems) fail('Your basket is empty');
+  public_lengths([[$name, 160], [$phone, 40], [$email, 190], [$address, 500], [$city, 120], [$notes, 2000], [$gift, 500]]);
+  if (count($reqItems) > 50) fail('Too many items in one order.');
 
   // Resolve every line against the LIVE products table (authoritative pricing +
   // real variant stock). A slug that is not a published product is refused.
@@ -257,7 +282,15 @@ if ($action === 'checkout' && method() === 'POST') {
   // Store credit — redeem this customer's balance (a returning buyer's pot).
   $creditApplied = 0;
   $wantCredit = isset($b['use_credit']) ? (float)$b['use_credit'] : 0;   // 0/absent = none; -1 = all
-  if ($customerId && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
+  // Credit is spent only by its owner: a verified customer session for this same
+  // customer. Matching the phone typed at checkout is not proof of identity.
+  $creditOwner = null;
+  if ($customerId && ($wantCredit > 0 || $wantCredit == -1)) {
+    require_once __DIR__ . '/_portal.php';
+    $creditOwner = customer_session_optional();
+  }
+  if ($customerId && $creditOwner && (int)$creditOwner['id'] === (int)$customerId
+      && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
     $bal = credit_balance($customerId);
     $cap = $wantCredit == -1 ? $bal : min($wantCredit, $bal);
     $creditApplied = min($cap, $total);
@@ -575,6 +608,8 @@ if ($action === 'pay_verify' && method() === 'GET') {
 
 /* ---- WAITLIST JOIN (public "notify me") ---------------------------------- */
 if ($action === 'waitlist_join' && method() === 'POST') {
+  require_shop_open();
+  public_write_guard('store_waitlist_ip', 'WAITLIST_MAX_PER_IP', 10);
   $b = body();
   $product = trim($b['product'] ?? '');
   $slug = trim($b['slug'] ?? '');
@@ -584,6 +619,7 @@ if ($action === 'waitlist_join' && method() === 'POST') {
   $email = trim($b['email'] ?? '');
   if ($product === '' && $slug === '') fail('Which piece?');
   if ($phone === '' && $email === '') fail('Leave a phone or email so we can reach you');
+  public_lengths([[$product, 190], [$slug, 190], [$size, 40], [$cname, 160], [$phone, 40], [$email, 190]]);
 
   $cid = customer_id_by_phone($phone);
   $cidVal = $cid ?: null;
@@ -597,12 +633,15 @@ if ($action === 'waitlist_join' && method() === 'POST') {
 /* Called from checkout once a contact phone is entered, before the order is
  * placed. Upserts one row per phone; a completed order flips recovered=1.    */
 if ($action === 'save_cart' && method() === 'POST') {
+  require_shop_open();
+  public_write_guard('store_save_cart_ip', 'SAVE_CART_MAX_PER_IP', 60);
   $b = body();
   $phone = trim($b['phone'] ?? '');
   if ($phone === '') fail('phone is required');
   $cname = trim($b['name'] ?? '');
   $email = trim($b['email'] ?? '');
   $items = isset($b['items']) ? json_encode($b['items']) : null;
+  public_lengths([[$phone, 40], [$cname, 160], [$email, 190], [(string)$items, 20000]]);
   $subtotal = (float)($b['subtotal'] ?? 0);
 
   $stmt = $conn->prepare(

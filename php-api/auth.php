@@ -71,7 +71,8 @@ if ($action === 'login' && method() === 'POST') {
   ]);
 
   $stmt = $conn->prepare(
-    'SELECT id, name, email, role, password_hash FROM users WHERE email = ? AND deleted_at IS NULL'
+    "SELECT id, name, email, role, password_hash FROM users
+      WHERE email = ? AND deleted_at IS NULL AND (status IS NULL OR status <> 'suspended')"
   );
   $stmt->bind_param('s', $email);
   $stmt->execute();
@@ -107,7 +108,7 @@ if ($action === 'pin_login' && method() === 'POST') {
   $res = $conn->query(
     "SELECT id, name, email, role, pin_hash FROM users
       WHERE pin_hash IS NOT NULL AND pin_hash <> '' AND status = 'active'
-        AND deleted_at IS NULL AND role <> 'customer'"
+        AND deleted_at IS NULL AND role NOT IN ('customer', 'super_admin', 'admin')"
   );
   $match = null;
   while ($res && $row = $res->fetch_assoc()) {
@@ -137,6 +138,9 @@ if ($action === 'set_pin' && method() === 'POST') {
     json(['ok' => true, 'pin_set' => false]);
   }
   if (strlen($pin) < 4 || strlen($pin) > 6) fail('PIN must be 4–6 digits');
+  // A short PIN is guessable from the internet, so owner-level roles sign in
+  // with email and password only (pin_login refuses them too).
+  if (in_array($user['role'], ['super_admin', 'admin'], true)) fail('Owner and admin accounts sign in with email and password, not a PIN', 403);
   $hash = password_hash($pin, PASSWORD_DEFAULT);
   $stmt = $conn->prepare('UPDATE users SET pin_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $user['id']);

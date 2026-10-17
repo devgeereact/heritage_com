@@ -121,9 +121,10 @@ function require_auth($roles = null) {
   $tok = bearer();
   if (!$tok) fail('Not authenticated', 401);
   $stmt = $conn->prepare(
-    'SELECT u.id, u.name, u.email, u.role
+    "SELECT u.id, u.name, u.email, u.role
        FROM auth_tokens t JOIN users u ON u.id = t.user_id
-      WHERE t.token = ? AND t.expires_at > NOW() AND u.deleted_at IS NULL'
+      WHERE t.token = ? AND t.expires_at > NOW() AND u.deleted_at IS NULL
+        AND (u.status IS NULL OR u.status <> 'suspended')"
   );
   $stmt->bind_param('s', $tok);
   $stmt->execute();

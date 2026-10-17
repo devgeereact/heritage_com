@@ -7,7 +7,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 - One PHP file per resource under `php-api/`, each `require '_lib.php'`. Operations are selected with `?action=` and the HTTP method; responses are JSON from `json()`, errors are `{"error": "..."}` with an HTTP status from `fail()` (`_lib.php:79-86`).
 - Auth: `Authorization: Bearer <token>` checked by `require_auth($roles)` (`_lib.php:119`). Staff tokens come from `auth.php`. Customer sessions come from `access.php` (verified) or the legacy `account.php` login, and are checked by `require_customer_session()` in `_portal.php` (Phase 3 branch).
 - Input: JSON body through `body()`; prepared statements only.
-- Throttling: staff email and PIN login; customer login and public tracking since PR #6 (A03). Limits are server settings ([DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
+- Throttling: staff email and PIN login; customer login and public tracking since PR #6 (A03); shop and review writes, gift card checks and AI calls on the redesign branch ([audit fixes](#audit-fixes-17-october-2026)). Limits are server settings ([DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
 - Idempotency: Phase 2 writes that must not repeat (enquiry conversion, measurement sets, quotes, ledger entries, handovers) take a `request_key`; a repeat returns the first result with `duplicate:true` ([BR-02 and BR-22](BUSINESS-RULES.md)). Job edits carry `lock_version` and answer 409 when stale.
 - Pagination, rate limits beyond login, versioning, timeouts and retries: not defined per operation. Each phase adds its action contracts to this file.
 
@@ -64,13 +64,32 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `stock.php` | Stock adjustments | super_admin, admin, manager, employee | Manual |
 | `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`). On the Phase 4 branch there is no fallback catalogue or free-delivery threshold, and `config` returns only social links that pass the allowlist | Public | Manual |
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | super_admin, admin, manager | Manual |
-| `users.php` | Team and access: staff CRUD, last super_admin guard | Management super_admin, admin; self actions any staff | Manual |
+| `users.php` | Team and access: staff CRUD, last super_admin guard; only a super_admin changes a super_admin (redesign branch) | Management super_admin, admin; self actions any staff | Manual |
 | `weather.php` | Lagos forecast from Open-Meteo, no key (weather.php:23) | super_admin, admin, manager, seller, employee | Manual |
 | `whatsapp.php` | WhatsApp threads, templates, Cloud API or wa.me fallback | super_admin, admin, manager, seller, editor, employee; webhook public | Manual |
 | `config.sample.php` | Template for server-only `config.php` | Not an endpoint | Never deployed |
 | `config.local.php` | Local staging config written by `scripts/staging/setup.sh`; gitignored | Not an endpoint | Never deployed |
 
 Role lists are Verified from the `$STAFF`, `$ADMIN` and inline `require_auth()` declarations in each file. Public actions (Verified from source): `coupons.php?action=validate` (GET, before the gate); every `store.php` action: `config`, `blog`, `testimonials`, `catalogue`, `checkout`, `pay_init`, `pay_verify`, `waitlist_join`, `save_cart`, `track`; every `booking.php` action (`config`, `slots`, `request`) and `access.php` `start`, `verify` and `redeem` on the Phase 3 branch; every `site.php` action and `sitemap.php` on the Phase 4 branch. Runtime behaviour of each is NOT TESTED beyond the staging smoke checks in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
+
+## Audit fixes (17 October 2026)
+
+Redesign branch (`feat/redesign-dark-luxury`). Why each change was made is in [SECURITY.md](SECURITY.md#audit-fixes-17-october-2026); limits are overridable in `config.php` ([DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
+
+| File and action | Change |
+|---|---|
+| `auth.php` `login`, `_lib.php` `require_auth()` | Refuse users with `status = 'suspended'` (`invited` still allowed) |
+| `auth.php` `pin_login`, `set_pin` | `pin_login` ignores `super_admin` and `admin`; `set_pin` answers 403 for them |
+| `users.php` create, update, reset, deactivate | `guard_super_admin()`: only a super_admin may create, promote to, edit, reset or deactivate a super_admin (403). Tokens are deleted when status leaves `active` |
+| `loyalty.php` `credit_balance` | Public; answers `{customer_id:null, balance}` for a verified customer session (`customer_session_optional()` in `_portal.php`), else balance 0. `phone` is ignored |
+| `loyalty.php` `gift_check` | 10 failed checks per IP per hour (`GIFT_CHECK_MAX_FAILS_PER_IP`) |
+| `store.php` `checkout`, `waitlist_join`, `save_cart` | 403 "The shop is not open." while `shop_enabled` is not `'1'`. Per IP per hour: checkout 10, waitlist 10, saved cart 60. Length caps on free text (too long answers 400); checkout at most 50 items. Credit is applied only when the customer session belongs to the order's customer |
+| `reviews.php` `submit` | Same shop check (403). 5 per IP per hour; length caps; `photo_url` kept only when `https://`; verified purchase only from a verified customer session, a typed phone no longer links the review |
+| `export.php` | Every cell passes `csv_safe()`: text starting with `=`, `+`, `-`, `@`, tab or CR gets a leading apostrophe; plain numbers and phone numbers unchanged |
+| `ai.php`, `ai_image.php` | Per staff member per day: 200 text calls, 50 images (`AI_MAX_PER_USER_DAY`, `AI_IMAGE_MAX_PER_USER_DAY`). Prompt caps: text 20,000 characters and system 4,000; image 4,000. Upstream `curl_error` detail only under `GK_DEBUG` (also `weather.php`) |
+| `whatsapp.php` `webhook` (POST) | With `WA_APP_SECRET` set, a missing or wrong `X-Hub-Signature-256` answers 403; unset, the post is accepted and a warning logged |
+
+The client sends the customer session token (`crequest` in `heritApi.js`) with `checkout`, `reviews.submit` and `creditBalance`.
 
 ## Customer lookups and references
 

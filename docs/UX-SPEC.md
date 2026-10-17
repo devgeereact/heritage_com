@@ -63,6 +63,16 @@ As built (`feat/phase4-website`, 11 October 2026): the header shows Services, Co
 
 Public pages on the CMS (as built): `/` Home (sections hidden while empty; hero and final action always), `/services` (intro page, service cards; with no services only the intro and the actions), `/services/:slug` (summary, body, what's included, pricing note, process link, related work, "Ask about this service" to `/contact?service=`), `/work` (cards; service filter chips as `aria-pressed` buttons when two or more services have work), `/work/:slug` (first image eager, facts list, gallery figures, related service), `/how-it-works` and `/about` (CMS pages), `/company-orders` (CMS page above the brief form; the form works while the page is unpublished), `/contact` (CMS page when published, channels from the profile, the enquiry form always; `?type=fitting|company|general` preselects the subject and `?service=<slug>` names the service), `/faqs` (details and summary grouped by category, `FAQPage` JSON-LD), `/privacy` and `/terms` (title, effective date in `<time>`, body), `/journal` and `/journal/:slug` (only while `journal_enabled` is on and posts exist). Unpublished or unknown items show a not-found page with noindex; `?preview=1` with a staff session shows drafts under a "Preview, not published" bar.
 
+As built (`feat/redesign-dark-luxury`, audit fixes, 17 October 2026; routes in [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)):
+
+- Any unknown URL shows the public "Page not found" page with noindex; `/pages-404`, `/auth/sign-up` and `/auth/lock-screen` are gone and land there too.
+- `/shop`, `/shop/:slug`, `/cart`, `/checkout` and `/gifting` show the not-found page to visitors while the shop is off; signed-in staff still see them.
+- Track, Account, the portal job page, Invite, Cart and Checkout carry noindex. The Invite heading is an `h1`.
+- Contact, Book and the company brief form show a short privacy line under the form, linking to `/privacy` only while a privacy policy is published (`nav.privacy`).
+- Home hero: only the first slide's heading is an `h1`; a 48px pause and play button stops rotation, and the slide counter is announced only while paused. Testimonials have the same pause button, and choosing a review stops rotation.
+- The page scrolls anchors clear of the sticky header (`scroll-padding-top`).
+- Sign-in: the email field is `type=email` with `autocomplete=username`, the password field `autocomplete=current-password`; the unused "Remember me" box is removed; show password is a real button with `aria-label` and `aria-pressed`. `/auth/reset-pass` explains that email reset is not available and how staff and the owner recover, with no form.
+
 ## Required states
 
 Every screen and journey defines: loading; empty (one clear next step); success; validation error (inline plus summary, typed values kept); service error (plain message, Retry, technical detail in logs or console only); permission denied (plain message, no data leak); offline (writes blocked, see [ARCHITECTURE.md](ARCHITECTURE.md#offline-behaviour)); session expired (sign in again without losing typed values where possible).

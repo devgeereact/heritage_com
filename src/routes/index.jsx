@@ -16,7 +16,7 @@ const Dashboard = lazy(() => import('@/app/(admin)/dashboard/page'));
 
 
 // Pages Routes
-const NotFound = lazy(() => import('@/app/(other)/pages-404/page'));
+const PublicNotFound = lazy(() => import('@/app/(public)/site/cmsBlocks').then((m) => ({ default: m.NotFoundPage })));
 const Settings = lazy(() => import('@/app/(admin)/settings/page'));
 const Profile = lazy(() => import('@/app/(admin)/profile/page'));
 const Permissions = lazy(() => import('@/app/(admin)/permissions/page'));
@@ -29,6 +29,7 @@ const Product = lazy(() => import('@/app/(public)/site/ProductPage'));
 const Cart = lazy(() => import('@/app/(public)/site/CartPage'));
 const Checkout = lazy(() => import('@/app/(public)/site/CheckoutPage'));
 const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
+const ShopGate = lazy(() => import('@/app/(public)/site/ShopGate'));
 const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
 const Track = lazy(() => import('@/app/(public)/site/TrackPage'));
 const Account = lazy(() => import('@/app/(public)/site/AccountPage'));
@@ -97,9 +98,7 @@ const SalesDetail = lazy(() => import('@/app/(admin)/sales/[id]/page'));
 
 // Auth Routes
 const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
-const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
 const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-pass/page'));
-const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'));
 
 // Public routes: no auth, rendered in PublicLayout (no admin chrome or CSS).
 export const publicRoutes = [{
@@ -149,23 +148,23 @@ export const publicRoutes = [{
 }, {
   path: '/shop',
   name: 'Shop',
-  element: <Shop />
+  element: <ShopGate><Shop /></ShopGate>
 }, {
   path: '/shop/:slug',
   name: 'Product',
-  element: <Product />
+  element: <ShopGate><Product /></ShopGate>
 }, {
   path: '/cart',
   name: 'Cart',
-  element: <Cart />
+  element: <ShopGate><Cart /></ShopGate>
 }, {
   path: '/checkout',
   name: 'Checkout',
-  element: <Checkout />
+  element: <ShopGate><Checkout /></ShopGate>
 }, {
   path: '/gifting',
   name: 'Gifting',
-  element: <Gifting />
+  element: <ShopGate><Gifting /></ShopGate>
 }, {
   path: '/contact',
   name: 'Contact',
@@ -198,6 +197,11 @@ export const publicRoutes = [{
   path: '/book',
   name: 'Book appointment',
   element: <Book />
+}, {
+  // Any unknown URL: the public noindex not-found page instead of a blank screen.
+  path: '*',
+  name: 'Not found',
+  element: <PublicNotFound />
 }];
 // Old URLs keep working (bookmarks, links in messages). Rendered before the app
 // routes and outside the layout; the target applies sign-in and role checks.
@@ -403,20 +407,8 @@ export const authRoutes = [{
   path: '/auth/sign-in',
   element: <SignIn />
 }, {
-  name: 'Sign Up',
-  path: '/auth/sign-up',
-  element: <SignUp />
-}, {
   name: 'Reset Password',
   path: '/auth/reset-pass',
   element: <ResetPassword />
-}, {
-  name: 'Lock Screen',
-  path: '/auth/lock-screen',
-  element: <LockScreen />
-}, {
-  name: '404 Error',
-  path: '/pages-404',
-  element: <NotFound />
 }];
 export const appRoutes = [...generalRoutes, ...customRoutes];

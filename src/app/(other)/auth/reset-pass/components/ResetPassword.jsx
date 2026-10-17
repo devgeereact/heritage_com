@@ -1,19 +1,11 @@
 import logoDark from '@/assets/images/logo-dark.svg';
 import logoLight from '@/assets/images/logo-light.svg';
-import TextFormInput from '@/components/form/TextFormInput';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Card, Col, Row } from 'react-bootstrap';
-import { useForm } from 'react-hook-form';
+import { Card, Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import * as yup from 'yup';
 import BrandSidePanel from '../../components/BrandSidePanel';
 import AuthHeading from '../../components/AuthHeading';
 
 const ResetPassword = () => {
-  const resetPasswordSchema = yup.object({
-    email: yup.string().email('Please enter a valid email').required('please enter your email')
-  });
-  const { control, handleSubmit } = useForm({ resolver: yupResolver(resetPasswordSchema) });
   return <div className="d-flex flex-column vh-100 p-3">
       <div className="d-flex flex-column flex-grow-1">
         <Row className="h-100">
@@ -22,20 +14,21 @@ const ResetPassword = () => {
               <Col lg={6} className="py-lg-5">
                 <div className="d-flex flex-column h-100 justify-content-center">
                   <div className="auth-logo mb-4">
-                    <Link to="/dashboard" className="logo-dark"><img src={logoDark} height={24} alt="logo dark" /></Link>
-                    <Link to="/dashboard" className="logo-light"><img src={logoLight} height={24} alt="logo light" /></Link>
+                    <Link to="/auth/sign-in" className="logo-dark"><img src={logoDark} height={24} alt="HeritOS sign in" /></Link>
+                    <Link to="/auth/sign-in" className="logo-light"><img src={logoLight} height={24} alt="HeritOS sign in" /></Link>
                   </div>
+                  {/* No email reset exists yet (K-04): say so plainly instead of a form that sends nothing. */}
                   <AuthHeading
                     kicker="HeritOS · reset"
-                    title="Lost your key?"
-                    sub="Enter your email and we’ll send instructions to reset your password. The link is short-lived for safety."
+                    title="Lost your password?"
+                    sub="Password reset by email is not available yet."
                   />
-                  <form className="authentication-form" onSubmit={handleSubmit(() => {})}>
-                    <TextFormInput control={control} name="email" containerClassName="mb-3" label="Email" id="email-id" placeholder="Enter your email" />
-                    <div className="mb-1 text-center d-grid">
-                      <Button variant="primary" type="submit">Send reset link</Button>
-                    </div>
-                  </form>
+                  <p>
+                    Staff: ask the owner to reset your password from the Team page. They will give you a temporary password.
+                  </p>
+                  <p className="text-muted">
+                    Owner: if you are locked out, the developer can reset the owner password on the server.
+                  </p>
                   <p className="mt-5 text-muted text-center">
                     Back to
                     <Link to="/auth/sign-in" className="fw-bold ms-1" style={{ color: 'var(--herit-primary)' }}>Sign in</Link>

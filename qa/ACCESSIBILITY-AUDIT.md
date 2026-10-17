@@ -19,6 +19,20 @@ The GEE OS automated gate (`./scripts/project accessibility` writing `.agent/evi
 
 The 10 October 2026 rendered audit was BLOCKED (occupied browser profile, in-app browser unavailable). The old claim that both themes pass WCAG AA had no runtime evidence and is withdrawn.
 
+## Audit fixes, 17 October 2026
+
+Chromium (Playwright) against `npm run dev` on 5112 with the staging API on 8088, `feat/redesign-dark-luxury`. Changes are described in [UX-SPEC.md](../docs/UX-SPEC.md#public-navigation) and [DESIGN-SYSTEM.md](../docs/DESIGN-SYSTEM.md#colour-and-contrast).
+
+| Check | Result |
+|---|---|
+| Home hero with two synthetic slides: one `h1`, one `h2`; pause stops advance for 9s; button 48 by 48px; slide counter live region `off` while moving, `polite` when paused | PASS |
+| Paper success token `#166534` on ivory: 6.34:1 (was `#15803D` at 4.46:1) | PASS (calculated) |
+| No sideways scroll at 320px on home, contact, book, company orders, track, account and the not-found page | PASS |
+| Sign-in: show password is a button with `aria-label` and `aria-pressed`; field autocomplete set | PASS (source and rendered) |
+| Console | PASS: 0 errors |
+
+NOT TESTED: testimonial pause in the browser beyond source, screen readers, real phones, keyboard-only use of the new pause buttons.
+
 ## Phase 4 public foundation, 11 October 2026
 
 Chromium (Playwright 1.63) against `npm run dev` with local staging, `feat/phase4-website`. Pages `/`, `/about`, `/contact`, `/track`, `/book` at 320, 390, 768, 1024 and 1440px, with the staff dark theme saved in the browser. Screenshots are kept outside the repository (agent scratchpad `phase4-shots/foundation/`).

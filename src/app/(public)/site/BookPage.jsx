@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import PrivacyNote from './PrivacyNote'
 import { Link } from 'react-router-dom'
 import heritApi from '@/helpers/heritApi'
 import newRequestKey from '@/helpers/requestKey'
@@ -259,6 +260,7 @@ const BookPage = () => {
                       <label htmlFor="bk-hp">Leave this empty</label>
                       <input id="bk-hp" tabIndex={-1} autoComplete="off" value={f.hp_url} onChange={set('hp_url')} />
                     </div>
+                    <PrivacyNote className="hp-help">Your details are used to arrange this appointment.</PrivacyNote>
                     <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
                       <button type="button" className="hp-btn" onClick={() => setStep(1)}>
                         Back
