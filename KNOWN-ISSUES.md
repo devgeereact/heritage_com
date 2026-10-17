@@ -21,7 +21,6 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | K-14 | P2 | Privacy | The legacy order lookup sends the phone number in a GET query string (`TrackPage.jsx:46`, `store.php:627`), so it reaches server access logs | Switch off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021) | Business owner | Open |
 | K-18 | P2 | Privacy | No retention job exists: expired sessions, access attempts with IP, audit and WhatsApp logs, abandoned carts and old enquiries are kept indefinitely ([schedule](docs/DATA-PRIVACY.md#retention-schedule)) | Manual clean-up | Business owner, developer | Open: periods need owner and legal review |
 | K-19 | P3 | SEO | No 1200x630 link-preview image; the default is the square brand icon (`icon-512.png`, small card) | Owner photographs per page through the CMS | Business owner | Open |
-| K-23 | P3 | Security | No script-src Content Security Policy (needs a tested allowlist on the live build). Fixed 17 October 2026 (in code): login timing, 64-bit gift-card codes, one PIN per person (a shared PIN signs in nobody) | Throttles; frame-ancestors CSP | Developer | Partly fixed (in code) |
 
 ## Fixed in code, awaiting merge and deploy
 
@@ -31,6 +30,7 @@ Open defects and gaps. Audit findings A01 to A24 are owned by [docs/ROADMAP.md](
 | K-12 | P2 | Privacy | AI reply drafter sends only the enquiry type and a short interest line; the name is filled in locally and the message is never sent (D-024) | Source; NOT TESTED at runtime (no AI key on staging) | In code |
 | K-13 | P2 | Privacy | Referral and campaign codes kept for 30 days, then removed; older undated values removed on read (D-024) | Node check of `attribution.js`: fresh, 29 days, 31 days, legacy, missing and blocked storage PASS | In code |
 | K-20 | P3 | SEO, PWA | Manifest linked only on staff pages and starts at `/today` (D-024); sitemap shop pages and service-worker caching fixed | Browser: no manifest link on Home, manifest with `start_url` `/today` on sign-in PASS | In code |
+| K-23 | P3 | Security | Login timing equalised; 64-bit gift-card codes; one PIN per person; Content Security Policy with scripts from this site only (inline boot scripts moved to `public/boot.js`) | Production build under the policy: 0 violations on 13 pages, an injected inline script blocked; Apache syntax and header PASS; live site NOT TESTED | In code |
 | K-15 | P2 | Security | Staff tokens stored as SHA-256 (`staff_token_hash`); older plain tokens accepted until they expire, then remove the fallback | Staging sign-in, `me`, sessions and logout PASS; e2e scripts mint hashed tokens | In code |
 | K-16 | P2 | Accessibility | Booking moves focus to each step and the first invalid field; access form focuses the first error; track lookup `type=tel`, alert and focused result; contact and brief thank-you panels take focus; shop inputs named | Access form and contact success PASS in a browser; booking and track source only | In code |
 | K-17 | P3 | Tests | `e2e-phase5.sh` no longer uses `mapfile` | 25 of 25 on macOS | In code |

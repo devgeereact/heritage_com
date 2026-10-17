@@ -66,3 +66,16 @@ Two synthetic `example.test` tailors on local staging (script in the session scr
 | Sign-in with a unique PIN | PASS: 200 |
 | Sign-in with a PIN forced onto both accounts in the database | PASS: 401, `pin_login_ambiguous` audited |
 | Repeated refusals | PASS: 409 four more times, then 429 |
+
+### Content Security Policy, 17 October 2026 (K-23)
+
+Production build (`vite preview`) with the policy added to every page by Playwright, API calls passed through to local staging.
+
+| Check | Result |
+|---|---|
+| Public pages `/`, `/contact`, `/services`, `/work`, `/book`, `/account`, `/company-orders`, an unknown URL | PASS: 0 CSP violations; pages render with their h1 |
+| Staff pages `/today`, `/enquiries`, `/jobs`, `/website`, `/whatsapp` | PASS: 0 violations; Iconify icons render; splash fades; manifest linked; staff title |
+| Injected inline script on `/contact` | PASS: blocked, violation reported |
+| `php-api/.htaccess` in local Apache 2.4 | PASS: syntax OK; CSP header on the page; `boot.js` served as JavaScript |
+| Live site, payment gateway redirects, real phones | NOT TESTED |
+

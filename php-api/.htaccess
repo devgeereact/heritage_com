@@ -18,13 +18,16 @@
 </IfModule>
 
 # Security headers on every answer (pages, assets and PHP JSON).
-# No script-src CSP yet: it needs a tested allowlist (payment pages, inline
-# boot script); frame-ancestors alone stops other sites framing the app.
+# CSP (K-23): scripts only from this site (the boot script is public/boot.js,
+# never inline); inline styles allowed (React style attributes); images from
+# any https host; the admin icon library calls the Iconify API. Tested with
+# zero violations on 13 public and staff pages, 17 October 2026. Add a host
+# here before adding any new external script, font or API call.
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Content-Security-Policy "frame-ancestors 'self'"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   # HSTS only on HTTPS answers; one year, no preload, no subdomains.
   Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
@@ -40,7 +43,7 @@
   <FilesMatch "\.woff2$">
     Header set Cache-Control "public, max-age=2592000"
   </FilesMatch>
-  <FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest)$">
+  <FilesMatch "^(index\.html|sw\.js|boot\.js|manifest\.webmanifest)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>

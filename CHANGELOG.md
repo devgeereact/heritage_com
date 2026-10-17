@@ -40,6 +40,7 @@ Fixed (third batch, 17 October 2026)
 - Saving is refused while the device is offline, with a plain message, and staff screens show an offline banner; connection failures read as plain sentences instead of "Failed to fetch" (A16, D-016).
 - New gift card codes are 64-bit (K-23).
 - Each staff PIN belongs to one person: a PIN already in use is refused, and a shared PIN signs in nobody (K-23).
+- Content Security Policy: scripts only from this site, with the boot scripts moved out of `index.html` into `public/boot.js` (K-23).
 
 Changed (owner decisions D-024, 17 October 2026)
 
