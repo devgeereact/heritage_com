@@ -173,6 +173,11 @@ if ($action === 'send' && method() === 'POST') {
 
 /* ---- BROADCAST ----------------------------------------------------------- */
 if ($action === 'broadcast' && method() === 'POST') {
+  // Owner decision D-024 (K-11): broadcasts reach customers who never opted in,
+  // so they stay off until a recorded marketing opt-in exists. One-to-one
+  // service messages (send) are unchanged.
+  require_auth();
+  fail('Promotional messages are switched off until customers can opt in (D-024).', 403);
   $b = body();
   $text = trim($b['body'] ?? '');
   $segment = trim($b['segment'] ?? '');

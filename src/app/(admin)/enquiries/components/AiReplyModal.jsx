@@ -22,14 +22,16 @@ const AiReplyModal = ({ enquiry, show, onHide }) => {
     setBusy(true);
     setCopied(false);
     try {
+      // D-024 (K-12): the customer's name and message are never sent
+      // to the AI provider. The draft greets "{name}", filled in here; staff
+      // read the message themselves and edit the draft before sending.
       const prompt = `Draft a short, warm reply (UK English, plain, no marketing cliches) from Herit Clothing, `
         + `a Lagos tailoring house, to a customer who ${typeLine[enquiry.type] || 'got in touch'}.\n`
-        + `Customer name: ${enquiry.name}.\n`
-        + (enquiry.interest ? `They mentioned: ${enquiry.interest}.\n` : '')
-        + (enquiry.message ? `Their message: "${enquiry.message}".\n` : '')
-        + `Thank them, answer warmly, and invite them to book a fitting at the Ajuwon Market workshop or reply on WhatsApp. Sign off as "The Herit Clothing team". Keep it under 120 words.`;
+        + (enquiry.interest ? `They mentioned: ${String(enquiry.interest).slice(0, 80)}.\n` : '')
+        + `Start with "Hi {name}," exactly. Thank them, answer warmly, and invite them to book a fitting at the Ajuwon Market workshop or reply on WhatsApp. Sign off as "The Herit Clothing team". Keep it under 120 words.`;
       const res = await heritApi.ai('enquiry_reply', prompt, { max_tokens: 300 });
-      setText((res.text || '').trim());
+      const first = String(enquiry.name || '').trim().split(/\s+/)[0] || 'there';
+      setText((res.text || '').trim().replace(/\{name\}/g, first));
     } catch (e) {
       showNotification({ message: e.message || 'AI is not available right now', variant: 'danger' });
       onHide();

@@ -2,7 +2,7 @@
 
 This file holds the draft privacy notice for heritclothing.com. It is a **draft for owner input and legal review, not publication-ready, and not legal advice**. It describes only what the code was seen to do on 17 October 2026 ([DATA-PRIVACY.md](DATA-PRIVACY.md#inventory-17-october-2026) holds the evidence). Items in square brackets need the owner; items marked REVIEW need qualified counsel. To publish, the owner pastes the final text into Website > Privacy; the CMS refuses to publish while placeholders remain.
 
-Before publishing, also decide K-11 (marketing messages), K-12 (AI reply drafter) and K-13 (attribution storage) in [KNOWN-ISSUES.md](../KNOWN-ISSUES.md), because the text below depends on them.
+K-11, K-12 and K-13 were decided on 17 October 2026 (D-024 in [DECISIONS.md](DECISIONS.md)); the text below reflects those choices.
 
 ---
 
@@ -28,7 +28,7 @@ This notice covers this website, the order tracking and client pages on it, and 
 
 **When you give feedback.** Your rating and comments. We publish a review or a photograph only if you tick the box that allows it, and we keep the wording you agreed to.
 
-**Messages.** We send service messages about your appointments and orders by email or WhatsApp. [OWNER DECISION K-11: if promotional messages are kept, describe the opt-in and how to stop them here. If not, say: "We do not send promotional messages."]
+**Messages.** We send service messages about your appointments and orders by email or WhatsApp. We do not send promotional messages.
 
 **Automatic information.** Our server records technical details of each visit (internet address, browser, pages requested and time) for security and to keep the site working. We do not use advertising or analytics cookies, and we do not track you across other websites.
 
@@ -38,7 +38,7 @@ The website stores a few small items in your browser:
 
 - a session key while you are signed in to view your orders, which is deleted when you close the tab;
 - for staff only, a sign-in cookie that lasts up to 7 days;
-- if you arrive through a referral or campaign link, the code from that link, so that a later order is credited correctly [OWNER DECISION K-13: keep, shorten or remove; REVIEW: consent under GAID Article 19];
+- if you arrive through a referral or campaign link, the code from that link for up to 30 days, so that a later order is credited correctly [REVIEW: consent under GAID Article 19];
 - the website files themselves, so the site opens quickly and works briefly without a connection.
 
 You can clear these at any time in your browser settings. Clearing them signs you out.
@@ -50,7 +50,7 @@ We do not sell your information. We use these service providers, who handle it f
 - our web host, which stores the website and its database;
 - our email provider, to send codes and messages;
 - Meta (WhatsApp), when we message you on WhatsApp;
-- [OWNER DECISION K-12: OpenRouter, an AI service, if staff use it to draft replies to enquiries; otherwise delete this line];
+- OpenRouter, an AI service that helps staff draft replies (it receives the kind of enquiry and a short note of what you are interested in, never your name, contact details or message);
 - [a payment provider (Paystack, Flutterwave or Stripe), only if you pay online].
 
 Some of these providers process information outside Nigeria. [REVIEW: transfer basis under the Nigeria Data Protection Act, Part VIII, and GAID Article 45.]
@@ -72,7 +72,7 @@ You can ask us to:
 - tell you what information we hold about you and give you a copy;
 - correct information that is wrong;
 - delete information we no longer need, unless the law requires us to keep it;
-- stop using your information for a particular purpose, including any promotional messages;
+- stop using your information for a particular purpose;
 - withdraw a consent you gave, such as permission to publish a review, without affecting what was done before.
 
 To make a request, contact [PRIVACY EMAIL]. We will confirm it is you by sending a code to the phone or email address we already hold; we will not ask for identity documents. We will reply within [PERIOD, REVIEW]. If you are not satisfied, you can complain to the Nigeria Data Protection Commission (ndpc.gov.ng). [REVIEW: GAID Article 40, Standard Notice to Address Grievance.]

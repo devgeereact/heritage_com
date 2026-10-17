@@ -35,6 +35,13 @@ Removed
 
 - Larkon template pages `/pages-404`, `/auth/sign-up` and `/auth/lock-screen`, whose forms did nothing.
 
+Changed (owner decisions D-024, 17 October 2026)
+
+- Promotional WhatsApp sends (broadcast, waitlist and abandoned-cart nudges) are switched off until customers can opt in; the admin buttons are disabled with an explanation (K-11).
+- The AI reply drafter no longer sends the customer's name or message to the AI provider (K-12).
+- Referral and campaign codes are kept in the browser for 30 days, then removed (K-13).
+- Only staff pages offer the installable app, which opens at `/today` (K-20).
+
 Fixed (second batch, 17 October 2026)
 
 - Staff tokens are stored as SHA-256; tokens issued earlier keep working until they expire (K-15).

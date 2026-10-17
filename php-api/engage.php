@@ -43,6 +43,9 @@ if ($action === 'waitlist' && method() === 'GET') {
 }
 
 if ($action === 'waitlist_notify' && method() === 'POST') {
+  // Owner decision D-024 (K-11): no promotional WhatsApp sends until a recorded
+  // marketing opt-in exists. Lists stay readable; nothing is sent.
+  fail('Promotional messages are switched off until customers can opt in (D-024).', 403);
   $b = body();
   $slug = trim($b['slug'] ?? '');
   $product = trim($b['product'] ?? '');
@@ -97,6 +100,7 @@ if ($action === 'abandoned' && method() === 'GET') {
 }
 
 if ($action === 'abandoned_nudge' && method() === 'POST') {
+  fail('Promotional messages are switched off until customers can opt in (D-024).', 403);   // D-024 (K-11)
   $id = (int)($_GET['id'] ?? 0);
   $b = body();
   $custom = trim($b['message'] ?? '');

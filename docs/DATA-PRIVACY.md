@@ -39,7 +39,7 @@ Prepare a short notice: who runs the business, what is collected and why, servic
 ## Processors and AI
 
 - Processors in use when configured: hosting provider, mail host, Meta (WhatsApp Cloud API), payment gateway, OpenRouter and image AI providers ([ARCHITECTURE.md](ARCHITECTURE.md#integrations)).
-- Correction (17 October 2026, Verified `src/app/(admin)/enquiries/components/AiReplyModal.jsx:25-31`): the staff "Draft a reply" button on an enquiry sends that enquiry's name, interest and message to OpenRouter. Nothing is sent unless a staff member presses it. Dashboard and report prompts send totals only. The owner decides whether to keep the button (and disclose OpenRouter as a recipient and an international transfer), strip the customer's name and message from the prompt, or remove the button (K-12).
+- Correction (17 October 2026, Verified `src/app/(admin)/enquiries/components/AiReplyModal.jsx:25-31`): the staff "Draft a reply" button on an enquiry sends that enquiry's name, interest and message to OpenRouter. Nothing is sent unless a staff member presses it. Dashboard and report prompts send totals only. Owner decision D-024 (17 October 2026): the prompt now carries only the enquiry type and a short interest line (up to 80 characters); the name is filled in locally and the message is never sent (K-12).
 - Image AI receives staff-written prompts only. If any further customer processing is approved, document the providers and international transfer arrangements first.
 
 ## Inventory, 17 October 2026
@@ -71,7 +71,7 @@ None of these is used for advertising or cross-site tracking. No analytics, pixe
 | `herit_portal_notice` | sessionStorage | Portal | One-off notice state | Tab | Strictly necessary | `portal/session.js` |
 | `herit_chunk_reload` | sessionStorage | Error screen | Reload once after a deploy | Tab | Strictly necessary | `components/AppErrorBoundary.jsx` |
 | `herit_cart_v1` | localStorage | Shop | Bag contents | Until cleared | Functional | `site/cart.js` |
-| `herit_ref`, `herit_src`, `herit_camp` | localStorage | Any public page with `?ref=` or `?utm_*` | Referral code and campaign attribution for checkout | Until cleared (no expiry) | Analytics or attribution: consent may be needed, REQUIRES LEGAL REVIEW (K-13) | `site/SiteLayout.jsx:49-53` |
+| `herit_ref`, `herit_src`, `herit_camp` | localStorage | Any public page with `?ref=` or `?utm_*` | Referral code and campaign attribution for checkout | 30 days, then removed (D-024) | Analytics or attribution: consent may be needed, REQUIRES LEGAL REVIEW (K-13) | `site/attribution.js`, `site/SiteLayout.jsx` |
 | `__REBACK_NEXT_CONFIG__` | localStorage | Admin | Admin theme settings | Until cleared | Preferences (staff) | `context/useLayoutContext.jsx:29` |
 | `herit_pos_catalogue`, `herit_pos_queue` | localStorage | Staff POS | Offline catalogue and queued sales (may hold customer data) | Until synced | Strictly necessary (staff) | `app/(admin)/pos/offline.js` |
 | `heritos-v1` | Cache Storage | Service worker (production only) | App shell and static files; never PHP answers | Until the cache name changes | Strictly necessary | `public/sw.js` |
@@ -86,7 +86,7 @@ The server sets no cookies (`setcookie` and `session_start` are not used).
 | Cloudflare (DNS only, grey cloud) | DNS lookups, no page traffic | Always | CLAUDE.md |
 | Mail host (SMTP or PHP `mail()`) | Recipient address, access codes, staff mail; each send logs recipient and subject in `audit_log` | On send | `_mail.php:67-80` |
 | Meta (WhatsApp Cloud API) | Phone number and message text; every message logged in `whatsapp_messages` | Order confirmations, broadcasts, waitlist and abandoned-cart nudges | `_lib.php:151-193`, `whatsapp.php:175-198`, `engage.php` |
-| OpenRouter | Enquiry name, interest and message when staff press "Draft a reply"; totals for reports | Staff action | See the correction above (K-12) |
+| OpenRouter | Enquiry type and a short interest line when staff press "Draft a reply" (no name or message since D-024); totals for reports | Staff action | `AiReplyModal.jsx` (K-12) |
 | OpenAI or Stability (image AI) | Staff prompts | Staff action | `ai_image.php` |
 | Paystack, Flutterwave or Stripe | Email, amount, order code | Shop checkout, if a gateway is configured | `store.php:418-476` |
 | Open-Meteo | No personal data | Weather tile | `weather.php` |
@@ -95,7 +95,7 @@ Transfers outside Nigeria: Meta, OpenRouter, the image AI providers and the paym
 
 ### Marketing
 
-- No marketing opt-in is collected anywhere, yet `whatsapp.php?action=broadcast` sends to every customer (or a segment) with a phone, and `engage.php` sends waitlist and abandoned-cart nudges. This conflicts with BR-35 and with the table above (K-11, P1). Owner decision: switch broadcasts off until consent exists, or approve a `marketing_opt_in` field (schema change) with an unticked box and an unsubscribe route.
+- No marketing opt-in is collected anywhere. Owner decision D-024 (17 October 2026): promotional WhatsApp sends are off. `whatsapp.php?action=broadcast` and `engage.php` waitlist and abandoned-cart nudges answer 403 and their admin buttons are disabled; one-to-one service messages are unchanged (K-11). Turning them back on needs a recorded opt-in (a schema change with an unticked box and an unsubscribe route) and a new decision.
 - Abandoned-cart capture saves name, phone, email and basket once ten phone digits are typed, before the customer submits (`CheckoutPage.jsx:55-66`). It is off for visitors while the shop is off; before switching the shop on, the owner decides whether to keep it and how to disclose it (K-11).
 
 ### Retention schedule
@@ -139,8 +139,8 @@ Accessed 17 October 2026. Article titles only were read for the GAID; the substa
 2. Privacy contact: an email address (and phone, if wanted) that is checked, and a postal or workshop address to publish.
 3. Whether the business must register with the NDPC as a data controller of major importance, given its real volume of clients (counsel to confirm).
 4. Retention periods in the schedule above, and the statutory period for financial records.
-5. The AI reply drafter (K-12) and the WhatsApp broadcast and nudges (K-11): keep, change or switch off.
-6. Whether referral and campaign attribution (K-13) stays, and for how long.
+5. Decided 17 October 2026 (D-024): promotional WhatsApp sends off (K-11); AI drafter without personal data (K-12).
+6. Decided 17 October 2026 (D-024): attribution kept 30 days (K-13); whether that needs consent is still for counsel.
 7. Who handles rights requests, and how identity is checked (proposed: a code sent to the phone or email already on file, never identity documents).
 8. Commercial terms for the Terms page: deposits, payment timing, alterations, cancellation and refunds, collection and delivery, liability, governing law. The Terms draft is BLOCKED until these exist.
 

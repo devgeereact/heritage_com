@@ -19,7 +19,6 @@
   <meta name="twitter:card" content="summary" />
 
   <!-- PWA: installable + offline-capable -->
-  <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#0E0D0B" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -89,9 +88,16 @@
     }
   </style>
   <script>
-    // Public pages show no splash: hide it before first paint.
+    // Public pages show no splash: hide it before first paint. The installable
+    // app is the staff app, so only staff pages link the manifest (D-024, K-20).
     if (/^\/(?:$|about|services|work|how-it-works|company-orders|faqs|privacy|terms|shop|cart|checkout|gifting|contact|journal|track|account|access|book)(?:\/|$)/.test(location.pathname)) {
       document.documentElement.classList.add('hc-public-boot');
+    } else {
+      var hcManifest = document.createElement('link');
+      hcManifest.rel = 'manifest';
+      hcManifest.href = '/manifest.webmanifest';
+      document.head.appendChild(hcManifest);
+      document.title = 'HeritOS | Herit Clothing';
     }
   </script>
 

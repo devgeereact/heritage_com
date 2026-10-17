@@ -5,6 +5,7 @@ import SiteLayout from './SiteLayout';
 import { formatNgn } from './products';
 import { useCart } from './cart';
 import heritApi from '@/helpers/heritApi';
+import { readAttribution } from './attribution';
 
 const DELIVERY = [
   { key: 'lagos', label: 'Lagos delivery', note: 'Free over ₦25,000, else ₦2,500' },
@@ -49,7 +50,7 @@ const CheckoutPage = () => {
 
   // Prefill a referral code captured from a share link (?ref=) by SiteLayout.
   useEffect(() => {
-    try { const r = localStorage.getItem('herit_ref'); if (r) setReferral(r); } catch { /* ignore */ }
+    const r = readAttribution('herit_ref'); if (r) setReferral(r);
   }, []);
 
   // Abandoned-cart capture: once a usable phone is entered, save the basket so
@@ -137,8 +138,8 @@ const CheckoutPage = () => {
         gift_card: giftCard ? giftCard.code : '',
         use_credit: useCredit ? -1 : 0,
         referral_code: referral.trim(),
-        source: (() => { try { return localStorage.getItem('herit_src') || ''; } catch { return ''; } })(),
-        utm_campaign: (() => { try { return localStorage.getItem('herit_camp') || ''; } catch { return ''; } })(),
+        source: readAttribution('herit_src'),
+        utm_campaign: readAttribution('herit_camp'),
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.

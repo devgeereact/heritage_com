@@ -45,3 +45,13 @@ Open items not fixed are listed in [SECURITY.md](../docs/SECURITY.md#open-items-
 | Login timing (K-23) | Two wrong-password sign-ins each for an existing and an unknown email | PASS: 0.18s for both (was 0.19s and 0.05s) |
 | End-to-end with hashed tokens | `e2e-phase3.sh`, `e2e-phase4.sh`, `e2e-phase5.sh`, `e2e-phase2.sh` | PASS 93, 63, 25; phase 2 47 of 48 (E15c, K-07 staging data) |
 | Sitemap with the shop on (K-20) | Switch `shop_enabled` on in staging, fetch `sitemap.php`, restore | PASS: `/shop`, `/gifting` and published products listed only while on |
+
+### Owner decisions D-024, 17 October 2026
+
+| Check | Result |
+|---|---|
+| Promotional sends refused (K-11) | PASS: `whatsapp.php?action=broadcast`, `engage.php?action=waitlist_notify` and `abandoned_nudge` answer 403 with the D-024 message for a staff token; broadcast without a token 401 |
+| Attribution expiry (K-13) | PASS: Node check of `attribution.js` for fresh, 29-day, 31-day, legacy plain, missing and blocked-storage cases |
+| Manifest on staff pages only (K-20) | PASS in Chromium: no manifest link on `/`; manifest with `start_url` `/today` on `/auth/sign-in` |
+| AI drafter prompt (K-12) | Source only; NOT TESTED at runtime (no AI key on staging) |
+| Regression | Helper tests 374; e2e phase3 93, phase4 63, phase5 25; phase2 46 of 48 (E9b and E15c: Today's 20-item cap on accumulated staging data, K-07); lint 0 errors; build |
