@@ -18,8 +18,8 @@ Each scenario runs on staging with synthetic records before launch, and again wi
 | Session recovery | Expired or revoked token blocked; owner recovery works | NOT TESTED |
 | Failure handling | Offline, API timeout, failed email and missing config show plain, truthful states | NOT TESTED |
 | Publication | Drafts private; unpublish effective; invalid URL rejected | NOT TESTED |
-| Recovery | Backup restored and records and files verified in a separate environment | NOT TESTED |
-| Release | Endpoint and schema versions match the build; rollback rehearsed | NOT TESTED |
+| Recovery | Backup restored and records and files verified in a separate environment | PARTIAL: `backup.sh` and `restore-check.sh` round trip PASS on local staging, 18 Oct 2026 (58 of 58 tables match, 99 upload files listed, scratch database dropped); hand check of one linked client, job, payment and photo NOT TESTED; production backup and restore NOT TESTED ([DEPLOYMENT.md](../docs/DEPLOYMENT.md#backup-and-recovery)) |
+| Release | Endpoint and schema versions match the build; rollback rehearsed | PARTIAL: release manifest and `release_check.php` PASS locally, 18 Oct 2026 (59 files MATCH on the worktree; a copy with one manual file changed, one ci file changed and one manual file removed gave DIFFERENT, DIFFERENT, MISSING and exit 1; `--db` showed all 30 schema markers on `heritos_staging`); `smoke.sh` PASS on local staging (11 API checks) and on a `vite preview` of `dist/` (4 site checks); live endpoint versions, live schema markers, Apache header checks and a rollback rehearsal NOT TESTED ([DEPLOYMENT.md](../docs/DEPLOYMENT.md#release-procedure)) |
 
 Helper tests and syntax checks do not substitute for this matrix.
 
@@ -46,7 +46,10 @@ Checks run against production around a release. Do not infer production health f
 | Correct account, repository, branch (`main`) and cPanel document root confirmed before any mutation | NOT TESTED | None | Business owner | None |
 | Deploy job green; every PHP file listed in `deploy.yml` uploaded | NOT TESTED | None | Business owner | None |
 | Manual uploads and SQL imports applied in the order given in [DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request) | NOT TESTED | None | Business owner | None |
-| `https://heritclothing.com/api.php` returns a JSON array | NOT TESTED | None | Business owner | None |
+| Backup set taken with `backup.sh` before the change and proved with `restore-check.sh` (every table MATCH) | NOT TESTED | None | Business owner | None |
+| `release_check.php --db` before the change recorded (live endpoint versions and schema markers, A02) | NOT TESTED | None | Business owner | None |
+| `release_check.php` after the hand uploads: every manual file MATCH | NOT TESTED | None | Business owner | None |
+| `npm run release:smoke -- https://heritclothing.com` PASS (includes `api.php` returning a JSON array) | NOT TESTED | None | Business owner | None |
 | Post-release flows with test records: login, enquiry, booking, client isolation, measurement snapshot, quote, payment, message, delivery | NOT TESTED | None | Business owner | None |
 | Secrets, permissions and production settings: `GK_DEBUG` off, `ALLOW_LOCALHOST_CORS` off, HTTPS valid, Cloudflare grey cloud | NOT TESTED | None | Business owner | None |
 | `ALLOW_LEGACY_ORDER_CODE_LOOKUP` set as decided for this release | NOT TESTED | None | Business owner | None |
