@@ -614,6 +614,11 @@ function client_ip() {
   return substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
 }
 
+/** Opaque key for one address from one IP (K-26); neither is stored readable. */
+function account_ip_key($email, $ip) {
+  return 'acip:' . substr(hash('sha256', (string)$email . '|' . (string)$ip), 0, 32);
+}
+
 /** Timestamps of the newest failures for one action (optionally one entity) inside the window. */
 function recent_failures($action, $entity, $limit, $window) {
   global $conn;

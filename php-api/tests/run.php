@@ -486,5 +486,13 @@ check('min duration: no sleep once the floor has passed', $took < 0.05, true);
 check('early answer: the CLI has no way to end a response early', json_send_early_finisher(), null);
 check('early answer: json_send_early sends nothing and says so on the CLI', json_send_early(['ok' => true]), false);
 
+/* ---- K-26: reset throttle per address and IP pair ------------------------- */
+$k1 = account_ip_key('a@example.test', '203.0.113.5');
+check('pair key: stable for one address and IP', account_ip_key('a@example.test', '203.0.113.5'), $k1);
+check('pair key: another IP gives another key', account_ip_key('a@example.test', '198.51.100.7') !== $k1, true);
+check('pair key: another address gives another key', account_ip_key('b@example.test', '203.0.113.5') !== $k1, true);
+check('pair key: no readable address or IP inside', strpos($k1, 'example') === false && strpos($k1, '203.0') === false, true);
+check('pair key: fits audit_log.entity', (bool) preg_match('/^acip:[0-9a-f]{32}$/', $k1), true);
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

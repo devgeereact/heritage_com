@@ -101,11 +101,31 @@ sql "INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES ($UID_
 req POST "auth.php?action=reset_confirm" "{\"token\":\"$EXP\",\"password\":\"another-$RUN\"}"
 check C8 "an expired link is refused" eq "$CODE" 400
 
-# ---- Throttle -----------------------------------------------------------------------
+# ---- Throttle (K-26) -----------------------------------------------------------------
+# The lockout counts one address from one IP (3 per LOGIN_THROTTLE_WINDOW); a looser
+# ceiling counts the address from anywhere (10 per RESET_ACCOUNT_WINDOW, an hour).
+# Clear this machine's per-IP rows so the per-IP limit (5) does not answer first.
+sql "DELETE FROM audit_log WHERE action = 'reset_req_ip' AND entity IN ('ip:127.0.0.1','ip:::1')"
 req POST "auth.php?action=reset_request" "{\"email\":\"$EMAIL\"}"
-check T1 "third request for one address in the window still answers" eq "$CODE" 200
+check T1 "third request for one address from one IP still answers" eq "$CODE" 200
 req POST "auth.php?action=reset_request" "{\"email\":\"$EMAIL\"}"
-check T2 "fourth request for one address is throttled" eq "$CODE" 429
+check T2 "fourth request for one address from one IP is throttled" eq "$CODE" 429
+
+EMAIL2="reset2-$RUN@example.test"
+sql "INSERT INTO users (name, email, password_hash, role, status) VALUES ('Reset Tester Two', '$EMAIL2', '$OLD_HASH', 'manager', 'active')"
+keys() { php -r '$e = $argv[1]; echo "acct:" . substr(hash("sha256", $e), 0, 32), " acip:" . substr(hash("sha256", $e . "|" . $argv[2]), 0, 32);' "$1" "$2"; }
+read -r ACCT2 STRANGER2 <<< "$(keys "$EMAIL2" 198.51.100.7)"
+for _ in 1 2 3; do
+  sql "INSERT INTO audit_log (action, entity) VALUES ('reset_req_pair', '$STRANGER2'), ('reset_req_acct', '$ACCT2')"
+done
+BEFORE="$(last_token)"
+req POST "auth.php?action=reset_request" "{\"email\":\"$EMAIL2\"}"
+check T3 "a stranger's three requests from another IP do not lock the person out" bash -c "[ '$CODE' = 200 ] && [ '$(last_token)' != '$BEFORE' ]"
+N="$(count "SELECT COUNT(*) FROM audit_log WHERE action = 'reset_req_acct' AND entity = '$ACCT2'")"
+for _ in $(seq "$N" 9); do sql "INSERT INTO audit_log (action, entity) VALUES ('reset_req_acct', '$ACCT2')"; done
+req POST "auth.php?action=reset_request" "{\"email\":\"$EMAIL2\"}"
+check T4 "ten requests for one address from anywhere reach the ceiling: 429" eq "$CODE" 429
+check T5 "the pair key holds no readable address" eq "$(count "SELECT COUNT(*) FROM audit_log WHERE action = 'reset_req_pair' AND entity LIKE '%example%'")" 0
 
 echo
 echo "$PASS passed, $FAIL failed"

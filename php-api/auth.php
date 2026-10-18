@@ -126,7 +126,12 @@ if ($action === 'login' && method() === 'POST') {
  * signs the person out on every device. Requests and failed confirmations are
  * throttled through audit_log like login. */
 $THROTTLE_LIMITS['reset_req_ip'] = (int) cfg('RESET_MAX_PER_IP', 5);
-$THROTTLE_LIMITS['reset_req_acct'] = (int) cfg('RESET_MAX_PER_ACCOUNT', 3);
+// K-26: the lockout counts one address from one IP, so a stranger elsewhere cannot
+// use up the real person's requests. A looser ceiling per address over a longer
+// window still stops anyone flooding a mailbox from many IPs.
+$THROTTLE_LIMITS['reset_req_pair'] = (int) cfg('RESET_MAX_PER_ACCOUNT_IP', 3);
+$RESET_ACCOUNT_LIMIT = (int) cfg('RESET_MAX_PER_ACCOUNT', 10);
+$RESET_ACCOUNT_WINDOW = max(60, (int) cfg('RESET_ACCOUNT_WINDOW', 3600));
 $THROTTLE_LIMITS['reset_fail_ip'] = (int) cfg('RESET_FAIL_MAX_PER_IP', 10);
 
 if ($action === 'reset_request' && method() === 'POST') {
@@ -136,12 +141,15 @@ if ($action === 'reset_request' && method() === 'POST') {
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Enter the email address you sign in with.');
   $ipKey = 'ip:' . client_ip();
   $acctKey = account_key($email);
+  $pairKey = account_ip_key($email, client_ip());
   throttle_guard([
     ['reset_req_ip', 'reset_req_ip', $ipKey],
-    ['reset_req_acct', 'reset_req_acct', $acctKey],
+    ['reset_req_pair', 'reset_req_pair', $pairKey],
   ]);
+  throttle_enforce([[$RESET_ACCOUNT_LIMIT, 'reset_req_acct', $acctKey]], $RESET_ACCOUNT_WINDOW);
   // Every request counts towards the limits, found or not.
   audit(null, 'reset_req_ip', $ipKey);
+  audit(null, 'reset_req_pair', $pairKey);
   audit(null, 'reset_req_acct', $acctKey);
 
   // A suspended account gets no link, the same rule as login and require_auth (K-23).
