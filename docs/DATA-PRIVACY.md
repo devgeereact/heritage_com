@@ -100,18 +100,20 @@ Transfers outside Nigeria: Meta, OpenRouter, the image AI providers and the paym
 
 ### Retention schedule
 
-Nothing below is decided; no purge job exists in code (no cron, purge or cleanup was found, 17 October 2026). Proposed periods follow data minimisation and all REQUIRE OWNER INPUT and LEGAL REVIEW.
+The periods below are not decided. Proposed periods follow data minimisation and all REQUIRE OWNER INPUT and LEGAL REVIEW.
+
+Mechanism (K-18, branch `feat/k18-retention`, 18 October 2026): a command-line job, `php-api/retention.php`, deletes rows older than a period the owner sets in Settings > Data retention, one `retention_*_days` key per category ([API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18)). Empty or 0 means keep forever, so nothing is deleted until the owner chooses. The one exception is expired staff sign-in tokens and legacy portal tokens (`auth_tokens`, `customer_tokens`), which start at 30 days past their own expiry because they are not personal history. Without `--apply` the job is a dry run that only counts; with it, it deletes in batches of 500 and writes one `retention_purge` audit entry per category with the count. It never deletes jobs, payments, the ledger, quotes, orders, measurements, appointments or client records: those are business and tax records, out of scope here and listed as protected in `php-api/_retention.php`. Messages and feedback belong to jobs and are not covered. The job runs only once the owner adds the cron line ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)). Verified on local staging only; NOT TESTED on the live server.
 
 | Data | System of record | Proposed period | Trigger | Method | Status |
 |---|---|---|---|---|---|
-| Unconverted enquiries and booking requests | `enquiries`, `appointments` | 12 months | Last activity | Delete or anonymise | Not built |
+| Unconverted enquiries and booking requests | `enquiries`, `appointments` | 12 months | Last activity | Delete or anonymise | Enquiries: built, off until set (`retention_closed_enquiries_days`; closed, never converted and not linked to a quote, job or appointment). Booking requests: not built |
 | Client records, measurements, job photos | `customers`, measurement sets, job files | Review after 3 years inactive | Last job | Owner review, then delete or anonymise | Not built |
 | Payments, receipts, ledger | `ledger`, quotes, orders | Statutory period, Unknown | Financial year end | Keep; anonymise contact fields after the period | REQUIRES LEGAL REVIEW |
 | Messages and feedback | `messages`, `job_feedback` | 3 years | Job closed | Delete; keep consent records while a review is published | Not built |
-| Customer sessions, access challenges, staff tokens | `customer_sessions`, `customer_access_challenges`, `auth_tokens` | 90 days after expiry | Expiry | Delete | Not built (Proposed already) |
-| IP and throttle rows, mail and audit logs | `audit_log` | 12 months; security events may need longer | Created | Delete | Not built |
-| WhatsApp message log | `whatsapp_messages` | 12 months | Sent | Delete | Not built |
-| Abandoned carts, waitlist | `abandoned_carts`, `waitlist` | 30 days, or on order | Created | Delete | Not built |
+| Customer sessions, access challenges, staff tokens | `customer_sessions`, `customer_access_challenges`, `auth_tokens` (and legacy `customer_tokens`) | 90 days after expiry | Expiry | Delete | Built: staff and legacy tokens 30 days after expiry by default; sessions and access challenges off until set |
+| IP and throttle rows, mail and audit logs | `audit_log` | 12 months; security events may need longer | Created | Delete | Built, off until set (90 days at least) |
+| WhatsApp message log | `whatsapp_messages` | 12 months | Sent | Delete | Built, off until set |
+| Abandoned carts, waitlist | `abandoned_carts`, `waitlist` | 30 days, or on order | Created (carts: last change) | Delete | Built, off until set (two keys) |
 | Backups | cPanel | Rotation Unknown | Backup date | Rotation | REQUIRES OWNER INPUT (A20) |
 
 Backups keep deleted data until they rotate out; the notice must say so.

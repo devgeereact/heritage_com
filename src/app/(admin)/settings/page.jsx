@@ -5,8 +5,9 @@ import BusinessSettings from './components/BusinessSettings';
 import MeasurementTemplates from './components/MeasurementTemplates';
 import AvailabilitySettings from './components/AvailabilitySettings';
 import PortalSettings from './components/PortalSettings';
+import RetentionSettings from './components/RetentionSettings';
 
-/** Settings (owner): business details, quote defaults, payment and measurement rules, templates, availability and the client portal. */
+/** Settings (owner): business details, quote defaults, payment and measurement rules, templates, availability, the client portal and data retention. */
 const SettingsPage = () => (
   <div className="hd" style={{ maxWidth: 900 }}>
     <PageTitle title="Settings" />
@@ -15,6 +16,7 @@ const SettingsPage = () => (
     <MeasurementTemplates />
     <AvailabilitySettings />
     <PortalSettings />
+    <RetentionSettings />
   </div>
 );
 

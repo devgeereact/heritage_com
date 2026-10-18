@@ -60,7 +60,9 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `payments.php` | Money in and out, cash position | super_admin, admin, manager | Manual |
 | `referrals.php` | Referral codes and rewards | super_admin, admin, manager | Manual |
 | `reviews.php` | Reviews, ratings and photo moderation | super_admin, admin, manager, editor | Manual |
-| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php` | super_admin, admin, manager | Manual |
+| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php`; the retention keys (K-18) through `_retention.php` | super_admin, admin, manager | Manual |
+| `retention.php` | Data retention job (K-18): dry run by default, `--apply` deletes ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)) | Command line only; 404 over HTTP | Manual |
+| `_retention.php` | Pure retention plan: category to table, date column and guard; protected tables | Not an endpoint | Manual |
 | `stock.php` | Stock adjustments | super_admin, admin, manager, employee | Manual |
 | `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`). On the Phase 4 branch there is no fallback catalogue or free-delivery threshold, and `config` returns only social links that pass the allowlist | Public | Manual |
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | super_admin, admin, manager | Manual |
@@ -344,3 +346,19 @@ Off until the owner sets `company_portal_enabled` to 1 (setting, default 0); whi
 
 Settings: `company_portal_enabled` (`0` or `1`, default `0`).
 
+## Data retention settings keys (K-18)
+
+Branch `feat/k18-retention`. Seeded by `schema_phase29.sql`; saved through `settings.php` (owner roles: super_admin, admin, manager) and shown in Settings > Data retention. Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. Cutoffs are UTC; a row goes when its date column is older than now minus the period.
+
+| Key | Default | Range | Deletes from (date column, condition) |
+|---|---|---|---|
+| `retention_expired_tokens_days` | `30` | 1 to 3650 | `auth_tokens` and `customer_tokens` (`expires_at`) |
+| `retention_customer_sessions_days` | Empty (off) | 1 to 3650 | `customer_sessions` (`expires_at`) |
+| `retention_access_attempts_days` | Empty (off) | 1 to 3650 | `customer_access_challenges` (`expires_at`) |
+| `retention_audit_log_days` | Empty (off) | 90 to 3650 | `audit_log` (`created_at`); the floor keeps sign-in throttling and recent history |
+| `retention_whatsapp_log_days` | Empty (off) | 1 to 3650 | `whatsapp_messages` (`created_at`) |
+| `retention_abandoned_carts_days` | Empty (off) | 1 to 3650 | `abandoned_carts` (`updated_at`, one row per phone) |
+| `retention_waitlist_days` | Empty (off) | 1 to 3650 | `waitlist` (`created_at`) |
+| `retention_closed_enquiries_days` | Empty (off) | 1 to 3650 | `enquiries` (`updated_at`), only `status = 'closed'` with no `job_id`, no `converted_at` and no quote, job or appointment pointing at it |
+
+Never deleted (protected in `_retention.php`, checked by the helper tests): jobs and their events, items, handovers, samples, messages, change requests and feedback; `job_payments`, `payments`, `expenses`, quotes, orders, store credit, gift cards, coupon redemptions, measurement sets and templates, customers, companies and their contacts, appointments, users and settings.
