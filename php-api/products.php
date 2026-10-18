@@ -69,8 +69,8 @@ if ($action === 'create' && method() === 'POST') {
   $story = trim(in_str($b, 'story'));
   $care = trim(in_str($b, 'care'));
   $oneOfAKind = !empty($b['one_of_a_kind']) ? 1 : 0;
-  $sizes = array_values(array_filter(array_map(fn($v) => trim(scalar_text($v)), (array)($b['sizes'] ?? []))));
-  $colors = array_values(array_filter(array_map(fn($v) => trim(scalar_text($v)), (array)($b['colors'] ?? []))));
+  $sizes = array_values(array_filter(array_map(fn($v) => is_scalar($v) ? trim((string)$v) : '', (array)($b['sizes'] ?? []))));
+  $colors = array_values(array_filter(array_map(fn($v) => is_scalar($v) ? trim((string)$v) : '', (array)($b['colors'] ?? []))));
   if ($name === '') fail('Product name is required');
 
   // Next PRD-#### code.

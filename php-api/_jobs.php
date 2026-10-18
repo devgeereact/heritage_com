@@ -55,7 +55,7 @@ function db_tx(callable $fn) {
     return $out;
   } catch (Throwable $e) {
     $conn->rollback();
-    if (is_tx_conflict($e)) fail(TX_CONFLICT_MESSAGE, 409);
+    if (is_tx_conflict($e)) { error_log('db_tx conflict: ' . $e->getMessage()); fail(TX_CONFLICT_MESSAGE, 409); }
     throw $e;
   }
 }
