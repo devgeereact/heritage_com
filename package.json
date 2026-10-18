@@ -13,7 +13,9 @@
     "staging:serve": "bash scripts/staging/serve.sh",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
     "docs:check": "node scripts/check-docs.mjs",
-    "check:tokens": "node scripts/check-tokens.mjs"
+    "check:tokens": "node scripts/check-tokens.mjs",
+    "release:manifest": "node scripts/release/manifest.mjs",
+    "release:smoke": "bash scripts/release/smoke.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

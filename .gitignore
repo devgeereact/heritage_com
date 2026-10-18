@@ -45,3 +45,6 @@ public/uploads/site/
 
 # Playwright MCP snapshots and logs (local only)
 .playwright-mcp/
+
+# Release manifest (scripts/release/manifest.mjs): generated per release, never committed or published
+release-manifest.json

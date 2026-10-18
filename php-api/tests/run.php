@@ -469,5 +469,8 @@ require __DIR__ . '/retention_cases.php';
 /* ---- A15: staff session cookie and CSRF (_lib.php) ------------------------- */
 require __DIR__ . '/staff_cookie_cases.php';
 
+/* ---- A02: release manifest check (_release.php) ---------------------------- */
+require __DIR__ . '/release_cases.php';
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

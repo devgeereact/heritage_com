@@ -7,6 +7,14 @@
   Require all denied
 </FilesMatch>
 
+# Command-line tools (retention.php, release_check.php answer 404 themselves)
+# and release files that must never be downloaded: the release manifest lists
+# every file name, and a database dump or uploads archive left here by mistake
+# would expose client records. Keep backups outside the document root.
+<FilesMatch "^(retention|release_check)\.php$|^release-manifest\.json$|\.(sql|sql\.gz|tar\.gz|tgz)$">
+  Require all denied
+</FilesMatch>
+
 # API answers are never search results; the sitemap is the one exception.
 <IfModule mod_headers.c>
   <FilesMatch "\.php$">
