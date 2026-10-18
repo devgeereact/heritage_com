@@ -10,7 +10,7 @@
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-const okHref = (h) => /^(https:\/\/|http:\/\/|mailto:|tel:|\/(?!\/))/i.test(h)
+const okHref = (h) => /^(https:\/\/|http:\/\/|mailto:|tel:|\/(?![/\\]))/i.test(h)
 
 /** Inline text: escape, then turn [text](url) into links with safe URLs. */
 const inline = (s) =>

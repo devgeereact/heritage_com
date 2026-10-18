@@ -50,7 +50,8 @@ const DROP_WITH_CONTENT = new Set([
 const safeHref = (href) => {
   const h = String(href || '').trim()
   if (/^(https?:|mailto:|tel:)/i.test(h)) return h
-  if (/^\/(?!\/)/.test(h)) return h
+  // A backslash after the slash is read as a second slash by browsers ("/\evil.example").
+  if (/^\/(?![/\\])/.test(h)) return h
   return null
 }
 
