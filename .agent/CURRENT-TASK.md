@@ -20,12 +20,40 @@ Build the full Plans 2026 roadmap (owner instruction, 10 October 2026: "build ev
 | Staff password reset (K-04) | `feat/staff-password-reset` | Built 16 October 2026, stacked on the redesign (owner: "continue building"). `auth.php` `reset_request` and `reset_confirm`, `schema_phase29.sql`, two-step `/auth/reset-pass`. Evidence: `e2e-reset.sh` 19 of 19 twice, screens at 390px in a browser, lint, build. NOT TESTED: real email delivery, production. PR #15 open. 18 October 2026: #14's audit fixes merged in (merge commit, no rebase); the reset now refuses suspended accounts and hashes with `staff_token_hash`; `e2e-reset.sh` 19, `e2e-phase3.sh` 93, `e2e-phase4.sh` 63, 374 helper tests. NOT TESTED: the reset request's response time still differs when an email is sent (see [SECURITY.md](../docs/SECURITY.md#staff)). Next: the owner imports `schema_phase29.sql` and confirms outgoing email |
 | Production-readiness and privacy audit | `feat/redesign-dark-luxury` (audit commits, 17 October 2026) | Done, two commits on PR #14 (owner pasted two audit briefs). Fixed K-08 (P0 seed passwords), K-09, K-10 (server security), K-24 (website: not-found page, error screen, SEO tags, pause controls, shop off for visitors, privacy notes, self-hosted fonts). Docs: privacy inventory, retention schedule, sources and owner questions in `docs/DATA-PRIVACY.md`; draft notice `docs/PRIVACY-NOTICE-DRAFT.md`. Evidence: lint 0 errors, build, 374 helper tests, e2e phase2 48, phase3 93, phase4 63, browser checks on staging. NOT TESTED: e2e-phase5 on the Mac (K-17), HSTS under TLS, webhook signature, AI caps, error screen at runtime, booking note in a browser, real phones, screen readers. Second batch the same day: K-15 (hashed staff tokens), K-16 (form focus), K-17 (phase 5 on macOS, 25 of 25), K-20 (sitemap, service worker; manifest choice left to the owner), K-23 (login timing). Owner decisions D-024 the same day built: promotional WhatsApp sends off (K-11), AI drafter without personal data (K-12), 30-day attribution (K-13), staff-only install (K-20). Then A16 (offline write blocking and banner) and 64-bit gift codes. Then one PIN per person and a tested Content Security Policy (K-23). Next: legal entity and privacy contact, retention periods; Terms BLOCKED on commercial rules |
 | Hardening (K-07, K-14, K-18, A15, A13) | `feat/hardening-2026-10-18` | Built and integrated 18 October 2026, stacked on #17 (which carries #14 to #16); PR #18, number not assigned yet. K-07 Today ordering, `more` and the hidden count on screen; K-14 order lookup by POST; K-18 retention job (`retention.php`, `_retention.php`, `schema_phase30.sql`, Settings > Data retention); A15 staff cookie with `X-Herit-CSRF` behind `STAFF_COOKIE_AUTH` (default off) and its review fixes; A13 first frontend suite (`npm test`); corrupt session cookie fix; sanitisers refuse `//host` and `/\host`; `e2e-phase2.sh` self-seeds (52 checks). Evidence ([docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results)): 559 helper tests, 263 frontend tests in 14 files, lint 0 errors, build PASS, `e2e-phase2.sh` 52, `e2e-phase3.sh` 93 (B5c flaky once, K-27), `e2e-phase4.sh` 63, `e2e-phase5.sh` 25, `e2e-reset.sh` 19. NOT TESTED: the cookie flow and the retention cron on the live server, browser journeys for the new screens, admin screens beyond sign-in under the frontend tests |
+| Release readiness (A02, A20, K-25 to K-30) | `feat/release-readiness` | Built and integrated 18 October 2026, stacked on #18; PR #19, number to be confirmed. Release tools (`release:manifest`, `release_check.php`, `release:smoke`, `backup.sh`, `restore-check.sh`), the 152-check launch matrix (`e2e-launch.sh`), `npm run check:php` in CI, and fixes for K-25 to K-30. No schema change. Evidence: [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results). NOT TESTED: every release tool on the host. Owner actions: the "#19" row in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request) |
 
 Phase 6 (release, pilot, social publishing) and Phase 7 (learn and simplify) need the owner and live systems; this task prepares their checklists only.
 
+## Handoff: release readiness (18 October 2026)
+
+State at handoff: the release tools, the launch-matrix script and the defect fixes are integrated on `feat/release-readiness`, stacked on PR #18 (`feat/hardening-2026-10-18`); the pull request will be #19. The documentation step did not commit or push. Nothing is deployed and `main` is untouched. No schema change and no new `config.php` entry.
+
+Where the facts live (do not copy them here):
+
+- What changed: the release readiness section under Unreleased in [CHANGELOG.md](../CHANGELOG.md).
+- Open issues: A02 and A20 stay open until the owner runs the tools on the host; K-25 to K-30 are listed as fixed in code in [KNOWN-ISSUES.md](../KNOWN-ISSUES.md), with the K-26 residual; status of the stack and Phase 6: [docs/ROADMAP.md](../docs/ROADMAP.md).
+- Owner actions in order (backup and restore check, `release_check.php --db`, merge, the 23 hand uploads after the deploy, `.htaccess`, the `RESET_MAX_PER_ACCOUNT` line, the second check, the smoke test): the "#19" row in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request), with the procedure in [Release procedure](../docs/DEPLOYMENT.md#release-procedure).
+- Test counts and results: [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results); the launch matrix rows: [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#launch-verification-matrix) (Payment integrity and Failure handling now pass on staging; Recovery and Release stay PARTIAL).
+- Reset timing and lockout design: [docs/SECURITY.md](../docs/SECURITY.md#staff).
+
+Owner decisions to confirm:
+
+- `RESET_MIN_MS` default of 600 ms for every reset request.
+- The reset throttle numbers: 3 requests per address from one IP (`RESET_MAX_PER_ACCOUNT_IP`), an hourly ceiling of 10 per address (`RESET_MAX_PER_ACCOUNT`, window `RESET_ACCOUNT_WINDOW`), and the accepted residual that a stranger with several IPs can still reach the ceiling (K-26).
+- The release manifest is made on the Mac and kept off the public site (the deploy never uploads it, `.htaccess` denies it).
+- Backups are kept outside `public_html` (`~/heritos-backups`, `backup.sh` refuses a folder containing the document root), with a copy downloaded to the Mac.
+
+Next steps:
+
+1. Owner reviews the diff, then the branch is pushed and a pull request opened against #18's branch. Record the PR number in [docs/ROADMAP.md](../docs/ROADMAP.md), [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request) and here.
+2. Owner works through the "#19" row of the Owner actions table, then records the results in the Production check table in [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#production-check). A restore of a real backup, checked by hand for one linked client, job, payment and photo, closes A20; the live `release_check.php` result closes A02.
+3. Still open from earlier handoffs: the #18 owner actions, retention periods, the cookie switch, K-15 plain-token fallback removal, and switching off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021).
+
+Checks to rerun before any further change: `npm test`, `npm run check:php`, `npx eslint . --ignore-pattern '.claude/**'`, `npm run build`, `npm run check:tokens`, `node scripts/check-docs.mjs`, `php php-api/tests/run.php`, `bash scripts/staging/e2e-phase{2,3,4,5}.sh`, `e2e-reset.sh` and `e2e-launch.sh`. Last results: helper tests 669; frontend tests 282 in 16 files; e2e phase2 52, phase3 100, phase4 63, phase5 25, reset 23, launch 152.
+
 ## Handoff: hardening (18 October 2026)
 
-State at handoff: the hardening work is integrated on `feat/hardening-2026-10-18`, stacked on PR #17 (which carries #14 to #16, synced by merge commits onto #14's audit fixes). The branch was not committed or pushed by the documentation step; no pull request number exists yet. Nothing is deployed and `main` is untouched. The integration-only working branches for K-18 and A15 are not separate pull requests; the work is all on this branch.
+State at handoff: the hardening work is integrated on `feat/hardening-2026-10-18`, stacked on PR #17 (which carries #14 to #16, synced by merge commits onto #14's audit fixes). The branch is pushed and open as PR #18. Nothing is deployed and `main` is untouched. The integration-only working branches for K-18 and A15 are not separate pull requests; the work is all on this branch.
 
 Where the facts live (do not copy them here):
 
@@ -124,7 +152,7 @@ Existing Application. Workflow: Change Safety for every change.
 
 ## Open items for the owner
 
-- Merge PRs #6 to #17 in order, then the hardening branch (`feat/hardening-2026-10-18`, PR number not assigned yet), with the owner actions listed in `docs/DEPLOYMENT.md`.
+- Merge PRs #6 to #17 in order, then the hardening branch (`feat/hardening-2026-10-18`, #18), then the release readiness branch (`feat/release-readiness`, #19, number to be confirmed), with the owner actions listed in `docs/DEPLOYMENT.md`.
 - Approve or refuse the deletion candidates in `docs/ROADMAP.md`.
 - Phase 3: fill in availability in Settings, decide when to open public requests, confirm the proposed feedback consent wording, and choose when to switch off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021).
 

@@ -4,6 +4,34 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Release readiness on `feat/release-readiness`, 18 October 2026
+
+Stacked on PR #18 (`feat/hardening-2026-10-18`); the pull request will be #19. Owner actions: the "#19" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request). No schema change.
+
+Added
+
+- Release tools (A02, A20): `npm run release:manifest` (SHA-256 of every tracked server file, marked `ci` or `manual`, plus the schema files), `php-api/release_check.php` (command line only; MATCH, DIFFERENT or MISSING per file, `--db` reports which schema phases the database has), `npm run release:smoke` (GET and HEAD only), `scripts/release/backup.sh` (database dump, row counts, uploads archive, SHA-256 files; refuses a folder inside the document root) and `scripts/release/restore-check.sh` (restores into a scratch database and compares every table). The server `.htaccess` denies the command-line tools, the manifest and dump or archive files. Procedure: [Release procedure](docs/DEPLOYMENT.md#release-procedure). Local round trip: 58 of 58 tables match.
+- `scripts/staging/e2e-launch.sh`: 152 checks for the launch verification matrix ([qa/LAUNCH-CHECKLIST.md](qa/LAUNCH-CHECKLIST.md#launch-verification-matrix)): client and company isolation, booking integrity, session recovery, payment integrity, publication and failure handling.
+- `npm run check:php` (`scripts/check-php-calls.mjs`), in `ci.yml` and `deploy.yml`: fails when a PHP endpoint calls a helper from a file it does not load (K-30).
+
+Changed
+
+- Staff reset requests answer no sooner than `RESET_MIN_MS` (default 600 ms), and where PHP-FPM or LiteSpeed allows it the answer is sent before the link and email are made (K-25). The three-request lockout counts one address from one IP (`RESET_MAX_PER_ACCOUNT_IP`, 3), and `RESET_MAX_PER_ACCOUNT` is now an hourly ceiling per address (default 10, window `RESET_ACCOUNT_WINDOW`, 3600 s) (K-26). If the server `config.php` sets `RESET_MAX_PER_ACCOUNT`, remove it.
+- Three staff GETs no longer change state (K-28): `whatsapp.php?action=thread` (POST `mark_seen`), `inbox.php?action=get` (IMAP `FT_PEEK`; POST `seen`) and `referrals.php?action=code` (POST `ensure_code`).
+- Today and the menu badge count feedback follow-ups and unread messages with the same joins (a follow-up on a deleted job was counted but not listed), so the two numbers agree.
+- `spa.php` serves paths that are not link-preview routes without opening the database.
+- The error screen says "not opened on this device" only for a page chunk that failed to load.
+- The end-to-end scripts accept only an exact `http://127.0.0.1:port` or `http://localhost:port` URL (a URL such as `http://localhost:1@evil.example` was accepted before).
+
+Fixed
+
+- A failed reset-link send answers like an unknown address instead of a 500 (K-25).
+- Two simultaneous reversals of one payment gave the loser a 500 under MariaDB snapshot isolation: `ledger.php` read the entry before taking the job lock, in reverse and verify. It now locks first, and `db_tx` maps deadlock and lock-timeout errors (1213, 1020) to a 409 and logs them (K-29).
+- A JSON list or object sent where text or a number belongs gave a 500, was stored as "Array" or was read as id 1. Requests now answer 400 through `in_str`, `in_int`, `in_num`, `in_scalar` and `in_text_only` in `_lib.php`, across every endpoint (K-30). The sweep briefly broke product create (`products.php` called `scalar_text()` without loading `_domain.php`); fixed in the same branch, and `npm run check:php` now catches a missing require.
+- A retention run keeps the original deletion error when the audit write also fails.
+- `e2e-phase3.sh` check B5c no longer fails now and then: the phone numbers it built (`0702$RANDOM`) sometimes had fewer than 7 digits (K-27).
+- The restore guard read the dump with `grep -q` under pipefail, so a `--databases` dump bigger than the pipe buffer passed the USE or CREATE DATABASE check and could restore over the source. It now reads the whole stream and restores with `--one-database` (proved with a 600 KB dump). `backup.sh` checks `--out` before it changes any permission, so it can no longer set the document root or the home folder to 700 (A20).
+
 ### Hardening on `feat/hardening-2026-10-18`, 18 October 2026
 
 Stacked on PR #17 (which carries #14 to #16). The work was integrated on this one branch; the earlier working branches for K-18, A15 and the review fixes are not separate pull requests. Owner actions: the "PR #18" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).

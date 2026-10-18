@@ -42,7 +42,7 @@ Every agent follows `.claude/rules/docs-sync.md`. In short:
 - Develop: `npm run dev` (port 5112). Development calls the local staging API unless `VITE_API_BASE` says otherwise; never point it at production without the owner's agreement.
 - Build: `npm run build`
 - Lint: `npm run lint` (ESLint over `src/**/*.{js,jsx}`, `public/sw.js` and root config files; must report 0 errors)
-- Test: `npm test` (Vitest and jsdom, tests in `src/__tests__/`, `fetch` mocked, no server needed); `php php-api/tests/run.php` (pure PHP helper checks); `php -l` on changed PHP files; `bash scripts/staging/e2e-phase2.sh` against local staging. Test files import `describe`, `it`, `expect` and `vi` from `vitest` (no globals).
+- Test: `npm test` (Vitest and jsdom, tests in `src/__tests__/`, `fetch` mocked, no server needed); `php php-api/tests/run.php` (pure PHP helper checks); `php -l` on changed PHP files; `npm run check:php` (every PHP endpoint loads the helpers it calls); `bash scripts/staging/e2e-phase2.sh` and `bash scripts/staging/e2e-launch.sh` (the 152-check launch matrix) against local staging. Test files import `describe`, `it`, `expect` and `vi` from `vitest` (no globals).
 - Docs: `node scripts/check-docs.mjs`
 - Type check: none (JavaScript project)
 
