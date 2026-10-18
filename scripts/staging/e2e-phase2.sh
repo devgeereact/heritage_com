@@ -72,6 +72,7 @@ check E2 "same phone (+234 form) answers 409 with the existing client as candida
 N="$("${DB[@]}" -e "SELECT COUNT(*) FROM enquiries WHERE id = $EID2 AND job_id IS NULL")"
 check E2b "nothing was created or merged on 409" eq "$N" 1
 req POST "enquiries.php?action=convert&id=$EID2" "{\"request_key\":\"$(key conv2)\",\"client\":{\"confirm_new\":true},\"job\":{\"garment_type\":\"kaftan\"}}"
+CID2="$(j .client_id)"
 check E2c "confirm_new creates a separate client" bash -c "[ '$CODE' = 201 ] && [ '$(j .client_id)' != '$CID' ]"
 
 # ---- E3: measurement set approved → snapshot → new set; snapshot unchanged ---
@@ -95,7 +96,12 @@ check E3e "a 0 value is rejected with a field error" bash -c "[ '$CODE' = 400 ] 
 # ---- Mixed units ------------------------------------------------------------
 req GET "measurements.php?action=convert_preview&id=$SB&to=cm"
 check MU1 "inches set previews in cm (16.5 in = 41.9 cm), not stored" bash -c "[ '$(j .vals.neck)' = 41.9 ] && [ '$(j .stored)' = false ]"
-IMP="$("${DB[@]}" -e "SELECT id FROM measurement_sets WHERE status = 'imported_unverified' ORDER BY id LIMIT 1")"
+# This run seeds its own imported set (unit unknown) for the second synthetic client, tagged
+# with the run id in legacy_source. It no longer depends on a set left over from an earlier
+# run, because approving one uses it up.
+"${DB[@]}" -e "INSERT INTO measurement_sets (customer_id, template_key, unit, vals, source, status, legacy_source)
+               VALUES ($CID2, 'native_top', 'unknown', '{\"neck\":\"16.5\",\"chest\":\"41\"}', 'imported', 'imported_unverified', 'e2e-$RUN-imp')"
+IMP="$("${DB[@]}" -e "SELECT id FROM measurement_sets WHERE legacy_source = 'e2e-$RUN-imp'")"
 req POST "measurements.php?action=approve&id=$IMP" '{}'
 check MU2 "imported set with unknown unit cannot be approved without a unit" bash -c "[ '$CODE' = 400 ] && [ '$(j .needs_unit)' = true ]"
 req POST "measurements.php?action=approve&id=$IMP" '{"unit":"in"}'
@@ -142,8 +148,17 @@ req POST "ledger.php?action=record" "{\"job_id\":$JID,\"amount\":\"20000\",\"met
 TID="$(j .entry.id)"
 check E9a "transfer is not counted until verified" \
   bash -c "[ '$(j .entry.verified)' = 0 ] && [ '$(j .money.paid_verified)' = 50000.00 ] && [ '$(j .money.awaiting_verification)' = 20000.00 ]"
+# Today caps each block at 20 and lists the oldest first, so on a database holding many
+# older unverified transfers this new one can be past the cap. What must hold either way: it
+# is in the list, or `more` says items are hidden and the full list (the Payments page's
+# "To verify" tab) holds it.
 req GET "today.php"
-check E9b "Today lists the unverified transfer" bash -c "[ '$(j "[.unverified_payments.items[].id] | index($TID) != null")' = true ]"
+T_IN="$(j "[.unverified_payments.items[].id] | index($TID) != null")"; T_MORE="$(j '.unverified_payments.more')"
+T_OK="$(j '.unverified_payments | .more == ([.count - (.items | length), 0] | max)')"
+req GET "ledger.php?action=list&verified=0"; F_IN="$(j "[.entries[].id] | index($TID) != null")"
+check E9b "Today lists the unverified transfer, or reports it hidden through more and the full list holds it" \
+  bash -c "[ '$F_IN' = true ] && { [ '$T_IN' = true ] || [ '$T_MORE' -gt 0 ] 2>/dev/null; }"
+check E9b2 "Today's unverified block: more = count minus items listed (K-07)" eq "$T_OK" true
 req POST "ledger.php?action=verify&id=$TID"
 check E9c "verified transfer counts" eq "$(j .money.paid_verified)" "70000.00"
 
@@ -220,13 +235,25 @@ req POST "tailoring.php?action=pay&id=$LJ" '{"amount":100}' "$TAILOR"
 check E14e "tailor cannot record a payment" eq "$CODE" 403
 
 # ---- E15: Today buckets -----------------------------------------------------
+# This run's own enquiry with a promised follow-up long overdue (2020-01-01 is older than any
+# seeded follow-up, so it ranks first among the due ones however many rows have piled up).
+curl -s -o /dev/null -H 'Content-Type: application/json' -X POST "$API/contact.php" \
+  -d "{\"name\":\"E2E Due Follow-up $RUN\",\"phone\":\"0701${RUN: -7}\",\"type\":\"general\",\"message\":\"Synthetic e2e\"}"
+req GET "enquiries.php?action=list&q=E2E%20Due%20Follow-up%20$RUN"; DUEID="$(j '.items[0].id')"
+req POST "enquiries.php?action=update&id=$DUEID" '{"status":"awaiting_reply","next_follow_up":"2020-01-01"}'
 req GET "today.php"
 check E15a "Today has every block" \
   bash -c "[ '$(j '[.appointments_today,.overdue,.due_soon,.next_actions,.ready,.enquiries,.balances,.credits,.unverified_payments,.stage_review,.measurements_pending] | map(has("count") and has("items")) | all')' = true ]"
 check E15b "Today overdue contains a synthetic overdue job" bash -c "[ '$(j '.overdue.count')' -ge 1 ]"
-check E15c "Today enquiries contain the due follow-up (Test Enquirer 02 or 05)" \
-  bash -c "[ '$(j '[.enquiries.items[] | select(.name == "Test Enquirer 02" or .name == "Test Enquirer 05")] | length')' -ge 1 ]"
+check E15c "Today enquiries list this run's overdue follow-up even with 20+ new enquiries (K-07)" \
+  bash -c "[ '$(j "[.enquiries.items[].id] | index($DUEID) != null")' = true ]"
+# A due follow-up outranks every new enquiry: in the list, all due rows come before any other.
+check E15d "Today enquiries: due follow-ups come before new ones (K-07)" \
+  eq "$(j '(.date) as $d | [.enquiries.items[] | (.next_follow_up != null and .next_follow_up <= $d)] | . == (sort | reverse)')" true
+check E15f "Today enquiries: more = count minus items listed (K-07)" \
+  eq "$(j '.enquiries | .more == ([.count - (.items | length), 0] | max)')" true
 check E15e "Today date is the Lagos date" eq "$(j .date)" "$(TZ=Africa/Lagos date +%F)"
+req POST "enquiries.php?action=update&id=$DUEID" '{"status":"closed"}'   # keep staging tidy for the next run
 
 # ---- Client profile change leaves the job snapshot alone (BR-06) ------------
 req POST "customers.php?action=measure&id=$CID" '{"measurements":{"neck":"17","chest":"44"}}'
