@@ -103,7 +103,9 @@ if [ "$DROP_ONLY" = 1 ]; then drop_scratch; exit $?; fi
 gzip -t "$DUMP" || die "$DUMP did not pass gzip -t"
 # A dump made with --databases or --all-databases switches database itself; it
 # would restore over the source, so it is refused.
-if gzip -dc "$DUMP" | grep -qE '^(USE |CREATE DATABASE)'; then die "$DUMP contains USE or CREATE DATABASE; use a dump from backup.sh"; fi
+# No -q: grep must read the whole stream. With -q it stops at the first match,
+# gzip dies of SIGPIPE and, under pipefail, the match would count as "not found".
+if gzip -dc "$DUMP" | grep -E '^(USE |CREATE DATABASE)' >/dev/null; then die "$DUMP contains USE or CREATE DATABASE; use a dump from backup.sh"; fi
 
 COUNTS="${DUMP%.sql.gz}.counts"
 if [ "$LIVE" = 1 ]; then REF="live database $SOURCE"
@@ -121,7 +123,7 @@ fi
 
 echo "Restoring $(basename "$DUMP") into $SCRATCH (source $SOURCE is not touched)"
 START=$(date +%s)
-gzip -dc "$DUMP" | "${SQLC[@]}" "$SCRATCH" || die "the restore failed; $SCRATCH is left for inspection (drop it with --drop-only)"
+gzip -dc "$DUMP" | "${SQLC[@]}" --one-database "$SCRATCH" || die "the restore failed; $SCRATCH is left for inspection (drop it with --drop-only)"
 ELAPSED=$(( $(date +%s) - START ))
 
 # Exact counts in the scratch database, and the reference counts.

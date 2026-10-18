@@ -52,10 +52,17 @@ if command -v sha256sum >/dev/null 2>&1; then SHA=(sha256sum); else SHA=(shasum 
 
 CONFIG_DIR="$(cd "$(dirname "$CONFIG")" && pwd -P)"
 CONFIG="$CONFIG_DIR/$(basename "$CONFIG")"
-mkdir -p "$OUT"
-chmod 700 "$OUT"
-OUT="$(cd "$OUT" && pwd -P)"
+# Check where --out points BEFORE creating or changing anything: a chmod on the
+# document root or on one of its parents (the home folder) would take the site down.
+OUT_PARENT="$(cd "$(dirname "$OUT")" 2>/dev/null && pwd -P)" || die "the parent of --out does not exist: $OUT"
+OUT="$OUT_PARENT/$(basename "$OUT")"
+[ -d "$OUT" ] && OUT="$(cd "$OUT" && pwd -P)"
 case "$OUT/" in "$CONFIG_DIR"/*) die "--out $OUT is inside $CONFIG_DIR (the document root); choose a folder outside it" ;; esac
+case "$CONFIG_DIR/" in "$OUT"/*) die "--out $OUT contains $CONFIG_DIR (the document root); choose a dedicated folder such as ~/heritos-backups" ;; esac
+if [ ! -d "$OUT" ]; then
+  mkdir "$OUT"
+  chmod 700 "$OUT"   # only a folder this script created
+fi
 
 umask 077
 CNF="$(mktemp "${TMPDIR:-/tmp}/heritos-backup.XXXXXX")"
