@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { appRoutes, authRoutes, publicRoutes, redirectRoutes } from '@/routes/index';
 import { useAuthContext } from '@/context/useAuthContext';
 import { canAccessPath, roleHome } from '@/helpers/roles';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 // Layouts are lazy so each route group loads only its own CSS: public pages
 // never download Bootstrap, Larkon or heritos-admin.css (Phase 4, A23).
@@ -15,7 +16,7 @@ const AppRouter = props => {
     isAuthenticated,
     user
   } = useAuthContext();
-  return <Suspense fallback={null}><Routes>
+  return <AppErrorBoundary><Suspense fallback={null}><Routes>
       {(publicRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<PublicLayout {...props}>{route.element}</PublicLayout>} />)}
 
       {(authRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<AuthLayout {...props}>{route.element}</AuthLayout>} />)}
@@ -37,6 +38,6 @@ const AppRouter = props => {
       }
       return <Route key={idx + route.name} path={route.path} element={element} />;
     })}
-    </Routes></Suspense>;
+    </Routes></Suspense></AppErrorBoundary>;
 };
 export default AppRouter;

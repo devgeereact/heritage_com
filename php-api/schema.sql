@@ -148,9 +148,12 @@ CREATE TABLE IF NOT EXISTS tailoring_events (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Seed: a couple of tailors and demo tailoring jobs so the board has content.
+-- The demo tailors cannot sign in: '!' is not a bcrypt hash, so password_verify
+-- always fails, and they are suspended. Set a real password and status in the
+-- admin if you want to use them.
 INSERT INTO users (name, email, password_hash, role, status) VALUES
-  ('Tunde (Tailor)', 'tunde@heritclothing.com', '$2y$12$N5U.MHXD6qE3xTsFC.joEu3y6Ysr4fA.2hnd2EilVC2zMKV6nSDXG', 'tailor', 'active'),
-  ('Bola (Tailor)',  'bola@heritclothing.com',  '$2y$12$N5U.MHXD6qE3xTsFC.joEu3y6Ysr4fA.2hnd2EilVC2zMKV6nSDXG', 'tailor', 'active')
+  ('Tunde (Tailor)', 'tunde@heritclothing.com', '!', 'tailor', 'suspended'),
+  ('Bola (Tailor)',  'bola@heritclothing.com',  '!', 'tailor', 'suspended')
 ON DUPLICATE KEY UPDATE email = email;
 
 INSERT INTO customers (name, phone, measurements) VALUES

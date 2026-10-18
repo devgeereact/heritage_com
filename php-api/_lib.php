@@ -105,6 +105,14 @@ function cfg($name, $default = '') {
   return $default;
 }
 
+/**
+ * Staff tokens are stored as SHA-256 (K-15), as customer sessions already are;
+ * a database or backup leak then exposes no usable session. Tokens issued
+ * before this change were stored as issued and stay valid until they expire
+ * (TOKEN_TTL_DAYS); remove the plain fallback after that window.
+ */
+function staff_token_hash($t) { return hash('sha256', (string)$t); }
+
 /** Read the Bearer token from the Authorization header. */
 function bearer() {
   $h = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
@@ -121,11 +129,13 @@ function require_auth($roles = null) {
   $tok = bearer();
   if (!$tok) fail('Not authenticated', 401);
   $stmt = $conn->prepare(
-    'SELECT u.id, u.name, u.email, u.role
+    "SELECT u.id, u.name, u.email, u.role
        FROM auth_tokens t JOIN users u ON u.id = t.user_id
-      WHERE t.token = ? AND t.expires_at > NOW() AND u.deleted_at IS NULL'
+      WHERE t.token IN (?, ?) AND t.expires_at > NOW() AND u.deleted_at IS NULL
+        AND (u.status IS NULL OR u.status <> 'suspended')"
   );
-  $stmt->bind_param('s', $tok);
+  $hash = staff_token_hash($tok);
+  $stmt->bind_param('ss', $hash, $tok);
   $stmt->execute();
   $res = $stmt->get_result();
   $user = $res->fetch_assoc();

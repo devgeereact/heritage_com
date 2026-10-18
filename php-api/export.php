@@ -15,11 +15,22 @@ $user = require_auth($STAFF);
 
 $type = $_GET['type'] ?? 'orders';
 
+/**
+ * Neutralise spreadsheet formulas: a text cell starting with = + - @ tab or CR
+ * gets a leading apostrophe, so a customer name like "=HYPERLINK(...)" stays
+ * text in Excel. Plain numbers and phone numbers (+234..., -500) are kept as is.
+ */
+function csv_safe($v) {
+  if (!is_string($v) || $v === '') return $v;
+  if (preg_match('/^[+-]?[0-9][0-9 .]*$/', $v)) return $v;
+  return preg_match('/^[=+\-@\t\r]/', $v) ? "'" . $v : $v;
+}
+
 /** Build a CSV string from a header row + array of associative rows. */
 function to_csv($headers, $rows) {
   $fh = fopen('php://temp', 'r+');
   fputcsv($fh, $headers);
-  foreach ($rows as $r) fputcsv($fh, $r);
+  foreach ($rows as $r) fputcsv($fh, array_map('csv_safe', $r));
   rewind($fh);
   $csv = stream_get_contents($fh);
   fclose($fh);

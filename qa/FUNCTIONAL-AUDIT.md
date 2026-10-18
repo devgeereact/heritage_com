@@ -197,6 +197,23 @@ Publish bar, method filter and tab pills, 16 October 2026, staging: Website at 1
 
 Gap checks, 16 October 2026, staging: tailor account (`tailor` role) on job HC-0006: no Money card, no naira amounts, full-width column, tabs Overview, Measurements, Handover and Timeline, stage bar shown; the tailor's Jobs board shows 42 cards and no payment states (PASS). Company job HC-0038 as owner: tabs Overview, Items, Sample, Company, Messages, Quote, Payments, Handover, Timeline; stage bar; Money card shows "No price yet" for a job without a price; no sideways scroll (PASS). Home hero under emulated `prefers-reduced-motion: reduce`: no Ken Burns zoom (`animation: none`, `transform: none`), headline words shown without the reveal (opacity 1) (PASS). Autoplay under reduced motion: Verified in code only (`src/app/(public)/site/ui/Hero.jsx` line 65, `still` pauses the slider); staging has one published slide, so it was not observed in the browser.
 
+## Audit fixes (17 October 2026)
+
+Branch `feat/redesign-dark-luxury`, Vite dev server on 5112 against the staging API on 8088, Chromium through Playwright. API results are in [SECURITY-AUDIT.md](SECURITY-AUDIT.md#audit-fixes-17-october-2026).
+
+| Check | Result |
+|---|---|
+| An unknown URL, `/pages-404`, `/auth/sign-up` and `/auth/lock-screen` show "Page not found" with noindex | PASS |
+| Shop routes show the not-found page to a visitor while the shop is off, and open for signed-in staff | PASS |
+| `/auth/reset-pass` shows text and no form | PASS |
+| Contact shows the privacy note and the `/privacy` link | PASS |
+| Track, Account, the portal job page, Invite, Cart and Checkout carry noindex | PASS |
+| Home hero with two synthetic slides: one `h1`, one `h2`, pause stops advance | PASS |
+| No sideways scroll at 320px on home, contact, book, company orders, track, account and not-found | PASS |
+| Only localhost and the staging API requested; console 0 errors | PASS |
+
+NOT TESTED: the privacy note on Book step 2 (online booking is off on staging), the error boundary and its one-time reload, real phones, screen readers.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).
@@ -223,3 +240,15 @@ Proposed goals to test, not guaranteed outcomes: routine status and payment acti
 | Today | 390px and 1280px | Blocks with work first, counts, one-tap rows, one next step when empty, no charts | Screenshots, 10 Oct 2026 | None | Owner to confirm block order | Built; owner review NOT TESTED |
 
 Check comprehension, hierarchy, navigation, calls to action, forms, feedback, error recovery, trust, overflow, touch behaviour and the next step.
+
+## Offline behaviour, 17 October 2026 (A16)
+
+Chromium (Playwright) offline mode, `npm run dev` against local staging, `feat/redesign-dark-luxury`.
+
+| Check | Result |
+|---|---|
+| Staff screen (`/today`) online, offline, online again | PASS: offline banner hidden, shown, hidden |
+| Contact form submitted while offline | PASS: no request to `contact.php`; alert "You are offline, so nothing was saved. Reconnect and try again." |
+| Gift card issued on staging (synthetic) | PASS: `HG-` plus 16 hex characters; `gift_check` accepts it |
+| POS offline queue | Source only: `isNetworkError` also accepts the new `network` flag; NOT TESTED in a browser |
+| Real phones, flaky connections, update after a deploy | NOT TESTED |

@@ -556,7 +556,10 @@ function cms_public($entity, array $item, array $data, array $media, $baseUrl) {
  * head. spa.php fills the marked block in index.html with the page's own title,
  * description and photograph. Pure helpers here so they are tested. */
 const SPA_HOME_TITLE = "Herit Clothing | Men's tailoring in Lagos";
-const SPA_DEFAULT_DESCRIPTION = 'Men\'s tailoring in Lagos, made to your measurements. Request a measurement appointment with Herit Clothing.';
+// Same text as the static default in index.html and DEFAULT_DESCRIPTION in useSeo.js.
+const SPA_DEFAULT_DESCRIPTION = "Herit Clothing is a men's fashion and tailoring business in Lagos. Get in touch about clothing made to your measurements or about a company order.";
+// Square brand icon used when a page has no photograph (as index.html and useSeo; K-19).
+const SPA_DEFAULT_IMAGE = '/icon-512.png';
 
 /** Which published item a public path previews: [entity, slug] or null. */
 function spa_route($path) {
@@ -590,6 +593,7 @@ function spa_meta($entity, $key, $p, $path, $siteUrl) {
   // No canonical URL for a path with no published content (except home).
   $url = $p || $isHome ? $site . ('/' . ltrim((string)$path, '/')) : '';
   return ['title' => $title, 'description' => $desc !== '' ? $desc : SPA_DEFAULT_DESCRIPTION, 'image' => $img,
+    'fallback_image' => preg_match('~^https://~', $site) ? $site . SPA_DEFAULT_IMAGE : '',
     'url' => $url !== '' && rtrim($url, '/') === $site ? $site . '/' : $url, 'type' => $entity === 'project' ? 'article' : 'website'];
 }
 
@@ -600,11 +604,13 @@ function spa_head_html(array $m) {
     . '  <meta name="description" content="' . $e($m['description']) . "\" />\n"
     . '  <meta property="og:site_name" content="Herit Clothing" />' . "\n"
     . '  <meta property="og:type" content="' . $e($m['type'] ?? 'website') . "\" />\n"
+    . '  <meta property="og:locale" content="en_NG" />' . "\n"
     . '  <meta property="og:title" content="' . $e($m['title']) . "\" />\n"
     . '  <meta property="og:description" content="' . $e($m['description']) . "\" />\n";
   if (!empty($m['url'])) $out .= '  <meta property="og:url" content="' . $e($m['url']) . "\" />\n"
     . '  <link rel="canonical" href="' . $e($m['url']) . "\" />\n";
-  if (!empty($m['image'])) $out .= '  <meta property="og:image" content="' . $e($m['image']) . "\" />\n";
+  $img = !empty($m['image']) ? $m['image'] : (string)($m['fallback_image'] ?? '');
+  if ($img !== '') $out .= '  <meta property="og:image" content="' . $e($img) . "\" />\n";
   return $out . '  <meta name="twitter:card" content="' . (!empty($m['image']) ? 'summary_large_image' : 'summary') . '" />';
 }
 

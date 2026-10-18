@@ -24,7 +24,7 @@ PASS=0; FAIL=0; RESULTS=()
 mint() {   # mint a 1-day token for a synthetic staging user
   local tok; tok="$(php -r 'echo bin2hex(random_bytes(32));')"
   "${DB[@]}" -e "INSERT INTO auth_tokens (user_id, token, expires_at)
-                 SELECT id, '$tok', DATE_ADD(NOW(), INTERVAL 1 DAY) FROM users WHERE email = '$1' AND email LIKE '%@example.test'" || return 1
+                 SELECT id, SHA2('$tok', 256), DATE_ADD(NOW(), INTERVAL 1 DAY) FROM users WHERE email = '$1' AND email LIKE '%@example.test'" || return 1
   echo "$tok"
 }
 TOKEN="${TOKEN:-$(mint staging-admin@example.test)}"

@@ -7,7 +7,7 @@
  *   POST /auth.php?action=reset_request {email}          → {ok, message} (same answer either way)
  *   POST /auth.php?action=reset_confirm {token, password} → {ok, message}; signs out every device
  *
- * Tokens are random 64-char strings stored in auth_tokens with an expiry.
+ * Tokens are random 64-char strings; auth_tokens keeps their SHA-256 and an expiry.
  * Passwords are verified with password_verify against a bcrypt hash.
  */
 require __DIR__ . '/_lib.php';
@@ -26,7 +26,8 @@ function issue_token($userId) {
     'INSERT INTO auth_tokens (user_id, token, device, ip, last_seen, expires_at)
      VALUES (?,?,?,?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY))'
   );
-  $stmt->bind_param('isssi', $userId, $token, $device, $ip, $ttl);
+  $stored = staff_token_hash($token);   // only the hash is kept (K-15)
+  $stmt->bind_param('isssi', $userId, $stored, $device, $ip, $ttl);
   $stmt->execute();
   return $token;
 }
@@ -73,12 +74,17 @@ if ($action === 'login' && method() === 'POST') {
   ]);
 
   $stmt = $conn->prepare(
-    'SELECT id, name, email, role, password_hash FROM users WHERE email = ? AND deleted_at IS NULL'
+    "SELECT id, name, email, role, password_hash FROM users
+      WHERE email = ? AND deleted_at IS NULL AND (status IS NULL OR status <> 'suspended')"
   );
   $stmt->bind_param('s', $email);
   $stmt->execute();
   $user = $stmt->get_result()->fetch_assoc();
-  if (!$user || !password_verify($password, $user['password_hash'])) {
+  // Check a password even when no account matches, so the answer takes the
+  // same time either way and does not reveal which emails exist (K-23).
+  $hashToCheck = $user['password_hash'] ?? '$2y$12$2HDF/gO2EmxrmeT1t9ZYo.YSyrW/ZXeeYtBTCYYzGA4z76AkayD.K';
+  $ok = password_verify($password, $hashToCheck);
+  if (!$user || !$ok) {
     // Two rows so each limit is a plain action + entity match (no JSON queries).
     audit(null, 'login_fail_ip', $ipKey);
     audit(null, 'login_fail_acct', $acctKey);
@@ -94,7 +100,7 @@ if ($action === 'login' && method() === 'POST') {
 /* ---- PASSWORD RESET BY EMAIL (K-04, schema_phase29.sql) ------------------ */
 /* reset_request always answers the same way, whether or not the address has an
  * account, so it cannot be used to find staff emails. The emailed link holds a
- * random token; only its SHA-256 hash is stored. A link works once, expires
+ * random token; only its SHA-256 hash is stored (staff_token_hash, as K-15). A link works once, expires
  * (RESET_TTL_MINUTES, default 30) and retires earlier unused links. A reset
  * signs the person out on every device. Requests and failed confirmations are
  * throttled through audit_log like login. */
@@ -117,14 +123,16 @@ if ($action === 'reset_request' && method() === 'POST') {
   audit(null, 'reset_req_ip', $ipKey);
   audit(null, 'reset_req_acct', $acctKey);
 
-  $user = db_row('SELECT id, name, email FROM users WHERE email = ? AND deleted_at IS NULL', 's', $email);
+  // A suspended account gets no link, the same rule as login and require_auth (K-23).
+  $user = db_row("SELECT id, name, email FROM users
+                   WHERE email = ? AND deleted_at IS NULL AND (status IS NULL OR status <> 'suspended')", 's', $email);
   if ($user) {
     $token = bin2hex(random_bytes(32));
     $ttl = max(5, min(240, (int) cfg('RESET_TTL_MINUTES', 30)));
     db_tx(function () use ($user, $token, $ttl) {
       db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$user['id']);
       db_exec('INSERT INTO password_resets (user_id, token_hash, expires_at, ip) VALUES (?, ?, UTC_TIMESTAMP() + INTERVAL ? MINUTE, ?)',
-        'isis', (int)$user['id'], token_hash($token), $ttl, client_ip());
+        'isis', (int)$user['id'], staff_token_hash($token), $ttl, client_ip());
     });
     $site = rtrim((string) cfg('SITE_URL', CORS_ORIGIN), '/');
     $url = $site . '/auth/reset-pass?token=' . $token;
@@ -152,9 +160,10 @@ if ($action === 'reset_confirm' && method() === 'POST') {
   // Null when the link is unknown, used or expired; the audit row is written
   // outside the transaction so a failed attempt always counts.
   $userId = !preg_match('/^[a-f0-9]{64}$/', $token) ? null : db_tx(function () use ($token, $password) {
-    $r = db_row('SELECT r.id, r.user_id FROM password_resets r JOIN users u ON u.id = r.user_id
+    $r = db_row("SELECT r.id, r.user_id FROM password_resets r JOIN users u ON u.id = r.user_id
                   WHERE r.token_hash = ? AND r.used_at IS NULL AND r.expires_at > UTC_TIMESTAMP() AND u.deleted_at IS NULL
-                  FOR UPDATE', 's', token_hash($token));
+                    AND (u.status IS NULL OR u.status <> 'suspended')
+                  FOR UPDATE", 's', staff_token_hash($token));
     if (!$r) return null;
     db_exec('UPDATE users SET password_hash = ? WHERE id = ?', 'si', password_hash($password, PASSWORD_BCRYPT), (int)$r['user_id']);
     db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$r['user_id']);
@@ -187,16 +196,19 @@ if ($action === 'pin_login' && method() === 'POST') {
   $res = $conn->query(
     "SELECT id, name, email, role, pin_hash FROM users
       WHERE pin_hash IS NOT NULL AND pin_hash <> '' AND status = 'active'
-        AND deleted_at IS NULL AND role <> 'customer'"
+        AND deleted_at IS NULL AND role NOT IN ('customer', 'super_admin', 'admin')"
   );
-  $match = null;
+  // Check every account: a PIN shared by two people signs in nobody (K-23).
+  $matches = [];
   while ($res && $row = $res->fetch_assoc()) {
-    if (password_verify($pin, $row['pin_hash'])) { $match = $row; break; }
+    if (password_verify($pin, $row['pin_hash'])) $matches[] = $row;
   }
-  if (!$match) {
+  if (count($matches) !== 1) {
     audit(null, 'pin_login_fail', $ipKey);
+    if (count($matches) > 1) audit(null, 'pin_login_ambiguous', $ipKey, null, ['users' => array_map(fn($m) => (int)$m['id'], $matches)]);
     fail('PIN not recognised', 401);
   }
+  $match = $matches[0];
 
   $token = issue_token($match['id']);
   audit($match['id'], 'pin_login');
@@ -217,6 +229,23 @@ if ($action === 'set_pin' && method() === 'POST') {
     json(['ok' => true, 'pin_set' => false]);
   }
   if (strlen($pin) < 4 || strlen($pin) > 6) fail('PIN must be 4–6 digits');
+  // A short PIN is guessable from the internet, so owner-level roles sign in
+  // with email and password only (pin_login refuses them too).
+  if (in_array($user['role'], ['super_admin', 'admin'], true)) fail('Owner and admin accounts sign in with email and password, not a PIN', 403);
+  // Each PIN must belong to one person (K-23). Rejections are capped per user
+  // per day, so this cannot be used to discover a colleague's PIN.
+  $userKey = 'user:' . (int)$user['id'];
+  throttle_enforce([[5, 'set_pin_taken', $userKey]], 86400);
+  $others = $conn->prepare("SELECT pin_hash FROM users WHERE id <> ? AND pin_hash IS NOT NULL AND pin_hash <> '' AND deleted_at IS NULL");
+  $others->bind_param('i', $user['id']);
+  $others->execute();
+  $or = $others->get_result();
+  while ($row = $or->fetch_assoc()) {
+    if (password_verify($pin, $row['pin_hash'])) {
+      audit($user['id'], 'set_pin_taken', $userKey);
+      fail('That PIN cannot be used. Choose a different one.', 409);
+    }
+  }
   $hash = password_hash($pin, PASSWORD_DEFAULT);
   $stmt = $conn->prepare('UPDATE users SET pin_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $user['id']);
@@ -238,7 +267,7 @@ if ($action === 'sessions' && method() === 'GET') {
     $rows[] = [
       'id' => (int)$row['id'], 'device' => $row['device'], 'ip' => $row['ip'],
       'last_seen' => $row['last_seen'], 'created_at' => $row['created_at'], 'expires_at' => $row['expires_at'],
-      'current' => hash_equals((string)$row['token'], (string)$current),
+      'current' => $current !== null && (hash_equals((string)$row['token'], staff_token_hash($current)) || hash_equals((string)$row['token'], (string)$current)),
     ];
   }
   json($rows);
@@ -258,8 +287,9 @@ if ($action === 'revoke' && method() === 'POST') {
 if ($action === 'logout' && method() === 'POST') {
   $tok = bearer();
   if ($tok) {
-    $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE token = ?');
-    $stmt->bind_param('s', $tok);
+    $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE token IN (?, ?)');
+    $hash = staff_token_hash($tok);
+    $stmt->bind_param('ss', $hash, $tok);
     $stmt->execute();
   }
   json(['ok' => true]);

@@ -36,6 +36,7 @@ const BroadcastModal = ({ show, onHide }) => {
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header closeButton><Modal.Title>Broadcast</Modal.Title></Modal.Header>
       <Modal.Body>
+        <Alert variant="warning" className="mb-3">Promotional WhatsApp messages are switched off until customers can opt in (D-024). Service messages to one client still work.</Alert>
         <Form.Label className="small text-muted">Segment (blank = everyone with a phone)</Form.Label>
         <Form.Control className="mb-2" list="wa-segments" placeholder="all / vip / diaspora / lapsed…" value={segment} onChange={(e) => setSegment(e.target.value)} />
         <datalist id="wa-segments">
@@ -59,7 +60,7 @@ const BroadcastModal = ({ show, onHide }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="light" onClick={onHide}>Close</Button>
-        <Button variant="success" onClick={send} disabled={busy}>
+        <Button variant="success" onClick={send} disabled>
           {busy ? <Spinner size="sm" /> : <><IconifyIcon icon="solar:plain-bold" className="me-1" /> Send broadcast</>}
         </Button>
       </Modal.Footer>

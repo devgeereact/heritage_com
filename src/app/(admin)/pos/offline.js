@@ -35,4 +35,4 @@ export const enqueueSale = (sale) => {
 };
 
 /** A fetch that failed at the network layer (offline), not an API error. */
-export const isNetworkError = (e) => /failed to fetch|networkerror|load failed/i.test(e?.message || '');
+export const isNetworkError = (e) => !!e?.network || /failed to fetch|networkerror|load failed/i.test(e?.message || '');

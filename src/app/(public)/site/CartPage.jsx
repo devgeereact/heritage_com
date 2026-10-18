@@ -8,7 +8,7 @@ const CartPage = () => {
   const { items, subtotal, setQty, remove } = useCart();
 
   return (
-    <SiteLayout title="Your bag">
+    <SiteLayout title="Your bag" noindex>
       <section className="hc-pagehead">
         <div className="hc-container">
           <div className="hc-crumb"><Link to="/shop">Shop</Link> / <span>Your bag</span></div>

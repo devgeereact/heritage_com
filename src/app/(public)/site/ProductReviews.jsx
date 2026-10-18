@@ -141,8 +141,8 @@ const ProductReviews = ({ slug, productName }) => {
           <p style={{ color: 'var(--hc-success)', marginTop: '0.75rem' }}><IconifyIcon icon="solar:check-circle-bold" /> Thanks — we&apos;ll answer shortly.</p>
         ) : (
           <form onSubmit={askQuestion} className="hc-card" style={{ padding: '1rem', marginTop: '1rem', display: 'grid', gap: '0.6rem' }}>
-            <input style={field} placeholder="Your name" value={qForm.name} onChange={(e) => setQForm((f) => ({ ...f, name: e.target.value }))} />
-            <textarea rows={2} style={field} placeholder="Ask about fit, fabric, sizing…" value={qForm.body} onChange={(e) => setQForm((f) => ({ ...f, body: e.target.value }))} />
+            <input style={field} aria-label="Your name" autoComplete="name" placeholder="Your name" value={qForm.name} onChange={(e) => setQForm((f) => ({ ...f, name: e.target.value }))} />
+            <textarea rows={2} style={field} aria-label="Your question" placeholder="Ask about fit, fabric, sizing…" value={qForm.body} onChange={(e) => setQForm((f) => ({ ...f, body: e.target.value }))} />
             <div><button type="submit" className="hc-btn hc-btn--ghost">Ask a question</button></div>
           </form>
         )}
