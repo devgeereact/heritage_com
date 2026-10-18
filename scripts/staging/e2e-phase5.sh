@@ -13,8 +13,11 @@
 set -uo pipefail
 
 API="${STAGING_API:-http://127.0.0.1:8088}"
-case "$API" in
-  http://127.0.0.1:*|http://localhost:*) ;;
+# Exact match: a glob would also accept http://localhost:1@evil.example, which curl
+# sends to evil.example (the part before @ is a user name).
+[[ "$API" =~ ^http://(127\.0\.0\.1|localhost):[0-9]+$ ]] && API_OK=1 || API_OK=0
+case "$API_OK" in
+  1) ;;
   *) echo "Refusing: STAGING_API must be http://127.0.0.1:<port> or http://localhost:<port>" >&2; exit 2 ;;
 esac
 DB=(mariadb heritos_staging -N -B)
