@@ -10,6 +10,7 @@ const MANAGE = ['super_admin', 'admin', 'manager'];            // ROLES_OWNER in
 const WORKSHOP = [...MANAGE, 'tailor'];                        // ROLES_WORKSHOP
 const CLIENTS = [...MANAGE, 'tailor', 'employee'];             // ROLES_CLIENTS
 const ENQUIRY = [...MANAGE, 'employee'];                       // ROLES_ENQUIRY
+const OWNER_ONLY = ['super_admin'];                            // review.php, retention periods
 
 // Section key (top-level menu key / first URL segment) → roles allowed.
 // K-01 (fixed in Phase 2): each list matches the server's require_auth() gate
@@ -50,8 +51,9 @@ const SECTIONS = {
   reviews: ['super_admin', 'admin', 'manager', 'editor'],                 // reviews.php
   coupons: ['super_admin', 'admin', 'manager', 'editor'],                 // coupons.php
   profile: ALL,                                                           // users.php self actions
-  // Remaining Larkon kit page (product review page): no endpoint.
-  review: MANAGE,
+  // Phase 7 owner review: review.php answers super_admin only. (Replaces the
+  // Larkon kit product review key, which had no page or endpoint.)
+  review: OWNER_ONLY,
 
   // Platform administration — admins only.
   team: ADMIN, permissions: ADMIN,                                        // users.php management
@@ -78,6 +80,7 @@ export const ACCESS_MATRIX = [
   { key: 'website', label: 'Website' },
   { key: 'content', label: 'Journal & testimonials' },
   { key: 'settings', label: 'Settings' },
+  { key: 'review', label: 'Owner review' },
   { key: 'reports', label: 'Reports' },
   { key: 'catalogue', label: 'Catalogue' },
   { key: 'stock', label: 'Inventory' },

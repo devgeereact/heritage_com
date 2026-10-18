@@ -15,7 +15,7 @@
 /** Admin menu sections that may be counted, in menu order. */
 const USAGE_SECTIONS = [
   'today', 'enquiries', 'appointments', 'messages', 'clients', 'jobs', 'payments', 'website',
-  'settings',
+  'settings', 'review',
   'reports', 'finance', 'catalogue', 'sales', 'pos', 'stock', 'suppliers', 'marketing', 'studio',
   'analytics', 'engage', 'loyalty', 'coupons', 'reviews', 'content', 'inbox', 'whatsapp', 'weather',
   'team', 'permissions', 'channels', 'profile',

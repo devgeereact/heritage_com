@@ -210,6 +210,11 @@ export const heritApi = {
     hit: (section) => request('/usage.php?action=hit', { method: 'POST', body: { section } }),
   },
 
+  // Owner review (Phase 7, super_admin only): read-only evidence over 30 or 90 days.
+  review: {
+    summary: (days = 30) => request(`/review.php?action=summary&days=${encodeURIComponent(days)}`),
+  },
+
   // Enquiry pipeline (staff side; convert is owner-only)
   enquiries: {
     list: (params = {}) => request(`/enquiries.php?action=list${qs(params)}`),

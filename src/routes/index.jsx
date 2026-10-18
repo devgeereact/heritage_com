@@ -7,6 +7,8 @@ const Payments = lazy(() => import('@/app/(admin)/payments/page'))
 const Appointments = lazy(() => import('@/app/(admin)/appointments/page'))
 const Messages = lazy(() => import('@/app/(admin)/messages/page'))
 const PrintDoc = lazy(() => import('@/app/(admin)/print/page'))
+// Phase 7: the owner's review (super_admin)
+const Review = lazy(() => import('@/app/(admin)/review/page'))
 const EnquiryDetail = lazy(() => import('@/app/(admin)/enquiries/[id]/page'))
 const EnquiryConvert = lazy(() => import('@/app/(admin)/enquiries/[id]/convert/page'))
 const NewMeasurements = lazy(() => import('@/app/(admin)/crm/[id]/measurements/new/page'))
@@ -483,6 +485,11 @@ const customRoutes = [
     name: 'Settings',
     path: '/settings',
     element: <Settings />,
+  },
+  {
+    name: 'Owner review',
+    path: '/review',
+    element: <Review />,
   },
   {
     name: 'Profile',

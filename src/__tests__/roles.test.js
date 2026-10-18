@@ -50,6 +50,8 @@ const GATES = {
   'reviews.php': [...OWNER, 'editor'],
   'coupons.php': [...OWNER, 'editor'],
   'users.php': ['super_admin', 'admin'], // management; self actions are open to any staff
+  'review.php': ['super_admin'], // Phase 7 owner review
+  'usage.php': ALL_STAFF, // Phase 7 section counts (sent by the layout, no page of its own)
 }
 
 // Section -> the endpoint files that page calls. Where a page needs several,
@@ -85,6 +87,7 @@ const SECTION_ENDPOINTS = {
   reviews: ['reviews.php'],
   coupons: ['coupons.php'],
   team: ['users.php'],
+  review: ['review.php'],
 }
 
 const documentedRoles = (section) =>
@@ -193,6 +196,20 @@ describe('roles: permissions matrix', () => {
   it('has no duplicate module keys', () => {
     const keys = ACCESS_MATRIX.map((m) => m.key)
     expect(new Set(keys).size).toBe(keys.length)
+  })
+})
+
+describe('roles: owner review (Phase 7)', () => {
+  it('opens /review for super_admin only, not for admin or manager', () => {
+    expect(ALL_STAFF.filter((r) => canAccessPath(r, '/review'))).toEqual(['super_admin'])
+  })
+
+  it('shows the Owner review menu item to super_admin only', () => {
+    const flat = (items) => items.flatMap((i) => (i.children ? flat(i.children) : [i]))
+    ALL_STAFF.forEach((role) => {
+      const keys = flat(filterMenuByRole(MENU_ITEMS, role)).map((i) => i.key)
+      expect(keys.includes('review'), role).toBe(role === 'super_admin')
+    })
   })
 })
 

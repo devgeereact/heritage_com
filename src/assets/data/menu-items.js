@@ -60,6 +60,12 @@ export const MENU_ITEMS = [{
   icon: 'solar:settings-bold-duotone',
   url: '/settings'
 }, {
+  // Phase 7: evidence for what to keep, fix or remove (owner only, review.php).
+  key: 'review',
+  label: 'Owner review',
+  icon: 'solar:clipboard-check-bold-duotone',
+  url: '/review'
+}, {
   key: MORE,
   label: 'More tools',
   icon: 'solar:widget-5-bold-duotone',
