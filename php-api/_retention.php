@@ -14,9 +14,20 @@
  * planned: RETENTION_PROTECTED_TABLES lists them and retention_plan() refuses a
  * step that names one, even if the map below were edited by mistake.
  *
- * Times: the cutoff is a UTC 'Y-m-d H:i:s' string. DATETIME columns here hold
- * UTC already; the runner sets the session time zone to +00:00 so TIMESTAMP
- * columns compare in UTC too.
+ * Times (checked with SHOW CREATE TABLE on heritos_staging, 18 October 2026):
+ * - TIMESTAMP columns (audit_log.created_at, whatsapp_messages.created_at,
+ *   abandoned_carts.updated_at, waitlist.created_at, enquiries.updated_at) are
+ *   stored as UTC internally; the runner sets the session time zone to +00:00,
+ *   so they compare against a UTC cutoff.
+ * - customer_sessions.expires_at and customer_access_challenges.expires_at are
+ *   DATETIME written with UTC_TIMESTAMP() or utc_sql(), so they hold UTC and
+ *   compare against a UTC cutoff too.
+ * - auth_tokens.expires_at (auth.php) and customer_tokens.expires_at
+ *   (account.php) are DATETIME written with NOW(), which is the server's own
+ *   zone, not UTC. Those steps carry 'clock' => 'local' and compare against a
+ *   cutoff taken from the server's wall clock (the runner reads NOW() before it
+ *   changes the session zone), so a server ahead of or behind UTC does not move
+ *   the cutoff by its offset.
  */
 
 const RETENTION_MAX_DAYS = 3650;   // ten years; anything longer is treated as a typo
@@ -33,8 +44,9 @@ const RETENTION_CATEGORIES = [
     'label' => 'Expired staff sign-in tokens and legacy portal tokens, days after expiry',
     'min' => 1,
     'steps' => [
-      ['table' => 'auth_tokens', 'column' => 'expires_at', 'where' => '', 'needs' => ['auth_tokens.expires_at']],
-      ['table' => 'customer_tokens', 'column' => 'expires_at', 'where' => '', 'needs' => ['customer_tokens.expires_at']],
+      // Written with NOW() (server zone), so the cutoff uses the server's wall clock.
+      ['table' => 'auth_tokens', 'column' => 'expires_at', 'where' => '', 'clock' => 'local', 'needs' => ['auth_tokens.expires_at']],
+      ['table' => 'customer_tokens', 'column' => 'expires_at', 'where' => '', 'clock' => 'local', 'needs' => ['customer_tokens.expires_at']],
     ],
   ],
   'customer_sessions' => [
@@ -158,25 +170,43 @@ function retention_parse_days($category, $value) {
   return ['days' => $days, 'error' => null];
 }
 
-/** UTC cutoff 'Y-m-d H:i:s' for $days before the Unix time $now. */
+/** UTC cutoff 'Y-m-d H:i:s' for $days before the Unix time $now (exactly $days * 86400 seconds). */
 function retention_cutoff($now, $days) {
   return gmdate('Y-m-d H:i:s', (int)$now - (int)$days * 86400);
 }
 
 /**
- * The plan for $settings (skey => svalue, as read from the settings table) at the
- * Unix time $now. Returns ['steps' => [...], 'off' => [category...], 'invalid' =>
- * [category => error]]. Each step: category, key, days, cutoff, table, column,
- * count_sql, delete_sql, params (the cutoff, bound as one 's'), needs.
+ * Cutoff for a column written in the server's own zone: $localNow is the
+ * server's wall clock 'Y-m-d H:i:s' (MySQL NOW() in the server's default zone),
+ * and the result is that wall clock minus $days calendar days, the same as
+ * MySQL's NOW() - INTERVAL $days DAY. Throws on a malformed $localNow.
  */
-function retention_plan(array $settings, $now) {
+function retention_cutoff_local($localNow, $days) {
+  $d = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', (string)$localNow, new DateTimeZone('UTC'));
+  if (!$d || $d->format('Y-m-d H:i:s') !== $localNow) throw new InvalidArgumentException('Bad server clock value');
+  return $d->modify('-' . (int)$days . ' days')->format('Y-m-d H:i:s');
+}
+
+/**
+ * The plan for $settings (skey => svalue, as read from the settings table) at the
+ * Unix time $now. $localNow is the server's wall clock ('Y-m-d H:i:s', NOW() in
+ * the server's default zone) for steps marked 'clock' => 'local'; null means the
+ * server runs on UTC (the helper tests rely on this). Returns ['steps' => [...],
+ * 'off' => [category...], 'invalid' => [category => error]]. Each step: category,
+ * key, days, cutoff, clock ('utc' or 'local'), table, column, count_sql,
+ * delete_sql, params (the cutoff, bound as one 's'), needs.
+ */
+function retention_plan(array $settings, $now, $localNow = null) {
   $out = ['steps' => [], 'off' => [], 'invalid' => []];
   foreach (RETENTION_CATEGORIES as $cat => $def) {
     $p = retention_parse_days($cat, $settings[$def['key']] ?? null);
     if ($p['error'] !== null) { $out['invalid'][$cat] = $p['error']; continue; }
     if ($p['days'] === null) { $out['off'][] = $cat; continue; }
-    $cutoff = retention_cutoff($now, $p['days']);
+    $utcCutoff = retention_cutoff($now, $p['days']);
+    $localCutoff = $localNow === null ? $utcCutoff : retention_cutoff_local($localNow, $p['days']);
     foreach ($def['steps'] as $s) {
+      $clock = ($s['clock'] ?? 'utc') === 'local' ? 'local' : 'utc';
+      $cutoff = $clock === 'local' ? $localCutoff : $utcCutoff;
       if (in_array($s['table'], RETENTION_PROTECTED_TABLES, true)) {
         throw new LogicException("Retention map names protected table {$s['table']}");
       }
@@ -185,7 +215,7 @@ function retention_plan(array $settings, $now) {
       }
       $where = "`{$s['column']}` < ?" . ($s['where'] !== '' ? " AND ({$s['where']})" : '');
       $out['steps'][] = [
-        'category' => $cat, 'key' => $def['key'], 'days' => $p['days'], 'cutoff' => $cutoff,
+        'category' => $cat, 'key' => $def['key'], 'days' => $p['days'], 'cutoff' => $cutoff, 'clock' => $clock,
         'table' => $s['table'], 'column' => $s['column'],
         'count_sql' => "SELECT COUNT(*) AS n FROM `{$s['table']}` WHERE $where",
         'delete_sql' => "DELETE FROM `{$s['table']}` WHERE $where LIMIT " . RETENTION_BATCH,

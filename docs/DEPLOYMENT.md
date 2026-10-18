@@ -73,9 +73,9 @@ Frontend environment: `VITE_API_BASE` only, documented in `.env.example`; produc
 
 ### Retention job
 
-`php-api/retention.php` (K-18) runs from the command line only; over HTTP it answers 404. It reads the `retention_*_days` settings ([API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18)) and needs `_lib.php`, `_retention.php` and `config.php` beside it in the document root. `php retention.php` is a dry run that prints a count per category; `--apply` deletes in batches of 500 and writes one `retention_purge` audit entry per category. A second run while one is in progress stops (`GET_LOCK`). It exits 1 on any error and 2 on an unknown option, so cron mail or the log shows a failure.
+`php-api/retention.php` (K-18) runs from the command line only; over HTTP it answers 404. It reads the `retention_*_days` settings ([API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18)) and needs `_lib.php`, `_retention.php` and `config.php` beside it in the document root. `php retention.php` is a dry run that prints a count per category; `--apply` deletes in batches of 500 and writes one `retention_purge` audit entry per category straight after that category's deletes, so an error later in the run never leaves earlier deletions unaudited. A second run while one is in progress stops (`GET_LOCK`). It exits 1 on any error and 2 on an unknown option, so cron mail or the log shows a failure.
 
-Cron line (cPanel > Advanced > Cron Jobs, once a day at 03:30 server time). Replace `CPANEL_USER` and check the PHP path cPanel shows (often `/usr/local/bin/php`):
+Cron line (cPanel > Advanced > Cron Jobs, once a day at 03:30 server time). Replace `CPANEL_USER` and check the PHP path cPanel shows (often `/usr/local/bin/php`). Check that `/usr/local/bin/php -v` (with the same path as the cron line) shows `(cli)`: a CGI binary (`cgi-fcgi`) is refused with a message on stderr and exit code 1, so use the command-line binary instead:
 
 ```
 30 3 * * * /usr/local/bin/php /home/CPANEL_USER/public_html/retention.php --apply >> /home/CPANEL_USER/retention.log 2>&1

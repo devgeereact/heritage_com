@@ -39,6 +39,31 @@ check('cutoff: leap year 2028 counted (Mar 1 minus 1 day is Feb 29)', retention_
 check('cutoff: independent of the PHP default time zone', (function () use ($now) {
   $tz = date_default_timezone_get(); date_default_timezone_set('Africa/Lagos');
   $c = retention_cutoff($now, 30); date_default_timezone_set($tz); return $c; })(), '2026-12-16 08:00:00');
+/* ---- Server-zone columns (K-18 L1) ------------------------------------------- */
+// auth_tokens and customer_tokens store expires_at from NOW() in the server zone.
+// A server one hour ahead of UTC (Lagos) reads NOW() as 09:00 when UTC is 08:00.
+$lagos = retention_plan(['retention_expired_tokens_days' => '30', 'retention_customer_sessions_days' => '30'], $now, '2027-01-15 09:00:00');
+$tok = $steps($lagos, 'expired_tokens');
+check('local clock: token steps are marked local', array_column($tok, 'clock'), ['local', 'local']);
+check('local clock: token cutoff is the server wall clock minus 30 days', array_column($tok, 'cutoff'), ['2026-12-16 09:00:00', '2026-12-16 09:00:00']);
+check('local clock: token cutoff is the bound parameter', $tok[0]['params'], ['2026-12-16 09:00:00']);
+$ses = $steps($lagos, 'customer_sessions');
+check('local clock: UTC_TIMESTAMP() columns keep the UTC cutoff', [$ses[0]['clock'], $ses[0]['cutoff']], ['utc', '2026-12-16 08:00:00']);
+$localTables = array_values(array_unique(array_column(array_filter(retention_plan(array_fill_keys(retention_keys(), '3650'), $now, '2027-01-15 09:00:00')['steps'],
+  fn($s) => $s['clock'] === 'local'), 'table')));
+check('local clock: only the two NOW() token tables use the server clock', $localTables, ['auth_tokens', 'customer_tokens']);
+check('local clock: without a server clock the server is taken as UTC', array_column($steps(retention_plan(['retention_expired_tokens_days' => '30'], $now), 'expired_tokens'), 'cutoff'),
+  ['2026-12-16 08:00:00', '2026-12-16 08:00:00']);
+check('local cutoff: calendar days, like NOW() - INTERVAL n DAY', retention_cutoff_local('2027-03-31 10:00:00', 30), '2027-03-01 10:00:00');
+check('local cutoff: leap day counted', retention_cutoff_local('2028-03-01 00:30:00', 1), '2028-02-29 00:30:00');
+check('local cutoff: independent of the PHP default time zone', (function () {
+  $tz = date_default_timezone_get(); date_default_timezone_set('America/New_York');
+  $c = retention_cutoff_local('2026-11-01 12:00:00', 1); date_default_timezone_set($tz); return $c; })(), '2026-10-31 12:00:00');
+foreach (['', 'now', '2027-01-15', '2027-13-01 00:00:00', '2027-01-15 09:00:00; DROP TABLE users'] as $bad) {
+  check('local cutoff: refuses ' . var_export($bad, true), (function () use ($bad) {
+    try { retention_cutoff_local($bad, 1); return 'accepted'; } catch (InvalidArgumentException $e) { return 'refused'; } })(), 'refused');
+}
+
 check('cutoff: the step carries the days used', retention_plan(['retention_audit_log_days' => '400'], $now)['steps'][0]['days'], 400);
 
 /* ---- Invalid values are OFF, with an error ----------------------------------- */
