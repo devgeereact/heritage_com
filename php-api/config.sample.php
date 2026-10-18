@@ -32,7 +32,7 @@ define('DB_PASS', 'CHANGE_ME');                        // the DB user's password
 define('TOKEN_SECRET',   'CHANGE_ME_long_random_string'); // reserved for signed tokens
 define('TOKEN_TTL_DAYS', 14);                             // session lifetime in days
 // Staff session cookie (A15). true: sign-in puts the staff token in an HttpOnly
-// cookie (herit_staff) that page scripts cannot read, and every write must send
+// cookie (__Host-herit_staff) that page scripts cannot read, and every write must send
 // the X-Herit-CSRF header. false or unset: the token is returned in the JSON
 // body and kept by the app, as before. Switching it back off is the rollback;
 // staff signed in under the cookie then sign out and in again. See DEPLOYMENT.md.

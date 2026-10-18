@@ -10,7 +10,8 @@
  * Tokens are random 64-char strings; auth_tokens keeps their SHA-256 and an expiry.
  * Passwords are verified with password_verify against a bcrypt hash.
  * With STAFF_COOKIE_AUTH on, login and pin_login answer {user, cookie_auth:true}
- * and put the token in the HttpOnly herit_staff cookie instead (A15, _lib.php).
+ * and put the token in the HttpOnly __Host-herit_staff cookie instead (herit_staff
+ * on local http staging; A15, _lib.php).
  */
 require __DIR__ . '/_lib.php';
 cors();

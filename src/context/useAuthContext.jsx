@@ -11,12 +11,12 @@ export function useAuthContext() {
   return context;
 }
 // The signed-in profile. With cookie auth on the server (STAFF_COOKIE_AUTH, A15)
-// it holds no token: the HttpOnly herit_staff cookie carries the session. With it
+// it holds no token: the HttpOnly session cookie carries the session. With it
 // off it also holds the Bearer token, as before.
 const authSessionKey = '_LARKON_AUTH_KEY_';
 // Keep this equal to TOKEN_TTL_DAYS in the server config.php (default 14,
-// config.sample.php), so the profile cookie never expires while the server
-// session still lives and the device looks signed out while signed in (A15).
+// config.sample.php). A profile cookie that expired first would make the
+// device look signed out while the server session still lives (A15).
 const SESSION_DAYS = 14;
 export function AuthProvider({
   children

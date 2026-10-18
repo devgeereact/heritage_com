@@ -9,7 +9,7 @@ import { API_BASE } from '@/context/constants'
 /**
  * Pull the Bearer token from the session cookie (set by useAuthContext). With
  * cookie auth on the server (STAFF_COOKIE_AUTH, A15) that cookie holds only the
- * profile, so this is null and the HttpOnly herit_staff cookie signs requests.
+ * profile, so this is null and the HttpOnly session cookie signs requests.
  */
 function token() {
   const m = document.cookie.match(/_LARKON_AUTH_KEY_=([^;]+)/)
@@ -21,10 +21,15 @@ function token() {
   }
 }
 
-/** The readable CSRF cookie set beside herit_staff; writes echo it in X-Herit-CSRF. */
+/**
+ * The readable CSRF cookie set beside the session cookie; writes echo it in
+ * X-Herit-CSRF. The live site names it __Host-herit_csrf, local http staging
+ * herit_csrf (staff_cookie_names in _lib.php). The prefixed one wins, so a bare
+ * cookie planted by another subdomain cannot displace it.
+ */
 function csrfToken() {
-  const m = document.cookie.match(/(?:^|;\s*)herit_csrf=([0-9a-f]{64})(?:;|$)/)
-  return m ? m[1] : null
+  const read = (name) => document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([0-9a-f]{64})(?:;|$)`))?.[1] ?? null
+  return read('__Host-herit_csrf') ?? read('herit_csrf')
 }
 
 /** Staff credentials for one request: Bearer when an old-style token exists, the CSRF header on writes. */

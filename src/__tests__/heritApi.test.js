@@ -392,3 +392,40 @@ describe('heritApi: customer-portal token', () => {
     expect(headerOf(fetchMock.mock.calls[0][1], 'Authorization')).toBe('Bearer cust-token')
   })
 })
+
+describe('heritApi: CSRF header under staff cookie auth (A15)', () => {
+  const live = 'a'.repeat(64)
+  const local = 'b'.repeat(64)
+  const withCookies = async (cookie, call) => {
+    const spy = vi.spyOn(Document.prototype, 'cookie', 'get').mockReturnValue(cookie)
+    try {
+      const fetchMock = mockFetch()
+      await call()
+      return fetchMock.mock.calls[0][1]
+    } finally {
+      spy.mockRestore()
+    }
+  }
+
+  it('echoes the live __Host-herit_csrf cookie on a write', async () => {
+    const init = await withCookies(`__Host-herit_csrf=${live}`, () => heritApi.logout())
+    expect(headerOf(init, 'X-Herit-CSRF')).toBe(live)
+  })
+
+  it('echoes the bare herit_csrf cookie used on local http staging', async () => {
+    const init = await withCookies(`other=1; herit_csrf=${local}`, () => heritApi.logout())
+    expect(headerOf(init, 'X-Herit-CSRF')).toBe(local)
+  })
+
+  it('prefers the __Host- cookie when a bare one is also present', async () => {
+    const init = await withCookies(`herit_csrf=${local}; __Host-herit_csrf=${live}`, () => heritApi.logout())
+    expect(headerOf(init, 'X-Herit-CSRF')).toBe(live)
+  })
+
+  it('sends no CSRF header on a read, or when the cookie is malformed', async () => {
+    const read = await withCookies(`__Host-herit_csrf=${live}`, () => heritApi.stats())
+    const bad = await withCookies('herit_csrf=not-hex', () => heritApi.logout())
+    expect(headerOf(read, 'X-Herit-CSRF')).toBeUndefined()
+    expect(headerOf(bad, 'X-Herit-CSRF')).toBeUndefined()
+  })
+})

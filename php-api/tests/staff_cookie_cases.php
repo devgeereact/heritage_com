@@ -44,12 +44,19 @@ check('local http: forged localhost Host from a remote client', request_is_local
 check('local http: nothing known', request_is_local_http([]), false);
 
 /* ---- cookie attributes ---------------------------------------------------------- */
+check('cookie names: __Host- prefix on the live site', staff_cookie_names(false), ['session' => '__Host-herit_staff', 'csrf' => '__Host-herit_csrf']);
+check('cookie names: bare names on local http', staff_cookie_names(true), ['session' => 'herit_staff', 'csrf' => 'herit_csrf']);
+$live = staff_cookie_names(false);
 check('cookie: session cookie on the live site',
-  staff_cookie_header('herit_staff', $tokA, 1209600, true, true),
-  "herit_staff=$tokA; Max-Age=1209600; Path=/; Secure; HttpOnly; SameSite=Strict");
+  staff_cookie_header($live['session'], $tokA, 1209600, true, true),
+  "__Host-herit_staff=$tokA; Max-Age=1209600; Path=/; Secure; HttpOnly; SameSite=Strict");
 check('cookie: CSRF cookie is readable by the page',
-  staff_cookie_header('herit_csrf', $tokB, 1209600, true, false),
-  "herit_csrf=$tokB; Max-Age=1209600; Path=/; Secure; SameSite=Strict");
+  staff_cookie_header($live['csrf'], $tokB, 1209600, true, false),
+  "__Host-herit_csrf=$tokB; Max-Age=1209600; Path=/; Secure; SameSite=Strict");
+check('cookie: __Host- rules hold on the live site (Secure, Path=/, no Domain)',
+  array_map(fn($h) => [str_contains($h, '; Secure'), str_contains($h, '; Path=/;'), stripos($h, 'domain=') === false],
+    [staff_cookie_header($live['session'], $tokA, 1, true, true), staff_cookie_header($live['csrf'], $tokB, 1, true, false)]),
+  [[true, true, true], [true, true, true]]);
 check('cookie: local staging drops only Secure',
   staff_cookie_header('herit_staff', $tokA, 60, false, true),
   "herit_staff=$tokA; Max-Age=60; Path=/; HttpOnly; SameSite=Strict");

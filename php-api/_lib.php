@@ -122,12 +122,29 @@ function bearer() {
 
 /* ---- STAFF SESSION COOKIE (A15) ------------------------------------------ */
 /* With STAFF_COOKIE_AUTH on in config.php, staff sign-in sets the token in an
- * HttpOnly cookie that page scripts cannot read, plus a readable CSRF cookie.
+ * HttpOnly cookie that page scripts cannot read, plus a readable CSRF cookie
+ * (__Host-herit_staff and __Host-herit_csrf on the live site, staff_cookie_names).
  * Every cookie-authenticated write must echo the CSRF cookie in X-Herit-CSRF
  * (double submit). The Bearer header keeps working either way, so the e2e
  * scripts and any client still holding a token are unaffected. Off by default. */
-const STAFF_COOKIE = 'herit_staff';
-const STAFF_CSRF_COOKIE = 'herit_csrf';
+
+/**
+ * The two staff cookie names for this context. Pure. On the live site they
+ * carry the __Host- prefix, so the browser only accepts them when Secure,
+ * Path=/ and without Domain, and a sibling subdomain or plain-http page cannot
+ * plant or shadow them. Plain http on the laptop (request_is_local_http) cannot
+ * set a Secure cookie, so local staging keeps the bare names. Reading uses the
+ * same names, so a bare cookie is never trusted on the live site.
+ * Returns ['session' => …, 'csrf' => …].
+ */
+function staff_cookie_names($localHttp) {
+  return $localHttp
+    ? ['session' => 'herit_staff', 'csrf' => 'herit_csrf']
+    : ['session' => '__Host-herit_staff', 'csrf' => '__Host-herit_csrf'];
+}
+
+/** The staff cookie names for the current request. */
+function staff_cookie_names_now() { return staff_cookie_names(request_is_local_http($_SERVER)); }
 
 function staff_cookie_auth_on() { return (bool) cfg('STAFF_COOKIE_AUTH', false); }
 
@@ -150,7 +167,7 @@ function staff_credential_pick($authHeader, $cookieValue, $cookieAuthOn) {
 /** The staff credential on the current request (see staff_credential_pick). */
 function staff_credential() {
   $h = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
-  return staff_credential_pick($h, $_COOKIE[STAFF_COOKIE] ?? null, staff_cookie_auth_on());
+  return staff_credential_pick($h, $_COOKIE[staff_cookie_names_now()['session']] ?? null, staff_cookie_auth_on());
 }
 
 /** The staff token on the current request, from the header or the cookie, or null. */
@@ -173,7 +190,7 @@ function staff_csrf_ok($method, $source, $headerValue, $cookieValue) {
 
 /** Send 403 unless the current request passes staff_csrf_ok(). */
 function staff_csrf_enforce($source) {
-  $ok = staff_csrf_ok(method(), $source, $_SERVER['HTTP_X_HERIT_CSRF'] ?? null, $_COOKIE[STAFF_CSRF_COOKIE] ?? null);
+  $ok = staff_csrf_ok(method(), $source, $_SERVER['HTTP_X_HERIT_CSRF'] ?? null, $_COOKIE[staff_cookie_names_now()['csrf']] ?? null);
   if (!$ok) fail('Security check failed. Reload the page and try again.', 403);
 }
 
@@ -240,17 +257,26 @@ function staff_cookie_header($name, $value, $maxAge, $secure, $httpOnly) {
 
 /** Set the session and CSRF cookies for a newly issued staff token. */
 function staff_session_cookies_set($token) {
-  $secure = !request_is_local_http($_SERVER);
+  $local = request_is_local_http($_SERVER);
+  $n = staff_cookie_names($local);
   $ttl = (int) TOKEN_TTL_DAYS * 86400;
-  header('Set-Cookie: ' . staff_cookie_header(STAFF_COOKIE, $token, $ttl, $secure, true), false);
-  header('Set-Cookie: ' . staff_cookie_header(STAFF_CSRF_COOKIE, bin2hex(random_bytes(32)), $ttl, $secure, false), false);
+  header('Set-Cookie: ' . staff_cookie_header($n['session'], $token, $ttl, !$local, true), false);
+  header('Set-Cookie: ' . staff_cookie_header($n['csrf'], bin2hex(random_bytes(32)), $ttl, !$local, false), false);
 }
 
-/** Clear both staff cookies (sign-out). Harmless when they were never set. */
+/**
+ * Clear both staff cookies (sign-out). Harmless when they were never set. On
+ * the live site the bare names are cleared too, in case a build from before
+ * the __Host- prefix ever set them.
+ */
 function staff_session_cookies_clear() {
-  $secure = !request_is_local_http($_SERVER);
-  header('Set-Cookie: ' . staff_cookie_header(STAFF_COOKIE, '', 0, $secure, true), false);
-  header('Set-Cookie: ' . staff_cookie_header(STAFF_CSRF_COOKIE, '', 0, $secure, false), false);
+  $local = request_is_local_http($_SERVER);
+  $sets = [staff_cookie_names($local)];
+  if (!$local) $sets[] = staff_cookie_names(true);
+  foreach ($sets as $n) {
+    header('Set-Cookie: ' . staff_cookie_header($n['session'], '', 0, !$local, true), false);
+    header('Set-Cookie: ' . staff_cookie_header($n['csrf'], '', 0, !$local, false), false);
+  }
 }
 
 /**
