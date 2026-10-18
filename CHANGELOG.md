@@ -6,16 +6,25 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### Hardening on `feat/hardening-2026-10-18`, 18 October 2026
 
-Stacked on PR #17 (which carries #14 to #16). Owner actions: the "Hardening" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+Stacked on PR #17 (which carries #14 to #16). The work was integrated on this one branch; the earlier working branches for K-18, A15 and the review fixes are not separate pull requests. Owner actions: the "PR (hardening)" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+
+Added
+
+- Data retention job (K-18): `php-api/retention.php` (command line only), `_retention.php`, `schema_phase30.sql` and Settings > Data retention. One `retention_*_days` setting per category (expired sign-in tokens, customer sessions, access attempts, audit log, WhatsApp log, abandoned carts, waitlist, closed enquiries). Empty or 0 keeps the data forever; only expired staff and legacy portal tokens start at 30 days past their own expiry. The job is a dry run unless run with `--apply`, deletes in batches of 500 and writes one `retention_purge` audit entry per category. Only the owner can change a period, and the old and new values are audited. It never touches jobs, payments, the ledger, quotes, orders, measurements, appointments or client records. Token tables are compared on the server clock, and a CGI PHP binary is refused so cron cannot run it by mistake. The cron line is in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#retention-job).
+- Staff session cookie (A15), behind `STAFF_COOKIE_AUTH` (default off): sign-in sets the token in an HttpOnly, SameSite=Strict cookie that page scripts cannot read, and every cookie-authenticated write must send an `X-Herit-CSRF` header equal to a second cookie. The browser keeps only a profile cookie without the token, for 14 days. On the live site the cookies are named `__Host-herit_staff` and `__Host-herit_csrf`. Nothing changes until the owner sets the switch on over HTTPS. Local trial through a same-origin Vite proxy: [docs/LOCAL-STAGING.md](docs/LOCAL-STAGING.md).
+- First frontend test suite (A13): Vitest, jsdom and Testing Library, `npm test` (263 tests in 14 files on the integrated branch), covering the API client, role gates, formatting, the HTML sanitisers, sign-in, the offline banner and the public forms. It runs in `ci.yml` and in `deploy.yml` before the upload.
 
 Fixed
 
 - Today lists a due or overdue enquiry follow-up first, and every capped block returns `more` (items not listed) with an "And N more" link on the page (K-07).
 - The order lookup sends the phone in a POST body instead of the query string; the old GET form answers only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on (K-14).
+- A session cookie that is not valid JSON no longer blanks the whole app; `getSession` removes it and the app starts signed out (A13, found by the new tests).
+- The sanitisers refuse `//host` and `/\host` links, which browsers read as protocol-relative, in the browser (`safeHtml.js`, `richText.js`) and on the server (`sanitize_url_ok`) (A13, A04). The server now accepts only http and https, mailto and tel (links only) and site paths with a single leading `/`, so fragment-only (`#top`) and bare relative (`page`) links are dropped on save and on public read, as the browser already did.
+- A15 review fixes: sign-in accepts only JSON requests from the same origin; sign-out always ends the session, with or without the CSRF header; the `__Host-` cookie names are used on the live site; staff passwords and PINs share one bcrypt cost (12) and older hashes are upgraded at the next sign-in.
 
 Changed
 
-- `e2e-phase2.sh` seeds its own fixtures (an imported measurement set, a due follow-up) and has 51 checks, so it no longer depends on leftover staging rows (K-07).
+- `e2e-phase2.sh` seeds its own fixtures (an imported measurement set, a due follow-up) and has 52 checks, so it no longer depends on leftover staging rows (K-07).
 
 ### PR #17 `feat/offline-a16`, 16 October 2026
 
@@ -50,6 +59,7 @@ Added
 Fixed (merge of #14 audit fixes, 18 October 2026)
 
 - The reset page keeps the audit's plain wording and sign-in logo link, and offers the working email reset in place of the explanation; reset links are hashed with `staff_token_hash` and refused for suspended accounts, the same rules as sign-in (K-04, K-15, K-23).
+
 ### Audit fixes on `feat/redesign-dark-luxury`, 17 October 2026
 
 Production-readiness and privacy audit. Evidence: [qa/SECURITY-AUDIT.md](qa/SECURITY-AUDIT.md), [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md), [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md#inventory-17-october-2026).

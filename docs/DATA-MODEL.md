@@ -124,7 +124,7 @@ Branch `feat/redesign-dark-luxury` (D-023). `cms_items.entity` gains `'slide'`; 
 
 ## Retention settings (schema_phase30)
 
-Branch `feat/k18-retention` (K-18). No table or column changes: `INSERT IGNORE` seeds eight `retention_*_days` keys in `settings`, all empty except `retention_expired_tokens_days` (`30`), and never overwrites a saved value. Which tables and date columns each key covers, and the protected tables: [API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18). The policy: [DATA-PRIVACY.md](DATA-PRIVACY.md#retention-schedule).
+Branch `feat/hardening-2026-10-18` (K-18); import it after `schema_phase29.sql`. No table or column changes: `INSERT IGNORE` seeds eight `retention_*_days` keys in `settings`, all empty except `retention_expired_tokens_days` (`30`), and never overwrites a saved value. Which tables and date columns each key covers, and the protected tables: [API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18). The policy: [DATA-PRIVACY.md](DATA-PRIVACY.md#retention-schedule).
 
 ## Phase 5 tables and columns (schema_phase27)
 
