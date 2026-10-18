@@ -1,8 +1,12 @@
 import { useState } from 'react';
+import PrivacyNote from './PrivacyNote';
 import heritApi from '@/helpers/heritApi';
 import { Field, ErrorSummary } from './ui/Field';
 import Button from './ui/Button';
 import Icon from './ui/Icon';
+
+// Focus the thank-you panel when it replaces the form, so it is read out (K-16).
+const focusOnMount = (el) => el?.focus();
 
 /**
  * Visitor-facing choices and the enquiry type contact.php stores for each
@@ -74,7 +78,7 @@ const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shop
 
   if (status === 'sent') {
     return (
-      <div className="hc-success-panel" role="status">
+      <div className="hc-success-panel" role="status" tabIndex={-1} ref={focusOnMount}>
         <h3><Icon name="check-circle" /> Message received</h3>
         <p>
           Thank you, I have your message. I will reply {responseTime || 'as soon as I can'}.
@@ -108,7 +112,8 @@ const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shop
           <input id="cf-hp" type="text" name="website_url_confirm" tabIndex={-1} autoComplete="off" value={form.website_url_confirm} onChange={set('website_url_confirm')} />
         </div>
         <div className="hc-field--full">
-          <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'}>
+          <PrivacyNote>Your details are used to reply to this enquiry.</PrivacyNote>
+          <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'} className="hc-mt-3">
             {status === 'sending' ? 'Sending…' : 'Send enquiry'}
           </Button>
           <p className="hc-field-help hc-mt-2" aria-live="polite">{status === 'sending' ? 'Sending your message.' : ''}</p>

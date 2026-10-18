@@ -35,6 +35,12 @@ function temp_password() {
   return 'Herit-' . substr($s, 0, 6);
 }
 
+/** Only a super_admin may create, change, reset or remove a super_admin, or grant the role. */
+function guard_super_admin($me, $targetRole, $newRole = null) {
+  if ($me['role'] === 'super_admin') return;
+  if ($targetRole === 'super_admin' || $newRole === 'super_admin') fail('Only a super admin can change super admin accounts.', 403);
+}
+
 /** Count active super_admins (used to protect against lockout). */
 function super_admin_count($conn) {
   $r = $conn->query("SELECT COUNT(*) c FROM users WHERE role='super_admin' AND deleted_at IS NULL");
@@ -71,8 +77,9 @@ if ($action === 'password' && method() === 'POST') {
   $stmt->execute();
   // Drop all other sessions for this user; keep the current one.
   $tok = bearer();
-  $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE user_id = ? AND token <> ?');
-  $stmt->bind_param('is', $user['id'], $tok);
+  $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE user_id = ? AND token NOT IN (?, ?)');
+  $hash = staff_token_hash($tok);
+  $stmt->bind_param('iss', $user['id'], $hash, $tok);
   $stmt->execute();
   audit($user['id'], 'password_change');
   json(['ok' => true]);
@@ -103,6 +110,7 @@ if ($action === 'create' && method() === 'POST') {
   if ($name === '') fail('Name is required.');
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('A valid email is required.');
   if (!in_array($role, $ROLES, true)) fail('Unknown role.');
+  guard_super_admin($me, null, $role);
 
   // Unique email (including soft-deleted, since the column is UNIQUE).
   $stmt = $conn->prepare('SELECT id, deleted_at FROM users WHERE email = ?');
@@ -140,6 +148,7 @@ if ($action === 'update' && method() === 'POST') {
   $status = array_key_exists('status', $b) ? $b['status'] : null;
   if ($role !== null && !in_array($role, $ROLES, true)) fail('Unknown role.');
   if ($status !== null && !in_array($status, $STATUSES, true)) fail('Unknown status.');
+  guard_super_admin($me, $target['role'], $role);
 
   // Lockout guards: don't strip the last super_admin, and don't demote/suspend yourself.
   $demoting = ($role !== null && $role !== 'super_admin' && $target['role'] === 'super_admin');
@@ -162,16 +171,24 @@ if ($action === 'update' && method() === 'POST') {
   $stmt = $conn->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = ?');
   $stmt->bind_param($types, ...$vals);
   $stmt->execute();
+  // A suspended (or re-invited) account loses its sessions at once.
+  if ($status !== null && $status !== 'active') {
+    $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE user_id = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+  }
   audit($me['id'], 'staff_update', 'user', $id, $b);
   json(['ok' => true]);
 }
 
 if ($action === 'reset' && method() === 'POST') {
   $id = (int)($_GET['id'] ?? 0);
-  $stmt = $conn->prepare("SELECT id FROM users WHERE id = ? AND deleted_at IS NULL AND role <> 'customer'");
+  $stmt = $conn->prepare("SELECT id, role FROM users WHERE id = ? AND deleted_at IS NULL AND role <> 'customer'");
   $stmt->bind_param('i', $id);
   $stmt->execute();
-  if (!$stmt->get_result()->fetch_assoc()) fail('User not found.', 404);
+  $target = $stmt->get_result()->fetch_assoc();
+  if (!$target) fail('User not found.', 404);
+  guard_super_admin($me, $target['role']);
 
   $plain = temp_password();
   $hash = password_hash($plain, PASSWORD_BCRYPT);
@@ -195,6 +212,7 @@ if ($action === 'deactivate' && method() === 'POST') {
   $stmt->execute();
   $target = $stmt->get_result()->fetch_assoc();
   if (!$target) fail('User not found.', 404);
+  guard_super_admin($me, $target['role']);
   if ($target['role'] === 'super_admin' && super_admin_count($conn) <= 1) {
     fail('This is the last active super admin — promote someone else first.', 409);
   }

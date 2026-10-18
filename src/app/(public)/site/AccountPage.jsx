@@ -438,7 +438,7 @@ const AccountPage = () => {
   }, [])
 
   return (
-    <SiteLayout title="Your orders">
+    <SiteLayout title="Your orders" noindex>
       <section className="hc-pagehead">
         <div className="hc-container">
           <div className="hc-crumb">

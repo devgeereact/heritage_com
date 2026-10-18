@@ -199,6 +199,27 @@ Gap checks, 16 October 2026, staging: tailor account (`tailor` role) on job HC-0
 
 Offline (A16), 16 October 2026, local staging, browser set offline through Playwright: Contact at 390px shows the offline bar, Send enquiry is refused with the offline message and the typed name stays in the field; back online shows "Back online. You can save again." and it clears after about four seconds (PASS). Admin Payments: Verify while offline is refused with the message (banner and save state) (PASS). Switching a Payments tab offline shows "You are offline, so payments cannot load. Retry once the connection is back."; Retry after reconnecting loads 76 rows (PASS). Opening Appointments offline before its code had loaded first blanked the whole app (found in this check); now the "This page could not open" screen shows with Try again, which opened Appointments once back online (PASS). NOT TESTED: a real phone, the production service worker, slow and intermittent connections, screen readers.
 
+Those offline checks ran on #17's own implementation. At the 18 October 2026 merge of #14 that implementation was replaced by #14's (staff banner only, no "Back online", `AppErrorBoundary` instead of `RouteErrorBoundary`); the checks were rerun on the merged branch the same day, below.
+
+Merged branch, 18 October 2026: a development build of `sync/offline-a16` served by `vite preview` against a staging API on this branch, Chromium through Playwright, browser set offline. Signed in, Today loads; offline, the staff banner shows "You are offline. You can still read what is on screen..." (PASS); moving to Payments, whose code had not loaded, shows the error screen with the offline sentence instead of a blank app (PASS); Back returns to Today with the error screen cleared and the banner still showing (PASS); back online the banner goes (PASS). A save attempted offline throws "You are offline, so nothing was saved" with `network` and `offline` set (PASS, through `heritApi` in the page). NOT TESTED: the `LoadError` offline sentence on screen, the website and sign-in (no banner by design), a real phone, the production service worker. A page that failed to load stays failed until Reload (React keeps a failed lazy import), which the screen tells the user to do.
+
+## Audit fixes (17 October 2026)
+
+Branch `feat/redesign-dark-luxury`, Vite dev server on 5112 against the staging API on 8088, Chromium through Playwright. API results are in [SECURITY-AUDIT.md](SECURITY-AUDIT.md#audit-fixes-17-october-2026).
+
+| Check | Result |
+|---|---|
+| An unknown URL, `/pages-404`, `/auth/sign-up` and `/auth/lock-screen` show "Page not found" with noindex | PASS |
+| Shop routes show the not-found page to a visitor while the shop is off, and open for signed-in staff | PASS |
+| `/auth/reset-pass` shows text and no form | PASS |
+| Contact shows the privacy note and the `/privacy` link | PASS |
+| Track, Account, the portal job page, Invite, Cart and Checkout carry noindex | PASS |
+| Home hero with two synthetic slides: one `h1`, one `h2`, pause stops advance | PASS |
+| No sideways scroll at 320px on home, contact, book, company orders, track, account and not-found | PASS |
+| Only localhost and the staging API requested; console 0 errors | PASS |
+
+NOT TESTED: the privacy note on Book step 2 (online booking is off on staging), the error boundary and its one-time reload, real phones, screen readers.
+
 ## Usability
 
 Usability evidence (formerly `qa/UX-AUDIT.md`). Specification: [docs/UX-SPEC.md](../docs/UX-SPEC.md).
@@ -225,3 +246,15 @@ Proposed goals to test, not guaranteed outcomes: routine status and payment acti
 | Today | 390px and 1280px | Blocks with work first, counts, one-tap rows, one next step when empty, no charts | Screenshots, 10 Oct 2026 | None | Owner to confirm block order | Built; owner review NOT TESTED |
 
 Check comprehension, hierarchy, navigation, calls to action, forms, feedback, error recovery, trust, overflow, touch behaviour and the next step.
+
+## Offline behaviour, 17 October 2026 (A16)
+
+Chromium (Playwright) offline mode, `npm run dev` against local staging, `feat/redesign-dark-luxury`.
+
+| Check | Result |
+|---|---|
+| Staff screen (`/today`) online, offline, online again | PASS: offline banner hidden, shown, hidden |
+| Contact form submitted while offline | PASS: no request to `contact.php`; alert "You are offline, so nothing was saved. Reconnect and try again." |
+| Gift card issued on staging (synthetic) | PASS: `HG-` plus 16 hex characters; `gift_check` accepts it |
+| POS offline queue | Source only: `isNetworkError` also accepts the new `network` flag; NOT TESTED in a browser |
+| Real phones, flaky connections, update after a deploy | NOT TESTED |

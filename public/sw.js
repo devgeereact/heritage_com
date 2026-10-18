@@ -1,7 +1,11 @@
-/* HeritOS service worker — installable + offline-capable for the stall.
- * Network-first for navigations (so deploys land), cache-first for static
- * assets, and the API (*.php) is never cached. Bump CACHE to invalidate. */
-const CACHE = 'heritos-v1';
+/* HeritOS service worker: installable and offline-capable for the stall.
+ * Network-first for navigations (so deploys land; each good load refreshes the
+ * offline shell). Cache-first only for files whose content never changes under
+ * the same name: Vite's hashed /assets/, the self-hosted /fonts/ and the icons.
+ * Everything else (the API, uploads, sitemap.xml, robots.txt) goes to the
+ * network and is never cached. Bump CACHE to invalidate (K-20). */
+const CACHE = 'heritos-v2';
+const IMMUTABLE = /^\/(assets|fonts)\/|^\/(icon[\w-]*\.(svg|png)|apple-touch-icon\.png|favicon\.ico)$/;
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -24,14 +28,24 @@ self.addEventListener('fetch', (e) => {
   // Never cache the API.
   if (url.pathname.endsWith('.php') || url.pathname.startsWith('/api')) return;
 
-  // Navigations: network-first, fall back to the cached shell when offline.
+  // Navigations: network-first; keep the latest shell for offline use.
   if (request.mode === 'navigate') {
-    e.respondWith(fetch(request).catch(() => caches.match('/index.html')));
+    e.respondWith(
+      fetch(request)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put('/index.html', copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
     return;
   }
 
-  // Same-origin static assets: cache-first, then network (and cache it).
-  if (url.origin === self.location.origin) {
+  // Unchanging same-origin files: cache-first, then network (and cache it).
+  if (url.origin === self.location.origin && IMMUTABLE.test(url.pathname)) {
     e.respondWith(
       caches.match(request).then((hit) => hit || fetch(request).then((res) => {
         if (res && res.ok) {

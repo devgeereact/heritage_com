@@ -17,27 +17,32 @@ function token() {
   }
 }
 
-/* Offline (A16, D-016): saves are refused while the browser is offline, and a
- * request that cannot reach the server becomes a plain message with
- * err.code 'offline' or 'network' and status 0. Nothing is queued or cached;
- * forms keep the typed values on screen. */
-export const OFFLINE_MESSAGE = 'You are offline. Changes cannot be saved until the connection returns.'
+/**
+ * Offline handling (D-016, A16): writes are refused while the device is
+ * offline, before anything is sent, so nothing half-saves. A request that fails
+ * to reach the server becomes a plain-language error marked `network` (status
+ * 0); the POS checks that flag to queue a sale.
+ */
+const OFFLINE_WRITE = 'You are offline, so nothing was saved. Reconnect and try again.'
+const NO_CONNECTION = 'Could not reach the server. Check your connection and try again.'
+const NO_CONNECTION_WRITE = 'Could not reach the server, so this may not have been saved. Check your connection, then check before trying again.'
 const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false
-function netError(message, code) {
+// `offline` is also set when the browser reports no connection, so a screen can
+// say "you are offline" instead of a server problem (LoadError, A16).
+function networkError(message) {
   const err = new Error(message)
   err.status = 0
-  err.code = code
-  err.data = {}
+  err.network = true
+  err.offline = isOffline()
   return err
 }
-async function send(url, init = {}) {
+async function send(url, init) {
   const write = (init.method || 'GET') !== 'GET'
-  if (write && isOffline()) throw netError(OFFLINE_MESSAGE, 'offline')
+  if (write && isOffline()) throw networkError(OFFLINE_WRITE)
   try {
     return await fetch(url, init)
   } catch {
-    if (isOffline()) throw netError(write ? OFFLINE_MESSAGE : 'You are offline. This needs the connection to load.', 'offline')
-    throw netError('The server could not be reached. Check the connection and try again.', 'network')
+    throw networkError(write ? NO_CONNECTION_WRITE : NO_CONNECTION)
   }
 }
 
@@ -365,7 +370,8 @@ export const heritApi = {
   // Reviews + UGC
   reviews: {
     list: (slug) => request(`/reviews.php?action=list&slug=${encodeURIComponent(slug)}`, { auth: false }),
-    submit: (data) => request('/reviews.php?action=submit', { method: 'POST', body: data, auth: false }),
+    // Carries the customer session when signed in: only a verified session marks a review verified.
+    submit: (data) => crequest('/reviews.php?action=submit', { method: 'POST', body: data }),
     gallery: () => request('/reviews.php?action=gallery', { auth: false }),
     moderate: (status = 'pending') => request(`/reviews.php?action=moderate&status=${status}`),
     setStatus: (id, status) => request(`/reviews.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
@@ -459,12 +465,13 @@ export const heritApi = {
     blog: (limit = 24) => request(`/store.php?action=blog&limit=${limit}`, { auth: false }),
     blogPost: (slug) => request(`/store.php?action=blog&slug=${encodeURIComponent(slug)}`, { auth: false }),
     testimonials: () => request('/store.php?action=testimonials', { auth: false }),
-    checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
+    // Store credit applies only for the signed-in customer's own session (server rule).
+    checkout: (data) => crequest('/store.php?action=checkout', { method: 'POST', body: data }),
     payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
     validateCoupon: (code, subtotal, shipping = 0) =>
       request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
-    creditBalance: (phone) => request(`/loyalty.php?action=credit_balance&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    creditBalance: () => crequest('/loyalty.php?action=credit_balance'),
     giftCheck: (code) => request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
     track: (code, phone) => request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
     waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),

@@ -18,11 +18,11 @@ const SignIn = () => {
               <Col lg={6} className="py-lg-5">
                 <div className="d-flex flex-column h-100 justify-content-center">
                   <div className="auth-logo mb-4">
-                    <Link to="/dashboard" className="logo-dark">
-                      <img src={logoDark} height={24} alt="logo dark" />
+                    <Link to="/auth/sign-in" className="logo-dark">
+                      <img src={logoDark} height={24} alt="HeritOS" />
                     </Link>
-                    <Link to="/dashboard" className="logo-light">
-                      <img src={logoLight} height={24} alt="logo light" />
+                    <Link to="/auth/sign-in" className="logo-light">
+                      <img src={logoLight} height={24} alt="HeritOS" />
                     </Link>
                   </div>
                   <AuthHeading

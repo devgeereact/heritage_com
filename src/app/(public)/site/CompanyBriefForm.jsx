@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import PrivacyNote from './PrivacyNote'
 import heritApi from '@/helpers/heritApi'
 import { Field, ErrorSummary } from './ui/Field'
 import Button from './ui/Button'
 import Icon from './ui/Icon'
+
+// Focus the thank-you panel when it replaces the form, so it is read out (K-16).
+const focusOnMount = (el) => el?.focus()
 
 const MATERIAL = [
   { v: 'client', l: 'We will supply the fabric' },
@@ -93,7 +96,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
 
   if (status === 'sent') {
     return (
-      <div className="hc-success-panel" role="status">
+      <div className="hc-success-panel" role="status" tabIndex={-1} ref={focusOnMount}>
         <h3>
           <Icon name="check-circle" /> Brief received
         </h3>
@@ -212,9 +215,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
           />
         </div>
         <div className="hc-field--full">
-          <p className="hc-field-help">
-            I use these details only to reply to this brief. <Link to="/privacy">How I handle your details</Link>.
-          </p>
+          <PrivacyNote>I use these details only to reply to this brief.</PrivacyNote>
           <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'} className="hc-mt-3">
             {status === 'sending' ? 'Sending…' : 'Send your company brief'}
           </Button>

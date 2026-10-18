@@ -1,45 +1,26 @@
 import { useEffect, useState } from 'react'
-import { OFFLINE_MESSAGE } from '@/helpers/heritApi'
-import './OfflineBanner.css'
-
-const BACK_MS = 4000
 
 /**
- * Connection notice for the website, sign-in and admin (A16, D-016). Shows the
- * offline message while the browser reports no connection, then "Back online"
- * for a few seconds. Saves are refused in heritApi while offline; nothing is
- * queued, and forms keep what was typed.
+ * Plain offline notice for staff screens (D-016, A16). Pages already on screen
+ * stay readable; saving is refused by heritApi until the connection returns.
+ * The POS keeps its own queue and message.
  */
 const OfflineBanner = () => {
-  const [state, setState] = useState(() => (typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'online'))
-
+  const [offline, setOffline] = useState(typeof navigator !== 'undefined' && navigator.onLine === false)
   useEffect(() => {
-    let timer
-    const down = () => {
-      clearTimeout(timer)
-      setState('offline')
-    }
-    const up = () => {
-      setState((s) => (s === 'offline' ? 'back' : s))
-      clearTimeout(timer)
-      timer = setTimeout(() => setState('online'), BACK_MS)
-    }
-    window.addEventListener('offline', down)
-    window.addEventListener('online', up)
+    const on = () => setOffline(false)
+    const off = () => setOffline(true)
+    window.addEventListener('online', on)
+    window.addEventListener('offline', off)
     return () => {
-      clearTimeout(timer)
-      window.removeEventListener('offline', down)
-      window.removeEventListener('online', up)
+      window.removeEventListener('online', on)
+      window.removeEventListener('offline', off)
     }
   }, [])
-
+  if (!offline) return null
   return (
-    <div className="hc-net" role="status" aria-live="polite">
-      {state !== 'online' && (
-        <div className={`hc-net-bar${state === 'back' ? ' is-back' : ''}`}>
-          {state === 'offline' ? OFFLINE_MESSAGE : 'Back online. You can save again.'}
-        </div>
-      )}
+    <div className="alert alert-warning mb-3" role="status">
+      <strong>You are offline.</strong> You can still read what is on screen, but changes cannot be saved until you reconnect.
     </div>
   )
 }

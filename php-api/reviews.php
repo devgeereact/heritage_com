@@ -68,6 +68,14 @@ if ($action === 'qa_list' && method() === 'GET') {
 
 /* ---- PUBLIC: submit a review --------------------------------------------- */
 if ($action === 'submit' && method() === 'POST') {
+  // Product reviews belong to the deferred retail shop: closed until shop_enabled is on.
+  $shop = $conn->query("SELECT svalue FROM settings WHERE skey = 'shop_enabled' LIMIT 1");
+  $shopRow = $shop ? $shop->fetch_assoc() : null;
+  if ((string)($shopRow['svalue'] ?? '') !== '1') fail('The shop is not open.', 403);
+  // Anonymous write: limit per IP per hour (audit_log rows, as booking.php does).
+  $ipKey = 'ip:' . client_ip();
+  throttle_enforce([[(int)cfg('REVIEW_MAX_PER_IP', 5), 'review_submit_ip', $ipKey]], 3600);
+  audit(null, 'review_submit_ip', $ipKey);
   $b = body();
   $slug = trim($b['product_slug'] ?? '');
   $pname = trim($b['product_name'] ?? '');
@@ -78,6 +86,10 @@ if ($action === 'submit' && method() === 'POST') {
   $title = trim($b['title'] ?? '');
   $bodyText = trim($b['body'] ?? '');
   $photo = trim($b['photo_url'] ?? '');
+  foreach ([[$slug, 190], [$pname, 190], [$name, 120], [$phone, 40], [$title, 160], [$bodyText, 3000], [$photo, 500]] as [$v, $max]) {
+    if (mb_strlen($v) > $max) fail('Some details are too long. Please shorten them.');
+  }
+  if ($photo !== '' && !preg_match('#^https://#i', $photo)) $photo = '';
   if ($kind === 'question') {
     if ($slug === '' || $name === '' || $bodyText === '') fail('Name, the piece and your question are required');
     $rating = 0;
@@ -86,10 +98,14 @@ if ($action === 'submit' && method() === 'POST') {
     if ($bodyText === '' && $title === '') fail('Add a few words about the piece');
   }
 
-  // Verified-purchase: this phone's customer has an order line for this slug.
+  // Verified-purchase: only a signed-in customer (verified portal session) who has
+  // an order line for this slug. A typed phone number is not proof of identity, so
+  // it no longer links the review to a customer or marks it verified.
   $verified = 0; $customerId = null;
-  if ($phone !== '') {
-    $cid = customer_id_by_phone($phone);
+  require_once __DIR__ . '/_portal.php';
+  $me = customer_session_optional();
+  if ($me) {
+    $cid = (int)$me['id'];
     if ($cid) {
       $customerId = $cid;
       $stmt = $conn->prepare(

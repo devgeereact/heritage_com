@@ -7,22 +7,30 @@ const DURATION = 7500
 
 const reducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-/** Headline split into masked words so each can rise in turn; one readable string for screen readers. */
-const Title = ({ text }) => {
+/**
+ * Headline split into masked words so each can rise in turn; one readable string for screen readers.
+ * Only the first slide is the page's h1; later slides use h2 so Home keeps one h1.
+ */
+const Title = ({ text, first }) => {
   const words = String(text || '')
     .split(/\s+/)
     .filter(Boolean)
-  return (
+  const inner = words.map((w, i) => (
+    <span key={`${w}-${i}`} aria-hidden="true">
+      <span className="hc-hero-word">
+        <span style={{ '--hc-i': Math.min(i, 11) }}>{w}</span>
+      </span>
+      {i < words.length - 1 ? ' ' : ''}
+    </span>
+  ))
+  return first ? (
     <h1 className="hc-hero-title" aria-label={text}>
-      {words.map((w, i) => (
-        <span key={`${w}-${i}`} aria-hidden="true">
-          <span className="hc-hero-word">
-            <span style={{ '--hc-i': Math.min(i, 11) }}>{w}</span>
-          </span>
-          {i < words.length - 1 ? ' ' : ''}
-        </span>
-      ))}
+      {inner}
     </h1>
+  ) : (
+    <h2 className="hc-hero-title" aria-label={text}>
+      {inner}
+    </h2>
   )
 }
 
@@ -48,6 +56,8 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
   const [focus, setFocus] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [still] = useState(reducedMotion)
+  // Stopped by the visitor with the pause button (WCAG 2.2.2); stays stopped.
+  const [stopped, setStopped] = useState(false)
   const [touchX, setTouchX] = useState(null)
 
   const go = useCallback((n) => setIdx(((n % count) + count) % count), [count])
@@ -62,7 +72,7 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
 
   if (!count) return null
   const media = slides.some((s) => s.image?.src)
-  const paused = hover || focus || hidden || still
+  const paused = hover || focus || hidden || still || stopped
 
   const onKeyDown = (e) => {
     if (!many) return
@@ -118,7 +128,7 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
             <div className="hc-container hc-slide-copy">
               <div className="hc-hero-copy">
                 {s.eyebrow && <p className="hc-eyebrow hc-hero-eyebrow">{s.eyebrow}</p>}
-                <Title text={s.title} />
+                <Title text={s.title} first={i === 0} />
                 {s.lead && <p className="hc-hero-lead">{s.lead}</p>}
                 {(s.primary || s.secondary) && (
                   <Actions className="hc-hero-actions">
@@ -159,9 +169,20 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
               ))}
             </div>
             <div className="hc-hero-nav">
-              <p className="hc-hero-count" aria-live="polite">
+              {/* Announce slide changes only when the visitor drives them, not on every auto-advance. */}
+              <p className="hc-hero-count" aria-live={paused ? 'polite' : 'off'}>
                 <b>{String(idx + 1).padStart(2, '0')}</b> / {String(count).padStart(2, '0')}
               </p>
+              {!still && (
+                <button
+                  type="button"
+                  className="hc-hero-arrow"
+                  onClick={() => setStopped((v) => !v)}
+                  aria-label={stopped ? 'Play slides' : 'Pause slides'}
+                  aria-pressed={stopped}>
+                  <Icon name={stopped ? 'play' : 'pause'} />
+                </button>
+              )}
               <button type="button" className="hc-hero-arrow" onClick={prev} aria-label="Previous slide">
                 <Icon name="arrow-left" />
               </button>

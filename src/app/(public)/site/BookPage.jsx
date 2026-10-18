@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import PrivacyNote from './PrivacyNote'
 import { Link } from 'react-router-dom'
 import heritApi from '@/helpers/heritApi'
 import newRequestKey from '@/helpers/requestKey'
@@ -31,6 +32,21 @@ const BookPage = () => {
 
   const load = useCallback((from, days) => heritApi.booking.slots(chosenType, from, days), [chosenType])
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }))
+  // Move focus to each new step's heading (or the result) so keyboard and
+  // screen-reader users land on what changed (K-16).
+  const panel = useRef(null)
+  const moved = useRef(false)
+  useEffect(() => {
+    if (!moved.current) {
+      moved.current = true
+      return
+    }
+    const target = panel.current?.querySelector('[role="status"], h2')
+    if (target) {
+      target.setAttribute('tabindex', '-1')
+      target.focus()
+    }
+  }, [step])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -39,7 +55,11 @@ const BookPage = () => {
     if (!f.phone.trim() && !f.email.trim()) errs.phone = 'Give a phone number or an email so we can confirm'
     if (f.email.trim() && !/^\S+@\S+\.\S+$/.test(f.email.trim())) errs.email = 'That email address looks wrong'
     setErrors(errs)
-    if (Object.keys(errs).length) return
+    const first = ['name', 'phone', 'email'].find((k) => errs[k])
+    if (first) {
+      document.getElementById(`bk-${first}`)?.focus()
+      return
+    }
     setBusy(true)
     try {
       const r = await heritApi.booking.request({
@@ -112,7 +132,7 @@ const BookPage = () => {
               </div>
             )}
             {cfg?.enabled && (
-              <div className="hp-card">
+              <div className="hp-card" ref={panel}>
                 <ol className="hp-steps" aria-label="Steps">
                   {STEPS.map((s, i) => (
                     <li key={s} aria-current={i === step ? 'step' : undefined}>
@@ -191,7 +211,9 @@ const BookPage = () => {
                       You are asking for <strong>{fmtWhen(slot.start)}</strong> (Lagos time). This is a request: it is not booked until we confirm it.
                     </p>
                     <div className="hp-field">
-                      <label htmlFor="bk-name">Your name</label>
+                      <label htmlFor="bk-name">
+                        Your name <span className="hp-muted">(required)</span>
+                      </label>
                       <input
                         id="bk-name"
                         className="hp-input"
@@ -199,7 +221,7 @@ const BookPage = () => {
                         value={f.name}
                         onChange={set('name')}
                         aria-invalid={!!errors.name}
-                        aria-describedby="bk-name-err"
+                        aria-describedby={errors.name ? 'bk-name-err' : undefined}
                       />
                       {errors.name && (
                         <p id="bk-name-err" className="hp-error">
@@ -218,7 +240,7 @@ const BookPage = () => {
                         value={f.phone}
                         onChange={set('phone')}
                         aria-invalid={!!errors.phone}
-                        aria-describedby="bk-phone-help bk-phone-err"
+                        aria-describedby={errors.phone ? 'bk-phone-help bk-phone-err' : 'bk-phone-help'}
                       />
                       <p id="bk-phone-help" className="hp-help">
                         A phone number or an email is needed so we can confirm.
@@ -241,7 +263,7 @@ const BookPage = () => {
                         value={f.email}
                         onChange={set('email')}
                         aria-invalid={!!errors.email}
-                        aria-describedby="bk-email-err"
+                        aria-describedby={errors.email ? 'bk-email-err' : undefined}
                       />
                       {errors.email && (
                         <p id="bk-email-err" className="hp-error">
@@ -259,6 +281,7 @@ const BookPage = () => {
                       <label htmlFor="bk-hp">Leave this empty</label>
                       <input id="bk-hp" tabIndex={-1} autoComplete="off" value={f.hp_url} onChange={set('hp_url')} />
                     </div>
+                    <PrivacyNote className="hp-help">Your details are used to arrange this appointment.</PrivacyNote>
                     <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
                       <button type="button" className="hp-btn" onClick={() => setStep(1)}>
                         Back

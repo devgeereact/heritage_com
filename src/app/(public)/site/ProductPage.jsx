@@ -142,9 +142,9 @@ const ProductPage = () => {
 
               {notifyOpen && !notifyDone && (
                 <div className="hc-flex hc-wrap" style={{ gap: '0.5rem', marginTop: '0.4rem', maxWidth: 420 }}>
-                  <input placeholder="Your name" value={notify.name} onChange={(e) => setNotify((n) => ({ ...n, name: e.target.value }))}
+                  <input aria-label="Your name" autoComplete="name" placeholder="Your name" value={notify.name} onChange={(e) => setNotify((n) => ({ ...n, name: e.target.value }))}
                     style={{ flex: '1 1 140px', padding: '0.55rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
-                  <input placeholder="Phone / WhatsApp" value={notify.phone} onChange={(e) => setNotify((n) => ({ ...n, phone: e.target.value }))}
+                  <input aria-label="Phone or WhatsApp" type="tel" autoComplete="tel" placeholder="Phone / WhatsApp" value={notify.phone} onChange={(e) => setNotify((n) => ({ ...n, phone: e.target.value }))}
                     style={{ flex: '1 1 140px', padding: '0.55rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
                   <button onClick={joinWaitlist} className="hc-btn hc-btn--primary" style={{ cursor: 'pointer', border: 'none' }} disabled={!notify.phone.trim()}>Notify me</button>
                 </div>

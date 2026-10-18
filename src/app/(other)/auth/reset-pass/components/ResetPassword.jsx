@@ -141,11 +141,11 @@ const ResetPassword = () => {
               <Col lg={6} className="py-lg-5">
                 <div className="d-flex flex-column h-100 justify-content-center">
                   <div className="auth-logo mb-4">
-                    <Link to="/today" className="logo-dark">
-                      <img src={logoDark} height={24} alt="Herit Clothing" />
+                    <Link to="/auth/sign-in" className="logo-dark">
+                      <img src={logoDark} height={24} alt="HeritOS sign in" />
                     </Link>
-                    <Link to="/today" className="logo-light">
-                      <img src={logoLight} height={24} alt="Herit Clothing" />
+                    <Link to="/auth/sign-in" className="logo-light">
+                      <img src={logoLight} height={24} alt="HeritOS sign in" />
                     </Link>
                   </div>
                   {token ? (
@@ -161,10 +161,11 @@ const ResetPassword = () => {
                     <>
                       <AuthHeading
                         kicker="HeritOS · reset"
-                        title="Lost your key?"
+                        title="Lost your password?"
                         sub="Enter the email you sign in with. We send a link that works once and expires in 30 minutes."
                       />
                       <RequestForm />
+                      <p className="mt-3 text-muted small">No email access? Staff can ask the owner to reset the password from the Team page.</p>
                     </>
                   )}
                   <p className="mt-5 text-muted text-center">

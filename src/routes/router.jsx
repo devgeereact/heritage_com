@@ -4,8 +4,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { appRoutes, authRoutes, publicRoutes, redirectRoutes } from '@/routes/index';
 import { useAuthContext } from '@/context/useAuthContext';
 import { canAccessPath, roleHome } from '@/helpers/roles';
-import OfflineBanner from '@/components/OfflineBanner';
-import RouteErrorBoundary from '@/components/RouteErrorBoundary';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 // Layouts are lazy so each route group loads only its own CSS: public pages
 // never download Bootstrap, Larkon or heritos-admin.css (Phase 4, A23).
@@ -18,7 +17,7 @@ const AppRouter = props => {
     user
   } = useAuthContext();
   const { pathname } = useLocation();
-  return <><OfflineBanner /><RouteErrorBoundary key={pathname}><Suspense fallback={null}><Routes>
+  return <AppErrorBoundary resetKey={pathname}><Suspense fallback={null}><Routes>
       {(publicRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<PublicLayout {...props}>{route.element}</PublicLayout>} />)}
 
       {(authRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<AuthLayout {...props}>{route.element}</AuthLayout>} />)}
@@ -40,6 +39,6 @@ const AppRouter = props => {
       }
       return <Route key={idx + route.name} path={route.path} element={element} />;
     })}
-    </Routes></Suspense></RouteErrorBoundary></>;
+    </Routes></Suspense></AppErrorBoundary>;
 };
 export default AppRouter;

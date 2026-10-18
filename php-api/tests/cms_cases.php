@@ -164,6 +164,8 @@ check('spa meta: unpublished item gets no canonical URL', spa_meta('service', 'g
 check('spa meta: http or javascript images dropped', [spa_meta('project', 'x', ['cover' => ['url' => 'http://x/a.jpg']], '/work/x', 'https://h.com')['image'], spa_meta('project', 'x', ['cover' => ['url' => 'javascript:alert(1)']], '/work/x', 'https://h.com')['image']], ['', '']);
 $hh = spa_head_html(['title' => 'A "quoted" <b>', 'description' => "It's & more", 'url' => 'https://h.com/a', 'image' => '', 'type' => 'website']);
 check('spa head: escaped, no image means summary card', [str_contains($hh, 'A &quot;quoted&quot; &lt;b&gt;'), str_contains($hh, 'It&#039;s &amp; more'), str_contains($hh, '<b>'), str_contains($hh, 'content="summary"'), str_contains($hh, 'og:image')], [true, true, false, true, false]);
+$hf = spa_head_html(spa_meta('page', 'home', null, '/', 'https://heritclothing.com'));
+check('spa head: no photograph falls back to the brand icon, summary card, en_NG locale', [str_contains($hf, 'og:image" content="https://heritclothing.com/icon-512.png"'), str_contains($hf, 'content="summary"'), str_contains($hf, 'og:locale" content="en_NG"')], [true, true, true]);
 $page = "<head>\n  <!--hc:head-->\n  <title>Old</title>\n  <!--/hc:head-->\n</head>";
 check('spa inject: replaces only the marked block', [str_contains(spa_inject($page, '<title>New $1 \\0</title>'), '<title>New $1 \\0</title>'), str_contains(spa_inject($page, '<title>New</title>'), 'Old')], [true, false]);
 check('spa inject: page without markers unchanged', spa_inject('<head><title>X</title></head>', '<title>Y</title>'), '<head><title>X</title></head>');
