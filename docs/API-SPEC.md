@@ -95,7 +95,7 @@ The client sends the customer session token (`crequest` in `heritApi.js`) with `
 ## Customer lookups and references
 
 - Verified customer access (Phase 3 branch) is the primary route: [Customer access](#customer-access) below. The older lookups that follow remain.
-- Customer lookups (`store.php?action=track`, `account.php?action=login`) go through `order_by_customer_ref()` in `_lib.php`: the random public reference always works; the old `ORD-` code works only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is true (default true, so references already sent to customers keep working). Both still need the matching phone and are throttled per IP.
+- Customer lookups (`store.php?action=track`, `account.php?action=login`) go through `order_by_customer_ref()` in `_lib.php`: the random public reference always works; the old `ORD-` code works only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is true (default true, so references already sent to customers keep working). Both still need the matching phone and are throttled per IP. `store.php?action=track` takes `POST` with a JSON body `{code, phone}` so the phone number never reaches access logs (K-14). The older `GET ...&code=&phone=` form still answers while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on, for browsers that cached the old site; with it off, `GET` is refused with 405 (D-021). A failed lookup is the same generic 404 either way.
 - The checkout confirmation, tracking page, customer portal and WhatsApp order confirmation show the public reference. Tailoring jobs carry one ready for Phase 3; no customer page shows it yet. Payment start and verification (`pay_init`, `pay_verify`) still use the staff code.
 - Code and reference formats are in [DATA-MODEL.md](DATA-MODEL.md#codes-and-references).
 

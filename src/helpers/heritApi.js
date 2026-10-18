@@ -32,8 +32,9 @@ function networkError(message) {
   err.network = true
   return err
 }
-async function send(url, init) {
-  const write = (init.method || 'GET') !== 'GET'
+async function send(url, init, { lookup = false } = {}) {
+  // A lookup is a read sent as POST, so the offline write refusal does not apply.
+  const write = !lookup && (init.method || 'GET') !== 'GET'
   if (write && typeof navigator !== 'undefined' && navigator.onLine === false) throw networkError(OFFLINE_WRITE)
   try {
     return await fetch(url, init)
@@ -42,17 +43,21 @@ async function send(url, init) {
   }
 }
 
-async function request(path, { method = 'GET', body, auth = true } = {}) {
+async function request(path, { method = 'GET', body, auth = true, lookup = false } = {}) {
   const headers = { 'Content-Type': 'application/json' }
   if (auth) {
     const t = token()
     if (t) headers.Authorization = `Bearer ${t}`
   }
-  const res = await send(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  })
+  const res = await send(
+    `${API_BASE}${path}`,
+    {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    },
+    { lookup },
+  )
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)
   return data
@@ -466,7 +471,8 @@ export const heritApi = {
       request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
     creditBalance: () => crequest('/loyalty.php?action=credit_balance'),
     giftCheck: (code) => request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
-    track: (code, phone) => request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    // POST with a JSON body so the phone number never reaches server access logs (K-14).
+    track: (code, phone) => request('/store.php?action=track', { method: 'POST', body: { code, phone }, auth: false, lookup: true }),
     waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),
     saveCart: (data) => request('/store.php?action=save_cart', { method: 'POST', body: data, auth: false }),
   },

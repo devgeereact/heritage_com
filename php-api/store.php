@@ -10,6 +10,8 @@
  *                                                / Flutterwave) if configured,
  *                                                else {provider:'manual'}
  *   GET  /store.php?action=pay_verify&reference=… → confirm payment, mark paid
+ *   POST /store.php?action=track {code, phone} → public order status (the old GET
+ *                                                form is legacy, see TRACK below)
  *
  * Prices are authoritative HERE, never trusted from the browser, and come only
  * from published rows of the products table. Orders land in the same `orders` table the admin queue reads,
@@ -660,10 +662,19 @@ if ($action === 'save_cart' && method() === 'POST') {
 /* A customer looks up their own order with its reference + phone. The reference
  * is the random public_ref (or, while ALLOW_LEGACY_ORDER_CODE_LOOKUP is on, the
  * old ORD- code). Phone must match (last 9 digits, so +234/0 prefixes don't
- * matter) so one can't browse others' orders. */
-if ($action === 'track' && method() === 'GET') {
-  $code = trim($_GET['code'] ?? '');
-  $phone = trim($_GET['phone'] ?? '');
+ * matter) so one can't browse others' orders.
+ *
+ * K-14: the phone number must not travel in a query string, where it would reach
+ * server access logs. The site now sends POST /store.php?action=track with a
+ * JSON body {code, phone}. The old GET form is kept for one release so a cached
+ * older client keeps working; it is answered only while
+ * ALLOW_LEGACY_ORDER_CODE_LOOKUP is on and goes when that switch is turned off
+ * (D-021). Same throttle and the same generic failure either way. */
+if ($action === 'track' && in_array(method(), ['POST', 'GET'], true)) {
+  if (method() === 'GET' && !cfg('ALLOW_LEGACY_ORDER_CODE_LOOKUP', true)) fail('Use POST for order lookup', 405);
+  $in = method() === 'POST' ? body() : $_GET;
+  $code = trim((string)($in['code'] ?? ''));
+  $phone = trim((string)($in['phone'] ?? ''));
   if ($code === '' || $phone === '') fail('Order reference and phone are required');
 
   // Failed lookups are counted per IP in audit_log so code + phone pairs cannot
