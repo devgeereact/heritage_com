@@ -251,15 +251,19 @@ describe('staff session cookie', () => {
     expect(session()).toMatchObject({ token: 'abc' })
   })
 
-  // BUG (found while writing these tests): AuthProvider.getSession calls
-  // JSON.parse on the cookie with no guard, so a cookie that is not valid JSON
-  // throws during the first render. AuthProvider sits above AppErrorBoundary, so
-  // the user gets a blank page until the cookie is cleared. heritApi's own token()
-  // reader does guard it. Reported as a new known issue; the test stays out of
-  // the run until the provider is fixed.
-  it.skip('survives a session cookie that is not valid JSON', () => {
+  // AuthProvider sits above AppErrorBoundary, so a throw while reading the cookie
+  // would blank the app. A cookie that is not valid JSON is dropped instead.
+  it('survives a session cookie that is not valid JSON', () => {
     document.cookie = '_LARKON_AUTH_KEY_=%7Bnot-json; path=/'
     expect(() => renderSignIn()).not.toThrow()
     expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
+    expect(Cookies.get('_LARKON_AUTH_KEY_')).toBeUndefined()
+  })
+
+  it('drops a session cookie that is valid JSON but not a profile', () => {
+    document.cookie = `_LARKON_AUTH_KEY_=${encodeURIComponent('"just a string"')}; path=/`
+    expect(() => renderSignIn()).not.toThrow()
+    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
+    expect(Cookies.get('_LARKON_AUTH_KEY_')).toBeUndefined()
   })
 })

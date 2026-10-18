@@ -25,9 +25,18 @@ export function AuthProvider({
   const getSession = () => {
     const fetchedCookie = Cookies.get(authSessionKey);
     if (!fetchedCookie) return undefined;
-    return JSON.parse(fetchedCookie);
+    // This provider sits above the error boundary, so a throw here would blank
+    // the whole app. A cookie that is not a JSON object is dropped: signed out.
+    try {
+      const parsed = JSON.parse(fetchedCookie);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch {
+      // fall through
+    }
+    Cookies.remove(authSessionKey);
+    return undefined;
   };
-  const [user, setUser] = useState(getSession());
+  const [user, setUser] = useState(getSession);
   const saveSession = user => {
     Cookies.set(authSessionKey, JSON.stringify(user), {
       expires: SESSION_DAYS
