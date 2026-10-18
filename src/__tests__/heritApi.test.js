@@ -172,6 +172,20 @@ describe('heritApi: Bearer header', () => {
     expect(res.token).toBe('t')
   })
 
+  it('sends both sign-in calls as JSON, which the server requires (A15 login CSRF)', async () => {
+    const fetchMock = mockFetch(() => jsonResponse({ user: { role: 'manager' }, cookie_auth: true }))
+
+    await heritApi.login('dev@heritclothing.com', 'pa55')
+    await heritApi.pinLogin('1234')
+
+    const [[loginUrl, loginInit], [pinUrl, pinInit]] = fetchMock.mock.calls
+    expect(loginUrl).toBe(`${API_BASE}/auth.php?action=login`)
+    expect(pinUrl).toBe(`${API_BASE}/auth.php?action=pin_login`)
+    expect(headerOf(loginInit, 'Content-Type')).toBe('application/json')
+    expect(headerOf(pinInit, 'Content-Type')).toBe('application/json')
+    expect(JSON.parse(pinInit.body)).toEqual({ pin: '1234' })
+  })
+
   it('sends the staff token with a multipart upload and lets the browser set the content type', async () => {
     setStaffCookie({ token: 'abc123' })
     const fetchMock = mockFetch(() => jsonResponse({ id: 9 }))

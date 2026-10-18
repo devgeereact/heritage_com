@@ -59,3 +59,24 @@ check('cookie: clearing sends an empty value and Max-Age 0',
 check('cookie: negative lifetime is clamped to 0', strpos(staff_cookie_header('herit_csrf', '', -5, true, false), 'Max-Age=0;') !== false, true);
 check('cookie: a value cannot add attributes', staff_cookie_header('herit_staff', 'a; Domain=evil.test', 1, true, true),
   'herit_staff=a%3B%20Domain%3Devil.test; Max-Age=1; Path=/; Secure; HttpOnly; SameSite=Strict');
+
+/* ---- sign-in request rule (login CSRF) ------------------------------------------ */
+$self = 'https://heritclothing.com'; $cors = 'https://heritclothing.com';
+$lr = fn($ct, $sfs = '', $origin = '', $allowLocal = false) => staff_login_request_check($ct, $sfs, $origin, $self, $cors, $allowLocal);
+check('login: JSON with no Origin (curl, e2e) allowed', $lr('application/json'), null);
+check('login: JSON with a charset allowed', $lr('Application/JSON; charset=utf-8'), null);
+check('login: same-origin browser request allowed', $lr('application/json', 'same-origin', $self), null);
+check('login: text/plain form refused with 415', $lr('text/plain', 'cross-site', 'https://evil.example')[0], 415);
+check('login: urlencoded form refused', $lr('application/x-www-form-urlencoded')[0], 415);
+check('login: multipart refused', $lr('multipart/form-data; boundary=x')[0], 415);
+check('login: no Content-Type refused', $lr('')[0], 415);
+check('login: a JSON-looking suffix does not pass', $lr('text/plain; application/json')[0], 415);
+check('login: foreign Origin refused with 403', $lr('application/json', 'cross-site', 'https://evil.example')[0], 403);
+check('login: foreign Origin refused even without Sec-Fetch-Site', $lr('application/json', '', 'https://evil.example')[0], 403);
+check('login: cross-site with no Origin refused', $lr('application/json', 'cross-site')[0], 403);
+check('login: same-site sibling with no Origin allowed', $lr('application/json', 'same-site'), null);
+check('login: null Origin (sandboxed frame) refused', $lr('application/json', 'cross-site', 'null')[0], 403);
+check('login: configured CORS origin allowed', staff_login_request_check('application/json', 'cross-site', 'https://heritclothing.com', 'https://www.heritclothing.com', $cors, false), null);
+check('login: localhost dev origin allowed only with ALLOW_LOCALHOST_CORS',
+  [$lr('application/json', 'cross-site', 'http://localhost:5112', true), $lr('application/json', 'cross-site', 'http://localhost:5112', false)[0]], [null, 403]);
+check('login: http origin of the same host is not the https site', $lr('application/json', 'cross-site', 'http://heritclothing.com')[0], 403);

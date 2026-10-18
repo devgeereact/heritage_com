@@ -72,6 +72,7 @@ function throttle_guard(array $checks) {
 }
 
 if ($action === 'login' && method() === 'POST') {
+  staff_login_request_enforce();   // JSON only, no foreign origin (A15 login CSRF)
   $b = body();
   $email = trim(strtolower($b['email'] ?? ''));
   $password = $b['password'] ?? '';
@@ -193,6 +194,7 @@ if ($action === 'reset_confirm' && method() === 'POST') {
 /* Staff tap a short PIN instead of typing email+password. Scoped to staff who
  * have set a PIN; we verify against each candidate's hash. */
 if ($action === 'pin_login' && method() === 'POST') {
+  staff_login_request_enforce();
   $b = body();
   $pin = preg_replace('/\D/', '', (string)($b['pin'] ?? ''));
   if (strlen($pin) < 4 || strlen($pin) > 6) fail('Enter your 4–6 digit PIN', 400);

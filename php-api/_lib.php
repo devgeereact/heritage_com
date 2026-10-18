@@ -178,6 +178,42 @@ function staff_csrf_enforce($source) {
 }
 
 /**
+ * May this sign-in request go ahead (A15 login CSRF)? Pure. body() reads the
+ * raw input whatever the Content-Type, so a foreign page could post a
+ * JSON-shaped text/plain form to login or pin_login and plant its own session
+ * in the visitor's browser. A sign-in must therefore be application/json (a
+ * cross-site form cannot send that without a CORS pre-flight) and must not
+ * come from a foreign origin: an Origin header, when sent, must be this site
+ * itself or one cors_origin_allowed() accepts; with no Origin, a
+ * Sec-Fetch-Site of cross-site is refused. curl and the e2e scripts send JSON
+ * and no Origin, so they pass. Returns null when allowed, else [status, message].
+ */
+function staff_login_request_check($contentType, $secFetchSite, $origin, $selfOrigin, $corsOrigin, $allowLocalhost) {
+  $type = strtolower(trim(explode(';', (string)$contentType, 2)[0]));
+  if ($type !== 'application/json') return [415, 'Sign-in requests must be sent as JSON.'];
+  $origin = (string)$origin;
+  if ($origin !== '') {
+    if ($origin === (string)$selfOrigin || cors_origin_allowed($origin, $corsOrigin, $allowLocalhost)) return null;
+    return [403, 'Sign-in from another website is not allowed.'];
+  }
+  if (strtolower(trim((string)$secFetchSite)) === 'cross-site') return [403, 'Sign-in from another website is not allowed.'];
+  return null;
+}
+
+/** Refuse the current sign-in request unless staff_login_request_check() allows it. */
+function staff_login_request_enforce() {
+  $https = strtolower((string)($_SERVER['HTTPS'] ?? ''));
+  $self = (($https !== '' && $https !== 'off') ? 'https' : 'http') . '://' . (string)($_SERVER['HTTP_HOST'] ?? '');
+  $bad = staff_login_request_check(
+    $_SERVER['CONTENT_TYPE'] ?? ($_SERVER['HTTP_CONTENT_TYPE'] ?? ''),
+    $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '',
+    $_SERVER['HTTP_ORIGIN'] ?? '',
+    $self, CORS_ORIGIN, cfg('ALLOW_LOCALHOST_CORS', false)
+  );
+  if ($bad) fail($bad[1], $bad[0]);
+}
+
+/**
  * Plain http on the laptop (local staging), where a Secure cookie would not
  * stick? Pure. Needs no HTTPS, a localhost or 127.0.0.1 Host and a loopback
  * client, so a forged Host header alone never drops Secure on the live site.
