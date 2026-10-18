@@ -142,14 +142,18 @@ $out['access_requests'] = has_table('customer_access_challenges') ? [
     db_rows("SELECT ch.id, ch.customer_id, c.name AS client_name, ch.created_at FROM customer_access_challenges ch JOIN customers c ON c.id = ch.customer_id
               WHERE ch.status = 'awaiting_owner' AND ch.expires_at > UTC_TIMESTAMP() ORDER BY ch.id LIMIT " . TODAY_LIMIT)),
 ] : $EMPTY;
+// Unread client messages: the count, the per-job count and the items share one FROM
+// and WHERE, so a message on a deleted job (or with no job or client row) is in none
+// of them (K-07 L5).
+const TODAY_UNREAD_FROM = "FROM job_messages m JOIN tailoring_orders o ON o.id = m.job_id JOIN customers c ON c.id = m.customer_id
+                WHERE m.author_type = 'customer' AND m.read_by_owner_at IS NULL AND o.deleted_at IS NULL";
 if (has_table('job_messages')) {
   $out['messages_unread'] = [
-    'count' => (int)db_row("SELECT COUNT(*) AS n FROM job_messages WHERE author_type = 'customer' AND read_by_owner_at IS NULL")['n'],
+    'count' => (int)db_row('SELECT COUNT(*) AS n ' . TODAY_UNREAD_FROM)['n'],
     'items' => array_map(fn($r) => ['job_id' => (int)$r['job_id'], 'job_code' => $r['code'], 'client_name' => $r['client_name'], 'unread' => (int)$r['unread'],
       'last_at_local' => lagos_iso($r['last_ts'])],
       db_rows("SELECT m.job_id, o.code, c.name AS client_name, COUNT(*) AS unread, MAX(m.created_at) AS last_at, UNIX_TIMESTAMP(MAX(m.created_at)) AS last_ts
-                 FROM job_messages m JOIN tailoring_orders o ON o.id = m.job_id JOIN customers c ON c.id = m.customer_id
-                WHERE m.author_type = 'customer' AND m.read_by_owner_at IS NULL
+                 " . TODAY_UNREAD_FROM . "
              GROUP BY m.job_id, o.code, c.name ORDER BY last_at LIMIT " . TODAY_LIMIT)),
   ];
   $out['change_requests'] = [
@@ -179,7 +183,7 @@ foreach ($out as $k => &$blk) {
 }
 unset($blk);
 if (has_table('job_messages')) {
-  $unreadJobs = (int)db_row("SELECT COUNT(DISTINCT job_id) AS n FROM job_messages WHERE author_type = 'customer' AND read_by_owner_at IS NULL")['n'];
+  $unreadJobs = (int)db_row('SELECT COUNT(DISTINCT m.job_id) AS n ' . TODAY_UNREAD_FROM)['n'];
   $out['messages_unread']['more'] = today_more($unreadJobs, count($out['messages_unread']['items']));
 }
 

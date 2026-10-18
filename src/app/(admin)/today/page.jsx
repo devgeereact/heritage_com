@@ -130,6 +130,8 @@ const TodayPage = () => {
           seeAll: '/messages',
           empty: 'No unread messages from clients.',
           ...b('messages_unread'),
+          // The count is of messages, the rows are jobs: the full list has items plus what the server left out.
+          rowTotal: b('messages_unread').items.length + (Number(b('messages_unread').more) || 0),
           rows: b('messages_unread').items.map((m) => ({
             key: `mu${m.job_id}`,
             to: `/jobs/${m.job_id}?tab=messages`,

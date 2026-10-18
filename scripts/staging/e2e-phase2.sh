@@ -144,6 +144,8 @@ read -r N PT <<< "$("${DB[@]}" -e "SELECT (SELECT COUNT(*) FROM job_payments WHE
 check E6 "two parallel payments both present; paid_total = 30000 + 10000 + 10000" bash -c "[ '$N' = 3 ] && [ '$PT' = 50000.00 ]"
 
 # ---- E9: unverified transfer -----------------------------------------------
+# Today's unverified count before the transfer, so E9b3 can prove the transfer is counted.
+req GET "today.php"; U_BEFORE="$(j '.unverified_payments.count')"
 req POST "ledger.php?action=record" "{\"job_id\":$JID,\"amount\":\"20000\",\"method\":\"transfer\",\"external_ref\":\"TEST-E2E\",\"request_key\":\"$(key t1)\"}"
 TID="$(j .entry.id)"
 check E9a "transfer is not counted until verified" \
@@ -154,11 +156,13 @@ check E9a "transfer is not counted until verified" \
 # "To verify" tab) holds it.
 req GET "today.php"
 T_IN="$(j "[.unverified_payments.items[].id] | index($TID) != null")"; T_MORE="$(j '.unverified_payments.more')"
+U_AFTER="$(j '.unverified_payments.count')"
 T_OK="$(j '.unverified_payments | .more == ([.count - (.items | length), 0] | max)')"
 req GET "ledger.php?action=list&verified=0"; F_IN="$(j "[.entries[].id] | index($TID) != null")"
 check E9b "Today lists the unverified transfer, or reports it hidden through more and the full list holds it" \
   bash -c "[ '$F_IN' = true ] && { [ '$T_IN' = true ] || [ '$T_MORE' -gt 0 ] 2>/dev/null; }"
 check E9b2 "Today's unverified block: more = count minus items listed (K-07)" eq "$T_OK" true
+check E9b3 "Today's unverified count rose by exactly one with the transfer ($U_BEFORE to $U_AFTER)" eq "$U_AFTER" "$((U_BEFORE + 1))"
 req POST "ledger.php?action=verify&id=$TID"
 check E9c "verified transfer counts" eq "$(j .money.paid_verified)" "70000.00"
 

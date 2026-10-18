@@ -5,11 +5,18 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 /**
  * One Today block: title, count, up to five rows that each open the record in
  * one tap, and a "See all" link. Empty blocks show one line with one next step.
- * `more` is how many items the server left out of its capped list (K-07); the
- * footer says so ("And N more") and links to the full list when the block has one.
+ * The footer says how many rows are not on screen ("And N more") and links to
+ * the full list when the block has one. That number is worked out here from what
+ * is shown, not taken from the server's `more` (which only counts what the
+ * server left out of its list of 20): `rowTotal` is how many rows the full list
+ * has, `count` by default. Unread messages count messages but list one row per
+ * job, so that block passes items plus the server's `more` (K-07).
  */
-const TodayBlock = ({ id, title, icon, count = 0, more = 0, total, rows = [], seeAll, empty, tone }) => {
+const hiddenRows = (rowTotal, shownCount) => Math.max(0, (Number(rowTotal) || 0) - shownCount)
+
+const TodayBlock = ({ id, title, icon, count = 0, rowTotal, total, rows = [], seeAll, empty, tone }) => {
   const shown = rows.slice(0, 5)
+  const hidden = hiddenRows(rowTotal ?? count, shown.length)
   return (
     <Card className="hd-card h-100" as="section" aria-labelledby={`tb-${id}`}>
       <Card.Header className="d-flex align-items-center justify-content-between gap-2 py-2">
@@ -54,12 +61,12 @@ const TodayBlock = ({ id, title, icon, count = 0, more = 0, total, rows = [], se
           </div>
         )}
       </Card.Body>
-      {((seeAll && count > shown.length) || more > 0) && (
+      {hidden > 0 && (
         <Card.Footer className="bg-transparent py-2">
           {seeAll ? (
-            <Link to={seeAll}>{more > 0 ? `And ${more} more. See all ${count}` : `See all ${count}`}</Link>
+            <Link to={seeAll}>{`And ${hidden} more. See all ${count}`}</Link>
           ) : (
-            <span className="text-muted">And {more} more</span>
+            <span className="text-muted">And {hidden} more</span>
           )}
         </Card.Footer>
       )}
