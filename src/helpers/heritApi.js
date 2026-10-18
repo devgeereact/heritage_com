@@ -45,16 +45,20 @@ function staffHeaders(method, headers = {}) {
 const OFFLINE_WRITE = 'You are offline, so nothing was saved. Reconnect and try again.'
 const NO_CONNECTION = 'Could not reach the server. Check your connection and try again.'
 const NO_CONNECTION_WRITE = 'Could not reach the server, so this may not have been saved. Check your connection, then check before trying again.'
+const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false
+// `offline` is also set when the browser reports no connection, so a screen can
+// say "you are offline" instead of a server problem (LoadError, A16).
 function networkError(message) {
   const err = new Error(message)
   err.status = 0
   err.network = true
+  err.offline = isOffline()
   return err
 }
 async function send(url, init, { lookup = false } = {}) {
   // A lookup is a read sent as POST, so the offline write refusal does not apply.
   const write = !lookup && (init.method || 'GET') !== 'GET'
-  if (write && typeof navigator !== 'undefined' && navigator.onLine === false) throw networkError(OFFLINE_WRITE)
+  if (write && isOffline()) throw networkError(OFFLINE_WRITE)
   try {
     return await fetch(url, init)
   } catch {
@@ -177,6 +181,9 @@ export const heritApi = {
   // Auth
   login: (email, password) => request('/auth.php?action=login', { method: 'POST', body: { email, password }, auth: false }),
   logout: () => request('/auth.php?action=logout', { method: 'POST' }),
+  // Staff password reset by email (K-04): same answer whether or not the address has an account.
+  resetRequest: (email) => pub('/auth.php?action=reset_request', { email }),
+  resetConfirm: (token, password) => pub('/auth.php?action=reset_confirm', { token, password }),
   me: () => request('/auth.php?action=me'),
   pinLogin: (pin) => request('/auth.php?action=pin_login', { method: 'POST', body: { pin }, auth: false }),
   setPin: (pin) => request('/auth.php?action=set_pin', { method: 'POST', body: { pin } }),

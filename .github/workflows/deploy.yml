@@ -79,6 +79,7 @@ jobs:
           cp php-api/cms.php         dist/
           cp php-api/site.php        dist/
           cp php-api/sitemap.php     dist/
+          cp php-api/spa.php         dist/
           # Phase 5 files (company orders). New, so no hand-managed server copy exists.
           cp php-api/_company.php    dist/
           cp php-api/companies.php   dist/

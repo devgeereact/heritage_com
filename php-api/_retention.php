@@ -4,7 +4,7 @@
  *
  * Each category is one settings key holding a number of days. Empty, 0 or an
  * invalid value means OFF: keep forever. Only expired staff and legacy portal
- * tokens are seeded with a period (30 days past expiry, schema_phase29.sql);
+ * tokens are seeded with a period (30 days past expiry, schema_phase30.sql);
  * every other period is an owner decision (docs/DATA-PRIVACY.md).
  *
  * retention_plan() turns the settings and a "now" into the statements the CLI

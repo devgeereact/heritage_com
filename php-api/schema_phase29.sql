@@ -1,25 +1,23 @@
--- HeritOS: Phase 29 migration (data retention settings, K-18).
+-- HeritOS: Phase 29 migration (staff password reset by email, K-04).
 -- Additive; safe to re-run. Import via phpMyAdmin AFTER schema_phase28.sql.
 --
--- One settings key per retention category, holding a number of days. Empty or
--- 0 means keep forever, so the retention job (retention.php, run by cron)
--- deletes nothing in that category. Every period is an owner decision
--- (docs/DATA-PRIVACY.md, retention schedule) and starts empty, except expired
--- staff sign-in tokens and legacy portal tokens: they are not personal history,
--- so they start at 30 days past their own expires_at.
---
--- INSERT IGNORE never overwrites a value the owner has already saved. No table
--- or column changes.
+-- 1. password_resets: one row per reset link sent to a staff member. Only the
+--    SHA-256 hash of the link token is stored, never the token. A link works
+--    once (used_at) and expires (expires_at, UTC; 30 minutes by default,
+--    RESET_TTL_MINUTES in config.php). Asking for a new link retires every
+--    earlier unused one. A successful reset signs the person out everywhere.
 --
 -- Dry run (read-only), record the result before importing:
---   SELECT skey, svalue FROM settings WHERE skey LIKE 'retention\_%';
+--   SHOW TABLES LIKE 'password_resets';
 
-INSERT IGNORE INTO settings (skey, svalue) VALUES
-  ('retention_expired_tokens_days', '30'),
-  ('retention_customer_sessions_days', ''),
-  ('retention_access_attempts_days', ''),
-  ('retention_audit_log_days', ''),
-  ('retention_whatsapp_log_days', ''),
-  ('retention_abandoned_carts_days', ''),
-  ('retention_waitlist_days', ''),
-  ('retention_closed_enquiries_days', '');
+CREATE TABLE IF NOT EXISTS password_resets (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id     INT NOT NULL,
+  token_hash  CHAR(64) NOT NULL,
+  expires_at  DATETIME NOT NULL,                    -- UTC
+  used_at     DATETIME NULL,                        -- UTC; set when used or retired
+  ip          VARCHAR(45) NULL,
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_password_resets_hash (token_hash),
+  KEY idx_password_resets_user (user_id, used_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

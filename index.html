@@ -6,9 +6,12 @@
   <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
   <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Public defaults for the first paint and for link previews (K-06). useSeo
+       replaces them per page as it renders; php-api/spa.php can fill this
+       block per page for crawlers that do not run JavaScript. Keep both
+       markers. No inline script here: the CSP allows only this site's files. -->
+  <!--hc:head-->
   <title>Herit Clothing | Men's tailoring in Lagos</title>
-  <!-- Defaults for the first paint and for crawlers that do not run JavaScript;
-       useSeo replaces them per page (K-06 covers per-page previews). -->
   <meta name="description" content="Herit Clothing is a men's fashion and tailoring business in Lagos. Get in touch about clothing made to your measurements or about a company order." />
   <meta property="og:site_name" content="Herit Clothing" />
   <meta property="og:type" content="website" />
@@ -17,6 +20,7 @@
   <meta property="og:description" content="Herit Clothing is a men's fashion and tailoring business in Lagos. Get in touch about clothing made to your measurements or about a company order." />
   <meta property="og:image" content="https://heritclothing.com/icon-512.png" />
   <meta name="twitter:card" content="summary" />
+  <!--/hc:head-->
 
   <!-- PWA: installable + offline-capable -->
   <meta name="theme-color" content="#0E0D0B" />

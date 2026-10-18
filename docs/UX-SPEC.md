@@ -71,7 +71,7 @@ As built (`feat/redesign-dark-luxury`, audit fixes, 17 October 2026; routes in [
 - Contact, Book and the company brief form show a short privacy line under the form, linking to `/privacy` only while a privacy policy is published (`nav.privacy`).
 - Home hero: only the first slide's heading is an `h1`; a 48px pause and play button stops rotation, and the slide counter is announced only while paused. Testimonials have the same pause button, and choosing a review stops rotation.
 - The page scrolls anchors clear of the sticky header (`scroll-padding-top`).
-- Sign-in: the email field is `type=email` with `autocomplete=username`, the password field `autocomplete=current-password`; the unused "Remember me" box is removed; show password is a real button with `aria-label` and `aria-pressed`. `/auth/reset-pass` explains that email reset is not available and how staff and the owner recover, with no form.
+- Sign-in: the email field is `type=email` with `autocomplete=username`, the password field `autocomplete=current-password`; the unused "Remember me" box is removed; show password is a real button with `aria-label` and `aria-pressed`. `/auth/reset-pass` (K-04, `feat/staff-password-reset`) has two steps: without a token it asks for the sign-in email and always shows the same confirmation; with `?token=` from the emailed link it asks for the new password twice and then links to sign-in. Under the request form a note says staff without email access can ask the owner to reset from Team. The logo links to sign-in.
 
 ## Required states
 

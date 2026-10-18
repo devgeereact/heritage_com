@@ -6,7 +6,7 @@
  *   php retention.php --apply    deletes, in batches of 500, and writes one audit
  *                                entry per category that is on
  *
- * Periods come from the retention_* settings keys (schema_phase29.sql, Settings
+ * Periods come from the retention_* settings keys (schema_phase30.sql, Settings
  * page). Empty or 0 means keep forever, so with nothing set only expired tokens
  * (30 days past expiry) are ever deleted. The plan and its guards live in
  * _retention.php; jobs, payments, ledger, quotes, orders, measurements and
@@ -55,7 +55,7 @@ while ($row = $res->fetch_assoc()) $columns[$row['c']] = true;
 
 $plan = retention_plan($settings, $now);
 echo 'HeritOS retention ' . ($apply ? 'APPLY' : 'dry run (nothing is deleted; add --apply)') . ', now ' . gmdate('Y-m-d H:i:s', $now) . " UTC\n";
-if (!$settings) echo "No retention settings found: import schema_phase29.sql. Everything is kept.\n";
+if (!$settings) echo "No retention settings found: import schema_phase30.sql. Everything is kept.\n";
 foreach ($plan['invalid'] as $cat => $err) {
   echo sprintf("  %-18s SKIPPED: %s %s (treated as keep forever)\n", $cat, RETENTION_CATEGORIES[$cat]['key'], $err);
 }

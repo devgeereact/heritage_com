@@ -551,6 +551,75 @@ function cms_public($entity, array $item, array $data, array $media, $baseUrl) {
   return null;
 }
 
+/* ---- Link previews (spa.php, K-06) ------------------------------------------- */
+/* Crawlers that do not run JavaScript (WhatsApp, Facebook) read only the HTML
+ * head. spa.php fills the marked block in index.html with the page's own title,
+ * description and photograph. Pure helpers here so they are tested. */
+const SPA_HOME_TITLE = "Herit Clothing | Men's tailoring in Lagos";
+// Same text as the static default in index.html and DEFAULT_DESCRIPTION in useSeo.js.
+const SPA_DEFAULT_DESCRIPTION = "Herit Clothing is a men's fashion and tailoring business in Lagos. Get in touch about clothing made to your measurements or about a company order.";
+// Square brand icon used when a page has no photograph (as index.html and useSeo; K-19).
+const SPA_DEFAULT_IMAGE = '/icon-512.png';
+
+/** Which published item a public path previews: [entity, slug] or null. */
+function spa_route($path) {
+  $p = '/' . trim((string)(parse_url((string)$path, PHP_URL_PATH) ?? ''), '/');
+  if (preg_match('~^/services/([a-z0-9-]{1,80})$~', $p, $m)) return ['service', $m[1]];
+  if (preg_match('~^/work/([a-z0-9-]{1,80})$~', $p, $m)) return ['project', $m[1]];
+  $key = array_search($p, CMS_PAGE_PATHS, true);
+  return $key === false ? null : ['page', $key];
+}
+
+/** Plain text cut at a word boundary to at most $max characters. */
+function spa_cut($s, $max = 155) {
+  $s = trim(preg_replace('/\s+/u', ' ', strip_tags((string)$s)));
+  if (cms_len($s) <= $max) return $s;
+  $cut = function_exists('mb_substr') ? mb_substr($s, 0, $max, 'UTF-8') : substr($s, 0, $max);
+  $sp = strrpos($cut, ' ');
+  return rtrim($sp !== false ? substr($cut, 0, $sp) : $cut, " ,.;:-") . '…';
+}
+
+/** Preview fields for one public projection ($p from cms_public), or the defaults. */
+function spa_meta($entity, $key, $p, $path, $siteUrl) {
+  $site = rtrim((string)$siteUrl, '/');
+  $p = is_array($p) ? $p : [];
+  $name = trim((string)($p['seo_title'] ?? '')) ?: trim((string)($p['title'] ?? $p['headline'] ?? ''));
+  $isHome = $entity === 'page' && $key === 'home';
+  $title = $isHome || $name === '' ? SPA_HOME_TITLE : $name . ' | Herit Clothing';
+  $desc = spa_cut(trim((string)($p['seo_description'] ?? '')) ?: (string)($p['summary'] ?? $p['intro'] ?? ''));
+  $img = (string)(($p['hero']['url'] ?? null) ?: ($p['cover']['url'] ?? ''));
+  if ($img !== '' && $img[0] === '/') $img = $site . $img;
+  if (!preg_match('~^https://~', $img)) $img = '';
+  // No canonical URL for a path with no published content (except home).
+  $url = $p || $isHome ? $site . ('/' . ltrim((string)$path, '/')) : '';
+  return ['title' => $title, 'description' => $desc !== '' ? $desc : SPA_DEFAULT_DESCRIPTION, 'image' => $img,
+    'fallback_image' => preg_match('~^https://~', $site) ? $site . SPA_DEFAULT_IMAGE : '',
+    'url' => $url !== '' && rtrim($url, '/') === $site ? $site . '/' : $url, 'type' => $entity === 'project' ? 'article' : 'website'];
+}
+
+/** The escaped head block for spa_meta() fields. */
+function spa_head_html(array $m) {
+  $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $out = '<title>' . $e($m['title']) . "</title>\n"
+    . '  <meta name="description" content="' . $e($m['description']) . "\" />\n"
+    . '  <meta property="og:site_name" content="Herit Clothing" />' . "\n"
+    . '  <meta property="og:type" content="' . $e($m['type'] ?? 'website') . "\" />\n"
+    . '  <meta property="og:locale" content="en_NG" />' . "\n"
+    . '  <meta property="og:title" content="' . $e($m['title']) . "\" />\n"
+    . '  <meta property="og:description" content="' . $e($m['description']) . "\" />\n";
+  if (!empty($m['url'])) $out .= '  <meta property="og:url" content="' . $e($m['url']) . "\" />\n"
+    . '  <link rel="canonical" href="' . $e($m['url']) . "\" />\n";
+  $img = !empty($m['image']) ? $m['image'] : (string)($m['fallback_image'] ?? '');
+  if ($img !== '') $out .= '  <meta property="og:image" content="' . $e($img) . "\" />\n";
+  return $out . '  <meta name="twitter:card" content="' . (!empty($m['image']) ? 'summary_large_image' : 'summary') . '" />';
+}
+
+/** Replace the block between <!--hc:head--> and <!--/hc:head-->; unchanged when the markers are missing. */
+function spa_inject($html, $head) {
+  $out = preg_replace('~<!--hc:head-->.*?<!--/hc:head-->~s', "<!--hc:head-->\n  " . str_replace(['\\', '$'], ['\\\\', '\\$'], $head) . "\n  <!--/hc:head-->", (string)$html, 1, $n);
+  return $n === 1 && is_string($out) ? $out : (string)$html;
+}
+
 /* ---- Sitemap ----------------------------------------------------------------- */
 
 /** XML sitemap from [{loc, lastmod?}]; loc is absolute. Escapes &, <, > and quotes. */

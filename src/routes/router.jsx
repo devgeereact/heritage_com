@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { appRoutes, authRoutes, publicRoutes, redirectRoutes } from '@/routes/index';
 import { useAuthContext } from '@/context/useAuthContext';
@@ -16,7 +16,8 @@ const AppRouter = props => {
     isAuthenticated,
     user
   } = useAuthContext();
-  return <AppErrorBoundary><Suspense fallback={null}><Routes>
+  const { pathname } = useLocation();
+  return <AppErrorBoundary resetKey={pathname}><Suspense fallback={null}><Routes>
       {(publicRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<PublicLayout {...props}>{route.element}</PublicLayout>} />)}
 
       {(authRoutes || []).map((route, idx) => <Route key={idx + route.name} path={route.path} element={<AuthLayout {...props}>{route.element}</AuthLayout>} />)}

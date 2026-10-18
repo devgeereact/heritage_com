@@ -4,6 +4,7 @@ import { Component } from 'react'
 // exists after a deploy. Plain markup and inline styles, because the failing
 // route may be the one that loads the stylesheets. System colours stand in when
 // the token layer is not loaded. No error detail is shown.
+const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false
 const isChunkError = (error) => /Loading chunk|dynamically imported module|Importing a module script failed/i.test(String(error?.message || error))
 
 const wrap = {
@@ -38,9 +39,16 @@ export default class AppErrorBoundary extends Component {
     return { error }
   }
 
+  // The router passes the path as resetKey, so moving to another page (the
+  // back button included) clears the error screen without a reload.
+  componentDidUpdate(prev) {
+    if (this.state.error && prev.resetKey !== this.props.resetKey) this.setState({ error: null })
+  }
+
   componentDidCatch(error) {
-    // A stale chunk after a deploy: reload once to pick up the new build.
-    if (isChunkError(error)) {
+    // A stale chunk after a deploy: reload once to pick up the new build. Not
+    // while offline: the page code cannot download, so a reload would not help.
+    if (isChunkError(error) && !isOffline()) {
       try {
         if (!sessionStorage.getItem('herit_chunk_reload')) {
           sessionStorage.setItem('herit_chunk_reload', '1')
@@ -59,7 +67,9 @@ export default class AppErrorBoundary extends Component {
         <div style={{ maxWidth: 480 }} role="alert">
           <h1 style={{ fontSize: 28, lineHeight: 1.2, margin: '0 0 12px' }}>Something went wrong</h1>
           <p style={{ margin: '0 0 20px', lineHeight: 1.5 }}>
-            This page could not open. Reload to try again. If it keeps happening, go to the home page.
+            {isOffline()
+              ? 'You are offline, and this page has not been opened on this device yet. Reload once the connection is back.'
+              : 'This page could not open. Reload to try again. If it keeps happening, go to the home page.'}
           </p>
           <p style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: 0 }}>
             <button type="button" style={btn} onClick={() => window.location.reload()}>

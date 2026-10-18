@@ -19,7 +19,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 |---|---|---|---|
 | `_lib.php` | Shared helpers: CORS, JSON, auth, audit, throttle, sanitiser, `cfg()`, coupon and referral helpers, payment helpers, staff codes and public references. Loads `config.local.php` instead of `config.php` only when the local staging router defines `HERITOS_STAGING` | Not an endpoint | CI |
 | `api.php` | Smoke test: `items` list (public) and insert | List public; insert all seven staff roles (`api.php:23`) | CI |
-| `auth.php` | Staff login, logout, me; email and PIN throttling | Login public; other actions any signed-in staff | CI |
+| `auth.php` | Staff login, logout, me; email and PIN throttling; password reset by email (`reset_request {email}` answers the same whether or not the address has an account; `reset_confirm {token, password}`, 8 to 72 characters, single-use link, signs out every device; K-04, `feat/staff-password-reset`) | Login and both reset actions public; other actions any signed-in staff | CI |
 | `ai.php` | OpenRouter text proxy | Any signed-in staff (`ai.php:14`) | CI |
 | `products.php` | Catalogue, variants, stock | super_admin, admin, manager, editor, employee | CI |
 | `customers.php` | Clients: search, match, duplicate warning, measurement sets | super_admin, admin, manager, tailor, employee (`ROLES_CLIENTS`) | CI |
@@ -37,6 +37,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `cms.php` | Website CMS: services, portfolio, FAQs, policies, pages (draft, preview, publish, unpublish, rollback), images, business profile (Phase 4) | super_admin, admin, manager, editor; policy publishing and the profile owner only | CI (Phase 4 branch) |
 | `site.php` | Public website projection: published content only (Phase 4) | Public, GET only | CI (Phase 4 branch) |
 | `sitemap.php` | XML sitemap of published public pages, served at `/sitemap.xml` (Phase 4) | Public | CI (Phase 4 branch) |
+| `spa.php` | Link previews (K-06): serves `index.html` with the `<!--hc:head-->` block filled from the page's published content (title, description, canonical URL, https photograph) for `/`, the CMS pages, `/services/:slug` and `/work/:slug`; defaults elsewhere; plain `index.html` on any failure. Does nothing until `SPA_HEAD_INJECTION` is true and the `.htaccess` fallback points to it. Reads published content only | Public | CI (`feat/link-previews`) |
 | `today.php` | Daily worklist | Owner: super_admin, admin, manager | CI (Phase 2 branch) |
 | `enquiries.php` | Enquiry pipeline and conversion | super_admin, admin, manager, employee (convert owner only) | CI (Phase 2 branch) |
 | `measurements.php` | Templates and measurement sets | Workshop | CI (Phase 2 branch) |
@@ -351,7 +352,7 @@ Settings: `company_portal_enabled` (`0` or `1`, default `0`).
 
 ## Data retention settings keys (K-18)
 
-Branch `feat/k18-retention`. Seeded by `schema_phase29.sql`; saved through `settings.php` (owner roles: super_admin, admin, manager) and shown in Settings > Data retention. Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. Cutoffs are UTC; a row goes when its date column is older than now minus the period.
+Branch `feat/hardening-2026-10-18`. Seeded by `schema_phase30.sql`; saved through `settings.php` (owner roles: super_admin, admin, manager) and shown in Settings > Data retention. Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. Cutoffs are UTC; a row goes when its date column is older than now minus the period.
 
 | Key | Default | Range | Deletes from (date column, condition) |
 |---|---|---|---|

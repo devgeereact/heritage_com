@@ -32,7 +32,7 @@ $KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate'
   // empty means hidden on the public site). Validated by profile_clean(), the
   // same rules cms.php?action=profile_save uses.
   'business_name', 'business_whatsapp', 'business_address_public', 'business_area_text', 'journal_enabled',
-  // K-18 retention periods in days (schema_phase29.sql); empty or 0 keeps forever.
+  // K-18 retention periods in days (schema_phase30.sql); empty or 0 keeps forever.
   // Read by the command-line job retention.php; rules in _retention.php.
   ...retention_keys()];
 // keys stored as JSON (object/array) rather than a plain string

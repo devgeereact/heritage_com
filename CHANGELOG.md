@@ -6,7 +6,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### Hardening on `feat/hardening-2026-10-18`, 18 October 2026
 
-Stacked on PR #14. Owner actions: the "Hardening" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+Stacked on PR #17 (which carries #14 to #16). Owner actions: the "Hardening" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
 
 Fixed
 
@@ -17,6 +17,39 @@ Changed
 
 - `e2e-phase2.sh` seeds its own fixtures (an imported measurement set, a due follow-up) and has 51 checks, so it no longer depends on leftover staging rows (K-07).
 
+### PR #17 `feat/offline-a16`, 16 October 2026
+
+Added
+
+- Offline behaviour (A16, D-016): a bar on the website, sign-in and admin says "You are offline. Changes cannot be saved until the connection returns." and then "Back online"; saves are refused while offline with that message and the typed values stay on screen; failed loads say the device is offline, with Retry; network failures read as plain sentences instead of "Failed to fetch".
+
+Fixed
+
+- Opening a page offline whose code had not loaded yet blanked the whole app; a route error boundary now shows "This page could not open" with Try again and Go back (found in the A16 browser check).
+
+Changed (merge of #14 audit fixes, 18 October 2026)
+
+- One offline implementation (A16): #14's write refusal, staff offline banner and root error screen are kept; from this PR only the offline load message and an offline-aware error screen that clears on navigation are carried over. The website and sign-in connection bar, "Back online" and `RouteErrorBoundary` are removed.
+
+### PR #16 `feat/link-previews`, 16 October 2026
+
+Added
+
+- Link previews (K-06): the page head now carries public defaults (title "Herit Clothing | Men's tailoring in Lagos", a description and Open Graph tags) for every crawler, replacing the staff title "HeritOS | Herit Clothing". `spa.php` can fill each service, portfolio project and page with its own title, description and photograph for WhatsApp and Facebook; it stays off (`SPA_HEAD_INJECTION`) until a live share test needs it, and serves the plain page on any error. 13 new helper tests.
+
+Changed (merge of #14 audit fixes, 18 October 2026)
+
+- The `index.html` head keeps the link-preview markers with the audit's description, `og:locale` and brand-icon `og:image`, and no inline script (CSP, K-23); `spa.php` uses the same description and falls back to the brand icon when a page has no photograph (K-06, K-24). One new helper test.
+
+### PR #15 `feat/staff-password-reset`, 16 October 2026
+
+Added
+
+- Staff password reset by email (K-04): "Reset password" on the sign-in page sends a single-use link that expires in 30 minutes; the request answers the same whether or not the address has an account; only a hash of the link token is stored (`password_resets`, `schema_phase29.sql`); a new request retires earlier links; choosing a new password signs the person out on every device; requests and failed attempts are throttled. `scripts/staging/e2e-reset.sh` checks it end to end on local staging.
+
+Fixed (merge of #14 audit fixes, 18 October 2026)
+
+- The reset page keeps the audit's plain wording and sign-in logo link, and offers the working email reset in place of the explanation; reset links are hashed with `staff_token_hash` and refused for suspended accounts, the same rules as sign-in (K-04, K-15, K-23).
 ### Audit fixes on `feat/redesign-dark-luxury`, 17 October 2026
 
 Production-readiness and privacy audit. Evidence: [qa/SECURITY-AUDIT.md](qa/SECURITY-AUDIT.md), [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md), [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md#inventory-17-october-2026).
