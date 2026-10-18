@@ -24,7 +24,7 @@ cors();
 
 $user = require_auth(ROLES_OWNER);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 /** Totals + state for a job after a write, for responses. */
 function job_money_out($jobId) {
@@ -36,7 +36,7 @@ function job_money_out($jobId) {
 /* ---- LIST ----------------------------------------------------------------- */
 if ($action === 'list' && method() === 'GET') {
   if (!empty($_GET['job_id'])) {
-    $jid = (int)$_GET['job_id'];
+    $jid = in_int($_GET, 'job_id');
     if (!db_row('SELECT id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $jid)) fail('Job not found', 404);
     json(['entries' => array_map('ledger_row_view', job_ledger($jid))] + job_money_out($jid));
   }
@@ -85,10 +85,10 @@ if (($action === 'due' || $action === 'credits') && method() === 'GET') {
 if ($action === 'record' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
-  $jobId = (int)($b['job_id'] ?? 0);
+  $jobId = in_int($b, 'job_id');
   $minor = money_to_minor($b['amount'] ?? null);
   if ($minor === null || $minor <= 0) fail('Amount must be more than 0, like 20000 or 20,000.00');
-  $method = (string)($b['method'] ?? '');
+  $method = in_str($b, 'method');
   if (!in_array($method, PAYMENT_METHODS, true)) fail('Method must be one of: ' . implode(', ', PAYMENT_METHODS));
   if (!empty($b['received_on']) && ymd_or_null($b['received_on']) === null) fail('Invalid received_on date');
   if (!empty($b['received_on']) && $b['received_on'] > lagos_today()) fail('The payment date cannot be in the future');
@@ -96,8 +96,8 @@ if ($action === 'record' && method() === 'POST') {
   [$row, $dup] = db_tx(function () use ($jobId, $minor, $method, $b, $key, $user) {
     if (!job_lock($jobId)) tx_fail('Job not found', 404);
     $r = ledger_insert_tx($jobId, [
-      'kind' => 'payment', 'amount_minor' => $minor, 'method' => $method, 'external_ref' => $b['external_ref'] ?? null,
-      'received_on' => $b['received_on'] ?? null, 'note' => $b['note'] ?? null, 'request_key' => $key,
+      'kind' => 'payment', 'amount_minor' => $minor, 'method' => $method, 'external_ref' => in_str($b, 'external_ref', null),
+      'received_on' => in_str($b, 'received_on', null), 'note' => in_str($b, 'note', null), 'request_key' => $key,
       'verified' => payment_verified_on_entry($method, verified_methods()),
     ], $user['id']);
     if (!$r[1]) {
@@ -138,7 +138,7 @@ if ($action === 'verify' && method() === 'POST') {
 if ($action === 'reverse' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
-  $reason = mb_substr(trim((string)($b['reason'] ?? '')), 0, 200);
+  $reason = mb_substr(trim(in_str($b, 'reason')), 0, 200);
   if (mb_strlen($reason) < 3) fail('Give a reason for the reversal');
   // Lock first, then read (see VERIFY): the job_id is read outside the transaction.
   $owner = db_row('SELECT job_id FROM job_payments WHERE id = ?', 'i', $id);
@@ -170,13 +170,13 @@ if ($action === 'reverse' && method() === 'POST') {
 if ($action === 'refund' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
-  $jobId = (int)($b['job_id'] ?? 0);
+  $jobId = in_int($b, 'job_id');
   $minor = money_to_minor($b['amount'] ?? null);
   if ($minor === null || $minor <= 0) fail('Amount must be more than 0');
-  $method = (string)($b['method'] ?? '');
+  $method = in_str($b, 'method');
   if (!in_array($method, PAYMENT_METHODS, true)) fail('Method must be one of: ' . implode(', ', PAYMENT_METHODS));
   $force = !empty($b['force']);
-  $reason = trim((string)($b['reason'] ?? ''));
+  $reason = trim(in_str($b, 'reason'));
   [$row, $dup] = db_tx(function () use ($jobId, $minor, $method, $b, $key, $force, $reason, $user) {
     $job = job_lock($jobId);
     if (!$job) tx_fail('Job not found', 404);
@@ -186,10 +186,10 @@ if ($action === 'refund' && method() === 'POST') {
     if ($minor > $limit && !($force && mb_strlen($reason) >= 5)) {
       tx_fail('The refund is more than the credit on this job (₦' . number_format(intdiv($limit, 100)) . '). Send force with a reason to refund more.', 409, ['credit' => minor_to_decimal($limit)]);
     }
-    $note = trim((string)($b['note'] ?? '')) . ($force && $minor > $limit ? ' [forced: ' . $reason . ']' : '');
+    $note = trim(in_str($b, 'note')) . ($force && $minor > $limit ? ' [forced: ' . $reason . ']' : '');
     $r = ledger_insert_tx($jobId, [
-      'kind' => 'refund', 'amount_minor' => -$minor, 'method' => $method, 'external_ref' => $b['external_ref'] ?? null,
-      'received_on' => $b['received_on'] ?? null, 'note' => $note, 'request_key' => $key, 'verified' => 1,
+      'kind' => 'refund', 'amount_minor' => -$minor, 'method' => $method, 'external_ref' => in_str($b, 'external_ref', null),
+      'received_on' => in_str($b, 'received_on', null), 'note' => $note, 'request_key' => $key, 'verified' => 1,
     ], $user['id']);
     job_recalc_money($jobId);
     job_event($jobId, 'payment', null, 'Refund ₦' . number_format(intdiv($minor, 100)) . ' recorded', ['payment_id' => (int)$r[0]['id'], 'money' => true], 0, $user['id']);

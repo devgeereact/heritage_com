@@ -173,7 +173,7 @@ function wearer_item_public_view(array $item, array $job) {
 /** Clean one item from a request body. Returns [clean, errors]. */
 function company_item_clean(array $in) {
   $err = []; $c = [];
-  $d = trim((string)($in['description'] ?? ''));
+  $d = trim(scalar_text($in['description'] ?? ''));
   if ($d === '') $err['description'] = 'Describe the garment';
   elseif (mb_strlen($d) > 160) $err['description'] = 'At most 160 characters';
   $c['description'] = $d;
@@ -181,11 +181,13 @@ function company_item_clean(array $in) {
   if ($q === false || $q < 1 || $q > 999) $err['qty'] = 'Quantity must be a whole number from 1 to 999';
   $c['qty'] = (int)$q;
   foreach (['garment_type' => 40, 'service_key' => 40, 'size_label' => 20, 'wearer_label' => 80] as $k => $max) {
-    $v = trim((string)($in[$k] ?? ''));
-    if (mb_strlen($v) > $max) $err[$k] = "At most $max characters";
+    $v = trim(scalar_text($in[$k] ?? ''));
+    if (isset($in[$k]) && !is_scalar($in[$k])) $err[$k] = 'Must be text';
+    elseif (mb_strlen($v) > $max) $err[$k] = "At most $max characters";
     $c[$k] = $v === '' ? null : $v;
   }
   $w = $in['wearer_customer_id'] ?? null;
+  if ($w !== null && !is_scalar($w)) { $err['wearer_customer_id'] = 'Must be an id'; $w = null; }
   $c['wearer_customer_id'] = ($w === null || $w === '' || (int)$w === 0) ? null : (int)$w;
   return [$c, $err];
 }

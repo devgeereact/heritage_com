@@ -126,6 +126,61 @@ function json_send_early($data, $code = 200) {
   return true;
 }
 
+/* ---- Request fields: text and numbers only where text and numbers belong ----
+ * JSON lets a caller send an array or object where the form sends text, and a
+ * query string can too (?q[]=x). Read such fields through these helpers, never
+ * with trim() or a cast on the raw value: an array would otherwise be a 500
+ * (TypeError) or be stored as the text "Array". Fields that really are lists or
+ * maps (items, settings, data) are read as arrays by their own code.          */
+
+/** Pure: why $in[$key] cannot be read as $kind ('text' or 'number'), or null if it can.
+ *  $in may be anything: a list entry that is not an object reads as missing. */
+function in_type_problem($in, $key, $kind = 'text') {
+  $v = is_array($in) ? ($in[$key] ?? null) : null;
+  if ($v === null || is_scalar($v)) return null;
+  return $key . ($kind === 'number' ? ' must be a number' : ' must be text');
+}
+
+/** Answer 400 with $msg, rolling back first in case a transaction is open. */
+function bad_input($msg) {
+  global $conn;
+  if (isset($conn) && $conn instanceof mysqli) { try { $conn->rollback(); } catch (Throwable $e) { /* nothing open */ } }
+  fail($msg, 400);
+}
+
+/** A text field: $default when missing or null, else the value as a string; 400 for a list or object. */
+function in_str($in, $key, $default = '') {
+  if (!is_array($in) || !isset($in[$key])) return $default;
+  if ($p = in_type_problem($in, $key)) bad_input($p);
+  return (string)$in[$key];
+}
+
+/** A whole-number field: $default when missing or null, else (int) of the value; 400 for a list or object. */
+function in_int($in, $key, $default = 0) {
+  if (!is_array($in) || !isset($in[$key])) return $default;
+  if ($p = in_type_problem($in, $key, 'number')) bad_input($p);
+  return (int)$in[$key];
+}
+
+/** A decimal field: $default when missing or null, else (float) of the value; 400 for a list or object. */
+function in_num($in, $key, $default = 0.0) {
+  if (!is_array($in) || !isset($in[$key])) return $default;
+  if ($p = in_type_problem($in, $key, 'number')) bad_input($p);
+  return (float)$in[$key];
+}
+
+/** A field kept as sent (no cast) but required to be a scalar or null: 400 for a list or object. */
+function in_scalar($in, $key, $default = null) {
+  if (!is_array($in) || !isset($in[$key])) return $default;
+  if ($p = in_type_problem($in, $key)) bad_input($p);
+  return $in[$key];
+}
+
+/** Refuse (400) any of $keys in $in that holds a list or object. For fields handed on to a helper. */
+function in_text_only($in, array $keys) {
+  foreach ($keys as $k) if ($p = in_type_problem($in, $k)) bad_input($p);
+}
+
 /** Decode the JSON request body to an associative array. */
 function body() {
   $raw = file_get_contents('php://input');
@@ -443,7 +498,7 @@ function wa_dispatch($phone, $body, $customerId = null, $template = null, $creat
  */
 function coupon_eval($code, $subtotal, $shipping = 0) {
   global $conn;
-  $code = strtoupper(trim((string)$code));
+  $code = is_scalar($code) ? strtoupper(trim((string)$code)) : '';
   if ($code === '') return ['ok' => false, 'error' => 'Enter a code'];
 
   $stmt = $conn->prepare('SELECT * FROM coupons WHERE UPPER(code) = ? LIMIT 1');
@@ -843,6 +898,7 @@ function public_ref_generate() {
 /** What a customer typed, upper-cased with spaces and dashes removed; '' unless
  * it is a well-formed public reference. Pure. */
 function public_ref_normalise($s) {
+  if (!is_scalar($s)) return '';
   $s = strtoupper(preg_replace('/[\s\-]+/', '', (string)$s));
   return preg_match('/^[' . PUBLIC_REF_ALPHABET . ']{' . PUBLIC_REF_LENGTH . '}$/', $s) ? $s : '';
 }

@@ -60,8 +60,8 @@ if ($action === 'me' && method() === 'GET') {
 if ($action === 'password' && method() === 'POST') {
   $user = require_auth();
   $b = body();
-  $current = $b['current'] ?? '';
-  $next = $b['next'] ?? '';
+  $current = in_str($b, 'current');
+  $next = in_str($b, 'next');
   if (strlen($next) < 8) fail('New password must be at least 8 characters.');
 
   $stmt = $conn->prepare('SELECT password_hash FROM users WHERE id = ?');
@@ -104,10 +104,10 @@ if ($action === 'list' && method() === 'GET') {
 
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
-  $email = trim(strtolower($b['email'] ?? ''));
+  $name = trim(in_str($b, 'name'));
+  $email = trim(strtolower(in_str($b, 'email')));
   $role = $b['role'] ?? 'employee';
-  $phone = trim($b['phone'] ?? '');
+  $phone = trim(in_str($b, 'phone'));
   if ($name === '') fail('Name is required.');
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('A valid email is required.');
   if (!in_array($role, $ROLES, true)) fail('Unknown role.');
@@ -119,7 +119,7 @@ if ($action === 'create' && method() === 'POST') {
   $stmt->execute();
   if ($stmt->get_result()->fetch_assoc()) fail('A user with that email already exists.', 409);
 
-  $plain = trim($b['password'] ?? '');
+  $plain = trim(in_str($b, 'password'));
   if ($plain === '') $plain = temp_password();
   elseif (strlen($plain) < 8) fail('Password must be at least 8 characters.');
   $hash = staff_secret_hash($plain);
@@ -134,7 +134,7 @@ if ($action === 'create' && method() === 'POST') {
 }
 
 if ($action === 'update' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
 
   $stmt = $conn->prepare("SELECT id, role, status FROM users WHERE id = ? AND deleted_at IS NULL AND role <> 'customer'");
@@ -143,8 +143,8 @@ if ($action === 'update' && method() === 'POST') {
   $target = $stmt->get_result()->fetch_assoc();
   if (!$target) fail('User not found.', 404);
 
-  $name = array_key_exists('name', $b) ? trim($b['name']) : null;
-  $phone = array_key_exists('phone', $b) ? trim($b['phone']) : null;
+  $name = array_key_exists('name', $b) ? trim(in_str($b, 'name')) : null;
+  $phone = array_key_exists('phone', $b) ? trim(in_str($b, 'phone')) : null;
   $role = array_key_exists('role', $b) ? $b['role'] : null;
   $status = array_key_exists('status', $b) ? $b['status'] : null;
   if ($role !== null && !in_array($role, $ROLES, true)) fail('Unknown role.');
@@ -183,7 +183,7 @@ if ($action === 'update' && method() === 'POST') {
 }
 
 if ($action === 'reset' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare("SELECT id, role FROM users WHERE id = ? AND deleted_at IS NULL AND role <> 'customer'");
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -205,7 +205,7 @@ if ($action === 'reset' && method() === 'POST') {
 }
 
 if ($action === 'deactivate' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   if ((int)$me['id'] === $id) fail("You can't deactivate your own account.", 409);
 
   $stmt = $conn->prepare("SELECT id, role FROM users WHERE id = ? AND deleted_at IS NULL AND role <> 'customer'");

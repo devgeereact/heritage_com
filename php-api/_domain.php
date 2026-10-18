@@ -23,6 +23,9 @@ const ROLES_CLIENTS = ['super_admin', 'admin', 'manager', 'tailor', 'employee'];
 
 function is_owner_role($role) { return in_array($role, ROLES_OWNER, true); }
 
+/** A value as text when it is a scalar; '' for a list, object or null (never "Array"). */
+function scalar_text($v) { return is_scalar($v) ? (string)$v : ''; }
+
 /* ---- Time: stored in UTC, shown in Africa/Lagos --------------------------- */
 
 const BUSINESS_TZ = 'Africa/Lagos';
@@ -44,7 +47,7 @@ function date_add_days($ymd, $days) {
 
 /** A valid Y-m-d date, or null. */
 function ymd_or_null($v) {
-  $v = trim((string)$v);
+  $v = trim(scalar_text($v));
   if ($v === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $v)) return null;
   [$y, $m, $d] = array_map('intval', explode('-', $v));
   return checkdate($m, $d, $y) ? $v : null;
@@ -56,7 +59,7 @@ function ymd_or_null($v) {
  * blank or unreadable.
  */
 function lagos_local_to_utc($v) {
-  $v = trim((string)$v);
+  $v = trim(scalar_text($v));
   if ($v === '') return null;
   if (!preg_match('/^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?(Z|[+-]\d{2}:?\d{2})?$/', $v)) return null;
   try {
@@ -740,6 +743,7 @@ const PUBLISH_CONSENTS = ['no', 'anonymous', 'first_name'];
 
 /** Plain-text body: control characters removed (newlines and tabs kept), trimmed, at most $max characters. Null when empty or too long. */
 function message_body_clean($s, $max = 2000) {
+  if ($s !== null && !is_scalar($s)) return null;
   $s = preg_replace('/[^\P{C}\n\t]/u', '', (string)$s);
   if ($s === null) return null;
   $s = trim($s);
@@ -757,7 +761,7 @@ function feedback_clean(array $b) {
   if ($r === null || $r === '') $c['rating'] = null;
   elseif (($n = filter_var($r, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]])) === false) { $errors['rating'] = 'Rating must be 1 to 5, or left out'; $c['rating'] = null; }
   else $c['rating'] = $n;
-  $comment = trim((string)($b['comment'] ?? ''));
+  $comment = trim(scalar_text($b['comment'] ?? ''));
   if (mb_strlen($comment) > 2000) $errors['comment'] = 'Comment is too long (2000 characters at most)';
   $c['comment'] = $comment === '' ? null : message_body_clean($comment);
   if ($c['rating'] === null && $c['comment'] === null && !$errors) $errors['comment'] = 'Give a rating or a comment';

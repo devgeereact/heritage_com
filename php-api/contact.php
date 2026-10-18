@@ -29,15 +29,15 @@ if ($action === '' && method() === 'POST') {
   $b = body();
 
   // Honeypot: the field is hidden from people, so only bots fill it.
-  if (trim((string)($b['website_url_confirm'] ?? '')) !== '') json(['ok' => true]);
+  if (trim(in_str($b, 'website_url_confirm')) !== '') json(['ok' => true]);
 
-  $name = trim($b['name'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
-  $company = trim((string)($b['company'] ?? ''));
+  $name = trim(in_str($b, 'name'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
+  $company = trim(in_str($b, 'company'));
   $type = in_array($b['type'] ?? '', $TYPES, true) ? $b['type'] : 'general';
-  $interest = trim($b['interest'] ?? '');
-  $message = trim($b['message'] ?? '');
+  $interest = trim(in_str($b, 'interest'));
+  $message = trim(in_str($b, 'message'));
 
   if ($name === '') fail('Please tell us your name');
   if ($phone === '' && $email === '') fail('Please leave a phone number or email so we can reply');
@@ -48,7 +48,7 @@ if ($action === '' && method() === 'POST') {
   // visitor never loses an enquiry over a date typo.
   $quantity = filter_var($b['quantity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 9999]]);
   $quantity = $quantity === false ? null : $quantity;
-  $desired = trim((string)($b['desired_date'] ?? ''));
+  $desired = trim(in_str($b, 'desired_date'));
   if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $desired) || !checkdate((int)substr($desired, 5, 2), (int)substr($desired, 8, 2), (int)substr($desired, 0, 4))) $desired = null;
 
   // `company` needs schema_phase17.sql; until it is imported the enquiry is still
@@ -98,7 +98,7 @@ if ($action === 'list' && method() === 'GET') {
 /* ---- STAFF: SET STATUS --------------------------------------------------- */
 if ($action === 'status' && method() === 'POST') {
   $user = require_auth(['super_admin', 'admin', 'manager', 'employee']);
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $status = $b['status'] ?? '';
   if (!in_array($status, $STATUSES, true)) fail('Invalid status');

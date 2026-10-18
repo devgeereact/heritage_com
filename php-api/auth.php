@@ -75,8 +75,8 @@ function throttle_guard(array $checks) {
 if ($action === 'login' && method() === 'POST') {
   staff_login_request_enforce();   // JSON only, no foreign origin (A15 login CSRF)
   $b = body();
-  $email = trim(strtolower($b['email'] ?? ''));
-  $password = $b['password'] ?? '';
+  $email = trim(strtolower(in_str($b, 'email')));
+  $password = in_str($b, 'password');
   if ($email === '' || $password === '') fail('Email and password are required');
 
   $ipKey = 'ip:' . client_ip();

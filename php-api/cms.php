@@ -35,7 +35,7 @@ $user = require_auth(ROLES_CMS);
 $uid = (int)$user['id'];
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 if (!has_table('cms_items') || !has_table('media_assets')) {
   fail('The website tables are not set up yet (import schema_phase26.sql)', 409);
@@ -215,7 +215,7 @@ if ($action === 'list' && method() === 'GET') {
 
 if ($action === 'get' && method() === 'GET') {
   $entity = cms_entity_param();
-  $key = $_GET['key'] ?? '';
+  $key = in_str($_GET, 'key');
   $r = $key !== '' ? db_row('SELECT * FROM cms_items WHERE entity = ? AND slug = ?', 'ss', $entity, $key) : null;
   $r = $r ? cms_decode($r) : ($id ? cms_find($entity, $id) : null);
   if (!$r) fail('Not found', 404);
@@ -234,12 +234,12 @@ if ($action === 'save_draft' && method() === 'POST') {
   if ($errors) json(['error' => 'Check the highlighted fields', 'errors' => $errors], 400);
   $now = gmdate('Y-m-d H:i:s');
   $draftJson = json_encode($clean, JSON_UNESCAPED_UNICODE);
-  $rowId = (int)($b['id'] ?? 0);
+  $rowId = in_int($b, 'id');
 
   $saved = db_tx(function () use ($entity, $b, $clean, $draftJson, $rowId, $now, $uid) {
     $keyed = in_array($entity, ['page', 'policy'], true);
     if (!$rowId && $keyed) {
-      $key = (string)($b['key'] ?? '');
+      $key = in_str($b, 'key');
       if (!in_array($key, $entity === 'page' ? CMS_PAGE_KEYS : CMS_POLICY_KEYS, true)) tx_fail('Unknown ' . $entity . ' key');
       $ex = db_row('SELECT id FROM cms_items WHERE entity = ? AND slug = ? FOR UPDATE', 'ss', $entity, $key);
       if ($ex) $rowId = (int)$ex['id'];
@@ -251,13 +251,13 @@ if ($action === 'save_draft' && method() === 'POST') {
     }
     if (!$rowId) {
       if (in_array($entity, CMS_SLUGGED, true)) {
-        $slug = slug_clean((string)(($b['slug'] ?? '') !== '' ? $b['slug'] : ($clean['title'] ?? '')));
+        $slug = slug_clean(in_str($b, 'slug') !== '' ? in_str($b, 'slug') : (string)($clean['title'] ?? ''));
         if ($slug === '') tx_fail('Give a title or a slug first', 400, ['errors' => ['slug' => 'Required']]);
         if (cms_slug_taken($entity, $slug)) tx_fail('That web address is already used', 409, ['errors' => ['slug' => 'Already used'], 'code' => 'slug_taken']);
       } else {
         $slug = $entity . '-' . bin2hex(random_bytes(5));
       }
-      $sort = (int)($b['sort'] ?? ((int)(db_row('SELECT COALESCE(MAX(sort), 0) AS m FROM cms_items WHERE entity = ?', 's', $entity)['m']) + 10));
+      $sort = isset($b['sort']) ? in_int($b, 'sort') : ((int)(db_row('SELECT COALESCE(MAX(sort), 0) AS m FROM cms_items WHERE entity = ?', 's', $entity)['m']) + 10);
       db_exec("INSERT INTO cms_items (entity, slug, status, sort, draft, draft_updated_at, draft_updated_by, created_by)
                VALUES (?, ?, 'draft', ?, ?, ?, ?, ?)", 'ssissii', $entity, $slug, $sort, $draftJson, $now, $uid, $uid);
       return [(int)$GLOBALS['conn']->insert_id, true];
@@ -265,7 +265,7 @@ if ($action === 'save_draft' && method() === 'POST') {
     $r = cms_find($entity, $rowId, true);
     if (!$r) tx_fail('Not found', 404);
     if (in_array($entity, CMS_SLUGGED, true) && isset($b['slug']) && $b['slug'] !== '') {
-      $slug = slug_clean((string)$b['slug']);
+      $slug = slug_clean(in_str($b, 'slug'));
       if ($slug === '') tx_fail('Not a valid web address', 400, ['errors' => ['slug' => 'Not valid']]);
       if ($slug !== $r['slug']) {
         if ($r['published_at'] !== null) tx_fail('The web address cannot change once published', 409, ['errors' => ['slug' => 'Locked'], 'code' => 'slug_locked']);
@@ -273,7 +273,7 @@ if ($action === 'save_draft' && method() === 'POST') {
         db_exec('UPDATE cms_items SET slug = ? WHERE id = ?', 'si', $slug, $rowId);
       }
     }
-    if (isset($b['sort'])) db_exec('UPDATE cms_items SET sort = ? WHERE id = ?', 'ii', $s = (int)$b['sort'], $rowId);
+    if (isset($b['sort'])) db_exec('UPDATE cms_items SET sort = ? WHERE id = ?', 'ii', $s = in_int($b, 'sort'), $rowId);
     db_exec('UPDATE cms_items SET draft = ?, draft_updated_at = ?, draft_updated_by = ? WHERE id = ?', 'ssii', $draftJson, $now, $uid, $rowId);
     return [$rowId, false];
   });

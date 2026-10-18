@@ -519,7 +519,7 @@ check('pair key: another address gives another key', account_ip_key('b@example.t
 check('pair key: no readable address or IP inside', strpos($k1, 'example') === false && strpos($k1, '203.0') === false, true);
 check('pair key: fits audit_log.entity', (bool) preg_match('/^acip:[0-9a-f]{32}$/', $k1), true);
 
-/* ---- Request rules: lost races (_lib.php) ---------------------------------- */
+/* ---- Request rules: lost races and wrong-typed fields (_lib.php) ---------- */
 require __DIR__ . '/request_cases.php';
 
 echo "\n$pass passed, $failed failed\n";

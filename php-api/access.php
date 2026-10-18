@@ -79,20 +79,20 @@ function session_reply($customerId, $via) {
 if ($action === 'start' && method() === 'POST') {
   $b = body();
   $ref = public_ref_normalise($b['reference'] ?? '');
-  $contact = trim((string)($b['contact'] ?? ''));
-  $refKey = 'ref:' . substr(hash('sha256', $ref !== '' ? $ref : strtoupper(trim((string)($b['reference'] ?? '')))), 0, 32);
+  $contact = trim(in_str($b, 'contact'));
+  $refKey = 'ref:' . substr(hash('sha256', $ref !== '' ? $ref : strtoupper(trim(in_str($b, 'reference')))), 0, 32);
   throttle_enforce([
     [(int)cfg('ACCESS_START_MAX_PER_IP', 10), 'access_start_ip', $ipKey],
     [(int)cfg('ACCESS_START_MAX_PER_REF', 5), 'access_start_ref', $refKey],
   ], $window);
-  if (trim((string)($b['reference'] ?? '')) === '' || $contact === '' || mb_strlen($contact) > 190) fail('Enter your reference and your phone number or email');
+  if (trim(in_str($b, 'reference')) === '' || $contact === '' || mb_strlen($contact) > 190) fail('Enter your reference and your phone number or email');
   audit(null, 'access_start_ip', $ipKey);
   audit(null, 'access_start_ref', $refKey);
 
   $challenge = bin2hex(random_bytes(32));
   $reply = ['challenge' => $challenge, 'message' => ACCESS_START_MESSAGE];
   // Honeypot: a filled hidden field gets the normal reply and nothing happens.
-  if (trim((string)($b['hp_url'] ?? '')) !== '') json($reply);
+  if (trim(in_str($b, 'hp_url')) !== '') json($reply);
 
   [$c] = customer_by_reference($ref);
   $match = $c && contact_matches($contact, $c['email'] ?? null, $c['phone'] ?? null);
@@ -130,8 +130,8 @@ if ($action === 'start' && method() === 'POST') {
 if ($action === 'verify' && method() === 'POST') {
   throttle_enforce([[(int)cfg('ACCESS_VERIFY_MAX_PER_IP', 20), 'access_verify_fail_ip', $ipKey]], $window);
   $b = body();
-  $challenge = (string)($b['challenge'] ?? '');
-  $code = (string)($b['code'] ?? '');
+  $challenge = in_str($b, 'challenge');
+  $code = in_str($b, 'code');
   $failNow = function () use ($ipKey) {
     audit(null, 'access_verify_fail_ip', $ipKey);
     fail(ACCESS_FAIL_MESSAGE, 400);
@@ -165,7 +165,7 @@ if ($action === 'verify' && method() === 'POST') {
 if ($action === 'redeem' && method() === 'POST') {
   throttle_enforce([[(int)cfg('ACCESS_VERIFY_MAX_PER_IP', 20), 'access_verify_fail_ip', $ipKey]], $window);
   $b = body();
-  $invite = (string)($b['invite'] ?? '');
+  $invite = in_str($b, 'invite');
   if (!preg_match('/^[0-9a-f]{64}$/', $invite)) { audit(null, 'access_verify_fail_ip', $ipKey); fail(ACCESS_FAIL_MESSAGE, 400); }
   // Single use: only one request can flip pending → used.
   $upd = db_exec("UPDATE customer_access_challenges SET status = 'used', used_at = UTC_TIMESTAMP()
@@ -206,8 +206,8 @@ if (in_array($action, ['requests', 'invite', 'revoke'], true)) {
 
   if ($action === 'invite' && method() === 'POST') {
     $b = body();
-    $cid = (int)($b['customer_id'] ?? 0);
-    $chId = (int)($b['challenge_id'] ?? 0);
+    $cid = in_int($b, 'customer_id');
+    $chId = in_int($b, 'challenge_id');
     if ($chId) {
       $ch = db_row("SELECT customer_id FROM customer_access_challenges WHERE id = ? AND status = 'awaiting_owner'", 'i', $chId);
       if (!$ch) fail('That request is no longer waiting', 404);
@@ -222,7 +222,7 @@ if (in_array($action, ['requests', 'invite', 'revoke'], true)) {
 
   if ($action === 'revoke' && method() === 'POST') {
     $b = body();
-    $cid = (int)($b['customer_id'] ?? 0);
+    $cid = in_int($b, 'customer_id');
     if (!db_row('SELECT id FROM customers WHERE id = ?', 'i', $cid)) fail('Client not found', 404);
     $n = customer_sessions_revoke_all($cid);
     audit($user['id'], 'customer_sessions_revoke', 'customer', $cid, ['revoked' => $n]);

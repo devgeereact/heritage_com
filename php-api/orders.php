@@ -42,7 +42,7 @@ if ($action === 'list' && method() === 'GET') {
 
 /* ---- GET ONE ------------------------------------------------------------- */
 if ($action === 'get' && method() === 'GET') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare('SELECT * FROM orders WHERE id = ? AND deleted_at IS NULL');
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -63,12 +63,12 @@ if ($action === 'get' && method() === 'GET') {
 /* ---- CREATE -------------------------------------------------------------- */
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $customerName = trim($b['customer'] ?? '');
-  $phone = trim($b['phone'] ?? '');
+  $customerName = trim(in_str($b, 'customer'));
+  $phone = trim(in_str($b, 'phone'));
   $channel = in_array($b['channel'] ?? '', $CHANNELS, true) ? $b['channel'] : 'web';
   $payment = in_array($b['payment_method'] ?? '', $PAYMENTS, true) ? $b['payment_method'] : 'unpaid';
-  $shipAddress = trim($b['ship_address'] ?? '');
-  $notes = trim($b['notes'] ?? '');
+  $shipAddress = trim(in_str($b, 'ship_address'));
+  $notes = trim(in_str($b, 'notes'));
   $items = is_array($b['items'] ?? null) ? $b['items'] : [];
   if ($customerName === '') fail('Customer name is required');
   if (!$items) fail('Add at least one item');
@@ -86,8 +86,8 @@ if ($action === 'create' && method() === 'POST') {
   // Compute total from the line items (server-side; never trust the client total).
   $total = 0;
   foreach ($items as $it) {
-    $qty = max(1, (int)($it['qty'] ?? 1));
-    $price = (float)($it['unit_price'] ?? 0);
+    $qty = max(1, in_int($it, 'qty', 1));
+    $price = in_num($it, 'unit_price');
     $total += $qty * $price;
   }
   $paid = ($payment === 'unpaid') ? 0 : $total;
@@ -121,11 +121,11 @@ if ($action === 'create' && method() === 'POST') {
   );
   $soldVariantIds = [];
   foreach ($items as $it) {
-    $variantId = isset($it['variant_id']) && $it['variant_id'] !== '' ? (int)$it['variant_id'] : null;
-    $label = trim($it['label'] ?? 'Item');
-    $sku = isset($it['sku']) ? trim($it['sku']) : null;
-    $qty = max(1, (int)($it['qty'] ?? 1));
-    $price = (float)($it['unit_price'] ?? 0);
+    $variantId = isset($it['variant_id']) && $it['variant_id'] !== '' ? in_int($it, 'variant_id') : null;
+    $label = trim(in_str($it, 'label', 'Item'));
+    $sku = isset($it['sku']) ? trim(in_str($it, 'sku')) : null;
+    $qty = max(1, in_int($it, 'qty', 1));
+    $price = in_num($it, 'unit_price');
     $itemStmt->bind_param('iissid', $orderId, $variantId, $label, $sku, $qty, $price);
     $itemStmt->execute();
     if ($variantId) {
@@ -171,7 +171,7 @@ if ($action === 'create' && method() === 'POST') {
 
 /* ---- STATUS -------------------------------------------------------------- */
 if ($action === 'status' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $status = $b['status'] ?? '';
   if (!in_array($status, $STATUSES, true)) fail('Invalid status');
@@ -192,11 +192,11 @@ if ($action === 'status' && method() === 'POST') {
 /* ---- TRACKING ------------------------------------------------------------ */
 /* Attach courier + tracking details and move the order to 'shipped'.        */
 if ($action === 'track' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
-  $courier = trim($b['courier'] ?? '');
-  $ref = trim($b['tracking_ref'] ?? '');
-  $url = trim($b['tracking_url'] ?? '');
+  $courier = trim(in_str($b, 'courier'));
+  $ref = trim(in_str($b, 'tracking_ref'));
+  $url = trim(in_str($b, 'tracking_url'));
   $markShipped = ($b['mark_shipped'] ?? true) ? 'shipped' : null;
 
   if ($markShipped) {
@@ -225,10 +225,10 @@ if ($action === 'track' && method() === 'POST') {
 
 /* ---- RETURN / EXCHANGE --------------------------------------------------- */
 if ($action === 'return' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $rs = $b['return_status'] ?? '';
-  $reason = trim($b['return_reason'] ?? '');
+  $reason = trim(in_str($b, 'return_reason'));
   if (!in_array($rs, $RETURNS, true)) fail('Invalid return status');
 
   $stmt = $conn->prepare('UPDATE orders SET return_status = ?, return_reason = ? WHERE id = ? AND deleted_at IS NULL');
@@ -240,11 +240,11 @@ if ($action === 'return' && method() === 'POST') {
 
 /* ---- RECORD PAYMENT (installment / "pay small small" / transfer confirm) -- */
 if ($action === 'pay' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
-  $amount = (float)($b['amount'] ?? 0);
+  $amount = in_num($b, 'amount', 0);
   $pmethod = in_array($b['method'] ?? '', $PAYMENTS, true) ? $b['method'] : 'transfer';
-  $reference = trim($b['reference'] ?? '');
+  $reference = trim(in_str($b, 'reference'));
   if ($amount <= 0) fail('Amount must be positive');
 
   $o = $conn->query('SELECT code, customer_name, total, paid FROM orders WHERE id = ' . (int)$id . ' AND deleted_at IS NULL')->fetch_assoc();
@@ -272,11 +272,11 @@ if ($action === 'pay' && method() === 'POST') {
 
 /* ---- REFUND (cash or to store credit) ------------------------------------ */
 if ($action === 'refund' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
-  $amount = (float)($b['amount'] ?? 0);
+  $amount = in_num($b, 'amount', 0);
   $to = ($b['to'] ?? 'credit') === 'cash' ? 'cash' : 'credit';
-  $reason = trim($b['reason'] ?? '');
+  $reason = trim(in_str($b, 'reason'));
   if ($amount <= 0) fail('Amount must be positive');
 
   $o = $conn->query('SELECT code, customer_id, paid FROM orders WHERE id = ' . (int)$id . ' AND deleted_at IS NULL')->fetch_assoc();

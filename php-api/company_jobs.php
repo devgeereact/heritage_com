@@ -33,7 +33,7 @@ $user = require_auth(ROLES_WORKSHOP);
 $uid = (int)$user['id'];
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? 'job';
-$jobId = (int)($_GET['job_id'] ?? 0);
+$jobId = in_int($_GET, 'job_id');
 
 if (!has_table('job_items')) fail('Company orders are not set up yet (import schema_phase27.sql)', 409);
 
@@ -152,14 +152,14 @@ function cj_job_answer($jobId, $isOwner) {
 if ($action === 'create' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
-  $companyId = (int)($b['company_id'] ?? 0);
-  $contactId = (int)($b['contact_id'] ?? 0);
+  $companyId = in_int($b, 'company_id');
+  $contactId = in_int($b, 'contact_id');
   $method = $b['measurement_method'] ?? 'individual';
   if (!in_array($method, MEASUREMENT_METHODS, true)) fail('measurement_method must be individual, sizes or mixed');
-  $po = mb_substr(trim((string)($b['po_number'] ?? '')), 0, 60) ?: null;
+  $po = mb_substr(trim(in_str($b, 'po_number')), 0, 60) ?: null;
   $due = null;
   if (!empty($b['due_date'])) { $due = ymd_or_null($b['due_date']); if ($due === null) fail('Invalid due_date (use YYYY-MM-DD)'); }
-  $desc = mb_substr(trim((string)($b['description'] ?? '')), 0, 255);
+  $desc = mb_substr(trim(in_str($b, 'description')), 0, 255);
   $rawItems = is_array($b['items'] ?? null) ? $b['items'] : [];
   if (!$rawItems) fail('Add at least one item');
   if (count($rawItems) > 200) fail('At most 200 items per job');
@@ -209,13 +209,13 @@ if ($action === 'set' && method() === 'POST') {
   db_tx(function () use ($jobId, $b, $uid) {
     $job = cj_lock($jobId);
     $f = [];
-    if (array_key_exists('po_number', $b)) $f['po_number'] = mb_substr(trim((string)$b['po_number']), 0, 60) ?: null;
+    if (array_key_exists('po_number', $b)) $f['po_number'] = mb_substr(trim(in_str($b, 'po_number')), 0, 60) ?: null;
     if (array_key_exists('measurement_method', $b)) {
       if (!in_array($b['measurement_method'], MEASUREMENT_METHODS, true)) tx_fail('measurement_method must be individual, sizes or mixed');
       $f['measurement_method'] = $b['measurement_method'];
     }
     if (array_key_exists('invoice_contact_id', $b)) {
-      $cid = (int)$b['invoice_contact_id'];
+      $cid = in_int($b, 'invoice_contact_id');
       if ($cid && !db_row('SELECT id FROM company_contacts WHERE id = ? AND company_id = ?', 'ii', $cid, (int)$job['company_id'])) tx_fail('That contact is not with this company', 400);
       $f['invoice_contact_id'] = $cid ?: null;
     }
@@ -234,8 +234,8 @@ if ($action === 'set' && method() === 'POST') {
 if ($action === 'item_save' && method() === 'POST') {
   $b = body();
   $c = cj_item_from_body($b);
-  $itemId = (int)($b['item_id'] ?? 0);
-  $effect = mb_substr(trim((string)($b['effect_note'] ?? '')), 0, 255);
+  $itemId = in_int($b, 'item_id');
+  $effect = mb_substr(trim(in_str($b, 'effect_note')), 0, 255);
   db_tx(function () use ($jobId, $itemId, $c, $effect, $uid) {
     $job = cj_lock($jobId);
     if (in_array($job['job_stage'], ['handed_over', 'cancelled'], true)) tx_fail('This job is closed', 409);
@@ -266,8 +266,8 @@ if ($action === 'item_save' && method() === 'POST') {
 
 if ($action === 'item_cancel' && method() === 'POST') {
   $b = body();
-  $itemId = (int)($b['item_id'] ?? 0);
-  $reason = mb_substr(trim((string)($b['reason'] ?? '')), 0, 200);
+  $itemId = in_int($b, 'item_id');
+  $reason = mb_substr(trim(in_str($b, 'reason')), 0, 200);
   if ($reason === '') fail('Give a reason for cancelling the item');
   db_tx(function () use ($jobId, $itemId, $reason, $uid) {
     cj_lock($jobId);
@@ -284,7 +284,7 @@ if ($action === 'item_cancel' && method() === 'POST') {
 
 if ($action === 'item_progress' && method() === 'POST') {
   $b = body();
-  $itemId = (int)($b['item_id'] ?? 0);
+  $itemId = in_int($b, 'item_id');
   $ready = filter_var($b['qty_ready'] ?? null, FILTER_VALIDATE_INT);
   if ($ready === false || $ready < 0) fail('Ready quantity must be a whole number from 0');
   db_tx(function () use ($jobId, $itemId, $ready, $uid) {
@@ -304,8 +304,8 @@ if ($action === 'item_progress' && method() === 'POST') {
 
 if ($action === 'item_attach_measurement' && method() === 'POST') {
   $b = body();
-  $itemId = (int)($b['item_id'] ?? 0);
-  $setId = (int)($b['measurement_set_id'] ?? 0);
+  $itemId = in_int($b, 'item_id');
+  $setId = in_int($b, 'measurement_set_id');
   db_tx(function () use ($jobId, $itemId, $setId, $uid) {
     cj_lock($jobId);
     $it = db_row('SELECT * FROM job_items WHERE id = ? AND job_id = ? FOR UPDATE', 'ii', $itemId, $jobId);
@@ -323,7 +323,7 @@ if ($action === 'item_attach_measurement' && method() === 'POST') {
 if ($action === 'wearer_invite' && method() === 'POST') {
   $b = body();
   $it = db_row('SELECT i.id, i.wearer_customer_id FROM job_items i JOIN tailoring_orders o ON o.id = i.job_id
-                 WHERE i.id = ? AND i.job_id = ? AND o.job_kind = ?', 'iis', (int)($b['item_id'] ?? 0), $jobId, 'company');
+                 WHERE i.id = ? AND i.job_id = ? AND o.job_kind = ?', 'iis', in_int($b, 'item_id'), $jobId, 'company');
   if (!$it) fail('Item not found', 404);
   if (!$it['wearer_customer_id']) fail('Choose the wearer first', 409);
   $c = db_row('SELECT id, name, phone FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', (int)$it['wearer_customer_id']);
@@ -338,9 +338,9 @@ if ($action === 'wearer_invite' && method() === 'POST') {
 if ($action === 'sample_submit' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
-  $desc = mb_substr(trim((string)($b['description'] ?? '')), 0, 255);
+  $desc = mb_substr(trim(in_str($b, 'description')), 0, 255);
   if ($desc === '') fail('Describe the sample');
-  $itemId = (int)($b['item_id'] ?? 0) ?: null;
+  $itemId = in_int($b, 'item_id') ?: null;
   db_tx(function () use ($jobId, $key, $desc, $itemId, $uid) {
     global $conn;
     cj_lock($jobId);
@@ -360,13 +360,13 @@ if ($action === 'sample_submit' && method() === 'POST') {
 
 if ($action === 'sample_record_decision' && method() === 'POST') {
   $b = body();
-  $sid = (int)($b['sample_id'] ?? 0);
-  $to = ['approve' => 'approved', 'changes' => 'changes_requested'][$b['decision'] ?? ''] ?? null;
+  $sid = in_int($b, 'sample_id');
+  $to = ['approve' => 'approved', 'changes' => 'changes_requested'][in_str($b, 'decision')] ?? null;
   if (!$to) fail('decision must be approve or changes');
-  $channel = (string)($b['channel'] ?? '');
+  $channel = in_str($b, 'channel');
   if (!in_array($channel, array_diff(SAMPLE_DECISION_CHANNELS, ['portal']), true)) fail('channel must be in_person, whatsapp, email or phone');
-  $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 500) ?: null;
-  $contactId = (int)($b['contact_id'] ?? 0) ?: null;
+  $note = mb_substr(trim(in_str($b, 'note')), 0, 500) ?: null;
+  $contactId = in_int($b, 'contact_id') ?: null;
   db_tx(function () use ($jobId, $sid, $to, $channel, $note, $contactId, $uid) {
     $job = cj_lock($jobId);
     $s = db_row('SELECT * FROM job_samples WHERE id = ? AND job_id = ? FOR UPDATE', 'ii', $sid, $jobId);
@@ -388,7 +388,7 @@ if ($action === 'sample_record_decision' && method() === 'POST') {
 if ($action === 'handover' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
-  $method = (string)($b['method'] ?? '');
+  $method = in_str($b, 'method');
   if (!in_array($method, ['collection', 'delivery'], true)) fail('Method must be collection or delivery');
   $res = db_tx(function () use ($jobId, $key, $method, $b, $user) {
     global $conn;

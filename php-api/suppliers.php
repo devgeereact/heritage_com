@@ -42,7 +42,7 @@ if ($action === 'list' && method() === 'GET') {
 }
 
 if ($action === 'get' && method() === 'GET') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare('SELECT * FROM suppliers WHERE id = ? AND deleted_at IS NULL');
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -61,13 +61,13 @@ if ($action === 'get' && method() === 'GET') {
 
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
+  $name = trim(in_str($b, 'name'));
   if ($name === '') fail('Supplier name is required');
-  $contact = trim($b['contact'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
-  $address = trim($b['address'] ?? '');
-  $notes = trim($b['notes'] ?? '');
+  $contact = trim(in_str($b, 'contact'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
+  $address = trim(in_str($b, 'address'));
+  $notes = trim(in_str($b, 'notes'));
   $stmt = $conn->prepare('INSERT INTO suppliers (name, contact, phone, email, address, notes) VALUES (?,?,?,?,?,?)');
   $stmt->bind_param('ssssss', $name, $contact, $phone, $email, $address, $notes);
   $stmt->execute();
@@ -77,15 +77,15 @@ if ($action === 'create' && method() === 'POST') {
 }
 
 if ($action === 'update' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
-  $name = trim($b['name'] ?? '');
+  $name = trim(in_str($b, 'name'));
   if ($name === '') fail('Supplier name is required');
-  $contact = trim($b['contact'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
-  $address = trim($b['address'] ?? '');
-  $notes = trim($b['notes'] ?? '');
+  $contact = trim(in_str($b, 'contact'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
+  $address = trim(in_str($b, 'address'));
+  $notes = trim(in_str($b, 'notes'));
   $stmt = $conn->prepare('UPDATE suppliers SET name=?, contact=?, phone=?, email=?, address=?, notes=? WHERE id=? AND deleted_at IS NULL');
   $stmt->bind_param('ssssssi', $name, $contact, $phone, $email, $address, $notes, $id);
   $stmt->execute();
@@ -114,7 +114,7 @@ if ($action === 'po_list' && method() === 'GET') {
 }
 
 if ($action === 'po_get' && method() === 'GET') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare('SELECT * FROM purchase_orders WHERE id = ? AND deleted_at IS NULL');
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -132,9 +132,9 @@ if ($action === 'po_get' && method() === 'GET') {
 
 if ($action === 'po_create' && method() === 'POST') {
   $b = body();
-  $supplierId = isset($b['supplier_id']) && $b['supplier_id'] !== '' ? (int)$b['supplier_id'] : null;
-  $supplierName = trim($b['supplier_name'] ?? '');
-  $notes = trim($b['notes'] ?? '');
+  $supplierId = isset($b['supplier_id']) && $b['supplier_id'] !== '' ? in_int($b, 'supplier_id') : null;
+  $supplierName = trim(in_str($b, 'supplier_name'));
+  $notes = trim(in_str($b, 'notes'));
   $items = is_array($b['items'] ?? null) ? $b['items'] : [];
   if ($supplierName === '' && $supplierId) {
     $stmt = $conn->prepare('SELECT name FROM suppliers WHERE id = ?');
@@ -147,7 +147,7 @@ if ($action === 'po_create' && method() === 'POST') {
 
   $total = 0;
   foreach ($items as $it) {
-    $total += max(1, (int)($it['qty'] ?? 1)) * (float)($it['unit_cost'] ?? 0);
+    $total += max(1, in_int($it, 'qty', 1)) * in_num($it, 'unit_cost');
   }
   $res = $conn->query('SELECT MAX(id) AS m FROM purchase_orders');
   $next = (int)($res->fetch_assoc()['m'] ?? 0) + 1;
@@ -161,11 +161,11 @@ if ($action === 'po_create' && method() === 'POST') {
 
   $istmt = $conn->prepare('INSERT INTO purchase_order_items (po_id, variant_id, label, sku, qty, unit_cost) VALUES (?,?,?,?,?,?)');
   foreach ($items as $it) {
-    $variantId = isset($it['variant_id']) && $it['variant_id'] !== '' ? (int)$it['variant_id'] : null;
-    $label = trim($it['label'] ?? 'Item');
-    $sku = isset($it['sku']) ? trim($it['sku']) : null;
-    $qty = max(1, (int)($it['qty'] ?? 1));
-    $cost = (float)($it['unit_cost'] ?? 0);
+    $variantId = isset($it['variant_id']) && $it['variant_id'] !== '' ? in_int($it, 'variant_id') : null;
+    $label = trim(in_str($it, 'label', 'Item'));
+    $sku = isset($it['sku']) ? trim(in_str($it, 'sku')) : null;
+    $qty = max(1, in_int($it, 'qty', 1));
+    $cost = in_num($it, 'unit_cost');
     $istmt->bind_param('iissid', $poId, $variantId, $label, $sku, $qty, $cost);
     $istmt->execute();
   }
@@ -174,7 +174,7 @@ if ($action === 'po_create' && method() === 'POST') {
 }
 
 if ($action === 'po_receive' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $conn->begin_transaction();
   try {
     $stmt = $conn->prepare("SELECT status FROM purchase_orders WHERE id = ? AND deleted_at IS NULL FOR UPDATE");
@@ -220,7 +220,7 @@ if ($action === 'po_receive' && method() === 'POST') {
 }
 
 if ($action === 'po_status' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $status = $b['status'] ?? '';
   if (!in_array($status, $PO_STATUSES, true)) fail('Invalid status');

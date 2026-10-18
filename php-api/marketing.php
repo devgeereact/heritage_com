@@ -35,13 +35,13 @@ if ($action === 'list' && method() === 'GET') {
 
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
+  $name = trim(in_str($b, 'name'));
   if ($name === '') fail('Campaign name is required');
   $channel = in_array($b['channel'] ?? '', $CHANNELS, true) ? $b['channel'] : 'instagram';
-  $goal = trim($b['goal'] ?? '');
-  $starts = trim($b['starts_on'] ?? '');  $starts = preg_match('/^\d{4}-\d{2}-\d{2}$/', $starts) ? $starts : null;
-  $ends = trim($b['ends_on'] ?? '');      $ends = preg_match('/^\d{4}-\d{2}-\d{2}$/', $ends) ? $ends : null;
-  $notes = trim($b['notes'] ?? '');
+  $goal = trim(in_str($b, 'goal'));
+  $starts = trim(in_str($b, 'starts_on'));  $starts = preg_match('/^\d{4}-\d{2}-\d{2}$/', $starts) ? $starts : null;
+  $ends = trim(in_str($b, 'ends_on'));      $ends = preg_match('/^\d{4}-\d{2}-\d{2}$/', $ends) ? $ends : null;
+  $notes = trim(in_str($b, 'notes'));
   $stmt = $conn->prepare('INSERT INTO campaigns (name, channel, goal, starts_on, ends_on, notes, created_by) VALUES (?,?,?,?,?,?,?)');
   $stmt->bind_param('ssssssi', $name, $channel, $goal, $starts, $ends, $notes, $user['id']);
   $stmt->execute();
@@ -51,7 +51,7 @@ if ($action === 'create' && method() === 'POST') {
 }
 
 if ($action === 'status' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $status = $b['status'] ?? '';
   if (!in_array($status, $STATUSES, true)) fail('Invalid status');
@@ -63,7 +63,7 @@ if ($action === 'status' && method() === 'POST') {
 }
 
 if ($action === 'delete' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare('UPDATE campaigns SET deleted_at = NOW() WHERE id = ?');
   $stmt->bind_param('i', $id);
   $stmt->execute();

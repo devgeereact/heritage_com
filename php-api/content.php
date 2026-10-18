@@ -37,7 +37,7 @@ if ($action === 'blog_list' && method() === 'GET') {
 }
 
 if ($action === 'blog_get' && method() === 'GET') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare("SELECT * FROM blog_posts WHERE id = ?");
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -48,17 +48,17 @@ if ($action === 'blog_get' && method() === 'GET') {
 
 if ($action === 'blog_save' && method() === 'POST') {
   $b = body();
-  $id      = (int)($b['id'] ?? 0);
-  $title   = trim($b['title'] ?? '');
+  $id      = in_int($b, 'id');
+  $title   = trim(in_str($b, 'title'));
   if ($title === '') fail('Title is required');
-  $slug    = slugify($b['slug'] ?? '' ?: $title);
-  $excerpt = trim($b['excerpt'] ?? '');
-  $bodyHtml= sanitize_html((string)($b['body'] ?? ''));   // allowlist only; the storefront renders it as HTML
-  $category= trim($b['category'] ?? '');
-  $tile    = trim($b['tile'] ?? 'hc-tile-mixed');
-  $tags    = trim($b['tags'] ?? '');
+  $slug    = slugify(in_str($b, 'slug') ?: $title);
+  $excerpt = trim(in_str($b, 'excerpt'));
+  $bodyHtml= sanitize_html(in_str($b, 'body'));   // allowlist only; the storefront renders it as HTML
+  $category= trim(in_str($b, 'category'));
+  $tile    = trim(in_str($b, 'tile', 'hc-tile-mixed'));
+  $tags    = trim(in_str($b, 'tags'));
   $status  = ($b['status'] ?? 'draft') === 'published' ? 'published' : 'draft';
-  $author  = trim($b['author'] ?? ($user['name'] ?? ''));
+  $author  = trim(in_str($b, 'author', $user['name'] ?? ''));
 
   // ensure slug uniqueness (ignore self on update)
   $chk = $conn->prepare("SELECT id FROM blog_posts WHERE slug = ? AND id <> ?");
@@ -90,7 +90,7 @@ if ($action === 'blog_save' && method() === 'POST') {
 }
 
 if ($action === 'blog_delete' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare("DELETE FROM blog_posts WHERE id = ?");
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -108,16 +108,16 @@ if ($action === 'testi_list' && method() === 'GET') {
 
 if ($action === 'testi_save' && method() === 'POST') {
   $b = body();
-  $id       = (int)($b['id'] ?? 0);
-  $name     = trim($b['name'] ?? '');
-  $quote    = trim($b['quote'] ?? '');
+  $id       = in_int($b, 'id');
+  $name     = trim(in_str($b, 'name'));
+  $quote    = trim(in_str($b, 'quote'));
   if ($name === '' || $quote === '') fail('Name and quote are required');
-  $location = trim($b['location'] ?? '');
-  $rating   = max(1, min(5, (int)($b['rating'] ?? 5)));
-  $tile     = trim($b['tile'] ?? 'hc-tile-ankara');
+  $location = trim(in_str($b, 'location'));
+  $rating   = max(1, min(5, in_int($b, 'rating', 5)));
+  $tile     = trim(in_str($b, 'tile', 'hc-tile-ankara'));
   $featured = !empty($b['featured']) ? 1 : 0;
   $status   = ($b['status'] ?? 'published') === 'hidden' ? 'hidden' : 'published';
-  $sort     = (int)($b['sort'] ?? 0);
+  $sort     = in_int($b, 'sort');
 
   if ($id) {
     $stmt = $conn->prepare("UPDATE testimonials SET name=?, location=?, quote=?, rating=?, tile=?, featured=?, status=?, sort=? WHERE id=?");
@@ -136,7 +136,7 @@ if ($action === 'testi_save' && method() === 'POST') {
 }
 
 if ($action === 'testi_delete' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare("DELETE FROM testimonials WHERE id = ?");
   $stmt->bind_param('i', $id);
   $stmt->execute();

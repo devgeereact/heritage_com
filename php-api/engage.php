@@ -47,9 +47,9 @@ if ($action === 'waitlist_notify' && method() === 'POST') {
   // marketing opt-in exists. Lists stay readable; nothing is sent.
   fail('Promotional messages are switched off until customers can opt in (D-024).', 403);
   $b = body();
-  $slug = trim($b['slug'] ?? '');
-  $product = trim($b['product'] ?? '');
-  $custom = trim($b['message'] ?? '');
+  $slug = trim(in_str($b, 'slug'));
+  $product = trim(in_str($b, 'product'));
+  $custom = trim(in_str($b, 'message'));
   if ($slug === '' && $product === '') fail('Which piece?');
 
   if ($slug !== '') {
@@ -101,9 +101,9 @@ if ($action === 'abandoned' && method() === 'GET') {
 
 if ($action === 'abandoned_nudge' && method() === 'POST') {
   fail('Promotional messages are switched off until customers can opt in (D-024).', 403);   // D-024 (K-11)
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
-  $custom = trim($b['message'] ?? '');
+  $custom = trim(in_str($b, 'message'));
   $stmt = $conn->prepare('SELECT * FROM abandoned_carts WHERE id = ?');
   $stmt->bind_param('i', $id);
   $stmt->execute();

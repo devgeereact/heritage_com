@@ -45,7 +45,7 @@ if ($action === 'slots' && method() === 'GET') {
   if (!in_array($type, PUBLIC_TYPES, true)) fail('Unknown appointment type');
   $from = ymd_or_null($_GET['from'] ?? '') ?? lagos_today();
   if ($from < lagos_today()) $from = lagos_today();
-  $days = max(1, min(14, (int)($_GET['days'] ?? 7)));
+  $days = max(1, min(14, in_int($_GET, 'days', 7)));
   json(['timezone' => BUSINESS_TZ, 'type' => $type, 'slots' => appt_free_slots($type, $from, $days)]);
 }
 
@@ -54,21 +54,21 @@ if ($action === 'request' && method() === 'POST') {
   $b = body();
   $ok = ['ok' => true, 'message' => 'Request received. We will confirm your appointment, or suggest another time.'];
   // Honeypot: a filled hidden field gets the normal reply and nothing is stored.
-  if (trim((string)($b['hp_url'] ?? '')) !== '') json($ok, 201);
+  if (trim(in_str($b, 'hp_url')) !== '') json($ok, 201);
   $key = body_request_key($b);
   $type = $b['type'] ?? 'consultation';
   if (!in_array($type, PUBLIC_TYPES, true)) fail('Unknown appointment type');
-  $name = trim((string)($b['name'] ?? ''));
-  $phone = trim((string)($b['phone'] ?? ''));
-  $email = trim((string)($b['email'] ?? ''));
-  $note = trim((string)($b['note'] ?? ''));
+  $name = trim(in_str($b, 'name'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
+  $note = trim(in_str($b, 'note'));
   if ($name === '' || mb_strlen($name) > 160) fail('Please give your name');
   if ($phone === '' && $email === '') fail('Please give a phone number or an email address');
   if ($phone !== '' && (strlen(preg_replace('/\D/', '', $phone)) < 7 || mb_strlen($phone) > 40)) fail('That phone number looks wrong');
   if ($email !== '' && (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 190)) fail('That email address looks wrong');
   if (mb_strlen($note) > 500) fail('Please keep the note under 500 characters');
   $utc = lagos_local_to_utc($b['start'] ?? '');
-  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', (string)($b['start'] ?? ''))) fail('Choose a time from the list');
+  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', in_str($b, 'start'))) fail('Choose a time from the list');
 
   // A repeat of the same request (double tap, retry) gets the same answer.
   if (db_row('SELECT id FROM appointments WHERE request_key = ?', 's', $key)) json($ok, 200);

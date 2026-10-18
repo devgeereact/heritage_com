@@ -25,7 +25,7 @@ cors();
 $user = require_auth(ROLES_OWNER);
 $uid = (int)$user['id'];
 $action = $_GET['action'] ?? 'inbox';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 function msg_view(array $m) {
   foreach (['id', 'job_id', 'customer_id', 'author_user_id'] as $k) if ($m[$k] !== null) $m[$k] = (int)$m[$k];
@@ -68,7 +68,7 @@ if ($action === 'unread_count' && method() === 'GET') {
 
 /* ---- THREAD --------------------------------------------------------------- */
 if ($action === 'thread' && method() === 'GET') {
-  $jobId = (int)($_GET['job_id'] ?? 0);
+  $jobId = in_int($_GET, 'job_id');
   if (!db_row('SELECT id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $jobId)) fail('Job not found', 404);
   json(['job_id' => $jobId, 'messages' => array_map('msg_view', db_rows(
     'SELECT m.*, UNIX_TIMESTAMP(m.created_at) AS created_ts, u.name AS author_name FROM job_messages m LEFT JOIN users u ON u.id = m.author_user_id WHERE m.job_id = ? ORDER BY m.id', 'i', $jobId))]);
@@ -79,7 +79,7 @@ if ($action === 'post' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
   $job = db_row('SELECT o.id, o.customer_id, o.public_ref, c.name, c.phone, c.email FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id
-                  WHERE o.id = ? AND o.deleted_at IS NULL', 'i', (int)($b['job_id'] ?? 0));
+                  WHERE o.id = ? AND o.deleted_at IS NULL', 'i', in_int($b, 'job_id'));
   if (!$job) fail('Job not found', 404);
   $vis = $b['visibility'] ?? '';
   if (!in_array($vis, ['internal', 'client'], true)) fail('Visibility must be internal or client');
@@ -119,7 +119,7 @@ if ($action === 'post' && method() === 'POST') {
 if ($action === 'mark_read' && method() === 'POST') {
   $b = body();
   $n = db_exec("UPDATE job_messages SET read_by_owner_at = UTC_TIMESTAMP() WHERE job_id = ? AND author_type = 'customer' AND read_by_owner_at IS NULL",
-    'i', (int)($b['job_id'] ?? 0))->affected_rows;
+    'i', in_int($b, 'job_id'))->affected_rows;
   json(['ok' => true, 'marked' => $n]);
 }
 
@@ -127,7 +127,7 @@ if ($action === 'mark_read' && method() === 'POST') {
 if ($action === 'change_requests' && method() === 'GET') {
   $status = $_GET['status'] ?? 'open';
   if (!in_array($status, ['open', 'approved', 'declined', 'withdrawn', 'all'], true)) fail('Unknown status');
-  $jobId = (int)($_GET['job_id'] ?? 0);
+  $jobId = in_int($_GET, 'job_id');
   $rows = db_rows("SELECT r.*, o.code, o.job_stage, c.name AS client_name FROM job_change_requests r
                      JOIN tailoring_orders o ON o.id = r.job_id JOIN customers c ON c.id = r.customer_id
                     WHERE (? = 'all' OR r.status = ?) AND (? = 0 OR r.job_id = ?) ORDER BY r.id DESC LIMIT 200",
@@ -139,11 +139,11 @@ if ($action === 'change_decide' && method() === 'POST') {
   $b = body();
   $decision = $b['decision'] ?? '';
   if (!in_array($decision, ['approve', 'decline'], true)) fail('Decision must be approve or decline');
-  $response = trim((string)($b['response'] ?? ''));
+  $response = trim(in_str($b, 'response'));
   if (mb_strlen($response) > 500) fail('Response is too long (500 characters at most)');
   $price = null;
   if (isset($b['price_effect']) && $b['price_effect'] !== '' && $b['price_effect'] !== null) {
-    $raw = trim((string)$b['price_effect']);
+    $raw = trim(in_str($b, 'price_effect'));
     $neg = str_starts_with($raw, '-');
     $minor = money_to_minor(ltrim($raw, '+-'));
     if ($minor === null) fail('Price effect must be an amount such as "5,000" or "-2000"');
@@ -165,7 +165,7 @@ if ($action === 'change_decide' && method() === 'POST') {
     $dur = (int)round((utc_ts($appt['ends_at']) - utc_ts($appt['starts_at'])) / 60);
     appt_reserve(['id' => (int)$appt['id'], 'type' => $appt['type'], 'mode' => 'owner', 'start_ts' => utc_ts($utc),
       'duration_min' => in_array($dur, APPOINTMENT_DURATIONS, true) ? $dur : null,
-      'reason' => 'Client asked to move it (request #' . $id . ')', 'override_reason' => $b['override_reason'] ?? ''], ['type' => 'owner', 'id' => $uid]);
+      'reason' => 'Client asked to move it (request #' . $id . ')', 'override_reason' => in_str($b, 'override_reason')], ['type' => 'owner', 'id' => $uid]);
   }
 
   $res = db_tx(function () use ($cr, $decision, $response, $price, $date, $uid, $id) {

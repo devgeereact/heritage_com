@@ -144,7 +144,7 @@ if ($action === 'home') {
 }
 
 if ($action === 'page') {
-  $key = (string)($_GET['key'] ?? '');
+  $key = in_str($_GET, 'key');
   if (!in_array($key, CMS_PAGE_KEYS, true)) site_404();
   $page = site_page($key);
   if (!$page) site_404();
@@ -156,7 +156,7 @@ if ($action === 'services') {
 }
 
 if ($action === 'service') {
-  $r = site_row('service', (string)($_GET['slug'] ?? ''));
+  $r = site_row('service', in_str($_GET, 'slug'));
   if (!$r) site_404('Service not found');
   $work = array_values(array_filter(site_rows('project'), fn($p) => ($p['data']['service_slug'] ?? null) === $r['slug']));
   site_json(['service' => site_project('service', [$r])[0], 'work' => array_slice(site_project('project', $work), 0, 6)]);
@@ -164,13 +164,13 @@ if ($action === 'service') {
 
 if ($action === 'work') {
   $rows = site_rows('project');
-  $svc = (string)($_GET['service'] ?? '');
+  $svc = in_str($_GET, 'service');
   if ($svc !== '') $rows = array_values(array_filter($rows, fn($p) => ($p['data']['service_slug'] ?? null) === $svc));
   site_json(['items' => site_project('project', $rows)]);
 }
 
 if ($action === 'work_item') {
-  $r = site_row('project', (string)($_GET['slug'] ?? ''));
+  $r = site_row('project', in_str($_GET, 'slug'));
   if (!$r) site_404('Project not found');
   site_json(['item' => site_project('project', [$r])[0]]);
 }
@@ -182,7 +182,7 @@ if ($action === 'faqs') {
 }
 
 if ($action === 'policy') {
-  $key = (string)($_GET['key'] ?? '');
+  $key = in_str($_GET, 'key');
   $r = in_array($key, CMS_POLICY_KEYS, true) ? site_row('policy', $key) : null;
   if (!$r) site_404('Policy not found');
   site_json(['policy' => site_project('policy', [$r])[0]]);
@@ -203,7 +203,7 @@ if ($action === 'journal') {
 if ($action === 'journal_post') {
   if (!journal_on()) site_404('Post not found');
   $p = db_row("SELECT slug, title, excerpt, body, category, author, published_at FROM blog_posts
-                WHERE slug = ? AND status = 'published' LIMIT 1", 's', (string)($_GET['slug'] ?? ''));
+                WHERE slug = ? AND status = 'published' LIMIT 1", 's', in_str($_GET, 'slug'));
   if (!$p) site_404('Post not found');
   $p['body'] = sanitize_html($p['body'] ?? '');
   site_json(['post' => $p]);

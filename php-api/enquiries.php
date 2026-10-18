@@ -25,7 +25,7 @@ $GARMENTS = ['agbada', 'kaftan', 'senator', 'suit', 'shirt', 'trouser', 'other']
 $user = require_auth(ROLES_ENQUIRY);
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 function enquiry_view(array $e) {
   foreach (['id', 'quantity', 'client_id', 'job_id', 'converted_by'] as $k) {
@@ -45,7 +45,7 @@ function enquiry_fields(array $b, array $types) {
   $f = [];
   foreach (['company' => 160, 'interest' => 120, 'closed_reason' => 120, 'owner_notes' => 5000] as $k => $max) {
     if (!array_key_exists($k, $b)) continue;
-    $v = trim((string)$b[$k]);
+    $v = trim(in_str($b, $k));
     if (mb_strlen($v) > $max) fail("$k is too long");
     $f[$k] = $v === '' ? null : $v;
   }
@@ -79,8 +79,8 @@ if ($action === 'list' && method() === 'GET') {
     if ($st === 'awaiting_reply') $where .= " AND e.status IN ('awaiting_reply','contacted')";
     else { $where .= ' AND e.status = ?'; $types .= 's'; $args[] = $st; }
   }
-  if (trim($_GET['q'] ?? '') !== '') {
-    $q = '%' . trim($_GET['q']) . '%';
+  if (trim(in_str($_GET, 'q')) !== '') {
+    $q = '%' . trim(in_str($_GET, 'q')) . '%';
     $where .= ' AND (e.name LIKE ? OR e.phone LIKE ? OR e.email LIKE ? OR e.company LIKE ?)';
     $types .= 'ssss'; array_push($args, $q, $q, $q, $q);
   }
@@ -116,15 +116,15 @@ if ($action === 'create' && method() === 'POST') {
   if ($key !== null && ($ex = db_row('SELECT id FROM enquiries WHERE request_key = ?', 's', $key))) {
     json(['id' => (int)$ex['id'], 'duplicate' => true]);
   }
-  $name = trim((string)($b['name'] ?? ''));
-  $phone = trim((string)($b['phone'] ?? ''));
-  $email = trim((string)($b['email'] ?? ''));
+  $name = trim(in_str($b, 'name'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
   if ($name === '') fail('Name is required');
   if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) fail('That email address looks wrong');
   $f = enquiry_fields($b, $TYPES);
   $type = $f['type'] ?? 'general';
-  $message = trim((string)($b['message'] ?? ''));
-  $source = preg_match('/^[a-z_]{1,40}$/', (string)($b['source'] ?? '')) ? $b['source'] : 'staff';
+  $message = trim(in_str($b, 'message'));
+  $source = preg_match('/^[a-z_]{1,40}$/', in_str($b, 'source')) ? $b['source'] : 'staff';
   try {
     db_exec('INSERT INTO enquiries (name, phone, email, company, type, interest, quantity, desired_date, message, status,
                                     next_follow_up, owner_notes, source, request_key)
@@ -148,7 +148,7 @@ if ($action === 'update' && method() === 'POST') {
     $e = db_row('SELECT id, status FROM enquiries WHERE id = ? FOR UPDATE', 'i', $id);
     if (!$e) tx_fail('Enquiry not found', 404);
     if (array_key_exists('status', $b)) {
-      $to = enquiry_status_from_legacy((string)$b['status']);
+      $to = enquiry_status_from_legacy(in_str($b, 'status'));
       if ($to === null) tx_fail('Unknown status');
       $from = enquiry_status_from_legacy($e['status']);
       if ($to !== $from) {
@@ -172,7 +172,7 @@ if ($action === 'update' && method() === 'POST') {
 /* ---- LINK TO AN EXISTING CLIENT ------------------------------------------ */
 if ($action === 'link_client' && method() === 'POST') {
   $b = body();
-  $cid = (int)($b['client_id'] ?? 0);
+  $cid = in_int($b, 'client_id');
   if (!db_row('SELECT id FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', $cid)) fail('Client not found', 404);
   $e = db_row('SELECT id, job_id FROM enquiries WHERE id = ?', 'i', $id);
   if (!$e) fail('Enquiry not found', 404);
@@ -194,6 +194,7 @@ if ($action === 'convert' && method() === 'POST') {
   $c = is_array($b['client'] ?? null) ? $b['client'] : [];
   $j = is_array($b['job'] ?? null) ? $b['job'] : [];
 
+  in_text_only($j, ['description', 'next_action']);
   $garment = $j['garment_type'] ?? 'other';
   if (!in_array($garment, $GARMENTS, true)) fail('Unknown garment type');
   $jf = ['garment_type' => $garment];

@@ -34,7 +34,7 @@ if ($action === 'credit_balance' && method() === 'GET') {
 
 /* ---- PUBLIC: gift-card balance check ------------------------------------- */
 if ($action === 'gift_check' && method() === 'GET') {
-  $code = strtoupper(trim($_GET['code'] ?? ''));
+  $code = strtoupper(trim(in_str($_GET, 'code')));
   if ($code === '') fail('Enter a gift card code');
   // Codes are short, so failed checks are limited per IP to stop guessing.
   $ipKey = 'ip:' . client_ip();
@@ -72,7 +72,7 @@ if ($action === 'balances' && method() === 'GET') {
 
 /* ---- HISTORY ------------------------------------------------------------- */
 if ($action === 'history' && method() === 'GET') {
-  $cid = (int)($_GET['customer_id'] ?? 0);
+  $cid = in_int($_GET, 'customer_id');
   $rows = [];
   $stmt = $conn->prepare('SELECT delta, reason, ref, note, created_at FROM store_credit WHERE customer_id = ? ORDER BY id DESC');
   $stmt->bind_param('i', $cid);
@@ -85,10 +85,10 @@ if ($action === 'history' && method() === 'GET') {
 /* ---- ADJUST (issue / deduct credit) -------------------------------------- */
 if ($action === 'adjust' && method() === 'POST') {
   $b = body();
-  $cid = (int)($b['customer_id'] ?? 0);
-  $delta = (float)($b['delta'] ?? 0);
-  $reason = trim($b['reason'] ?? 'adjust');
-  $note = trim($b['note'] ?? '');
+  $cid = in_int($b, 'customer_id');
+  $delta = in_num($b, 'delta', 0);
+  $reason = trim(in_str($b, 'reason', 'adjust'));
+  $note = trim(in_str($b, 'note'));
   if (!$cid) fail('customer_id is required');
   if ($delta === 0.0) fail('Amount cannot be zero');
 
@@ -110,10 +110,10 @@ if ($action === 'gift_list' && method() === 'GET') {
 
 if ($action === 'gift_issue' && method() === 'POST') {
   $b = body();
-  $amount = (float)($b['amount'] ?? 0);
+  $amount = in_num($b, 'amount', 0);
   if ($amount <= 0) fail('Amount must be positive');
-  $recipient = trim($b['recipient_name'] ?? '');
-  $message = trim($b['message'] ?? '');
+  $recipient = trim(in_str($b, 'recipient_name'));
+  $message = trim(in_str($b, 'message'));
 
   // Unique HG-XXXXXXXX code.
   $code = '';
@@ -134,7 +134,7 @@ if ($action === 'gift_issue' && method() === 'POST') {
 }
 
 if ($action === 'gift_toggle' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $active = !empty($b['active']) ? 1 : 0;
   $stmt = $conn->prepare('UPDATE gift_cards SET active = ? WHERE id = ?');

@@ -65,7 +65,7 @@ if ($action === 'list' && method() === 'GET') {
 
 /* ---- HISTORY ------------------------------------------------------------- */
 if ($action === 'history' && method() === 'GET') {
-  $variantId = (int)($_GET['id'] ?? 0);
+  $variantId = in_int($_GET, 'id');
   $rows = [];
   $stmt = $conn->prepare(
     'SELECT a.id, a.delta, a.reason, a.note, a.stock_after, a.created_at, u.name AS user_name
@@ -84,11 +84,11 @@ if ($action === 'history' && method() === 'GET') {
 
 /* ---- ADJUST (signed delta) ---------------------------------------------- */
 if ($action === 'adjust' && method() === 'POST') {
-  $variantId = (int)($_GET['id'] ?? 0);
+  $variantId = in_int($_GET, 'id');
   $b = body();
-  $delta = (int)($b['delta'] ?? 0);
+  $delta = in_int($b, 'delta');
   $reason = $b['reason'] ?? '';
-  $note = isset($b['note']) ? trim($b['note']) : null;
+  $note = isset($b['note']) ? trim(in_str($b, 'note')) : null;
   if ($delta === 0) fail('Delta cannot be zero');
   if (!in_array($reason, $REASONS, true)) fail('Invalid reason');
 
@@ -98,12 +98,12 @@ if ($action === 'adjust' && method() === 'POST') {
 
 /* ---- SET (absolute, for stock-take) ------------------------------------- */
 if ($action === 'set' && method() === 'POST') {
-  $variantId = (int)($_GET['id'] ?? 0);
+  $variantId = in_int($_GET, 'id');
   $b = body();
   if (!isset($b['stock'])) fail('stock is required');
-  $target = (int)$b['stock'];
+  $target = in_int($b, 'stock');
   if ($target < 0) fail('stock cannot be negative');
-  $note = isset($b['note']) ? trim($b['note']) : null;
+  $note = isset($b['note']) ? trim(in_str($b, 'note')) : null;
 
   // Compute the delta against current stock under a row lock, then log as a count.
   $conn->begin_transaction();

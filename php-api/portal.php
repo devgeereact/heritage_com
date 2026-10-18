@@ -253,7 +253,7 @@ if ($action === 'slots' && method() === 'GET') {
   if (!in_array($type, APPOINTMENT_TYPES, true)) fail('Unknown appointment type');
   $from = ymd_or_null($_GET['from'] ?? '') ?? lagos_today();
   if ($from < lagos_today()) $from = lagos_today();
-  $days = max(1, min(14, (int)($_GET['days'] ?? 7)));
+  $days = max(1, min(14, in_int($_GET, 'days', 7)));
   json(['timezone' => BUSINESS_TZ, 'type' => $type, 'slots' => appt_free_slots($type, $from, $days)]);
 }
 
@@ -264,8 +264,8 @@ if ($action === 'appointment_request' && method() === 'POST') {
   $type = $b['type'] ?? '';
   if (!in_array($type, APPOINTMENT_TYPES, true)) fail('Type must be fitting, collection or consultation');
   $utc = lagos_local_to_utc($b['start'] ?? '');
-  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', (string)($b['start'] ?? ''))) fail('Choose a time from the list');
-  $note = trim((string)($b['note'] ?? ''));
+  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', in_str($b, 'start'))) fail('Choose a time from the list');
+  $note = trim(in_str($b, 'note'));
   if (mb_strlen($note) > 500) fail('Please keep the note under 500 characters');
   $ex = db_row('SELECT customer_id FROM appointments WHERE request_key = ?', 's', $key);
   if ($ex && (int)$ex['customer_id'] !== $cid) fail('Invalid request key');
@@ -280,11 +280,11 @@ if ($action === 'appointment_request' && method() === 'POST') {
 if ($action === 'appointment_reschedule_request' && method() === 'POST') {
   $job = portal_job($me, $ref);
   $key = body_request_key($b);
-  $appt = db_row("SELECT * FROM appointments WHERE id = ? AND job_id = ? AND customer_id = ?", 'iii', (int)($b['appointment_id'] ?? 0), (int)$job['id'], $cid);
+  $appt = db_row("SELECT * FROM appointments WHERE id = ? AND job_id = ? AND customer_id = ?", 'iii', in_int($b, 'appointment_id'), (int)$job['id'], $cid);
   if (!$appt) fail('Not found', 404);
   if (!in_array($appt['status'], ['requested', 'confirmed'], true)) fail('That appointment can no longer be moved', 409);
   $utc = lagos_local_to_utc($b['start'] ?? '');
-  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', (string)($b['start'] ?? ''))) fail('Choose a new time from the list');
+  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', in_str($b, 'start'))) fail('Choose a new time from the list');
   $reason = message_body_clean($b['reason'] ?? 'Please move my appointment', 500) ?? 'Please move my appointment';
   $payload = json_encode(['details' => $reason, 'start' => lagos_iso($utc)], JSON_UNESCAPED_UNICODE);
   $jid = (int)$job['id']; $aid = (int)$appt['id'];
@@ -320,8 +320,8 @@ if ($action === 'propose_measurements' && method() === 'POST') {
   if ($ex && (int)$ex['customer_id'] !== $cid) fail('Invalid request key');
   $tpl = $b['template_key'] ?? '';
   if ($tpl === 'legacy') fail('Unknown measurement template');
-  $r = measurement_create(['customer_id' => $cid, 'template_key' => $tpl, 'unit' => $b['unit'] ?? '', 'vals' => $b['vals'] ?? [],
-    'notes' => $b['note'] ?? null, 'request_key' => $key, 'source' => 'customer', 'approve' => false], null);
+  $r = measurement_create(['customer_id' => $cid, 'template_key' => $tpl, 'unit' => in_str($b, 'unit'), 'vals' => $b['vals'] ?? [],
+    'notes' => in_str($b, 'note', null), 'request_key' => $key, 'source' => 'customer', 'approve' => false], null);
   $set = $r['set'];
   $crId = null;
   if ($job) {
@@ -370,10 +370,10 @@ if ($action === 'quote_accept' && method() === 'POST') {
   if (!setting_flag('portal_quote_accept_enabled')) fail('Please contact Herit to accept this quote', 403);
   $job = portal_job($me, $ref);
   if (empty($b['confirm'])) fail('Confirm that you accept this quote');
-  $qid = (int)($b['quote_id'] ?? 0);
+  $qid = in_int($b, 'quote_id');
   $q = db_row('SELECT id, job_id, customer_id FROM quotes WHERE id = ?', 'i', $qid);
   if (!$q || (int)$q['job_id'] !== (int)$job['id'] || (int)$q['customer_id'] !== $cid) fail('Not found', 404);
-  $res = quote_accept($qid, 'portal', 'Accepted by the client in the portal', (string)($b['content_hash'] ?? ''), null, $cid);
+  $res = quote_accept($qid, 'portal', 'Accepted by the client in the portal', in_str($b, 'content_hash'), null, $cid);
   if (!$res['already']) audit(null, 'quote_accept_portal', 'quote', $qid, ['customer_id' => $cid]);
   json(['ok' => true, 'already' => $res['already']]);
 }
@@ -386,12 +386,12 @@ if ($action === 'sample_decide' && method() === 'POST') {
   $job = portal_job($me, $ref, ['contact']);
   if (!contact_can($job['portal_contact'], 'approve_samples')) fail('Not found', 404);
   $key = body_request_key($b);
-  $to = ['approve' => 'approved', 'changes' => 'changes_requested'][$b['decision'] ?? ''] ?? null;
+  $to = ['approve' => 'approved', 'changes' => 'changes_requested'][in_str($b, 'decision')] ?? null;
   if (!$to) fail('decision must be approve or changes');
-  $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 500) ?: null;
+  $note = mb_substr(trim(in_str($b, 'note')), 0, 500) ?: null;
   if ($to === 'changes_requested' && $note === null) fail('Say what should change');
   $jid = (int)$job['id'];
-  $sid = (int)($b['sample_id'] ?? 0);
+  $sid = in_int($b, 'sample_id');
   $contactId = (int)$job['portal_contact']['id'];
   $res = db_tx(function () use ($jid, $sid, $to, $note, $contactId, $key) {
     job_lock($jid);

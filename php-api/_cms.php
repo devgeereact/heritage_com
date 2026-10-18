@@ -90,7 +90,7 @@ const IMAGE_MAX_PIXELS = 40000000;
 
 /** Trim, drop control characters (keeping newlines and tabs), scrub invalid UTF-8. */
 function cms_text($v) {
-  $s = (string)$v;
+  $s = is_scalar($v) ? (string)$v : '';
   if (function_exists('mb_scrub')) $s = mb_scrub($s, 'UTF-8');
   $s = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $s) ?? '';
   return trim($s);
@@ -307,6 +307,9 @@ function cms_clean($entity, array $in) {
   foreach ($fields as $f => [$type, $max]) {
     if (!array_key_exists($f, $in)) continue;
     $v = $in[$f];
+    // Only list and images take an array; anything else must be a scalar, or a
+    // list sent as a FAQ question would be saved as the text "Array".
+    if (!in_array($type, ['list', 'images'], true) && $v !== null && !is_scalar($v)) { $err[$f] = 'Must be text'; continue; }
     switch ($type) {
       case 'text':
         $s = cms_text($v);

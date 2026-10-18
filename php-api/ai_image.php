@@ -20,9 +20,9 @@ $user = require_auth();                 // staff only — image generation costs
 if (method() !== 'POST') fail('Method not allowed', 405);
 
 $b = body();
-$prompt = trim($b['prompt'] ?? '');
-$size = preg_match('/^\d{3,4}x\d{3,4}$/', $b['size'] ?? '') ? $b['size'] : '1024x1024';
-$task = trim($b['task'] ?? 'image');
+$prompt = trim(in_str($b, 'prompt'));
+$size = preg_match('/^\d{3,4}x\d{3,4}$/', in_str($b, 'size')) ? $b['size'] : '1024x1024';
+$task = trim(in_str($b, 'task', 'image'));
 if ($prompt === '') fail('prompt is required');
 if (mb_strlen($prompt) > 4000) fail('That request is too long');
 

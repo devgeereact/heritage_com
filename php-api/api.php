@@ -22,7 +22,7 @@ if ($m === 'POST') {
   // Writing needs a staff session; no page calls this, so only smoke tests are affected.
   require_auth(['super_admin', 'admin', 'manager', 'tailor', 'editor', 'seller', 'employee']);
   $b = body();
-  $label = trim($b['label'] ?? '');
+  $label = trim(in_str($b, 'label'));
   if ($label === '') fail('label is required');
   $stmt = $conn->prepare('INSERT INTO items (label) VALUES (?)');
   $stmt->bind_param('s', $label);

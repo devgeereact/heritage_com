@@ -22,14 +22,14 @@ cors();
 $user = require_auth(ROLES_CLIENTS);
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 /** Optional client fields from a body, validated. */
 function client_fields(array $b) {
   $f = [];
   foreach (['phone' => 40, 'email' => 190, 'notes' => 5000, 'tags' => 255, 'segment' => 60, 'company_name' => 160, 'comm_notes' => 255] as $k => $max) {
     if (!array_key_exists($k, $b)) continue;
-    $v = trim((string)$b[$k]);
+    $v = trim(in_str($b, $k));
     if (mb_strlen($v) > $max) fail("$k is too long");
     $f[$k] = $v;
   }
@@ -46,7 +46,7 @@ function client_fields(array $b) {
 /* ---- LIST ---------------------------------------------------------------- */
 if ($action === 'list' && method() === 'GET') {
   $where = 'c.deleted_at IS NULL'; $types = ''; $args = [];
-  $q = trim((string)($_GET['q'] ?? ''));
+  $q = trim(in_str($_GET, 'q'));
   if ($q !== '') {
     $like = '%' . $q . '%';
     $tail = phone_tail9($q);
@@ -76,7 +76,7 @@ if ($action === 'list' && method() === 'GET') {
 
 /* ---- MATCH (duplicate warning before create) ------------------------------ */
 if ($action === 'match' && method() === 'GET') {
-  json(['candidates' => customer_candidates($_GET['phone'] ?? '', $_GET['email'] ?? '', (int)($_GET['exclude_id'] ?? 0))]);
+  json(['candidates' => customer_candidates(in_str($_GET, 'phone'), in_str($_GET, 'email'), in_int($_GET, 'exclude_id'))]);
 }
 
 /* ---- GET ONE ------------------------------------------------------------- */
@@ -138,7 +138,7 @@ if ($action === 'get' && method() === 'GET') {
 /* ---- CREATE -------------------------------------------------------------- */
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
+  $name = trim(in_str($b, 'name'));
   if ($name === '') fail('Customer name is required');
   if (mb_strlen($name) > 160) fail('Name is too long');
   $f = client_fields($b);
@@ -155,7 +155,7 @@ if ($action === 'create' && method() === 'POST') {
 /** After a client is created: measurements from the old form become a set (never fatal). */
 function client_after_create($customerId, array $b, $user) {
   if (!is_array($b['measurements'] ?? null) || !$b['measurements']) return [];
-  $r = legacy_measure_to_set($customerId, $b['measurements'], $b['unit'] ?? 'in', 'owner', is_owner_role($user['role']), $user['id']);
+  $r = legacy_measure_to_set($customerId, $b['measurements'], in_str($b, 'unit', 'in'), 'owner', is_owner_role($user['role']), $user['id']);
   // Mirror the old JSON column for this release so the old client screen still shows it.
   db_exec('UPDATE customers SET measurements = ? WHERE id = ?', 'si', json_encode($b['measurements']), $customerId);
   return array_filter(['measurement_set_id' => $r['set']['id'] ?? null, 'measurement_errors' => $r['errors'] ?: null,
@@ -165,7 +165,7 @@ function client_after_create($customerId, array $b, $user) {
 /* ---- UPDATE -------------------------------------------------------------- */
 if ($action === 'update' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
+  $name = trim(in_str($b, 'name'));
   if ($name === '') fail('Customer name is required');
   $f = client_fields($b);
   $f['name'] = $name;
@@ -211,7 +211,7 @@ if ($action === 'measure' && method() === 'POST') {
   $vals = is_array($b['measurements'] ?? null) ? $b['measurements'] : [];
   if (!db_row('SELECT id FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', $id)) fail('Customer not found', 404);
   $key = isset($b['request_key']) && $b['request_key'] !== '' ? body_request_key($b) : null;
-  $r = legacy_measure_to_set($id, $vals, $b['unit'] ?? 'in', 'owner', $isOwner, $user['id'], $key);
+  $r = legacy_measure_to_set($id, $vals, in_str($b, 'unit', 'in'), 'owner', $isOwner, $user['id'], $key);
   if ($r['errors']) json(['error' => 'Some measurements need fixing', 'errors' => $r['errors']], 400);
   db_exec('UPDATE customers SET measurements = ? WHERE id = ? AND deleted_at IS NULL', 'si', $vals ? json_encode($vals) : null, $id);
   audit($user['id'], 'customer_measure', 'customer', $id, ['set_id' => $r['set']['id'] ?? null]);

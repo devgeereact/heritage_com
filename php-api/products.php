@@ -39,7 +39,7 @@ if ($action === 'list' && method() === 'GET') {
 
 /* ---- GET ONE ------------------------------------------------------------- */
 if ($action === 'get' && method() === 'GET') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare('SELECT * FROM products WHERE id = ? AND deleted_at IS NULL');
   $stmt->bind_param('i', $id);
   $stmt->execute();
@@ -60,17 +60,17 @@ if ($action === 'get' && method() === 'GET') {
 /* ---- CREATE -------------------------------------------------------------- */
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
-  $category = trim($b['category'] ?? '');
-  $fabric = trim($b['fabric'] ?? '');
-  $description = trim($b['description'] ?? '');
-  $basePrice = (float)($b['base_price'] ?? 0);
-  $costPrice = (float)($b['cost_price'] ?? 0);
-  $story = trim($b['story'] ?? '');
-  $care = trim($b['care'] ?? '');
+  $name = trim(in_str($b, 'name'));
+  $category = trim(in_str($b, 'category'));
+  $fabric = trim(in_str($b, 'fabric'));
+  $description = trim(in_str($b, 'description'));
+  $basePrice = in_num($b, 'base_price', 0);
+  $costPrice = in_num($b, 'cost_price', 0);
+  $story = trim(in_str($b, 'story'));
+  $care = trim(in_str($b, 'care'));
   $oneOfAKind = !empty($b['one_of_a_kind']) ? 1 : 0;
-  $sizes = array_values(array_filter(array_map('trim', (array)($b['sizes'] ?? []))));
-  $colors = array_values(array_filter(array_map('trim', (array)($b['colors'] ?? []))));
+  $sizes = array_values(array_filter(array_map(fn($v) => trim(scalar_text($v)), (array)($b['sizes'] ?? []))));
+  $colors = array_values(array_filter(array_map(fn($v) => trim(scalar_text($v)), (array)($b['colors'] ?? []))));
   if ($name === '') fail('Product name is required');
 
   // Next PRD-#### code.
@@ -110,22 +110,22 @@ if ($action === 'create' && method() === 'POST') {
 /* Edit the product's own fields (not variants). Storytelling + craft fields
  * live here so "the story is in the cloth" is editable, not just at create.  */
 if ($action === 'update' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
-  $name = trim($b['name'] ?? '');
+  $name = trim(in_str($b, 'name'));
   if ($name === '') fail('Product name is required');
-  $category = trim($b['category'] ?? '');
-  $fabric = trim($b['fabric'] ?? '');
-  $description = trim($b['description'] ?? '');
-  $story = trim($b['story'] ?? '');
-  $care = trim($b['care'] ?? '');
-  $basePrice = (float)($b['base_price'] ?? 0);
-  $costPrice = (float)($b['cost_price'] ?? 0);
+  $category = trim(in_str($b, 'category'));
+  $fabric = trim(in_str($b, 'fabric'));
+  $description = trim(in_str($b, 'description'));
+  $story = trim(in_str($b, 'story'));
+  $care = trim(in_str($b, 'care'));
+  $basePrice = in_num($b, 'base_price', 0);
+  $costPrice = in_num($b, 'cost_price', 0);
   $oneOfAKind = !empty($b['one_of_a_kind']) ? 1 : 0;
-  $imageUrl = trim($b['image_url'] ?? '');
+  $imageUrl = trim(in_str($b, 'image_url'));
 
   // Storefront publishing fields (optional).
-  $slug = trim($b['slug'] ?? '');
+  $slug = trim(in_str($b, 'slug'));
   $slug = $slug !== '' ? strtolower(preg_replace('/[^a-z0-9-]+/i', '-', $slug)) : null;
   $slug = $slug ? trim($slug, '-') : null;
   $published = !empty($b['published']) ? 1 : 0;
@@ -154,10 +154,10 @@ if ($action === 'update' && method() === 'POST') {
 
 /* ---- VARIANT STOCK ------------------------------------------------------- */
 if ($action === 'stock' && method() === 'POST') {
-  $variantId = (int)($_GET['id'] ?? 0);
+  $variantId = in_int($_GET, 'id');
   $b = body();
   if (!isset($b['stock'])) fail('stock is required');
-  $stock = (int)$b['stock'];
+  $stock = in_int($b, 'stock');
   if ($stock < 0) fail('stock cannot be negative');
 
   $stmt = $conn->prepare('UPDATE product_variants SET stock = ? WHERE id = ?');
@@ -170,7 +170,7 @@ if ($action === 'stock' && method() === 'POST') {
 
 /* ---- STATUS -------------------------------------------------------------- */
 if ($action === 'status' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $status = $b['status'] ?? '';
   if (!in_array($status, $STATUSES, true)) fail('Invalid status');

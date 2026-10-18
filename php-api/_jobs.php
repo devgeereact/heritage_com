@@ -266,6 +266,7 @@ function customer_candidates($phone, $email, $excludeId = 0) {
 /** Insert a client and set client_ref and phone_tail9. Returns the id. */
 function customer_insert(array $c, $userId = null) {
   global $conn;
+  in_text_only($c, ['name', 'phone', 'email', 'notes', 'tags', 'segment', 'company_name', 'comm_notes']);
   $name = $c['name']; $phone = $c['phone'] ?? ''; $email = $c['email'] ?? '';
   $notes = $c['notes'] ?? null; $tags = $c['tags'] ?? null; $segment = $c['segment'] ?? null;
   $meas = $c['measurements'] ?? null;
@@ -290,6 +291,8 @@ function customer_insert(array $c, $userId = null) {
  * 409 {error, candidates}. Returns [customer_id, created(bool)].
  */
 function resolve_client(array $c, $userId, $inTx = false) {
+  in_int($c, 'id');                                  // 400 for a list or object
+  in_text_only($c, ['name', 'phone', 'email']);
   if (!empty($c['id'])) {
     $row = db_row('SELECT id FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', (int)$c['id']);
     if (!$row) $inTx ? tx_fail('Client not found', 404) : fail('Client not found', 404);
@@ -352,6 +355,7 @@ function measurement_approve_tx($setId, $customerId, $templateKey, $userId) {
  */
 function measurement_create(array $d, $userId) {
   global $conn;
+  in_text_only($d, ['request_key', 'template_key', 'unit', 'fit_preference', 'notes', 'taken_at', 'source']);
   $key = $d['request_key'] ?? null;
   if ($key !== null) {
     $ex = db_row('SELECT * FROM measurement_sets WHERE request_key = ?', 's', $key);
@@ -810,8 +814,8 @@ function handover_complete_tx(array $job, $hid, array $b, $user) {
   $check = [];
   foreach (HANDOVER_CHECKLIST as $k) if (array_key_exists($k, (array)($b['checklist'] ?? []))) $check[$k] = (bool)$b['checklist'][$k];
   $cj = $check ? json_encode($check) : null;
-  $rb = mb_substr(trim((string)($b['received_by'] ?? '')), 0, 120) ?: null;
-  $ev = mb_substr(trim((string)($b['evidence_note'] ?? '')), 0, 255) ?: null;
+  $rb = mb_substr(trim(in_str($b, 'received_by')), 0, 120) ?: null;
+  $ev = mb_substr(trim(in_str($b, 'evidence_note')), 0, 255) ?: null;
   db_exec("UPDATE job_handovers SET status = 'completed', completed_at = UTC_TIMESTAMP(), received_by = ?, evidence_note = ?,
                   checklist = ?, balance_at_handover = ? WHERE id = ?", 'ssssi', $rb, $ev, $cj, $bal, (int)$hid);
   $done = (int)db_row("SELECT COALESCE(SUM(quantity),0) AS q FROM job_handovers WHERE job_id = ? AND status = 'completed'", 'i', (int)$job['id'])['q'];

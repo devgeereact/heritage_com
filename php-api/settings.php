@@ -98,6 +98,9 @@ if (method() === 'GET') {
 
 if (method() === 'POST') {
   $b = body();
+  // Only the JSON keys hold lists or maps; every other key is text (checked
+  // before anything is saved, so a bad key never leaves a half-saved request).
+  in_text_only($b, array_values(array_diff($KEYS, $JSON_KEYS)));
   // K-18: retention periods delete data, so only the owner may send them.
   $retSent = retention_keys_sent($b);
   if ($retSent && !retention_can_edit($user['role'])) {

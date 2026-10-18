@@ -35,7 +35,7 @@ $FABRIC_SOURCES = ['client', 'herit', 'mixed'];
 $user = require_auth(ROLES_WORKSHOP);
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 /** Shape a job row for output: typed numbers, labels, money only for owners. */
 function job_view(array $o, $isOwner) {
@@ -73,7 +73,7 @@ function job_fields_from_body(array $b, array $garments, array $fabricSources) {
   }
   foreach (['description' => 255, 'next_action' => 160, 'fabric' => 160, 'notes' => 5000] as $k => $max) {
     if (!array_key_exists($k, $b)) continue;
-    $v = trim((string)$b[$k]);
+    $v = trim(in_str($b, $k));
     if (mb_strlen($v) > $max) fail("$k is too long");
     $f[$k] = $v === '' ? null : $v;
   }
@@ -88,7 +88,7 @@ function job_fields_from_body(array $b, array $garments, array $fabricSources) {
     else $f['fabric_source'] = $b['fabric_source'];
   }
   if (array_key_exists('assigned_tailor_id', $b)) {
-    $f['assigned_tailor_id'] = ($b['assigned_tailor_id'] === '' || $b['assigned_tailor_id'] === null) ? null : (int)$b['assigned_tailor_id'];
+    $f['assigned_tailor_id'] = ($b['assigned_tailor_id'] === '' || $b['assigned_tailor_id'] === null) ? null : in_int($b, 'assigned_tailor_id');
   }
   return $f;
 }
@@ -204,7 +204,7 @@ if ($action === 'create' && method() === 'POST') {
       if ($p === null) fail('Price must be an amount like 45000 or 45,000.00');
       $price = minor_to_decimal($p);
     }
-    if (isset($b['deposit']) && $b['deposit'] !== '' && (string)$b['deposit'] !== '0') {
+    if (isset($b['deposit']) && $b['deposit'] !== '' && in_str($b, 'deposit') !== '0') {
       $depositMinor = money_to_minor($b['deposit']);
       if ($depositMinor === null) fail('Deposit must be an amount like 20000');
     }
@@ -231,7 +231,7 @@ if ($action === 'create' && method() === 'POST') {
 function job_after_create($orderId, $customerId, array $b, $depositMinor, $user) {
   $extra = [];
   if (is_array($b['measurements'] ?? null) && $b['measurements']) {
-    $r = legacy_measure_to_set($customerId, $b['measurements'], $b['unit'] ?? 'in', 'owner', is_owner_role($user['role']), $user['id']);
+    $r = legacy_measure_to_set($customerId, $b['measurements'], in_str($b, 'unit', 'in'), 'owner', is_owner_role($user['role']), $user['id']);
     if ($r['set']) {
       $extra['measurement_set_id'] = $r['set']['id'];
       if ($r['set']['status'] === 'approved') {
@@ -274,7 +274,7 @@ function job_record_legacy_payment($orderId, $minor, array $b, $user, $note) {
 if ($action === 'update' && method() === 'POST') {
   $b = body();
   if (!isset($b['lock_version']) || filter_var($b['lock_version'], FILTER_VALIDATE_INT) === false) fail('lock_version is required');
-  $lv = (int)$b['lock_version'];
+  $lv = in_int($b, 'lock_version');
   $f = job_fields_from_body($b, $GARMENTS, $FABRIC_SOURCES);
   if (!$f) fail('Nothing to update');
   if (isset($f['quantity'])) {
@@ -304,7 +304,7 @@ if ($action === 'update' && method() === 'POST') {
 /* ---- ASSIGN / RESCHEDULE -------------------------------------------------- */
 if ($action === 'assign' && method() === 'POST') {
   $b = body();
-  $tailorId = isset($b['assigned_tailor_id']) && $b['assigned_tailor_id'] !== '' ? (int)$b['assigned_tailor_id'] : null;
+  $tailorId = isset($b['assigned_tailor_id']) && $b['assigned_tailor_id'] !== '' ? in_int($b, 'assigned_tailor_id') : null;
   $dueDate = $b['due_date'] ?? null;
   if ($dueDate === '') $dueDate = null;
   if ($dueDate !== null && ymd_or_null($dueDate) === null) fail('Invalid due date');
@@ -325,10 +325,10 @@ if ($action === 'assign' && method() === 'POST') {
  * 'done' maps to 'ready', never straight to handed_over.                     */
 if ($action === 'stage' && method() === 'POST') {
   $b = body();
-  $want = (string)($b['stage'] ?? '');
-  $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 255);
+  $want = in_str($b, 'stage');
+  $note = mb_substr(trim(in_str($b, 'note')), 0, 255);
   $force = !empty($b['force']);
-  $reason = trim((string)($b['reason'] ?? ''));
+  $reason = trim(in_str($b, 'reason'));
   $isLegacyValue = in_array($want, LEGACY_STAGES, true) && !in_array($want, JOB_STAGES, true);
   if (!$isLegacyValue && !in_array($want, JOB_STAGES, true)) fail('Invalid stage');
 
@@ -379,7 +379,7 @@ if ($action === 'stage' && method() === 'POST') {
 if ($action === 'confirm_review' && method() === 'POST') {
   if (!$isOwner) fail('Forbidden', 403);
   $b = body();
-  $outcome = (string)($b['outcome'] ?? '');
+  $outcome = in_str($b, 'outcome');
   if (!in_array($outcome, job_review_outcomes(), true)) fail('Outcome must be one of: ' . implode(', ', job_review_outcomes()));
   db_tx(function () use ($id, $outcome, $user, $b) {
     $job = job_lock($id);
@@ -407,7 +407,7 @@ function job_review_apply_tx(array $job, $outcome, $user, array $b) {
              VALUES (?, 'collection', 'planned', ?, ?, ?, ?)", 'iisis', (int)$job['id'], $remaining, $key, $user['id'], $note);
     $hid = (int)$conn->insert_id;
     db_exec('UPDATE tailoring_orders SET stage_review = 0 WHERE id = ?', 'i', (int)$job['id']);
-    handover_complete_tx($job, $hid, ['evidence_note' => $note, 'received_by' => $b['received_by'] ?? null], $user);
+    handover_complete_tx($job, $hid, ['evidence_note' => $note, 'received_by' => in_str($b, 'received_by', null)], $user);
     return;
   }
   db_exec('UPDATE tailoring_orders SET stage_review = 0, lock_version = lock_version + 1 WHERE id = ?', 'i', (int)$job['id']);
@@ -420,8 +420,8 @@ function job_review_apply_tx(array $job, $outcome, $user, array $b) {
  * event records the old and new set ids. Later profile changes never alter it. */
 if ($action === 'attach_measurements' && method() === 'POST') {
   $b = body();
-  $setId = (int)($b['set_id'] ?? 0);
-  $reason = trim((string)($b['reason'] ?? ''));
+  $setId = in_int($b, 'set_id');
+  $reason = trim(in_str($b, 'reason'));
   $snap = db_tx(function () use ($id, $setId, $reason, $user) {
     $job = job_lock($id);
     if (!$job) tx_fail('Order not found', 404);
@@ -446,7 +446,7 @@ if ($action === 'measure' && method() === 'POST') {
   $job = db_row('SELECT id, customer_id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $id);
   if (!$job) fail('Order not found', 404);
   $key = isset($b['request_key']) && $b['request_key'] !== '' ? body_request_key($b) : null;
-  $r = legacy_measure_to_set((int)$job['customer_id'], $vals, $b['unit'] ?? 'in', 'owner', $isOwner, $user['id'], $key);
+  $r = legacy_measure_to_set((int)$job['customer_id'], $vals, in_str($b, 'unit', 'in'), 'owner', $isOwner, $user['id'], $key);
   if ($r['errors']) json(['error' => 'Some measurements need fixing', 'errors' => $r['errors']], 400);
 
   $attached = false;
@@ -488,9 +488,9 @@ if ($action === 'pay' && method() === 'POST') {
  * Numbers: Q-{series}-v{n}, INV-{job code}, RCT-{payment id}.               */
 if ($action === 'document' && method() === 'GET') {
   if (!$isOwner) fail('Forbidden', 403);
-  $doc = (string)($_GET['doc'] ?? '');
+  $doc = in_str($_GET, 'doc');
   if (!in_array($doc, ['quote', 'invoice', 'receipt'], true)) fail('doc must be quote, invoice or receipt');
-  $ref = (int)($_GET['ref'] ?? 0);
+  $ref = in_int($_GET, 'ref');
   $job = db_row("SELECT o.id, o.code, o.customer_id, o.garment_type, o.quantity, o.description, o.fabric, o.due_date, o.event_date,
                         o.price, o.paid_total, o.payment_state, o.quote_id, o.job_stage, o.stage,
                         c.name AS client_name, c.client_ref, c.phone AS client_phone, c.email AS client_email, c.company_name
@@ -570,18 +570,18 @@ if ($action === 'handovers' && method() === 'GET') {
  * Creates (request_key required) or updates a planned or dispatched handover. */
 if ($action === 'handover_save' && method() === 'POST') {
   $b = body();
-  $hid = (int)($b['hid'] ?? 0);
-  $method = (string)($b['method'] ?? '');
+  $hid = in_int($b, 'hid');
+  $method = in_str($b, 'method');
   if (!in_array($method, ['collection', 'delivery'], true)) fail('Method must be collection or delivery');
-  $status = (string)($b['status'] ?? 'planned');
+  $status = in_str($b, 'status', 'planned');
   if (!in_array($status, ['planned', 'dispatched', 'failed', 'cancelled'], true)) fail('Status must be planned, dispatched, failed or cancelled (use handover_complete to complete)');
   $planned = null;
   if (!empty($b['planned_for'])) { $planned = lagos_local_to_utc($b['planned_for']); if ($planned === null) fail('Invalid planned_for (use YYYY-MM-DDTHH:MM, Lagos time)'); }
   $qty = filter_var($b['quantity'] ?? 1, FILTER_VALIDATE_INT);
   if ($qty === false || $qty < 1) fail('Quantity must be a whole number from 1');
-  $url = trim((string)($b['tracking_url'] ?? ''));
+  $url = trim(in_str($b, 'tracking_url'));
   if ($url !== '' && (!sanitize_url_ok($url, false) || stripos($url, 'https://') !== 0)) fail('Tracking link must start with https://');
-  $txt = fn($k, $max) => mb_substr(trim((string)($b[$k] ?? '')), 0, $max) ?: null;
+  $txt = fn($k, $max) => mb_substr(trim(in_str($b, $k)), 0, $max) ?: null;
   $f = ['method' => $method, 'status' => $status, 'planned_for' => $planned, 'quantity' => $qty, 'address' => $txt('address', 2000),
         'courier' => $txt('courier', 80), 'contact_name' => $txt('contact_name', 120), 'contact_phone' => $txt('contact_phone', 40),
         'tracking_url' => $url ?: null];
@@ -617,7 +617,7 @@ if ($action === 'handover_save' && method() === 'POST') {
 /* POST ?action=handover_complete&id=N&hid=H  {received_by, evidence_note, checklist:{...}} */
 if ($action === 'handover_complete' && method() === 'POST') {
   $b = body();
-  $hid = (int)($_GET['hid'] ?? ($b['hid'] ?? 0));
+  $hid = isset($_GET['hid']) ? in_int($_GET, 'hid') : in_int($b, 'hid');
   $res = db_tx(function () use ($id, $hid, $b, $user) {
     $job = job_lock($id);
     if (!$job) tx_fail('Order not found', 404);
@@ -644,8 +644,8 @@ if ($action === 'handover_complete' && method() === 'POST') {
 if ($action === 'costs' && method() === 'POST') {
   if (!$isOwner) fail('Forbidden', 403);
   $b = body();
-  $fabricCost = (float)($b['fabric_cost'] ?? 0);
-  $labourCost = (float)($b['labour_cost'] ?? 0);
+  $fabricCost = in_num($b, 'fabric_cost', 0);
+  $labourCost = in_num($b, 'labour_cost', 0);
   db_exec('UPDATE tailoring_orders SET fabric_cost = ?, labour_cost = ?, lock_version = lock_version + 1 WHERE id = ? AND deleted_at IS NULL',
     'ddi', $fabricCost, $labourCost, $id);
   audit($user['id'], 'tailoring_costs', 'tailoring_order', $id, ['fabric' => $fabricCost, 'labour' => $labourCost]);
@@ -688,7 +688,7 @@ if ($action === 'remind' && method() === 'POST') {
   $b = body();
   $kind = $b['kind'] ?? 'fitting';            // 'fitting' | 'balance' | 'custom'
   if ($kind === 'balance' && !$isOwner) fail('Forbidden', 403);
-  $custom = trim($b['message'] ?? '');
+  $custom = trim(in_str($b, 'message'));
 
   $o = db_row('SELECT o.code, o.price, o.paid_total, o.fitting_date, o.customer_id, c.name AS customer_name, c.phone AS customer_phone
                  FROM tailoring_orders o JOIN customers c ON c.id = o.customer_id
@@ -744,19 +744,21 @@ if ($action === 'group_get' && method() === 'GET') {
  * written, so a 409 never leaves half a group behind.                          */
 if ($action === 'group_create' && method() === 'POST') {
   $b = body();
-  $organiser = trim($b['organiser'] ?? '');
-  $orgPhone = trim($b['phone'] ?? '');
-  $event = trim($b['event'] ?? '');
+  $organiser = trim(in_str($b, 'organiser'));
+  $orgPhone = trim(in_str($b, 'phone'));
+  $event = trim(in_str($b, 'event'));
   $dueDate = ymd_or_null($b['due_date'] ?? '');
-  $discount = max(0, min(100, (float)($b['discount_pct'] ?? 0)));
-  $notes = trim($b['notes'] ?? '');
+  $discount = max(0, min(100, in_num($b, 'discount_pct', 0)));
+  $notes = trim(in_str($b, 'notes'));
   $members = is_array($b['members'] ?? null) ? $b['members'] : [];
   if ($organiser === '') fail('Organiser name is required');
   if (!$members) fail('Add at least one member');
 
   foreach ($members as $i => $m) {
-    if (trim($m['name'] ?? '') === '' || !empty($m['customer_id']) || !empty($m['confirm_new'])) continue;
-    $cands = customer_candidates($m['phone'] ?? '', $m['email'] ?? '');
+    in_text_only($m, ['name', 'phone', 'email', 'fabric', 'garment_type']);
+    in_int($m, 'customer_id');
+    if (trim(in_str($m, 'name')) === '' || !empty($m['customer_id']) || !empty($m['confirm_new'])) continue;
+    $cands = customer_candidates(in_str($m, 'phone'), in_str($m, 'email'));
     if ($cands) json(['error' => 'Member ' . ($i + 1) . ' (' . trim($m['name']) . ') matches an existing client. Pick one or confirm new.',
                       'member_index' => $i, 'candidates' => $cands], 409);
   }

@@ -16,10 +16,10 @@ if (method() !== 'POST') fail('Method not allowed', 405);
 if (OPENROUTER_KEY === '') fail('AI is not configured on this server', 503);
 
 $b = body();
-$prompt = trim($b['prompt'] ?? '');
-$system = trim($b['system'] ?? 'You are a helpful assistant for Herit Clothing, a Lagos fashion brand celebrating African heritage. Write in clear UK English. No marketing fluff.');
-$task = trim($b['task'] ?? 'general');
-$maxTokens = min(2000, max(64, (int)($b['max_tokens'] ?? 800)));
+$prompt = trim(in_str($b, 'prompt'));
+$system = trim(in_str($b, 'system', 'You are a helpful assistant for Herit Clothing, a Lagos fashion brand celebrating African heritage. Write in clear UK English. No marketing fluff.'));
+$task = trim(in_str($b, 'task', 'general'));
+$maxTokens = min(2000, max(64, in_int($b, 'max_tokens', 800)));
 if ($prompt === '') fail('prompt is required');
 if (mb_strlen($prompt) > 20000 || mb_strlen($system) > 4000) fail('That request is too long');
 

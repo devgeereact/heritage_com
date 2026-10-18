@@ -35,8 +35,8 @@ function require_customer() { return require_customer_session(); }
 if ($action === 'login' && method() === 'POST') {
   if (!legacy_portal_login_enabled()) fail('Unknown action', 404);
   $b = body();
-  $phone = trim($b['phone'] ?? '');
-  $orderCode = strtoupper(trim($b['order_code'] ?? ''));
+  $phone = trim(in_str($b, 'phone'));
+  $orderCode = strtoupper(trim(in_str($b, 'order_code')));
   if ($phone === '' || $orderCode === '') fail('Enter your phone and an order reference');
 
   // Same audit_log throttle as staff login (auth.php): failures counted per IP
@@ -116,7 +116,7 @@ if ($action === 'orders' && method() === 'GET') {
 
 /* ---- ORDER DETAIL -------------------------------------------------------- */
 if ($action === 'order' && method() === 'GET') {
-  $code = strtoupper(trim($_GET['code'] ?? ''));
+  $code = strtoupper(trim(in_str($_GET, 'code')));
   $stmt = $conn->prepare('SELECT * FROM orders WHERE UPPER(code) = ? AND customer_id = ? AND deleted_at IS NULL LIMIT 1');
   $stmt->bind_param('si', $code, $cid);
   $stmt->execute();
@@ -136,7 +136,7 @@ if ($action === 'order' && method() === 'GET') {
 /* ---- REORDER ------------------------------------------------------------- */
 /* Returns the buyable lines so the storefront can refill the basket. */
 if ($action === 'reorder' && method() === 'POST') {
-  $code = strtoupper(trim($_GET['code'] ?? ''));
+  $code = strtoupper(trim(in_str($_GET, 'code')));
   $stmt = $conn->prepare('SELECT id FROM orders WHERE UPPER(code) = ? AND customer_id = ? AND deleted_at IS NULL LIMIT 1');
   $stmt->bind_param('si', $code, $cid);
   $stmt->execute();
@@ -178,8 +178,8 @@ if ($action === 'measurements' && method() === 'POST') {
 /* ---- RETURN REQUEST ------------------------------------------------------ */
 if ($action === 'return' && method() === 'POST') {
   $b = body();
-  $code = strtoupper(trim($b['order_code'] ?? ''));
-  $reason = trim($b['reason'] ?? '');
+  $code = strtoupper(trim(in_str($b, 'order_code')));
+  $reason = trim(in_str($b, 'reason'));
   if ($code === '') fail('Which order?');
 
   $stmt = $conn->prepare("SELECT id, status, return_status, created_at FROM orders WHERE UPPER(code) = ? AND customer_id = ? AND deleted_at IS NULL LIMIT 1");
@@ -200,7 +200,7 @@ if ($action === 'return' && method() === 'POST') {
 /* ---- SET BIRTHDAY (own, for gifting prompts) ----------------------------- */
 if ($action === 'set_birthday' && method() === 'POST') {
   $b = body();
-  $bd = !empty($b['birthday']) ? $b['birthday'] : null;
+  $bd = !empty($b['birthday']) ? in_str($b, 'birthday') : null;
   $stmt = $conn->prepare('UPDATE customers SET birthday = ? WHERE id = ?');
   $stmt->bind_param('si', $bd, $cid);
   $stmt->execute();
@@ -210,10 +210,10 @@ if ($action === 'set_birthday' && method() === 'POST') {
 /* ---- NPS (satisfaction survey) ------------------------------------------- */
 if ($action === 'nps_submit' && method() === 'POST') {
   $b = body();
-  $score = max(0, min(10, (int)($b['score'] ?? -1)));
+  $score = max(0, min(10, in_int($b, 'score', -1)));
   if (!isset($b['score'])) fail('A score is required');
-  $comment = substr(trim($b['comment'] ?? ''), 0, 500);
-  $orderCode = trim($b['order_code'] ?? '') ?: null;
+  $comment = substr(trim(in_str($b, 'comment')), 0, 500);
+  $orderCode = trim(in_str($b, 'order_code')) ?: null;
   $stmt = $conn->prepare('INSERT INTO nps_responses (customer_id, order_code, score, comment) VALUES (?,?,?,?)');
   $stmt->bind_param('isis', $cid, $orderCode, $score, $comment);
   $stmt->execute();
@@ -233,8 +233,8 @@ if ($action === 'wishlist' && method() === 'GET') {
 
 if ($action === 'wishlist_toggle' && method() === 'POST') {
   $b = body();
-  $slug = trim($b['slug'] ?? '');
-  $name = trim($b['name'] ?? '');
+  $slug = trim(in_str($b, 'slug'));
+  $name = trim(in_str($b, 'name'));
   if ($slug === '') fail('Which piece?');
 
   // Toggle: remove if present, else add.

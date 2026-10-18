@@ -23,7 +23,7 @@ cors();
 
 $user = require_auth(ROLES_OWNER);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 const QUOTE_CHANNELS = ['in_person', 'whatsapp', 'email', 'phone', 'portal'];
 
 function quote_items_of($qid) {
@@ -59,13 +59,13 @@ function quote_input(array $b) {
   if (!is_array($raw) || !$raw) fail('Add at least one line item');
   $items = [];
   foreach (array_values($raw) as $i => $it) {
-    $desc = trim((string)($it['description'] ?? ''));
+    $desc = trim(in_str($it, 'description'));
     if ($desc === '' || mb_strlen($desc) > 255) fail('Line ' . ($i + 1) . ': a description is required (up to 255 characters)');
-    $qty = (string)($it['qty'] ?? '1');
+    $qty = in_str($it, 'qty', '1');
     if (!preg_match('/^\d{1,5}(\.\d{1,2})?$/', $qty) || (float)$qty <= 0) fail('Line ' . ($i + 1) . ': quantity must be more than 0');
     $price = money_to_minor($it['unit_price'] ?? null);
     if ($price === null) fail('Line ' . ($i + 1) . ': unit price must be an amount like 45000');
-    $items[] = ['description' => $desc, 'garment_type' => mb_substr(trim((string)($it['garment_type'] ?? '')), 0, 40) ?: null,
+    $items[] = ['description' => $desc, 'garment_type' => mb_substr(trim(in_str($it, 'garment_type')), 0, 40) ?: null,
                 'qty' => $qty, 'unit_price_minor' => $price];
   }
   $money = function ($k, $nullable = false) use ($b) {
@@ -86,7 +86,7 @@ function quote_input(array $b) {
   if ($fr !== null && $fr !== '' && !in_array($fr, ['client', 'herit', 'mixed'], true)) fail('Fabric responsibility must be client, herit or mixed');
   $f['fabric_responsibility'] = $fr ?: null;
   foreach (['fitting_allowance' => 255, 'terms' => 5000, 'exclusions' => 5000] as $k => $max) {
-    $v = trim((string)($b[$k] ?? ''));
+    $v = trim(in_str($b, $k));
     if (mb_strlen($v) > $max) fail("$k is too long");
     $f[$k] = $v === '' ? null : $v;
   }
@@ -113,7 +113,7 @@ function quote_write_items($qid, array $items) {
 if ($action === 'list' && method() === 'GET') {
   foreach (['job_id', 'enquiry_id', 'customer_id'] as $k) {
     if (!empty($_GET[$k])) {
-      $rows = db_rows("SELECT * FROM quotes WHERE $k = ? ORDER BY series_id DESC, version DESC", 'i', (int)$_GET[$k]);
+      $rows = db_rows("SELECT * FROM quotes WHERE $k = ? ORDER BY series_id DESC, version DESC", 'i', in_int($_GET, $k));
       json(array_map(fn($q) => quote_view($q, false), $rows));
     }
   }
@@ -138,9 +138,9 @@ if ($action === 'create' && method() === 'POST') {
   if ($ex = db_row('SELECT id FROM quotes WHERE request_key = ?', 's', $key)) json(['duplicate' => true] + quote_view(db_row('SELECT * FROM quotes WHERE id = ?', 'i', $ex['id'])));
   [$f, $items] = quote_input($b);
 
-  $jobId = !empty($b['job_id']) ? (int)$b['job_id'] : null;
-  $enqId = !empty($b['enquiry_id']) ? (int)$b['enquiry_id'] : null;
-  $customerId = !empty($b['customer_id']) ? (int)$b['customer_id'] : null;
+  $jobId = !empty($b['job_id']) ? in_int($b, 'job_id') : null;
+  $enqId = !empty($b['enquiry_id']) ? in_int($b, 'enquiry_id') : null;
+  $customerId = !empty($b['customer_id']) ? in_int($b, 'customer_id') : null;
   if ($jobId) {
     $job = db_row('SELECT id, customer_id, enquiry_id, job_stage FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $jobId);
     if (!$job) fail('Job not found', 404);
@@ -197,7 +197,7 @@ if ($action === 'save' && method() === 'POST') {
 /* ---- SEND ----------------------------------------------------------------- */
 if ($action === 'send' && method() === 'POST') {
   $b = body();
-  $channel = (string)($b['channel'] ?? '');
+  $channel = in_str($b, 'channel');
   if (!in_array($channel, QUOTE_CHANNELS, true)) fail('Channel must be one of: ' . implode(', ', QUOTE_CHANNELS));
   db_tx(function () use ($id, $channel, $user) {
     $q = quote_lock($id);
@@ -257,10 +257,10 @@ if ($action === 'revise' && method() === 'POST') {
  * quote_id and promised date and moves from quote to confirmed.              */
 if ($action === 'accept' && method() === 'POST') {
   $b = body();
-  $channel = (string)($b['channel'] ?? '');
+  $channel = in_str($b, 'channel');
   if (!in_array($channel, QUOTE_CHANNELS, true)) fail('Channel must be one of: ' . implode(', ', QUOTE_CHANNELS));
-  $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 255) ?: null;
-  $hash = (string)($b['content_hash'] ?? '');
+  $note = mb_substr(trim(in_str($b, 'note')), 0, 255) ?: null;
+  $hash = in_str($b, 'content_hash');
   $res = quote_accept($id, $channel, $note, $hash, (int)$user['id']);
   if (!$res['already']) audit($user['id'], 'quote_accept', 'quote', $id, ['channel' => $channel, 'job_id' => $res['job_id']]);
   json(quote_view(db_row('SELECT * FROM quotes WHERE id = ?', 'i', $id)) + ['job_id' => $res['job_id']]);
@@ -269,7 +269,7 @@ if ($action === 'accept' && method() === 'POST') {
 /* ---- DECLINE / WITHDRAW --------------------------------------------------- */
 if (($action === 'decline' || $action === 'withdraw') && method() === 'POST') {
   $b = body();
-  $note = mb_substr(trim((string)($b['note'] ?? '')), 0, 255) ?: null;
+  $note = mb_substr(trim(in_str($b, 'note')), 0, 255) ?: null;
   $to = $action === 'decline' ? 'declined' : 'withdrawn';
   $from = $action === 'decline' ? "('sent')" : "('draft','sent')";
   $stmt = db_exec("UPDATE quotes SET status = ?, closed_note = ? WHERE id = ? AND status IN $from", 'ssi', $to, $note, $id);

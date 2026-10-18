@@ -30,7 +30,7 @@ cors();
 $user = require_auth(ROLES_WORKSHOP);
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 $actor = ['type' => 'owner', 'id' => (int)$user['id']];
 
 function owner_only($isOwner) { if (!$isOwner) fail('Forbidden', 403); }
@@ -48,7 +48,7 @@ function appt_staff_view(array $a, $isOwner) {
 /** Parse a start from a body: Lagos local or with an offset. Returns Unix time or fails. */
 function body_start_ts(array $b) {
   $utc = lagos_local_to_utc($b['start'] ?? '');
-  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', (string)($b['start'] ?? ''))) fail('Give a start date and time, for example 2026-10-12T10:00');
+  if ($utc === null || !preg_match('/[ T]\d{2}:\d{2}/', in_str($b, 'start'))) fail('Give a start date and time, for example 2026-10-12T10:00');
   return utc_ts($utc);
 }
 
@@ -63,12 +63,12 @@ if ($action === 'list' && method() === 'GET') {
   if (date_add_days($from, 92) < $to) fail('Ask for 92 days or fewer at a time');
   $st = '';
   if (!empty($_GET['status'])) {
-    $list = array_values(array_intersect(explode(',', (string)$_GET['status']), APPOINTMENT_STATUSES));
+    $list = array_values(array_intersect(explode(',', in_str($_GET, 'status')), APPOINTMENT_STATUSES));
     if (!$list) fail('Unknown status');
     $st = implode(',', $list);          // only known status words; matched with FIND_IN_SET
   }
-  $jobId = (int)($_GET['job_id'] ?? 0);
-  $custId = (int)($_GET['customer_id'] ?? 0);
+  $jobId = in_int($_GET, 'job_id');
+  $custId = in_int($_GET, 'customer_id');
   $rows = db_rows(APPT_LIST_SQL . " WHERE a.starts_at < ? AND a.ends_at > ? AND (? = '' OR FIND_IN_SET(a.status, ?) > 0)
                                       AND (? = 0 OR a.job_id = ?) AND (? = 0 OR a.customer_id = ?)
                                  ORDER BY a.starts_at, a.id LIMIT 500", 'ssssiiii',
@@ -107,7 +107,7 @@ if ($action === 'slots' && method() === 'GET') {
   $type = $_GET['type'] ?? 'consultation';
   if (!in_array($type, APPOINTMENT_TYPES, true)) fail('Unknown type');
   $from = ymd_or_null($_GET['from'] ?? '') ?? lagos_today();
-  $days = max(1, min(31, (int)($_GET['days'] ?? 7)));
+  $days = max(1, min(31, in_int($_GET, 'days', 7)));
   json(['timezone' => BUSINESS_TZ, 'type' => $type, 'ready' => availability_ready(availability_get(), $type),
         'slots' => appt_free_slots($type, $from, $days)]);
 }
@@ -120,9 +120,9 @@ if ($action === 'create' && method() === 'POST') {
   $allDay = !empty($b['all_day']);
   $d = ['type' => $b['type'] ?? '', 'mode' => 'owner', 'source' => 'owner', 'status' => 'confirmed', 'request_key' => $key,
         'all_day' => $allDay, 'date' => $b['date'] ?? null, 'duration_min' => $b['duration_min'] ?? null,
-        'override_reason' => $b['override_reason'] ?? ''];
+        'override_reason' => in_str($b, 'override_reason')];
   if (!$allDay) $d['start_ts'] = body_start_ts($b);
-  foreach (['customer_id', 'job_id', 'enquiry_id'] as $k) $d[$k] = !empty($b[$k]) ? (int)$b[$k] : null;
+  foreach (['customer_id', 'job_id', 'enquiry_id'] as $k) $d[$k] = !empty($b[$k]) ? in_int($b, $k) : null;
   if ($d['job_id']) {
     $job = db_row('SELECT id, customer_id FROM tailoring_orders WHERE id = ? AND deleted_at IS NULL', 'i', $d['job_id']);
     if (!$job) fail('Job not found', 404);
@@ -131,7 +131,7 @@ if ($action === 'create' && method() === 'POST') {
   }
   if ($d['customer_id'] && !db_row('SELECT id FROM customers WHERE id = ? AND deleted_at IS NULL', 'i', $d['customer_id'])) fail('Client not found', 404);
   foreach (['contact_name' => 160, 'contact_phone' => 40, 'contact_email' => 190, 'client_note' => 500, 'notes_internal' => 5000] as $k => $max) {
-    $v = trim((string)($b[$k] ?? ''));
+    $v = trim(in_str($b, $k));
     if (mb_strlen($v) > $max) fail("$k is too long");
     $d[$k] = $v === '' ? null : $v;
   }
@@ -149,12 +149,12 @@ if ($action === 'reschedule' && method() === 'POST') {
   $b = body();
   $cur = db_row('SELECT * FROM appointments WHERE id = ?', 'i', $id);
   if (!$cur) fail('Appointment not found', 404);
-  $reason = trim((string)($b['reason'] ?? ''));
+  $reason = trim(in_str($b, 'reason'));
   if (mb_strlen($reason) > 200) fail('Reason is too long');
   $allDay = !empty($b['all_day']);
   $dur = (int)round((utc_ts($cur['ends_at']) - utc_ts($cur['starts_at'])) / 60);
   $d = ['id' => $id, 'type' => $cur['type'], 'mode' => 'owner', 'reason' => $reason !== '' ? $reason : 'Rescheduled by the owner',
-        'all_day' => $allDay, 'date' => $b['date'] ?? null, 'override_reason' => $b['override_reason'] ?? '',
+        'all_day' => $allDay, 'date' => $b['date'] ?? null, 'override_reason' => in_str($b, 'override_reason'),
         'duration_min' => in_array($dur, APPOINTMENT_DURATIONS, true) ? $dur : null];
   if (!$allDay) $d['start_ts'] = body_start_ts($b);
   $r = appt_reserve($d, $actor);
@@ -167,7 +167,7 @@ $STATUS_ACTIONS = ['confirm' => 'confirmed', 'decline' => 'cancelled', 'complete
 if (isset($STATUS_ACTIONS[$action]) && method() === 'POST') {
   owner_only($isOwner);
   $b = body();
-  $reason = mb_substr(trim((string)($b['reason'] ?? '')), 0, 200);
+  $reason = mb_substr(trim(in_str($b, 'reason')), 0, 200);
   $cur = db_row('SELECT status FROM appointments WHERE id = ?', 'i', $id);
   if (!$cur) fail('Appointment not found', 404);
   if ($action === 'decline' && $cur['status'] !== 'requested') fail('Only a request can be declined; cancel a confirmed appointment instead', 409);
@@ -224,12 +224,12 @@ if ($action === 'block_save' && method() === 'POST') {
   owner_only($isOwner);
   $b = body();
   // A bare date means the whole Lagos day; an end date is inclusive.
-  $s = (string)($b['start'] ?? ''); $e = (string)($b['end'] ?? '');
+  $s = in_str($b, 'start'); $e = in_str($b, 'end');
   $sTs = ymd_or_null($s) !== null ? lagos_midnight_ts($s) : utc_ts(lagos_local_to_utc($s));
   $eTs = ymd_or_null($e) !== null ? lagos_midnight_ts(date_add_days($e, 1)) : utc_ts(lagos_local_to_utc($e));
   if (!$sTs || !$eTs || $eTs <= $sTs) fail('Give a start and an end after it (dates or date-times)');
   if ($eTs - $sTs > 366 * 86400) fail('A block can last a year at most');
-  $reason = mb_substr(trim((string)($b['reason'] ?? '')), 0, 160) ?: null;
+  $reason = mb_substr(trim(in_str($b, 'reason')), 0, 160) ?: null;
   db_exec('INSERT INTO availability_blocks (starts_at, ends_at, reason, created_by) VALUES (?,?,?,?)', 'sssi', utc_sql($sTs), utc_sql($eTs), $reason, $user['id']);
   $newId = (int)$conn->insert_id;
   audit($user['id'], 'availability_block', 'availability_block', $newId, ['reason' => $reason]);

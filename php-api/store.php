@@ -58,7 +58,7 @@ if ($action === 'config' && method() === 'GET') {
 /* Public, published-only. ?slug= returns the full post (with body); otherwise a
  * list (no body) newest first. */
 if ($action === 'blog' && method() === 'GET') {
-  $slug = trim($_GET['slug'] ?? '');
+  $slug = trim(in_str($_GET, 'slug'));
   if ($slug !== '') {
     $stmt = $conn->prepare("SELECT slug, title, excerpt, body, category, tile, tags, author, published_at
                               FROM blog_posts WHERE slug = ? AND status = 'published' LIMIT 1");
@@ -73,7 +73,7 @@ if ($action === 'blog' && method() === 'GET') {
     $row['date'] = $row['published_at'] ? date('F Y', strtotime($row['published_at'])) : '';
     json(['post' => $row]);
   }
-  $limit = min(50, max(1, (int)($_GET['limit'] ?? 24)));
+  $limit = min(50, max(1, in_int($_GET, 'limit', 24)));
   $out = [];
   $res = $conn->query("SELECT slug, title, excerpt, category, tile, published_at
                          FROM blog_posts WHERE status = 'published'
@@ -161,15 +161,15 @@ if ($action === 'checkout' && method() === 'POST') {
   require_shop_open();
   public_write_guard('store_checkout_ip', 'CHECKOUT_MAX_PER_IP', 10);
   $b = body();
-  $name = trim($b['customer'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
-  $address = trim($b['ship_address'] ?? '');
-  $city = trim($b['city'] ?? '');
+  $name = trim(in_str($b, 'customer'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
+  $address = trim(in_str($b, 'ship_address'));
+  $city = trim(in_str($b, 'city'));
   $delivery = in_array($b['delivery'] ?? '', ['lagos', 'nigeria', 'pickup'], true) ? $b['delivery'] : 'lagos';
   $payment = in_array($b['payment_method'] ?? '', ['card', 'transfer', 'cod'], true) ? $b['payment_method'] : 'transfer';
-  $notes = trim($b['notes'] ?? '');
-  $gift = trim($b['gift_message'] ?? '');
+  $notes = trim(in_str($b, 'notes'));
+  $gift = trim(in_str($b, 'gift_message'));
   $reqItems = is_array($b['items'] ?? null) ? $b['items'] : [];
 
   if ($name === '') fail('Please enter your name');
@@ -186,9 +186,9 @@ if ($action === 'checkout' && method() === 'POST') {
   $goods = 0;
   $prodStmt = $conn->prepare("SELECT id, name, fabric, base_price, one_of_a_kind, care FROM products WHERE slug = ? AND deleted_at IS NULL AND published = 1 LIMIT 1");
   foreach ($reqItems as $it) {
-    $slug = trim($it['slug'] ?? '');
-    $size = trim($it['size'] ?? 'One size') ?: 'One size';
-    $qty = max(1, min(20, (int)($it['qty'] ?? 1)));
+    $slug = trim(in_str($it, 'slug'));
+    $size = trim(in_str($it, 'size', 'One size')) ?: 'One size';
+    $qty = max(1, min(20, in_int($it, 'qty', 1)));
 
     $prodStmt->bind_param('s', $slug);
     $prodStmt->execute();
@@ -239,7 +239,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Coupon — evaluated server-side against OUR numbers (never trust a browser
   // discount). free_ship zeroes delivery; percent/fixed take ₦ off the goods.
-  $couponCode = strtoupper(trim($b['coupon'] ?? ''));
+  $couponCode = strtoupper(trim(in_str($b, 'coupon')));
   $coupon = null; $discount = 0;
   if ($couponCode !== '') {
     $ev = coupon_eval($couponCode, $goods, $ship);
@@ -267,7 +267,7 @@ if ($action === 'checkout' && method() === 'POST') {
   // Gift card — redeem against the running total (after coupon). Decremented
   // for real after the order is created.
   $giftRow = null; $giftApplied = 0;
-  $giftCode = strtoupper(trim($b['gift_card'] ?? ''));
+  $giftCode = strtoupper(trim(in_str($b, 'gift_card')));
   if ($giftCode !== '' && $total > 0) {
     $gs = $conn->prepare('SELECT id, code, balance FROM gift_cards WHERE UPPER(code) = ? AND active = 1 LIMIT 1');
     $gs->bind_param('s', $giftCode);
@@ -283,7 +283,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Store credit — redeem this customer's balance (a returning buyer's pot).
   $creditApplied = 0;
-  $wantCredit = isset($b['use_credit']) ? (float)$b['use_credit'] : 0;   // 0/absent = none; -1 = all
+  $wantCredit = isset($b['use_credit']) ? in_num($b, 'use_credit') : 0;   // 0/absent = none; -1 = all
   // Credit is spent only by its owner: a verified customer session for this same
   // customer. Matching the phone typed at checkout is not proof of identity.
   $creditOwner = null;
@@ -305,7 +305,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Referral — only a brand-new customer can be referred, and never by themself.
   // Captured on the order now; the reward is paid to BOTH only when it's paid.
-  $referralCode = strtoupper(trim($b['referral_code'] ?? ''));
+  $referralCode = strtoupper(trim(in_str($b, 'referral_code')));
   $referrerId = null;
   if ($referralCode !== '' && $isNewCustomer) {
     $rid = referrer_by_code($referralCode);
@@ -320,8 +320,8 @@ if ($action === 'checkout' && method() === 'POST') {
   $paid = 0;
   $fullNotes = trim(($notes !== '' ? $notes : '') . ($gift !== '' ? "\nGift message: " . $gift : ''));
   $shipFull = trim($address . ($city !== '' ? ', ' . $city : ''));
-  $sourceVal = substr(trim($b['source'] ?? ''), 0, 60) ?: null;          // utm_source / referrer host
-  $utmVal = substr(trim($b['utm_campaign'] ?? ''), 0, 120) ?: null;
+  $sourceVal = substr(trim(in_str($b, 'source')), 0, 60) ?: null;          // utm_source / referrer host
+  $utmVal = substr(trim(in_str($b, 'utm_campaign')), 0, 120) ?: null;
 
   $stmt = $conn->prepare(
     'INSERT INTO orders (code, customer_id, customer_name, customer_phone, channel, source, utm_campaign,
@@ -440,8 +440,8 @@ if ($action === 'checkout' && method() === 'POST') {
 /* ---- PAY INIT ------------------------------------------------------------ */
 if ($action === 'pay_init' && method() === 'POST') {
   $b = body();
-  $code = trim($b['code'] ?? '');
-  $email = trim($b['email'] ?? '');
+  $code = trim(in_str($b, 'code'));
+  $email = trim(in_str($b, 'email'));
   if ($code === '') fail('Order code is required');
 
   $stmt = $conn->prepare('SELECT id, total, paid, payment_method FROM orders WHERE code = ? AND deleted_at IS NULL LIMIT 1');
@@ -521,7 +521,7 @@ if ($action === 'pay_init' && method() === 'POST') {
 
 /* ---- PAY VERIFY ---------------------------------------------------------- */
 if ($action === 'pay_verify' && method() === 'GET') {
-  $reference = trim($_GET['reference'] ?? '');
+  $reference = trim(in_str($_GET, 'reference'));
   if ($reference === '') fail('reference is required');
   $code = explode('-', $reference)[0] . '-' . (explode('-', $reference)[1] ?? '');
 
@@ -613,12 +613,12 @@ if ($action === 'waitlist_join' && method() === 'POST') {
   require_shop_open();
   public_write_guard('store_waitlist_ip', 'WAITLIST_MAX_PER_IP', 10);
   $b = body();
-  $product = trim($b['product'] ?? '');
-  $slug = trim($b['slug'] ?? '');
-  $size = trim($b['size'] ?? '');
-  $cname = trim($b['name'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
+  $product = trim(in_str($b, 'product'));
+  $slug = trim(in_str($b, 'slug'));
+  $size = trim(in_str($b, 'size'));
+  $cname = trim(in_str($b, 'name'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
   if ($product === '' && $slug === '') fail('Which piece?');
   if ($phone === '' && $email === '') fail('Leave a phone or email so we can reach you');
   public_lengths([[$product, 190], [$slug, 190], [$size, 40], [$cname, 160], [$phone, 40], [$email, 190]]);
@@ -638,13 +638,13 @@ if ($action === 'save_cart' && method() === 'POST') {
   require_shop_open();
   public_write_guard('store_save_cart_ip', 'SAVE_CART_MAX_PER_IP', 60);
   $b = body();
-  $phone = trim($b['phone'] ?? '');
+  $phone = trim(in_str($b, 'phone'));
   if ($phone === '') fail('phone is required');
-  $cname = trim($b['name'] ?? '');
-  $email = trim($b['email'] ?? '');
+  $cname = trim(in_str($b, 'name'));
+  $email = trim(in_str($b, 'email'));
   $items = isset($b['items']) ? json_encode($b['items']) : null;
   public_lengths([[$phone, 40], [$cname, 160], [$email, 190], [(string)$items, 20000]]);
-  $subtotal = (float)($b['subtotal'] ?? 0);
+  $subtotal = in_num($b, 'subtotal', 0);
 
   $stmt = $conn->prepare(
     'INSERT INTO abandoned_carts (phone, customer_name, email, items, subtotal, recovered, nudged)
@@ -673,8 +673,8 @@ if ($action === 'save_cart' && method() === 'POST') {
 if ($action === 'track' && in_array(method(), ['POST', 'GET'], true)) {
   if (method() === 'GET' && !cfg('ALLOW_LEGACY_ORDER_CODE_LOOKUP', true)) fail('Use POST for order lookup', 405);
   $in = method() === 'POST' ? body() : $_GET;
-  $code = trim((string)($in['code'] ?? ''));
-  $phone = trim((string)($in['phone'] ?? ''));
+  $code = trim(in_str($in, 'code'));
+  $phone = trim(in_str($in, 'phone'));
   if ($code === '' || $phone === '') fail('Order reference and phone are required');
 
   // Failed lookups are counted per IP in audit_log so code + phone pairs cannot

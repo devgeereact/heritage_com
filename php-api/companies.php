@@ -24,7 +24,7 @@ cors();
 $user = require_auth(ROLES_OWNER);
 $uid = (int)$user['id'];
 $action = $_GET['action'] ?? 'list';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 if (!has_table('companies')) fail('Company orders are not set up yet (import schema_phase27.sql)', 409);
 
@@ -34,7 +34,7 @@ function company_clean(array $b) {
   $lim = ['name' => 160, 'invoice_name' => 160, 'invoice_address' => 2000, 'invoice_email' => 190, 'tax_id' => 40, 'notes_internal' => 5000];
   foreach ($lim as $k => $max) {
     if (!array_key_exists($k, $b)) continue;
-    $v = trim((string)$b[$k]);
+    $v = trim(in_str($b, $k));
     if (mb_strlen($v) > $max) $e[$k] = "At most $max characters";
     $c[$k] = $v === '' ? null : $v;
   }
@@ -77,7 +77,7 @@ function company_row($id) {
 /* ---- Read ------------------------------------------------------------------ */
 
 if ($action === 'list' && method() === 'GET') {
-  $q = trim((string)($_GET['q'] ?? ''));
+  $q = trim(in_str($_GET, 'q'));
   $like = '%' . $q . '%';
   $rows = db_rows("SELECT co.id, co.company_ref, co.name, co.invoice_email,
                           (SELECT COUNT(*) FROM company_contacts k WHERE k.company_id = co.id AND k.active = 1) AS contacts,
@@ -103,14 +103,14 @@ if ($action === 'get' && method() === 'GET') {
 }
 
 if ($action === 'match' && method() === 'GET') {
-  json(['matches' => company_matches((string)($_GET['name'] ?? ''), $id)]);
+  json(['matches' => company_matches(in_str($_GET, 'name'), $id)]);
 }
 
 /* ---- Write ----------------------------------------------------------------- */
 
 if ($action === 'save' && method() === 'POST') {
   $b = body();
-  $cid = (int)($b['id'] ?? 0);
+  $cid = in_int($b, 'id');
   $created = !$cid;
   [$c, $e] = company_clean($b);
   if ($created && !array_key_exists('name', $c)) $e['name'] = 'Enter the company name';
@@ -139,14 +139,14 @@ if ($action === 'save' && method() === 'POST') {
 
 if ($action === 'contact_save' && method() === 'POST') {
   $b = body();
-  $companyId = (int)($b['company_id'] ?? 0);
+  $companyId = in_int($b, 'company_id');
   if (!company_row($companyId)) fail('Company not found', 404);
-  $role = mb_substr(trim((string)($b['role_title'] ?? '')), 0, 80) ?: null;
+  $role = mb_substr(trim(in_str($b, 'role_title')), 0, 80) ?: null;
   $flags = [];
   foreach (['can_view_jobs', 'can_approve_samples', 'is_invoice_recipient'] as $k) {
     if (array_key_exists($k, $b)) $flags[$k] = !empty($b[$k]) && $b[$k] !== '0' ? 1 : 0;
   }
-  $contactId = (int)($b['id'] ?? 0);
+  $contactId = in_int($b, 'id');
   [$kid, $created] = db_tx(function () use ($b, $companyId, $contactId, $role, $flags, $uid) {
     global $conn;
     if ($contactId) {
@@ -156,9 +156,10 @@ if ($action === 'contact_save' && method() === 'POST') {
       $kid = $contactId; $created = false;
     } else {
       if (!empty($b['customer_id'])) {
-        [$custId] = resolve_client(['id' => (int)$b['customer_id']], $uid, true);
+        [$custId] = resolve_client(['id' => in_int($b, 'customer_id')], $uid, true);
       } else {
         $p = (array)($b['person'] ?? []);
+        in_text_only($p, ['name', 'phone', 'email']);
         if (trim((string)($p['phone'] ?? '')) === '' && trim((string)($p['email'] ?? '')) === '') {
           tx_fail('Give a phone number or an email for the contact', 400, ['errors' => ['person.phone' => 'Phone or email needed']]);
         }

@@ -23,7 +23,7 @@ cors();
 $user = require_auth(ROLES_WORKSHOP);
 $isOwner = is_owner_role($user['role']);
 $action = $_GET['action'] ?? '';
-$id = (int)($_GET['id'] ?? 0);
+$id = in_int($_GET, 'id');
 
 /** Field keys already used by any set of this template (they cannot be removed or renamed). */
 function template_used_keys($tkey) {
@@ -69,10 +69,10 @@ if ($action === 'templates' && method() === 'GET') {
 if ($action === 'template_save' && method() === 'POST') {
   if (!$isOwner) fail('Forbidden', 403);
   $b = body();
-  $tkey = (string)($b['tkey'] ?? '');
+  $tkey = in_str($b, 'tkey');
   if (!preg_match('/^[a-z][a-z0-9_]{1,39}$/', $tkey)) fail('Template key: lower-case letters, digits and _ only');
   if ($tkey === 'legacy') fail('The legacy template cannot be edited');
-  $label = trim((string)($b['label'] ?? ''));
+  $label = trim(in_str($b, 'label'));
   if ($label === '' || mb_strlen($label) > 80) fail('Template label is required (up to 80 characters)');
   $fields = $b['fields'] ?? null;
   if (!template_fields_ok($fields)) fail('Fields must be a list of {key, label} with unique lower_case keys');
@@ -90,8 +90,8 @@ if ($action === 'template_save' && method() === 'POST') {
   }
   $active = array_key_exists('active', $b) ? (int)!empty($b['active']) : ($existing ? (int)$existing['active'] : 1);
   $proposed = array_key_exists('proposed', $b) ? (int)!empty($b['proposed']) : ($existing ? (int)$existing['proposed'] : 0);
-  $sort = isset($b['sort']) ? (int)$b['sort'] : ($existing ? (int)$existing['sort'] : 100);
-  $note = array_key_exists('note', $b) ? (mb_substr(trim((string)$b['note']), 0, 255) ?: null) : ($existing['note'] ?? null);
+  $sort = isset($b['sort']) ? in_int($b, 'sort') : ($existing ? (int)$existing['sort'] : 100);
+  $note = array_key_exists('note', $b) ? (mb_substr(trim(in_str($b, 'note')), 0, 255) ?: null) : ($existing['note'] ?? null);
   $json = json_encode($clean, JSON_UNESCAPED_UNICODE);
   db_exec('INSERT INTO measurement_templates (tkey, label, fields, active, proposed, note, sort, updated_by) VALUES (?,?,?,?,?,?,?,?)
            ON DUPLICATE KEY UPDATE label = VALUES(label), fields = VALUES(fields), active = VALUES(active), proposed = VALUES(proposed),
@@ -103,7 +103,7 @@ if ($action === 'template_save' && method() === 'POST') {
 
 /* ---- LIST / GET ----------------------------------------------------------- */
 if ($action === 'list' && method() === 'GET') {
-  $cid = (int)($_GET['customer_id'] ?? 0);
+  $cid = in_int($_GET, 'customer_id');
   if (!$cid) fail('customer_id is required');
   json(array_map('set_view_full', db_rows('SELECT * FROM measurement_sets WHERE customer_id = ? ORDER BY id DESC', 'i', $cid)));
 }
@@ -123,9 +123,9 @@ if ($action === 'create' && method() === 'POST') {
   $b = body();
   $key = body_request_key($b);
   $r = measurement_create([
-    'customer_id' => (int)($b['customer_id'] ?? 0), 'template_key' => (string)($b['template_key'] ?? ''),
-    'unit' => (string)($b['unit'] ?? ''), 'vals' => $b['vals'] ?? [], 'fit_preference' => $b['fit_preference'] ?? null,
-    'notes' => $b['notes'] ?? null, 'taken_at' => $b['taken_at'] ?? null, 'request_key' => $key,
+    'customer_id' => in_int($b, 'customer_id'), 'template_key' => in_str($b, 'template_key'),
+    'unit' => in_str($b, 'unit'), 'vals' => $b['vals'] ?? [], 'fit_preference' => in_str($b, 'fit_preference', null),
+    'notes' => in_str($b, 'notes', null), 'taken_at' => in_str($b, 'taken_at', null), 'request_key' => $key,
     'source' => 'owner', 'approve' => $isOwner,
   ], $user['id']);
   if (!$r['duplicate']) {
@@ -144,7 +144,7 @@ if ($action === 'approve' && method() === 'POST') {
     if (!in_array($s['status'], ['pending', 'imported_unverified'], true)) tx_fail('Only a pending or imported set can be approved (this one is ' . $s['status'] . ')', 409);
     $unit = $s['unit'];
     if ($unit === 'unknown') {
-      $unit = (string)($b['unit'] ?? '');
+      $unit = in_str($b, 'unit');
       if (!in_array($unit, MEASUREMENT_UNITS, true)) tx_fail('Confirm the unit (cm or in) before approving imported measurements', 400, ['needs_unit' => true]);
       db_exec('UPDATE measurement_sets SET unit = ? WHERE id = ?', 'si', $unit, $id);
     }
@@ -159,7 +159,7 @@ if ($action === 'approve' && method() === 'POST') {
 if ($action === 'reject' && method() === 'POST') {
   if (!$isOwner) fail('Forbidden', 403);
   $b = body();
-  $reason = mb_substr(trim((string)($b['reason'] ?? '')), 0, 255);
+  $reason = mb_substr(trim(in_str($b, 'reason')), 0, 255);
   if (mb_strlen($reason) < 3) fail('Give a short reason');
   $stmt = db_exec("UPDATE measurement_sets SET status = 'rejected', rejected_by = ?, rejected_at = UTC_TIMESTAMP(), reject_reason = ?
                     WHERE id = ? AND status IN ('pending','imported_unverified')", 'isi', $user['id'], $reason, $id);
@@ -173,7 +173,7 @@ if ($action === 'reject' && method() === 'POST') {
 
 /* ---- CONVERT PREVIEW (display only) -------------------------------------- */
 if ($action === 'convert_preview' && method() === 'GET') {
-  $to = (string)($_GET['to'] ?? '');
+  $to = in_str($_GET, 'to');
   if (!in_array($to, MEASUREMENT_UNITS, true)) fail('to must be cm or in');
   $s = db_row('SELECT * FROM measurement_sets WHERE id = ?', 'i', $id);
   if (!$s) fail('Measurement set not found', 404);

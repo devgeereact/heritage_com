@@ -23,17 +23,17 @@ $action = $_GET['action'] ?? 'send';
 if ($action !== 'send' || method() !== 'POST') fail('Unknown action', 404);
 
 $b = body();
-$to      = trim($b['to'] ?? '');
-$subject = trim($b['subject'] ?? '');
-$html    = (string)($b['body'] ?? '');
+$to      = trim(in_str($b, 'to'));
+$subject = trim(in_str($b, 'subject'));
+$html    = in_str($b, 'body');
 
 if (!filter_var($to, FILTER_VALIDATE_EMAIL)) fail('A valid recipient (to) is required.');
 if ($subject === '') fail('Subject is required.');
 if (trim(strip_tags($html)) === '') fail('Message body is required.');
 
 $r = mail_send_html($to, $subject, $html, [
-  'cc' => $b['cc'] ?? '', 'reply_to' => $b['reply_to'] ?? '',
-  'in_reply_to' => $b['in_reply_to'] ?? '', 'references' => $b['references'] ?? '',
+  'cc' => in_str($b, 'cc'), 'reply_to' => in_str($b, 'reply_to'),
+  'in_reply_to' => in_str($b, 'in_reply_to'), 'references' => in_str($b, 'references'),
   'user_id' => $user['id'],
 ]);
 if (!$r['ok']) json(['error' => 'Could not send email', 'detail' => $r['error']], 502);
