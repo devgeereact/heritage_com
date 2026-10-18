@@ -8,7 +8,8 @@
  *     balances (+ total_balance), credits (+ total_credit), unverified_payments
  *     (+ total_unverified), stage_review, measurements_pending,
  *     appointment_requests, access_requests, messages_unread, change_requests, feedback_follow_up
- *   }  each block is {count, items[<=20]}
+ *   }  each block is {count, items[<=20], more}; `more` is count minus the items listed
+ *      (never negative), so the page can say "and N more" (K-07)
  *
  * appointments_today comes from the appointments table once schema_phase23.sql
  * is imported (items: id, type, status, all_day, starts_at_local, ends_at_local,
@@ -90,6 +91,12 @@ $out['credits']['total_credit'] = minor_to_decimal(decimal_to_minor(db_row(
 $out['stage_review'] = job_block('o.stage_review = 1', '', [], 'o.id');
 
 // Enquiries: new ones, plus follow-ups that have come due. 'contacted' is the legacy alias.
+// Order (K-07): a promised follow-up that is due or overdue is a commitment to a
+// customer, so it ranks first (most overdue first); then new enquiries; then the rest by
+// follow-up date, those without one last. The list is capped, so this decides what drops off.
+$EQ_ORDER = "(e.next_follow_up IS NOT NULL AND e.next_follow_up <= ?) DESC,
+             CASE WHEN e.next_follow_up IS NOT NULL AND e.next_follow_up <= ? THEN e.next_follow_up END,
+             e.status = 'new' DESC, e.next_follow_up IS NULL, e.next_follow_up, e.id DESC";
 $EQ = "(e.status = 'new' OR (e.status IN ('awaiting_reply','contacted','quote_sent') AND e.next_follow_up IS NOT NULL AND e.next_follow_up <= ?))";
 $out['enquiries'] = [
   'count' => (int)db_row("SELECT COUNT(*) AS n FROM enquiries e WHERE $EQ", 's', $today)['n'],
@@ -98,10 +105,12 @@ $out['enquiries'] = [
     $r['status'] = enquiry_status_from_legacy($r['status']) ?? $r['status'];
     return $r;
   }, db_rows("SELECT e.id, e.name, e.phone, e.email, e.company, e.type, e.interest, e.status, e.next_follow_up, e.desired_date, e.created_at
-                FROM enquiries e WHERE $EQ ORDER BY e.status = 'new' DESC, e.next_follow_up, e.id DESC LIMIT " . TODAY_LIMIT, 's', $today)),
+                FROM enquiries e WHERE $EQ ORDER BY $EQ_ORDER LIMIT " . TODAY_LIMIT, 'sss', $today, $today, $today)),
 ];
 
 // Payments waiting for the owner to confirm (transfers, by default). Reversed ones drop out.
+// Oldest received first, so nothing waits unseen the longest; a newer transfer past the cap
+// is reported through `more`.
 $UV = "p.verified = 0 AND p.kind <> 'reversal' AND NOT EXISTS (SELECT 1 FROM job_payments r WHERE r.reverses_id = p.id)";
 $out['unverified_payments'] = [
   'count' => (int)db_row("SELECT COUNT(*) AS n FROM job_payments p WHERE $UV")['n'],
@@ -161,6 +170,17 @@ if (has_table('job_messages')) {
   ];
 } else {
   $out['messages_unread'] = $out['change_requests'] = $out['feedback_follow_up'] = $EMPTY;
+}
+
+// Every capped block says how many of its items are not in the list (K-07). The unread
+// messages block lists one row per job while its count is of messages, so it is counted by job.
+foreach ($out as $k => &$blk) {
+  if (is_array($blk) && isset($blk['count'], $blk['items'])) $blk['more'] = today_more($blk['count'], count($blk['items']));
+}
+unset($blk);
+if (has_table('job_messages')) {
+  $unreadJobs = (int)db_row("SELECT COUNT(DISTINCT job_id) AS n FROM job_messages WHERE author_type = 'customer' AND read_by_owner_at IS NULL")['n'];
+  $out['messages_unread']['more'] = today_more($unreadJobs, count($out['messages_unread']['items']));
 }
 
 json($out);

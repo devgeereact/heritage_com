@@ -269,6 +269,10 @@ check('quote number', quote_number(12, 3), 'Q-12-v3');
 /* ---- other helpers ------------------------------------------------------- */
 check('enquiry: contacted maps to awaiting_reply', enquiry_status_from_legacy('contacted'), 'awaiting_reply');
 check('enquiry: unknown status is null', enquiry_status_from_legacy('lost'), null);
+check('today more: nothing hidden under the cap', today_more(12, 12), 0);
+check('today more: 25 counted, 20 shown', today_more(25, 20), 5);
+check('today more: never negative', today_more(3, 5), 0);
+check('today more: numeric strings from the database', today_more('21', '20'), 1);
 check('enquiry: accepted to new rejected', enquiry_transition_ok('accepted', 'new'), false);
 check('enquiry: legacy contacted to quote_sent allowed', enquiry_transition_ok('contacted', 'quote_sent'), true);
 check('client ref: 42', client_ref_from_id(42), 'CL-00042');

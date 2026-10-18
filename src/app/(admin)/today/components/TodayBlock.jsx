@@ -5,8 +5,10 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 /**
  * One Today block: title, count, up to five rows that each open the record in
  * one tap, and a "See all" link. Empty blocks show one line with one next step.
+ * `more` is how many items the server left out of its capped list (K-07); the
+ * footer says so ("And N more") and links to the full list when the block has one.
  */
-const TodayBlock = ({ id, title, icon, count = 0, total, rows = [], seeAll, empty, tone }) => {
+const TodayBlock = ({ id, title, icon, count = 0, more = 0, total, rows = [], seeAll, empty, tone }) => {
   const shown = rows.slice(0, 5)
   return (
     <Card className="hd-card h-100" as="section" aria-labelledby={`tb-${id}`}>
@@ -52,9 +54,13 @@ const TodayBlock = ({ id, title, icon, count = 0, total, rows = [], seeAll, empt
           </div>
         )}
       </Card.Body>
-      {seeAll && count > shown.length && (
+      {((seeAll && count > shown.length) || more > 0) && (
         <Card.Footer className="bg-transparent py-2">
-          <Link to={seeAll}>See all {count}</Link>
+          {seeAll ? (
+            <Link to={seeAll}>{more > 0 ? `And ${more} more. See all ${count}` : `See all ${count}`}</Link>
+          ) : (
+            <span className="text-muted">And {more} more</span>
+          )}
         </Card.Footer>
       )}
     </Card>

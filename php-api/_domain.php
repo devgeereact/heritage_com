@@ -261,6 +261,15 @@ function enquiry_status_from_legacy($s) {
   return in_array($s, ENQUIRY_STATUSES, true) ? $s : null;
 }
 
+/**
+ * How many items of a capped Today block are not in its list (K-07): the full
+ * count minus the items shown, never negative. The page uses it to say
+ * "and N more" and link to the full list.
+ */
+function today_more($count, $shown) {
+  return max(0, (int)$count - (int)$shown);
+}
+
 function enquiry_transition_ok($from, $to) {
   $from = enquiry_status_from_legacy($from);
   return $from !== null && isset(ENQUIRY_TRANSITIONS[$from]) && in_array($to, ENQUIRY_TRANSITIONS[$from], true);

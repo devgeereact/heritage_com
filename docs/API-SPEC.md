@@ -109,7 +109,7 @@ Verified on local staging, 10 October 2026: `scripts/staging/e2e-phase2.sh`, 48 
 
 | Endpoint | Actions | Roles |
 |---|---|---|
-| `today.php` | GET: `{date, appointments_today, overdue, due_soon, next_actions, ready, enquiries, balances, credits, unverified_payments, stage_review, measurements_pending}`, each `{count, items}` | Owner |
+| `today.php` | GET: `{date, appointments_today, overdue, due_soon, next_actions, ready, enquiries, balances, credits, unverified_payments, stage_review, measurements_pending}`, each `{count, items, more}`. Each list is capped at 20; `more` is `count` minus the items listed, never negative (K-07). Enquiries are ordered: a follow-up that is due or overdue first (most overdue first), then new enquiries, then the rest by follow-up date. Unverified payments stay oldest first, so a newer transfer past the cap shows only through `more`. `messages_unread` lists one row per job, so its `more` counts jobs, not messages | Owner |
 | `enquiries.php` | `list` (`status`, `q`; returns counts), `get`, `create` (staff-entered), `update`, `link_client`, `convert` (owner; idempotent; 409 `{candidates}` on a phone or email match) | Owner and employee |
 | `customers.php` | `list` (`q`), `get` (jobs, measurement sets, payments summary for owner roles), `match`, `create` (409 `{candidates}` unless `confirm_new`), `update`, `measure` (legacy form, now creates a set), `birthdays` | Workshop and employee |
 | `measurements.php` | `templates`, `template_save` (owner), `list&customer_id`, `get`, `create` (request key), `approve` (owner; `unit` required for imported sets), `reject` (owner), `convert_preview` | Workshop |
