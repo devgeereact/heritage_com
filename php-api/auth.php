@@ -95,13 +95,21 @@ if ($action === 'login' && method() === 'POST') {
   $user = $stmt->get_result()->fetch_assoc();
   // Check a password even when no account matches, so the answer takes the
   // same time either way and does not reveal which emails exist (K-23).
-  $hashToCheck = $user['password_hash'] ?? '$2y$12$2HDF/gO2EmxrmeT1t9ZYo.YSyrW/ZXeeYtBTCYYzGA4z76AkayD.K';
+  // Same cost as every stored hash (STAFF_HASH_COST), or the timing differs again.
+  $hashToCheck = $user['password_hash'] ?? STAFF_DUMMY_HASH;
   $ok = password_verify($password, $hashToCheck);
   if (!$user || !$ok) {
     // Two rows so each limit is a plain action + entity match (no JSON queries).
     audit(null, 'login_fail_ip', $ipKey);
     audit(null, 'login_fail_acct', $acctKey);
     fail('Invalid email or password', 401);
+  }
+
+  if (staff_secret_needs_rehash($user['password_hash'])) {
+    $up = $conn->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+    $new = staff_secret_hash($password);
+    $up->bind_param('si', $new, $user['id']);
+    $up->execute();
   }
 
   $token = issue_token($user['id']);
@@ -223,6 +231,12 @@ if ($action === 'pin_login' && method() === 'POST') {
     fail('PIN not recognised', 401);
   }
   $match = $matches[0];
+  if (staff_secret_needs_rehash($match['pin_hash'])) {
+    $up = $conn->prepare('UPDATE users SET pin_hash = ? WHERE id = ?');
+    $new = staff_secret_hash($pin);
+    $up->bind_param('si', $new, $match['id']);
+    $up->execute();
+  }
 
   $token = issue_token($match['id']);
   audit($match['id'], 'pin_login');
@@ -260,7 +274,7 @@ if ($action === 'set_pin' && method() === 'POST') {
       fail('That PIN cannot be used. Choose a different one.', 409);
     }
   }
-  $hash = password_hash($pin, PASSWORD_DEFAULT);
+  $hash = staff_secret_hash($pin);
   $stmt = $conn->prepare('UPDATE users SET pin_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $user['id']);
   $stmt->execute();

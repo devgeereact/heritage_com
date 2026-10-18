@@ -39,7 +39,7 @@ function q($sql, $types = '', ...$args) {
 // re-import). Lock those staff accounts (random unusable password, suspended)
 // and remove the sample clients and their jobs, so staging holds only obviously
 // synthetic records.
-$locked = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
+$locked = staff_secret_hash(bin2hex(random_bytes(24)));
 q("UPDATE users SET password_hash = ?, status = 'suspended' WHERE email NOT LIKE '%@example.test'", 's', $locked);
 $sample = "SELECT id FROM customers WHERE name IN ('Chukwu Okafor','Emeka Bello')";
 // Phase 2 tables point at jobs and clients, so clear their rows first. Each is
@@ -71,7 +71,7 @@ if (q("SELECT id FROM users WHERE email = 'staging-admin@example.test'")->get_re
 // Staff.
 $adminPass = rtrim(strtr(base64_encode(random_bytes(12)), '+/', 'Kq'), '=');
 q("INSERT INTO users (name, email, password_hash, role, status) VALUES (?,?,?,?, 'active')",
-  'ssss', $n = 'Staging Admin', $e = 'staging-admin@example.test', $h = password_hash($adminPass, PASSWORD_DEFAULT), $r = 'super_admin');
+  'ssss', $n = 'Staging Admin', $e = 'staging-admin@example.test', $h = staff_secret_hash($adminPass), $r = 'super_admin');
 $adminId = $conn->insert_id;
 q("INSERT INTO users (name, email, password_hash, role, status) VALUES (?,?,?,?, 'active')",
   'ssss', $n = 'Test Tailor 01', $e = 'tailor01@example.test', $h = $locked, $r = 'tailor');

@@ -87,3 +87,11 @@ check('login: configured CORS origin allowed', staff_login_request_check('applic
 check('login: localhost dev origin allowed only with ALLOW_LOCALHOST_CORS',
   [$lr('application/json', 'cross-site', 'http://localhost:5112', true), $lr('application/json', 'cross-site', 'http://localhost:5112', false)[0]], [null, 403]);
 check('login: http origin of the same host is not the https site', $lr('application/json', 'cross-site', 'http://heritclothing.com')[0], 403);
+
+/* ---- one bcrypt cost for staff passwords and PINs (K-23 timing) ----------------- */
+$h = staff_secret_hash('1234');
+check('hash: staff secrets use bcrypt at STAFF_HASH_COST', [password_get_info($h)['algoName'], password_get_info($h)['options']['cost'] ?? null], ['bcrypt', STAFF_HASH_COST]);
+check('hash: the dummy sign-in hash has the same cost', password_get_info(STAFF_DUMMY_HASH)['options']['cost'] ?? null, STAFF_HASH_COST);
+check('hash: a new hash verifies and needs no rehash', [password_verify('1234', $h), staff_secret_needs_rehash($h)], [true, false]);
+$old = password_hash('1234', PASSWORD_BCRYPT, ['cost' => 10]);
+check('hash: an older cost-10 hash still verifies and is marked for rehash', [password_verify('1234', $old), staff_secret_needs_rehash($old)], [true, true]);

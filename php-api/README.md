@@ -37,7 +37,7 @@ password as soon as the import finishes. Generate a hash on any machine with PHP
 (replace the placeholder; do not commit or share the real password):
 
 ```bash
-php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_DEFAULT), PHP_EOL;'
+php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_BCRYPT, ["cost" => 12]), PHP_EOL;'
 ```
 
 then run in phpMyAdmin:

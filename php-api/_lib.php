@@ -113,6 +113,22 @@ function cfg($name, $default = '') {
  */
 function staff_token_hash($t) { return hash('sha256', (string)$t); }
 
+/**
+ * One bcrypt cost for every staff password and PIN (A15 review, K-23). Email
+ * sign-in checks STAFF_DUMMY_HASH when no account matches, so a stored hash at
+ * a lower cost (PHP before 8.4 defaults to 10) would answer faster and show
+ * which emails exist. Older hashes still verify, because password_verify reads
+ * the cost from the hash; sign-in upgrades them (staff_secret_needs_rehash).
+ */
+const STAFF_HASH_COST = 12;
+const STAFF_DUMMY_HASH = '$2y$12$2HDF/gO2EmxrmeT1t9ZYo.YSyrW/ZXeeYtBTCYYzGA4z76AkayD.K';
+
+/** Hash a staff password or PIN at STAFF_HASH_COST. */
+function staff_secret_hash($plain) { return password_hash((string)$plain, PASSWORD_BCRYPT, ['cost' => STAFF_HASH_COST]); }
+
+/** Is this stored hash older or cheaper than staff_secret_hash() would make now? */
+function staff_secret_needs_rehash($hash) { return password_needs_rehash((string)$hash, PASSWORD_BCRYPT, ['cost' => STAFF_HASH_COST]); }
+
 /** Read the Bearer token from the Authorization header. */
 function bearer() {
   $h = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');

@@ -71,7 +71,7 @@ if ($action === 'password' && method() === 'POST') {
   if (!$row || !password_verify($current, $row['password_hash'])) {
     fail('Current password is incorrect.', 403);
   }
-  $hash = password_hash($next, PASSWORD_BCRYPT);
+  $hash = staff_secret_hash($next);
   $stmt = $conn->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $user['id']);
   $stmt->execute();
@@ -122,7 +122,7 @@ if ($action === 'create' && method() === 'POST') {
   $plain = trim($b['password'] ?? '');
   if ($plain === '') $plain = temp_password();
   elseif (strlen($plain) < 8) fail('Password must be at least 8 characters.');
-  $hash = password_hash($plain, PASSWORD_BCRYPT);
+  $hash = staff_secret_hash($plain);
   $status = 'invited';
 
   $stmt = $conn->prepare('INSERT INTO users (name, email, password_hash, role, phone, status) VALUES (?,?,?,?,?,?)');
@@ -192,7 +192,7 @@ if ($action === 'reset' && method() === 'POST') {
   guard_super_admin($me, $target['role']);
 
   $plain = temp_password();
-  $hash = password_hash($plain, PASSWORD_BCRYPT);
+  $hash = staff_secret_hash($plain);
   $stmt = $conn->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $id);
   $stmt->execute();
