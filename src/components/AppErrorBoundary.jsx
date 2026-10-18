@@ -67,7 +67,9 @@ export default class AppErrorBoundary extends Component {
         <div style={{ maxWidth: 480 }} role="alert">
           <h1 style={{ fontSize: 28, lineHeight: 1.2, margin: '0 0 12px' }}>Something went wrong</h1>
           <p style={{ margin: '0 0 20px', lineHeight: 1.5 }}>
-            {isOffline()
+            {/* "Not opened on this device yet" is only true when the page code
+                failed to download; any other error offline gets the general text. */}
+            {isOffline() && isChunkError(this.state.error)
               ? 'You are offline, and this page has not been opened on this device yet. Reload once the connection is back.'
               : 'This page could not open. Reload to try again. If it keeps happening, go to the home page.'}
           </p>
