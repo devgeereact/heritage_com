@@ -374,6 +374,12 @@ req POST "messages.php?action=feedback_publish&id=$FB"
 check F4 "publishing without consent is refused" eq "$CODE" 409
 req GET "today.php"
 check F5 "Today lists the follow-up" bash -c "[ '$(j "[.feedback_follow_up.items[] | select(.job_id == $A_JID)] | length")' = 1 ]"
+FC="$(j .feedback_follow_up.count)"
+sql "UPDATE tailoring_orders SET deleted_at = NOW() WHERE id = $A_JID"
+req GET "today.php"
+check F5b "feedback on a deleted job leaves both the count and the list" \
+  bash -c "[ '$(j .feedback_follow_up.count)' = $((FC - 1)) ] && [ '$(j "[.feedback_follow_up.items[] | select(.job_id == $A_JID)] | length")' = 0 ]"
+sql "UPDATE tailoring_orders SET deleted_at = NULL WHERE id = $A_JID"
 sql "UPDATE tailoring_orders SET job_stage = 'handed_over', stage = 'done' WHERE id = $B_JID"
 req POST "portal.php?action=feedback" "{\"ref\":\"$B_REF\",\"rating\":5,\"comment\":\"Lovely work $RUN\",\"publish_consent\":\"first_name\",\"photo_consent\":true,\"request_key\":\"$(key fbb)\"}" "$B_TOK"
 FBB="$(sql "SELECT id FROM job_feedback WHERE job_id = $B_JID")"

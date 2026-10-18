@@ -61,9 +61,9 @@ if ($action === 'inbox' && method() === 'GET') {
 }
 
 if ($action === 'unread_count' && method() === 'GET') {
-  json(['messages' => (int)db_row("SELECT COUNT(*) AS n FROM job_messages WHERE author_type = 'customer' AND read_by_owner_at IS NULL")['n'],
+  json(['messages' => (int)db_row('SELECT COUNT(*) AS n ' . UNREAD_MESSAGES_FROM)['n'],
         'change_requests' => (int)db_row("SELECT COUNT(*) AS n FROM job_change_requests WHERE status = 'open'")['n'],
-        'feedback_follow_up' => (int)db_row("SELECT COUNT(*) AS n FROM job_feedback WHERE follow_up = 'open'")['n']]);
+        'feedback_follow_up' => (int)db_row('SELECT COUNT(*) AS n ' . OPEN_FEEDBACK_FROM)['n']]);
 }
 
 /* ---- THREAD --------------------------------------------------------------- */

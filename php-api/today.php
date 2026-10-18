@@ -142,18 +142,14 @@ $out['access_requests'] = has_table('customer_access_challenges') ? [
     db_rows("SELECT ch.id, ch.customer_id, c.name AS client_name, ch.created_at FROM customer_access_challenges ch JOIN customers c ON c.id = ch.customer_id
               WHERE ch.status = 'awaiting_owner' AND ch.expires_at > UTC_TIMESTAMP() ORDER BY ch.id LIMIT " . TODAY_LIMIT)),
 ] : $EMPTY;
-// Unread client messages: the count, the per-job count and the items share one FROM
-// and WHERE, so a message on a deleted job (or with no job or client row) is in none
-// of them (K-07 L5).
-const TODAY_UNREAD_FROM = "FROM job_messages m JOIN tailoring_orders o ON o.id = m.job_id JOIN customers c ON c.id = m.customer_id
-                WHERE m.author_type = 'customer' AND m.read_by_owner_at IS NULL AND o.deleted_at IS NULL";
+// Unread messages and open feedback use the shared FROM and WHERE in _jobs.php (K-07 L5).
 if (has_table('job_messages')) {
   $out['messages_unread'] = [
-    'count' => (int)db_row('SELECT COUNT(*) AS n ' . TODAY_UNREAD_FROM)['n'],
+    'count' => (int)db_row('SELECT COUNT(*) AS n ' . UNREAD_MESSAGES_FROM)['n'],
     'items' => array_map(fn($r) => ['job_id' => (int)$r['job_id'], 'job_code' => $r['code'], 'client_name' => $r['client_name'], 'unread' => (int)$r['unread'],
       'last_at_local' => lagos_iso($r['last_ts'])],
       db_rows("SELECT m.job_id, o.code, c.name AS client_name, COUNT(*) AS unread, MAX(m.created_at) AS last_at, UNIX_TIMESTAMP(MAX(m.created_at)) AS last_ts
-                 " . TODAY_UNREAD_FROM . "
+                 " . UNREAD_MESSAGES_FROM . "
              GROUP BY m.job_id, o.code, c.name ORDER BY last_at LIMIT " . TODAY_LIMIT)),
   ];
   $out['change_requests'] = [
@@ -165,12 +161,10 @@ if (has_table('job_messages')) {
                 WHERE r.status = 'open' ORDER BY r.id LIMIT " . TODAY_LIMIT)),
   ];
   $out['feedback_follow_up'] = [
-    'count' => (int)db_row("SELECT COUNT(*) AS n FROM job_feedback WHERE follow_up = 'open'")['n'],
+    'count' => (int)db_row('SELECT COUNT(*) AS n ' . OPEN_FEEDBACK_FROM)['n'],
     'items' => array_map(fn($r) => ['id' => (int)$r['id'], 'job_id' => (int)$r['job_id'], 'job_code' => $r['code'], 'client_name' => $r['client_name'],
       'rating' => $r['rating'] !== null ? (int)$r['rating'] : null, 'created_at' => $r['created_at']],
-      db_rows("SELECT f.id, f.job_id, o.code, c.name AS client_name, f.rating, f.created_at FROM job_feedback f
-                 JOIN tailoring_orders o ON o.id = f.job_id JOIN customers c ON c.id = f.customer_id
-                WHERE f.follow_up = 'open' ORDER BY f.id LIMIT " . TODAY_LIMIT)),
+      db_rows('SELECT f.id, f.job_id, o.code, c.name AS client_name, f.rating, f.created_at ' . OPEN_FEEDBACK_FROM . ' ORDER BY f.id LIMIT ' . TODAY_LIMIT)),
   ];
 } else {
   $out['messages_unread'] = $out['change_requests'] = $out['feedback_follow_up'] = $EMPTY;
@@ -183,7 +177,7 @@ foreach ($out as $k => &$blk) {
 }
 unset($blk);
 if (has_table('job_messages')) {
-  $unreadJobs = (int)db_row('SELECT COUNT(DISTINCT m.job_id) AS n ' . TODAY_UNREAD_FROM)['n'];
+  $unreadJobs = (int)db_row('SELECT COUNT(DISTINCT m.job_id) AS n ' . UNREAD_MESSAGES_FROM)['n'];
   $out['messages_unread']['more'] = today_more($unreadJobs, count($out['messages_unread']['items']));
 }
 

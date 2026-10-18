@@ -148,7 +148,7 @@ Branch `feat/phase3-appointments-portal` (no PR yet). Verified on local staging,
 | `booking.php?action=slots&type=consultation&from&days` | GET | `days` at most 14 | `{timezone, type, slots:[{start, end}]}`; 503 while switched off | Public, `BOOKING_SLOTS_MAX_PER_IP` |
 | `booking.php?action=request` | POST | `type:'consultation'`, `start`, `name`, `phone` or `email`, `note`, `hp_url` (honeypot), `request_key` | 201 `{ok, message}` (a request, never an instant booking; also opens an enquiry); 422 `{reason}` for `outside_hours`, `too_soon`, `too_far`; 409 when taken; 503 while switched off | Public, `BOOKING_REQUEST_MAX_PER_IP` |
 | `tailoring.php?action=fitting&id` | POST | `fitting_date` or null (unchanged contract) | Adds `appointment_id`: the date is kept as an all-day confirmed fitting appointment, moved or cancelled with it | Workshop |
-| `today.php` | GET | | `appointments_today` now lists real appointments (`id, type, status, all_day, starts_at_local, ends_at_local, client_name, job_id, job_code, source`), plus `appointment_requests`, `access_requests`, `messages_unread`, `change_requests` and `feedback_follow_up`, each `{count, items}` and empty until their schema exists | Owner |
+| `today.php` | GET | | `appointments_today` now lists real appointments (`id, type, status, all_day, starts_at_local, ends_at_local, client_name, job_id, job_code, source`), plus `appointment_requests`, `access_requests`, `messages_unread`, `change_requests` and `feedback_follow_up`, each `{count, items}` and empty until their schema exists; for unread messages and feedback the count and the items share one FROM and WHERE, so an entry on a deleted job is in neither | Owner |
 
 `availability` shape (every field may be empty, which means not set): `{weekly:{mon:[["09:00","13:00"],["14:00","18:00"]], ..., sun:[]}, buffer_min, min_notice_hours, horizon_days, step_min, durations:{consultation, fitting, collection}, request_hold_hours}`. Breaks are the gaps between a day's windows; closed dates and leave are blocks. A type can be requested only when there is a window, a duration for it, a horizon, a minimum notice, a buffer and a hold time.
 
@@ -193,7 +193,7 @@ Every action needs a customer session. A job is addressed by its public referenc
 | Action | Method | Request | Response |
 |---|---|---|---|
 | `messages.php?action=inbox` | GET | | `{items:[{job_id, code, client_name, last_at, last_at_local, unread}], unread_total}` |
-| `messages.php?action=unread_count` | GET | | `{messages, change_requests, feedback_follow_up}` |
+| `messages.php?action=unread_count` | GET | | `{messages, change_requests, feedback_follow_up}`; `messages` and `feedback_follow_up` leave out deleted jobs and use the same FROM and WHERE as Today (`UNREAD_MESSAGES_FROM`, `OPEN_FEEDBACK_FROM` in `_jobs.php`), so the badge and Today agree |
 | `messages.php?action=thread&job_id` | GET | | Every message, internal notes included, with `author_name`, `visibility`, `channel`, `delivery_status`, `read_by_owner_at`, `read_by_customer_at`, `created_at_local` |
 | `messages.php?action=post` | POST | `job_id`, `visibility` (`internal` or `client`), `channel` (client: `portal`, `whatsapp`, `email`, `phone`, `in_person`; internal is always `note`), `body`, `request_key` | 201 message; WhatsApp sends through `wa_dispatch()` (adds `wa_link` in fallback mode), email through `_mail.php`; `delivery_status` records `sent`, `failed`, `manual` or `na` |
 | `messages.php?action=mark_read` | POST | `job_id` | `{ok, marked}` |

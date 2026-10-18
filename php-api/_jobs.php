@@ -12,6 +12,15 @@ require_once __DIR__ . '/_domain.php';
 /* ---- Small query helpers -------------------------------------------------- */
 
 /** Prepare, bind and execute. Returns the statement. */
+/* Unread client messages and feedback to follow up. Today (count, per-job count and
+ * items) and the menu badge (messages.php unread_count) all use these, so a message
+ * or feedback on a deleted job, or with no job or client row, is in none of them
+ * (K-07 L5). */
+const UNREAD_MESSAGES_FROM = "FROM job_messages m JOIN tailoring_orders o ON o.id = m.job_id JOIN customers c ON c.id = m.customer_id
+                WHERE m.author_type = 'customer' AND m.read_by_owner_at IS NULL AND o.deleted_at IS NULL";
+const OPEN_FEEDBACK_FROM = "FROM job_feedback f JOIN tailoring_orders o ON o.id = f.job_id JOIN customers c ON c.id = f.customer_id
+                WHERE f.follow_up = 'open' AND o.deleted_at IS NULL";
+
 function db_exec($sql, $types = '', ...$args) {
   global $conn;
   $stmt = $conn->prepare($sql);
