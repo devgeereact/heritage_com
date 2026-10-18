@@ -53,6 +53,10 @@ check() {
 }
 eq() { [ "$1" = "$2" ]; }
 key() { echo "e2e3-$RUN-$1"; }
+# A synthetic phone number with a fixed count of digits. Bare $RANDOM is 0 to 32767, so
+# "0702$RANDOM" was under the 7-digit minimum about once in 330 requests and the
+# server refused it as a bad phone number (400) before any time check (K-27).
+phone() { printf "%s%05d" "$1" "$((RANDOM % 100000))"; }
 reset_throttles() {
   sql "DELETE FROM audit_log WHERE action IN ('booking_slots_ip','booking_request_ip','access_start_ip','access_start_ref','access_verify_fail_ip')"
 }
@@ -96,7 +100,7 @@ reset_throttles
 P1="$(mktemp)"; P2="$(mktemp)"
 for n in 1 2; do
   curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$API/booking.php?action=request" \
-    -d "{\"type\":\"consultation\",\"start\":\"${DAY}T14:00\",\"name\":\"E2E Parallel $n $RUN\",\"phone\":\"0700000$n$RANDOM\",\"request_key\":\"$(key par$n)\"}" > "$( [ $n = 1 ] && echo "$P1" || echo "$P2")" &
+    -d "{\"type\":\"consultation\",\"start\":\"${DAY}T14:00\",\"name\":\"E2E Parallel $n $RUN\",\"phone\":\"$(phone 0700000$n)\",\"request_key\":\"$(key par$n)\"}" > "$( [ $n = 1 ] && echo "$P1" || echo "$P2")" &
 done
 wait
 CODES2="$(sort <(cat "$P1"; echo) <(cat "$P2"; echo) | tr -d '\n' | tr -s ' ')"; rm -f "$P1" "$P2"
@@ -119,22 +123,22 @@ check B3b "old request is now expired, with history" bash -c "[ '$(sql "SELECT s
 REQ2="$(sql "SELECT id FROM appointments WHERE request_key = '$(key exp)'")"
 req POST "appointments.php?action=decline&id=$REQ2" '{"reason":"e2e"}'
 check B4 "owner declines the request" bash -c "[ '$CODE' = 200 ] && [ '$(j .status)' = cancelled ]"
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T14:00\",\"name\":\"E2E After Cancel $RUN\",\"phone\":\"07011$RANDOM\",\"request_key\":\"$(key aftercancel)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T14:00\",\"name\":\"E2E After Cancel $RUN\",\"phone\":\"$(phone 07011)\",\"request_key\":\"$(key aftercancel)\"}" -
 check B4b "the freed slot can be requested again" eq "$CODE" 201
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T14:00\",\"name\":\"E2E After Cancel $RUN\",\"phone\":\"07011$RANDOM\",\"request_key\":\"$(key aftercancel)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T14:00\",\"name\":\"E2E After Cancel $RUN\",\"phone\":\"$(phone 07011)\",\"request_key\":\"$(key aftercancel)\"}" -
 check B4c "same request key again: 200, nothing new" bash -c "[ '$CODE' = 200 ] && [ '$(sql "SELECT COUNT(*) FROM appointments WHERE request_key = '$(key aftercancel)'")' = 1 ]"
 
 # ---- B5: outside hours, too soon, too far ------------------------------------
 reset_throttles
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T13:15\",\"name\":\"E2E Lunch $RUN\",\"phone\":\"0702$RANDOM\",\"request_key\":\"$(key lunch)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T13:15\",\"name\":\"E2E Lunch $RUN\",\"phone\":\"$(phone 0702)\",\"request_key\":\"$(key lunch)\"}" -
 check B5 "lunch-break request refused (422 outside_hours)" bash -c "[ '$CODE' = 422 ] && [ '$(j .reason)' = outside_hours ]"
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T20:00\",\"name\":\"E2E Night $RUN\",\"phone\":\"0702$RANDOM\",\"request_key\":\"$(key night)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T20:00\",\"name\":\"E2E Night $RUN\",\"phone\":\"$(phone 0702)\",\"request_key\":\"$(key night)\"}" -
 check B5b "evening request refused (422 outside_hours)" bash -c "[ '$CODE' = 422 ] && [ '$(j .reason)' = outside_hours ]"
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${FAR}T10:00\",\"name\":\"E2E Far $RUN\",\"phone\":\"0702$RANDOM\",\"request_key\":\"$(key far)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${FAR}T10:00\",\"name\":\"E2E Far $RUN\",\"phone\":\"$(phone 0702)\",\"request_key\":\"$(key far)\"}" -
 check B5c "beyond the 30-day horizon refused (422 too_far)" bash -c "[ '$CODE' = 422 ] && [ '$(j .reason)' = too_far ]"
 req POST "appointments.php?action=availability_save" "{\"availability\":$(echo "$AVAIL" | jq -c '.min_notice_hours = 200')}"
 reset_throttles
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T16:00\",\"name\":\"E2E Soon $RUN\",\"phone\":\"0702$RANDOM\",\"request_key\":\"$(key soon)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T16:00\",\"name\":\"E2E Soon $RUN\",\"phone\":\"$(phone 0702)\",\"request_key\":\"$(key soon)\"}" -
 check B5d "inside the minimum notice refused (422 too_soon)" bash -c "[ '$CODE' = 422 ] && [ '$(j .reason)' = too_soon ]"
 req POST "appointments.php?action=availability_save" "{\"availability\":$AVAIL}"
 N="$(sql "SELECT COUNT(*) FROM appointments WHERE request_key IN ('$(key lunch)','$(key night)','$(key far)','$(key soon)')")"
@@ -163,7 +167,7 @@ req GET "booking.php?action=config" -
 check B8 "config says enabled:false" eq "$(j .enabled)" false
 slots
 check B8b "slots answer 503" eq "$CODE" 503
-req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T16:00\",\"name\":\"E2E Off $RUN\",\"phone\":\"0702$RANDOM\",\"request_key\":\"$(key off)\"}" -
+req POST "booking.php?action=request" "{\"type\":\"consultation\",\"start\":\"${DAY}T16:00\",\"name\":\"E2E Off $RUN\",\"phone\":\"$(phone 0702)\",\"request_key\":\"$(key off)\"}" -
 check B8c "requests answer 503" eq "$CODE" 503
 
 # ---- Customers for the access and portal checks ------------------------------
@@ -352,6 +356,10 @@ req POST "portal.php?action=appointment_reschedule_request" "{\"ref\":\"$B_REF\"
 check C3e "B cannot move A's appointment through B's own job" eq "$CODE" 404
 
 # ---- F: feedback and consent -------------------------------------------------
+# Close follow-ups left open by earlier runs: Today lists only the oldest 20, so
+# after about 20 runs this run's follow-up would fall off the list and F5 would fail.
+sql "UPDATE job_feedback f JOIN customers c ON c.id = f.customer_id SET f.follow_up = 'done'
+       WHERE f.follow_up = 'open' AND c.name LIKE 'E2E %' AND c.email LIKE '%@example.test'"
 req POST "portal.php?action=feedback" "{\"ref\":\"$A_REF\",\"rating\":2,\"comment\":\"Too tight\",\"request_key\":\"$(key fb)\"}" "$A_TOK"
 check F1 "feedback before handover refused" eq "$CODE" 409
 sql "UPDATE tailoring_orders SET job_stage = 'handed_over', stage = 'done' WHERE id = $A_JID"
