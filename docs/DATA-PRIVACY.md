@@ -74,9 +74,12 @@ None of these is used for advertising or cross-site tracking. No analytics, pixe
 | `herit_ref`, `herit_src`, `herit_camp` | localStorage | Any public page with `?ref=` or `?utm_*` | Referral code and campaign attribution for checkout | 30 days, then removed (D-024) | Analytics or attribution: consent may be needed, REQUIRES LEGAL REVIEW (K-13) | `site/attribution.js`, `site/SiteLayout.jsx` |
 | `__REBACK_NEXT_CONFIG__` | localStorage | Admin | Admin theme settings | Until cleared | Preferences (staff) | `context/useLayoutContext.jsx:29` |
 | `herit_pos_catalogue`, `herit_pos_queue` | localStorage | Staff POS | Offline catalogue and queued sales (may hold customer data) | Until synced | Strictly necessary (staff) | `app/(admin)/pos/offline.js` |
+| `herit_usage_sent` | localStorage | Admin layout (Phase 7) | Which admin sections this browser has already counted today, so each is counted at most once a day: `{day, sections}`, no name, id or path | Replaced the next day | Strictly necessary (staff) | `helpers/usage.js` |
 | `heritos-v1` | Cache Storage | Service worker (production only) | App shell and static files; never PHP answers | Until the cache name changes | Strictly necessary | `public/sw.js` |
 
 The server sets no cookies (`setcookie` and `session_start` are not used).
+
+Section usage counting (Phase 7, `wip/phase7`, 19 October 2026). To find which admin sections are used before anything is removed, the server keeps `usage_daily`: per Lagos day, admin section key (for example `jobs`) and staff role (for example `tailor`), a count of visits. It stores no user id, name, IP address, device or full path, and the browser sends at most one count per section a day. With one person in a role the role can still point to that person; the owner sees the counts only on Owner review (super_admin). Kept until the owner sets `retention_usage_daily_days` (Settings > Data retention). Endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
 
 ### Recipients and transfers
 
@@ -114,6 +117,7 @@ Mechanism (K-18, branch `feat/hardening-2026-10-18`, 18 October 2026): a command
 | IP and throttle rows, mail and audit logs | `audit_log` | 12 months; security events may need longer | Created | Delete | Built, off until set (90 days at least) |
 | WhatsApp message log | `whatsapp_messages` | 12 months | Sent | Delete | Built, off until set |
 | Abandoned carts, waitlist | `abandoned_carts`, `waitlist` | 30 days, or on order | Created (carts: last change) | Delete | Built, off until set (two keys) |
+| Section usage counts (day, section, role, count; no person) | `usage_daily` | Proposed: 400 days, so a year can be compared | Day counted | Delete | Built, off until set (`retention_usage_daily_days`, Phase 7) |
 | Backups | cPanel | Rotation Unknown | Backup date | Rotation | REQUIRES OWNER INPUT (A20) |
 
 Backups keep deleted data until they rotate out; the notice must say so.

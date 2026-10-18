@@ -65,6 +65,9 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php`; the retention keys (K-18) through `_retention.php` and only from super_admin (403 for anyone else) | super_admin, admin, manager | Manual |
 | `retention.php` | Data retention job (K-18): dry run by default, `--apply` deletes ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)) | Command line only; 404 over HTTP | Manual |
 | `_retention.php` | Pure retention plan: category to table, date column and guard; protected tables | Not an endpoint | Manual |
+| `usage.php` | Phase 7 section usage counts: `POST ?action=hit {section}` adds one to `usage_daily` for today (Lagos) and the caller's role ([Phase 7](#phase-7-usage-counts-and-owner-review)) | Any signed-in staff role | Manual |
+| `review.php` | Phase 7 owner review report, read-only ([Phase 7](#phase-7-usage-counts-and-owner-review)) | super_admin only | Manual |
+| `_review.php` | Pure Phase 7 helpers: the section allowlist, window, rate, median, overdue days, delivery and zero-hit calculations | Not an endpoint; direct requests refused by `.htaccess` | Manual |
 | `stock.php` | Stock adjustments | super_admin, admin, manager, employee | Manual |
 | `store.php` | Public storefront: catalogue, checkout, published feeds, order tracking by public reference, public config (`shop_enabled`). On the Phase 4 branch there is no fallback catalogue or free-delivery threshold, and `config` returns only social links that pass the allowlist | Public | Manual |
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | super_admin, admin, manager | Manual |
@@ -365,5 +368,28 @@ Branch `feat/hardening-2026-10-18`. Seeded by `schema_phase30.sql`; saved throug
 | `retention_abandoned_carts_days` | Empty (off) | 1 to 3650 | `abandoned_carts` (`updated_at`, one row per phone) |
 | `retention_waitlist_days` | Empty (off) | 1 to 3650 | `waitlist` (`created_at`) |
 | `retention_closed_enquiries_days` | Empty (off) | 1 to 3650 | `enquiries` (`updated_at`), only `status = 'closed'` with no `job_id`, no `converted_at` and no quote, job or appointment pointing at it |
+| `retention_usage_daily_days` | Empty (off) | 1 to 3650 | `usage_daily` (`day`, a Lagos DATE compared with the UTC cutoff, so a row may go up to an hour early or late); seeded by `schema_phase31.sql` (Phase 7) |
 
 Never deleted (protected in `_retention.php`, checked by the helper tests): jobs and their events, items, handovers, samples, messages, change requests and feedback; `job_payments`, `payments`, `expenses`, quotes, orders, store credit, gift cards, coupon redemptions, measurement sets and templates, customers, companies and their contacts, appointments, users and settings.
+
+## Phase 7 usage counts and owner review
+
+Branch `wip/phase7`, 19 October 2026. Evidence for the plan's Phase 7 ("learn and simplify"): nothing is removed or added by these endpoints. Verified on local staging only; production NOT TESTED.
+
+### `usage.php` (any staff)
+
+- `POST ?action=hit {section}` (all seven staff roles, `require_auth(USAGE_ROLES)`). `section` must be one of `USAGE_SECTIONS` in `_review.php`, the first URL segment of each admin menu item (`src/__tests__/usage.test.js` fails if the two lists differ). Answers `{ok:true, counted:true}` and runs `INSERT ... ON DUPLICATE KEY UPDATE hits = hits + 1` on `usage_daily (day, section, role)` with `day = lagos_today()`. Before `schema_phase31.sql` it answers `{ok:true, counted:false}` and stores nothing.
+- Errors: unknown or missing section 400 "Unknown section"; a list or object 400 "section must be text"; no session 401; GET 405; another action 404.
+- Stores no user id, IP address or path. The admin layout (`src/helpers/usage.js`) sends at most one hit per section per browser per Lagos day, remembered in localStorage `herit_usage_sent`; it never waits for the answer, ignores errors and sends nothing offline or without working storage.
+
+### `review.php` (super_admin)
+
+`GET ?action=summary&days=30|90` (default 30; any other value 400 "days must be 30 or 90"; admin, manager and other roles 403; POST 405). Read-only. The window is the last `days` Lagos days including today; TIMESTAMP columns are compared with `FROM_UNIXTIME()` of the window start, so the database session zone does not move it. Answer:
+
+| Block | Source | Meaning |
+|---|---|---|
+| `enquiries {available, created, converted, rate, median_days_to_convert, timed}` | `enquiries.created_at`, `job_id`, `converted_at` (UTC DATETIME) | Enquiries created in the window and how many of those have a job so far; `rate` is null when none were created; the median uses those with `converted_at`. `available:false` before `schema_phase18.sql` |
+| `overdue_jobs {count, items[<=20], more}` | `tailoring_orders`, same rule as Today's Overdue | Open jobs past `due_date` now, oldest first: `id, code, client_name, due_date, days_overdue` |
+| `refusals {available, total, items[{action, label, count}]}` | `audit_log` | One audited row per refused attempt: `login_fail_ip`, `pin_login_fail`, `reset_fail_ip`, `set_pin_taken`, `access_verify_fail_ip`, `cust_login_fail_ip`, `track_fail_ip`, `gift_check_fail`, `mail_send_failed` (`REVIEW_REFUSAL_ACTIONS`). Failed saves are not available: a 400, 409 or 500 answer (including the `is_tx_conflict()` 409) writes no audit row, so the report does not estimate them |
+| `notifications {whatsapp, reminders, email, portal_messages}`, each `{available, sent, failed, other, total, by_status}` | `whatsapp_messages` (direction `out`; reminders are `template = 'tailoring_reminder'`), `audit_log` `mail_send` and `mail_send_failed`, `job_messages` (owner to client, `delivery_status <> 'na'`) | Sent is `sent`, `delivered` or `read` for WhatsApp; `manual` (wa.me links) and `queued` are other |
+| `usage {available, counting_since, sections[{section, hits, roles}], zero_hit_sections}` | `usage_daily` | Per section and role over the window, most used first; allowlisted sections with no hits, in menu order; `counting_since` is the first day recorded |

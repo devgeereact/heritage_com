@@ -126,6 +126,10 @@ Branch `feat/redesign-dark-luxury` (D-023). `cms_items.entity` gains `'slide'`; 
 
 Branch `feat/hardening-2026-10-18` (K-18); import it after `schema_phase29.sql`. No table or column changes: `INSERT IGNORE` seeds eight `retention_*_days` keys in `settings`, all empty except `retention_expired_tokens_days` (`30`), and never overwrites a saved value. Which tables and date columns each key covers, and the protected tables: [API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18). The policy: [DATA-PRIVACY.md](DATA-PRIVACY.md#retention-schedule).
 
+## Section usage counts (schema_phase31)
+
+Branch `wip/phase7` (plan Phase 7); import it after `schema_phase30.sql`. Additive and re-runnable. Creates `usage_daily (day DATE, section VARCHAR(40), role VARCHAR(20), hits INT UNSIGNED, PRIMARY KEY (day, section, role))`: one row per Lagos day, admin section and staff role, written only by `usage.php` with an upsert. No user id, IP address or path. Seeds `retention_usage_daily_days` (empty, keep forever) with `INSERT IGNORE`. Release marker: table `usage_daily`. What it means for privacy: [DATA-PRIVACY.md](DATA-PRIVACY.md#cookies-and-browser-storage); the endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
+
 ## Phase 5 tables and columns (schema_phase27)
 
 Branch `feat/phase5-company-orders`. Additive and re-runnable (`IF NOT EXISTS` throughout); existing jobs keep `job_kind = 'individual'` and are unchanged. Numbered 27 because the Phase 4 `schema_phase27` was not needed ([DECISIONS.md](DECISIONS.md) D-022). A company order is one `tailoring_orders` row with `job_kind = 'company'`; groups (`tailoring_groups`) stay "coordinated, separate payers" and are not the company parent.
