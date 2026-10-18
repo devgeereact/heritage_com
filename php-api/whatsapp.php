@@ -27,7 +27,7 @@ if ($action === 'webhook') {
   if (method() === 'GET') {
     $mode = $_GET['hub_mode'] ?? ($_GET['hub.mode'] ?? '');
     $token = $_GET['hub_verify_token'] ?? ($_GET['hub.verify_token'] ?? '');
-    $challenge = $_GET['hub_challenge'] ?? ($_GET['hub.challenge'] ?? '');
+    $challenge = isset($_GET['hub_challenge']) ? in_str($_GET, 'hub_challenge') : in_str($_GET, 'hub.challenge');
     if ($mode === 'subscribe' && $token !== '' && $token === cfg('WHATSAPP_VERIFY_TOKEN')) {
       header('Content-Type: text/plain');
       echo htmlspecialchars(preg_replace("/[^A-Za-z0-9_-]/", "", (string)$challenge), ENT_QUOTES, "UTF-8"); // Meta sends a plain token; nothing else is echoed
@@ -127,7 +127,7 @@ if ($action === 'threads' && method() === 'GET') {
 
 /* ---- THREAD (history) ---------------------------------------------------- */
 if ($action === 'thread' && method() === 'GET') {
-  $phone = wa_normalize_phone($_GET['phone'] ?? '');
+  $phone = wa_normalize_phone(in_str($_GET, 'phone'));
   if ($phone === '') fail('phone is required');
 
   $msgs = [];
@@ -149,7 +149,7 @@ if ($action === 'thread' && method() === 'GET') {
 
 /* ---- MARK SEEN (K-28: the thread GET is read-only) ------------------------ */
 if ($action === 'mark_seen' && method() === 'POST') {
-  $phone = wa_normalize_phone(body()['phone'] ?? '');
+  $phone = wa_normalize_phone(in_str(body(), 'phone'));
   if ($phone === '') fail('phone is required');
   $stmt = $conn->prepare("UPDATE whatsapp_messages SET seen = 1 WHERE phone = ? AND direction = 'in' AND seen = 0");
   $stmt->bind_param('s', $phone);
@@ -160,12 +160,13 @@ if ($action === 'mark_seen' && method() === 'POST') {
 /* ---- SEND ---------------------------------------------------------------- */
 if ($action === 'send' && method() === 'POST') {
   $b = body();
-  $phone = trim($b['phone'] ?? '');
-  $text = trim($b['body'] ?? '');
-  $template = trim($b['template'] ?? '') ?: null;
+  $phone = trim(in_str($b, 'phone'));
+  $text = trim(in_str($b, 'body'));
+  $template = trim(in_str($b, 'template')) ?: null;
   if ($phone === '' || $text === '') fail('phone and body are required');
 
-  $customerId = isset($b['customer_id']) && $b['customer_id'] !== '' ? (int)$b['customer_id'] : null;
+  $cidIn = in_scalar($b, 'customer_id');
+  $customerId = $cidIn !== null && $cidIn !== '' ? (int)$cidIn : null;
   if (!$customerId) {
     $norm = wa_normalize_phone($phone);
     $cstmt = $conn->prepare("SELECT id FROM customers WHERE deleted_at IS NULL AND RIGHT(REGEXP_REPLACE(phone,'[^0-9]',''),9) = RIGHT(?,9) LIMIT 1");
@@ -187,8 +188,8 @@ if ($action === 'broadcast' && method() === 'POST') {
   require_auth();
   fail('Promotional messages are switched off until customers can opt in (D-024).', 403);
   $b = body();
-  $text = trim($b['body'] ?? '');
-  $segment = trim($b['segment'] ?? '');
+  $text = trim(in_str($b, 'body'));
+  $segment = trim(in_str($b, 'segment'));
   if ($text === '') fail('body is required');
 
   if ($segment !== '' && $segment !== 'all') {
@@ -222,10 +223,11 @@ if ($action === 'templates' && method() === 'GET') {
 
 if ($action === 'template_save' && method() === 'POST') {
   $b = body();
-  $name = trim($b['name'] ?? '');
-  $tbody = trim($b['body'] ?? '');
+  $name = trim(in_str($b, 'name'));
+  $tbody = trim(in_str($b, 'body'));
   if ($name === '' || $tbody === '') fail('name and body are required');
-  $id = isset($b['id']) && $b['id'] !== '' ? (int)$b['id'] : 0;
+  $idIn = in_scalar($b, 'id');
+  $id = $idIn !== null && $idIn !== '' ? (int)$idIn : 0;
   if ($id) {
     $stmt = $conn->prepare('UPDATE whatsapp_templates SET name = ?, body = ? WHERE id = ?');
     $stmt->bind_param('ssi', $name, $tbody, $id);
@@ -240,7 +242,7 @@ if ($action === 'template_save' && method() === 'POST') {
 
 if ($action === 'template_delete' && method() === 'POST') {
   $b = body();
-  $id = (int)($b['id'] ?? 0);
+  $id = in_int($b, 'id');
   $stmt = $conn->prepare('DELETE FROM whatsapp_templates WHERE id = ?');
   $stmt->bind_param('i', $id);
   $stmt->execute();

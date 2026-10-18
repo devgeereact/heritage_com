@@ -170,7 +170,7 @@ if ($action === 'media_list' && method() === 'GET') {
 if ($action === 'media_upload' && method() === 'POST') {
   $f = $_FILES['file'] ?? null;
   media_check_upload_error($f);
-  [$mid, $dup] = media_ingest($f['tmp_name'], $uid, $_POST['alt_text'] ?? '', $_POST['caption'] ?? '');
+  [$mid, $dup] = media_ingest($f['tmp_name'], $uid, in_str($_POST, 'alt_text'), in_str($_POST, 'caption'));
   $m = db_row('SELECT * FROM media_assets WHERE id = ?', 'i', $mid);
   if (!$dup) audit($uid, 'website_media_upload', 'media_assets', $mid);
   json(['ok' => true, 'duplicate' => $dup, 'media' => media_staff_view($m)], $dup ? 200 : 201);

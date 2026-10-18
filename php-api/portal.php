@@ -99,7 +99,7 @@ function insert_once($table, $key, callable $insert) {
 }
 
 $b = method() === 'POST' ? body() : [];
-$ref = $_GET['ref'] ?? ($b['ref'] ?? '');
+$ref = isset($_GET['ref']) ? in_str($_GET, 'ref') : in_str($b, 'ref');
 
 /* ---- ME ------------------------------------------------------------------- */
 if ($action === 'me' && method() === 'GET') {

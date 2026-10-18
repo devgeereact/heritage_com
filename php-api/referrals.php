@@ -53,7 +53,7 @@ function referral_code_answer($cid, $code, $reward) {
 }
 
 if ($action === 'code' && method() === 'GET') {
-  $cid = (int)($_GET['customer_id'] ?? 0);
+  $cid = in_int($_GET, 'customer_id');
   if (!$cid) fail('customer_id is required');
   $stmt = $conn->prepare('SELECT referral_code FROM customers WHERE id = ?');
   $stmt->bind_param('i', $cid);
@@ -64,7 +64,7 @@ if ($action === 'code' && method() === 'GET') {
 }
 
 if ($action === 'ensure_code' && method() === 'POST') {
-  $cid = (int)(body()['customer_id'] ?? 0);
+  $cid = in_int(body(), 'customer_id');
   if (!$cid) fail('customer_id is required');
   $code = ensure_referral_code($cid);
   if (!$code) fail('Could not generate a code', 500);

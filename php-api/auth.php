@@ -137,7 +137,7 @@ $THROTTLE_LIMITS['reset_fail_ip'] = (int) cfg('RESET_FAIL_MAX_PER_IP', 10);
 if ($action === 'reset_request' && method() === 'POST') {
   require_once __DIR__ . '/_jobs.php';
   require_once __DIR__ . '/_mail.php';
-  $email = trim(strtolower((string)(body()['email'] ?? '')));
+  $email = trim(strtolower(in_str(body(), 'email')));
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Enter the email address you sign in with.');
   $ipKey = 'ip:' . client_ip();
   $acctKey = account_key($email);
@@ -199,8 +199,8 @@ function reset_link_send(array $user) {
 if ($action === 'reset_confirm' && method() === 'POST') {
   require_once __DIR__ . '/_jobs.php';
   $b = body();
-  $token = (string)($b['token'] ?? '');
-  $password = (string)($b['password'] ?? '');
+  $token = in_str($b, 'token');
+  $password = in_str($b, 'password');
   $ipKey = 'ip:' . client_ip();
   throttle_guard([['reset_fail_ip', 'reset_fail_ip', $ipKey]]);
   if (strlen($password) < 8) fail('Choose a password of at least 8 characters.');
@@ -232,7 +232,7 @@ if ($action === 'reset_confirm' && method() === 'POST') {
 if ($action === 'pin_login' && method() === 'POST') {
   staff_login_request_enforce();
   $b = body();
-  $pin = preg_replace('/\D/', '', (string)($b['pin'] ?? ''));
+  $pin = preg_replace('/\D/', '', in_str($b, 'pin'));
   if (strlen($pin) < 4 || strlen($pin) > 6) fail('Enter your 4–6 digit PIN', 400);
 
   // A PIN carries no account, so limit per IP and across all sources combined.
@@ -275,7 +275,7 @@ if ($action === 'pin_login' && method() === 'POST') {
 if ($action === 'set_pin' && method() === 'POST') {
   $user = require_auth($STAFF_ROLES ?? null);
   $b = body();
-  $pin = preg_replace('/\D/', '', (string)($b['pin'] ?? ''));
+  $pin = preg_replace('/\D/', '', in_str($b, 'pin'));
   if ($pin === '') {
     // Clear the PIN.
     $stmt = $conn->prepare('UPDATE users SET pin_hash = NULL WHERE id = ?');
@@ -331,7 +331,7 @@ if ($action === 'sessions' && method() === 'GET') {
 if ($action === 'revoke' && method() === 'POST') {
   $user = require_auth();
   $b = body();
-  $id = (int)($b['id'] ?? 0);
+  $id = in_int($b, 'id');
   $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE id = ? AND user_id = ?');
   $stmt->bind_param('ii', $id, $user['id']);
   $stmt->execute();
