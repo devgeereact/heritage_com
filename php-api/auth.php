@@ -159,31 +159,39 @@ if ($action === 'reset_request' && method() === 'POST') {
   // request started. Where the server can (PHP-FPM or LiteSpeed) the answer goes
   // first and the link and email for a real account are made afterwards; elsewhere
   // the work runs first and the same floor hides it while it takes less than that.
+  // On both paths a failure (database or mailer) only reaches the error log, so a
+  // real account never gets a different answer from an unknown one.
   $answer = ['ok' => true, 'message' => 'If that address has a HeritOS account, a reset link is on its way. Check your inbox and spam folder.'];
   $minMs = max(0, min(5000, (int) cfg('RESET_MIN_MS', 600)));
   if (json_send_early_finisher() !== null) {
     wait_min_duration($minMs);
     json_send_early($answer);
-    if ($user) {
-      try { reset_link_send($user); }
-      catch (Throwable $e) { error_log('reset_request after answer: ' . $e->getMessage()); }
-    }
+    if ($user) run_logged(fn() => reset_link_send($user), 'reset_request after answer');
     exit;
   }
-  if ($user) reset_link_send($user);
+  if ($user) run_logged(fn() => reset_link_send($user), 'reset_request');
   wait_min_duration($minMs);
   json($answer);
 }
 
-/** Retire earlier links, store a new one (hash only) and email it (K-04). */
+/** Retire earlier links, store a new one (hash only) and email it (K-04). Throws on
+ *  any error and never answers the request itself: its own transaction, not db_tx(),
+ *  because db_tx() answers a lost race with a 409 and that would show the account
+ *  exists (K-25). */
 function reset_link_send(array $user) {
+  global $conn;
   $token = bin2hex(random_bytes(32));
   $ttl = max(5, min(240, (int) cfg('RESET_TTL_MINUTES', 30)));
-  db_tx(function () use ($user, $token, $ttl) {
+  $conn->begin_transaction();
+  try {
     db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$user['id']);
     db_exec('INSERT INTO password_resets (user_id, token_hash, expires_at, ip) VALUES (?, ?, UTC_TIMESTAMP() + INTERVAL ? MINUTE, ?)',
       'isis', (int)$user['id'], staff_token_hash($token), $ttl, client_ip());
-  });
+    $conn->commit();
+  } catch (Throwable $e) {
+    $conn->rollback();
+    throw $e;
+  }
   $site = rtrim((string) cfg('SITE_URL', CORS_ORIGIN), '/');
   $url = $site . '/auth/reset-pass?token=' . $token;
   $first = htmlspecialchars(trim(explode(' ', trim((string)$user['name']))[0] ?? ''), ENT_QUOTES, 'UTF-8');

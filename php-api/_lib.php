@@ -126,6 +126,14 @@ function json_send_early($data, $code = 200) {
   return true;
 }
 
+/** Run $fn; any error it throws goes to the PHP error log as "$label: message" and
+ *  stops there. True when $fn finished, false when it threw. For work whose failure
+ *  must not change the answer, such as the reset link email (K-25). */
+function run_logged(callable $fn, $label) {
+  try { $fn(); return true; }
+  catch (Throwable $e) { error_log($label . ': ' . $e->getMessage()); return false; }
+}
+
 /* ---- Request fields: text and numbers only where text and numbers belong ----
  * JSON lets a caller send an array or object where the form sends text, and a
  * query string can too (?q[]=x). Read such fields through these helpers, never

@@ -51,3 +51,16 @@ check('feedback_clean: a list comment is not "Array"', feedback_clean(['comment'
 check('cms_clean: a list for a FAQ question is refused, not saved as "Array"', cms_clean('faq', ['question' => ['x']])[1], ['question' => 'Must be text']);
 check('company_item_clean: a list for the wearer id is refused, not read as client 1', company_item_clean(['description' => 'Shirt', 'qty' => 1, 'wearer_customer_id' => [5]])[1]['wearer_customer_id'] ?? null, 'Must be an id');
 check('company_item_clean: a list for the description is refused, not "Array"', company_item_clean(['description' => ['x'], 'qty' => 1])[1]['description'] ?? null, 'Describe the garment');
+
+/* ---- run_logged: a reset failure never changes the answer (K-25) ----------- */
+$logFile = tempnam(sys_get_temp_dir(), 'heritos-log-');
+$oldLog = ini_set('error_log', $logFile);
+$ran = false;
+check('run_logged: work that finishes gives true', run_logged(function () use (&$ran) { $ran = true; }, 'x'), true);
+check('run_logged: the work really ran', $ran, true);
+check('run_logged: a database error is caught, gives false',
+  run_logged(function () { throw new mysqli_sql_exception('Deadlock found', 1213); }, 'reset_request'), false);
+check('run_logged: any Throwable is caught (TypeError)', run_logged(function () { strlen([]); }, 'reset_request'), false);
+check('run_logged: the error is logged with its label', str_contains((string)file_get_contents($logFile), 'reset_request: Deadlock found'), true);
+ini_set('error_log', $oldLog === false ? '' : (string)$oldLog);
+unlink($logFile);
