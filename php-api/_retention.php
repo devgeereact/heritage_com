@@ -125,7 +125,6 @@ const RETENTION_PROTECTED_TABLES = [
   'appointments', 'users', 'settings',
 ];
 
-/** The settings keys, in display order. */
 /**
  * Finish one category of a run: write its audit row, then pass on any failure.
  * If the audit itself throws, the deletion error that was already on its way
@@ -143,6 +142,7 @@ function retention_finish_category(callable $audit, $failure, callable $log) {
   if ($failure !== null) throw $failure;
 }
 
+/** The settings keys, in display order. */
 function retention_keys() {
   return array_values(array_map(fn($c) => $c['key'], RETENTION_CATEGORIES));
 }
