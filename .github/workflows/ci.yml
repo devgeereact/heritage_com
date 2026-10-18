@@ -68,6 +68,8 @@ jobs:
             php -l "$f" || exit 1
           done
 
+      - name: PHP helpers loaded where they are called
+        run: node scripts/check-php-calls.mjs
       - name: PHP helper tests
         run: php php-api/tests/run.php
 
