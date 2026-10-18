@@ -429,3 +429,105 @@ describe('heritApi: CSRF header under staff cookie auth (A15)', () => {
     expect(headerOf(bad, 'X-Herit-CSRF')).toBeUndefined()
   })
 })
+
+describe('heritApi: staff cookie auth (A15)', () => {
+  // The server sets herit_staff (HttpOnly, never visible here) and herit_csrf,
+  // a readable 64-hex value that every staff write must echo in X-Herit-CSRF.
+  const CSRF = 'a1'.repeat(32)
+  const setCsrfCookie = (value = CSRF) => {
+    document.cookie = `herit_csrf=${value}; path=/`
+  }
+  const cookieSession = () => setStaffCookie({ id: 1, email: 'dev@heritclothing.com', role: 'manager', cookie_auth: true })
+
+  it('sends X-Herit-CSRF from the herit_csrf cookie on a staff write', async () => {
+    cookieSession()
+    setCsrfCookie()
+    const fetchMock = mockFetch()
+
+    await heritApi.addItem('x')
+
+    const [, init] = fetchMock.mock.calls[0]
+    expect(init.method).toBe('POST')
+    expect(headerOf(init, 'X-Herit-CSRF')).toBe(CSRF)
+    // Under cookie auth the profile holds no token, so no Bearer header either.
+    expect(headerOf(init, 'Authorization')).toBeUndefined()
+  })
+
+  it('sends X-Herit-CSRF on sign-out and on a multipart upload', async () => {
+    cookieSession()
+    setCsrfCookie()
+    const fetchMock = mockFetch(() => jsonResponse({ ok: true }))
+
+    await heritApi.logout()
+    await heritApi.cms.mediaUpload(new Blob(['x'], { type: 'image/png' }), { alt: 'a' })
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    fetchMock.mock.calls.forEach(([, init]) => expect(headerOf(init, 'X-Herit-CSRF')).toBe(CSRF))
+  })
+
+  it('leaves X-Herit-CSRF off a GET', async () => {
+    cookieSession()
+    setCsrfCookie()
+    const fetchMock = mockFetch()
+
+    await heritApi.stats()
+
+    expect(fetchMock.mock.calls[0][1].method).toBe('GET')
+    expect(headerOf(fetchMock.mock.calls[0][1], 'X-Herit-CSRF')).toBeUndefined()
+  })
+
+  it('leaves X-Herit-CSRF off public calls, writes included', async () => {
+    setCsrfCookie()
+    const fetchMock = mockFetch()
+
+    await heritApi.login('a@b.co', 'secret')
+    await heritApi.booking.request({ name: 'Ada' })
+
+    fetchMock.mock.calls.forEach(([, init]) => expect(headerOf(init, 'X-Herit-CSRF')).toBeUndefined())
+  })
+
+  it('sends no X-Herit-CSRF when the cookie is missing or not 64 hex characters', async () => {
+    cookieSession()
+    const fetchMock = mockFetch()
+
+    await heritApi.addItem('x')
+    setCsrfCookie('not-a-token')
+    await heritApi.addItem('y')
+
+    fetchMock.mock.calls.forEach(([, init]) => expect(headerOf(init, 'X-Herit-CSRF')).toBeUndefined())
+  })
+
+  it('sends both Bearer and X-Herit-CSRF on a write while an old-style token is still stored', async () => {
+    setStaffCookie({ token: 'abc123' })
+    setCsrfCookie()
+    const fetchMock = mockFetch()
+
+    await heritApi.addItem('x')
+
+    const [, init] = fetchMock.mock.calls[0]
+    expect(headerOf(init, 'Authorization')).toBe('Bearer abc123')
+    expect(headerOf(init, 'X-Herit-CSRF')).toBe(CSRF)
+  })
+
+  it("asks for credentials: 'include' on staff, public and upload requests, so the session cookie travels", async () => {
+    cookieSession()
+    const fetchMock = mockFetch()
+
+    await heritApi.stats()
+    await heritApi.addItem('x')
+    await heritApi.login('a@b.co', 'secret')
+    await heritApi.site.config()
+    await heritApi.cms.mediaUpload(new Blob(['x'], { type: 'image/png' }))
+
+    expect(fetchMock).toHaveBeenCalledTimes(5)
+    fetchMock.mock.calls.forEach(([, init]) => expect(init.credentials).toBe('include'))
+  })
+
+  it('hands a cookie-auth sign-in answer back unchanged: user and cookie_auth, no token', async () => {
+    const answer = { user: { id: 1, email: 'dev@heritclothing.com', role: 'manager' }, cookie_auth: true }
+    mockFetch(() => jsonResponse(answer))
+
+    await expect(heritApi.login('dev@heritclothing.com', 'pa55')).resolves.toEqual(answer)
+    await expect(heritApi.pinLogin('1234')).resolves.toEqual(answer)
+  })
+})

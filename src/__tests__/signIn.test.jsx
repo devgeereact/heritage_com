@@ -122,6 +122,31 @@ describe('staff sign-in form: server answers', () => {
     expect(await screen.findByText('Signed in to HeritOS. Redirecting...')).toBeInTheDocument()
   })
 
+  it('stores a profile with no token when the server answers with cookie auth (A15)', async () => {
+    mockFetch(() => jsonResponse({ cookie_auth: true, user: { id: 1, email: 'dev@heritclothing.com', role: 'manager' } }))
+    const user = userEvent.setup()
+    renderSignIn()
+
+    await fillAndSubmit(user)
+
+    expect(await screen.findByTestId('where')).toHaveTextContent('/today')
+    const s = session()
+    expect(s).toMatchObject({ cookie_auth: true, email: 'dev@heritclothing.com', role: 'manager', user: { id: 1 } })
+    expect(s).not.toHaveProperty('token')
+  })
+
+  it('stores nothing when the answer has neither a token nor cookie auth', async () => {
+    mockFetch(() => jsonResponse({ user: { id: 1, role: 'manager' } }))
+    const user = userEvent.setup()
+    renderSignIn()
+
+    await fillAndSubmit(user)
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Sign In' })).toBeEnabled())
+    expect(session()).toBeNull()
+    expect(screen.queryByTestId('where')).not.toBeInTheDocument()
+  })
+
   it('sends a tailor to the jobs page', async () => {
     mockFetch(() => jsonResponse({ token: 't', user: { role: 'tailor' } }))
     const user = userEvent.setup()
