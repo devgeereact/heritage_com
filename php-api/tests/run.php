@@ -1,7 +1,7 @@
 <?php
 /**
  * HeritOS: CLI tests for the pure helpers in _lib.php and _domain.php (no
- * database, no network).
+ * database, no network), plus the case files required at the end.
  *
  *   php php-api/tests/run.php
  *
@@ -443,6 +443,9 @@ require __DIR__ . '/cms_cases.php';
 
 /* ---- Phase 5: company orders (_company.php) -------------------------------- */
 require __DIR__ . '/company_cases.php';
+
+/* ---- Retention plan (_retention.php, K-18) ---------------------------------- */
+require __DIR__ . '/retention_cases.php';
 
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

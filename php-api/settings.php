@@ -10,6 +10,7 @@
  */
 require __DIR__ . '/_lib.php';
 require __DIR__ . '/_cms.php';
+require __DIR__ . '/_retention.php';
 cors();
 
 $STAFF = ['super_admin', 'admin', 'manager'];
@@ -30,12 +31,21 @@ $KEYS = ['store_name', 'currency', 'free_ship_threshold', 'channels', 'vat_rate'
   // Phase 4 business profile (PROFILE_KEYS in _cms.php; all empty by default,
   // empty means hidden on the public site). Validated by profile_clean(), the
   // same rules cms.php?action=profile_save uses.
-  'business_name', 'business_whatsapp', 'business_address_public', 'business_area_text', 'journal_enabled'];
+  'business_name', 'business_whatsapp', 'business_address_public', 'business_area_text', 'journal_enabled',
+  // K-18 retention periods in days (schema_phase29.sql); empty or 0 keeps forever.
+  // Read by the command-line job retention.php; rules in _retention.php.
+  ...retention_keys()];
 // keys stored as JSON (object/array) rather than a plain string
 $JSON_KEYS = ['channels', 'socials', 'payment_verified_methods', 'availability'];
 
 /** Validate a Phase 2 setting; returns the value to store or fails. */
 function setting_validate($k, $val) {
+  if (in_array($k, retention_keys(), true)) {
+    $cat = array_search($k, array_combine(array_keys(RETENTION_CATEGORIES), retention_keys()), true);
+    $p = retention_parse_days($cat, is_int($val) ? (string)$val : $val);
+    if ($p['error'] !== null) fail(RETENTION_CATEGORIES[$cat]['label'] . ': ' . $p['error']);
+    return $p['days'] === null ? '' : (string)$p['days'];
+  }
   if (in_array($k, PROFILE_KEYS, true)) {
     [$clean, $errors] = profile_clean([$k => $val]);
     if ($errors) fail(implode('; ', array_map(fn($f, $m) => "$f: $m", array_keys($errors), $errors)));
