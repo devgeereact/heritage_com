@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint . && node scripts/check-tokens.mjs",
     "preview": "vite preview",
+    "test": "vitest run",
     "staging:setup": "bash scripts/staging/setup.sh",
     "staging:serve": "bash scripts/staging/serve.sh",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
@@ -33,14 +34,20 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@iconify/react": "^4.1.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@vitejs/plugin-react": "^4.3.1",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "jsdom": "^27.4.0",
     "prettier": "^3.3.3",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vitest": "^3.2.7"
   }
 }

@@ -25,6 +25,8 @@ jobs:
       - run: npm ci
       # Verify before anything ships. Any failure here ends the job before FTP.
       - run: npm run lint
+      - name: Frontend tests
+        run: npm test
       - name: PHP syntax check
         run: |
           for f in php-api/*.php php-api/tests/*.php; do

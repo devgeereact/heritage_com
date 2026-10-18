@@ -47,6 +47,12 @@ jobs:
 
       - run: npm run lint
 
+      # Frontend tests (Vitest, jsdom): the API client, role gates, helpers, the
+      # HTML sanitiser and the sign-in, offline banner, enquiry and booking flows.
+      # No server or database; fetch is mocked. See docs/TEST-STRATEGY.md.
+      - name: Frontend tests
+        run: npm test
+
       # The build is the real gate: deploy.yml ships whatever `vite build`
       # produces, so a build that fails here is a deploy that would have shipped
       # a broken site.

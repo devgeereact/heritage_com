@@ -30,5 +30,14 @@ export default defineConfig({
   preview: {
     port: 5112,
     strictPort: true,
-  }
+  },
+  // Vitest (npm test). Tests live in src/__tests__ and are never imported by the
+  // app, so they stay out of the production bundle. Test files import describe,
+  // it, expect and vi from 'vitest' rather than relying on globals.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/__tests__/setup.js'],
+    include: ['src/__tests__/**/*.test.{js,jsx}'],
+    css: false,
+  },
 });
