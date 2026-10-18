@@ -486,6 +486,31 @@ check('min duration: no sleep once the floor has passed', $took < 0.05, true);
 check('early answer: the CLI has no way to end a response early', json_send_early_finisher(), null);
 check('early answer: json_send_early sends nothing and says so on the CLI', json_send_early(['ok' => true]), false);
 
+/* ---- spa.php: paths that preview nothing never open the database ----------- */
+// spa.php runs in a child PHP next to a stub _lib.php that leaves a marker file
+// and then fails, as a missing config or database would.
+$spaDir = sys_get_temp_dir() . '/heritos-spa-' . bin2hex(random_bytes(4));
+mkdir($spaDir, 0700);
+copy(__DIR__ . '/../spa.php', "$spaDir/spa.php");
+copy(__DIR__ . '/../_cms.php', "$spaDir/_cms.php");
+file_put_contents("$spaDir/index.html", '<html><head><!--hc:head--></head><body>APP</body></html>');
+file_put_contents("$spaDir/_lib.php", "<?php touch(__DIR__ . '/lib-loaded'); throw new RuntimeException('no database');\n");
+$spaRun = function ($uri) use ($spaDir) {
+  @unlink("$spaDir/lib-loaded");
+  $code = '$_SERVER["REQUEST_URI"] = ' . var_export($uri, true) . '; require ' . var_export("$spaDir/spa.php", true) . ';';
+  $out = shell_exec(escapeshellarg(PHP_BINARY) . ' -d display_errors=0 -r ' . escapeshellarg($code) . ' 2>/dev/null');
+  return [(string)$out, is_file("$spaDir/lib-loaded")];
+};
+[$out, $lib] = $spaRun('/shop/some-item');
+check('spa: a shop path is served as index.html', strpos($out, 'APP') !== false, true);
+check('spa: a shop path never loads _lib.php (no database)', $lib, false);
+[$out, $lib] = $spaRun('/admin/dashboard');
+check('spa: an admin path never loads _lib.php', $lib, false);
+[$out, $lib] = $spaRun('/services/bespoke-suits');
+check('spa: a preview path does load _lib.php', $lib, true);
+check('spa: and still serves index.html when the database fails', strpos($out, 'APP') !== false, true);
+array_map('unlink', glob("$spaDir/*")); rmdir($spaDir);
+
 /* ---- K-26: reset throttle per address and IP pair ------------------------- */
 $k1 = account_ip_key('a@example.test', '203.0.113.5');
 check('pair key: stable for one address and IP', account_ip_key('a@example.test', '203.0.113.5'), $k1);

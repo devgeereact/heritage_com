@@ -30,16 +30,19 @@ register_shutdown_function(function () use (&$done, $index) {
 
 try {
   if ($index === false) throw new RuntimeException('index.html missing');
-  require __DIR__ . '/_lib.php';
-  require __DIR__ . '/_jobs.php';
+  // Match the route first with the pure helpers in _cms.php (no config, no
+  // database): a path that previews nothing (the shop, the portal, the admin
+  // app) is served as plain index.html without opening a database connection.
   require __DIR__ . '/_cms.php';
-  require __DIR__ . '/_media.php';
+  $path = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? '/');
+  $route = spa_route($path);
 
   $html = $index;
-  if (cfg('SPA_HEAD_INJECTION', false)) {
-    $path = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? '/');
-    $route = spa_route($path);
-    if ($route && has_table('cms_items')) {
+  if ($route) {
+    require __DIR__ . '/_lib.php';
+    require __DIR__ . '/_jobs.php';
+    require __DIR__ . '/_media.php';
+    if (cfg('SPA_HEAD_INJECTION', false) && has_table('cms_items')) {
       [$entity, $key] = $route;
       $row = db_row("SELECT id, slug, live, published_at, live_updated_at FROM cms_items
                       WHERE entity = ? AND slug = ? AND status = 'published' AND live IS NOT NULL", 'ss', $entity, $key);
