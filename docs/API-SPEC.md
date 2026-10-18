@@ -9,6 +9,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 - Input: JSON body through `body()`; prepared statements only.
 - Throttling: staff email and PIN login; customer login and public tracking since PR #6 (A03); shop and review writes, gift card checks and AI calls on the redesign branch ([audit fixes](#audit-fixes-17-october-2026)). Limits are server settings ([DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
 - Idempotency: Phase 2 writes that must not repeat (enquiry conversion, measurement sets, quotes, ledger entries, handovers) take a `request_key`; a repeat returns the first result with `duplicate:true` ([BR-02 and BR-22](BUSINESS-RULES.md)). Job edits carry `lock_version` and answer 409 when stale.
+- Concurrent change: every transaction (`db_tx()` in `_jobs.php`) takes its lock before any plain read of the rows that lock protects. If a write still loses a race with another transaction (MariaDB 1213 deadlock or 1020 "Record has changed since last read" under `innodb_snapshot_isolation`), it is rolled back and answers 409 `{"error":"Someone else changed this at the same time. Reload and try again."}`, never a 500 (`is_tx_conflict()` in `_lib.php`). Two simultaneous `ledger.php` reversals of one entry answer one 201 and one 409 "That entry has already been reversed".
 - Pagination, rate limits beyond login, versioning, timeouts and retries: not defined per operation. Each phase adds its action contracts to this file.
 
 ## Endpoint inventory

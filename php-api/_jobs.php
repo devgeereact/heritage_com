@@ -40,7 +40,12 @@ function db_rows($sql, $types = '', ...$args) {
   return $out;
 }
 
-/** Run $fn inside a transaction; roll back and rethrow on any error. */
+/**
+ * Run $fn inside a transaction; roll back and rethrow on any error. A lost race
+ * (deadlock or snapshot conflict, see is_tx_conflict) answers a plain 409 instead
+ * of a 500. Defence in depth: callers still take their lock before any plain read
+ * of the rows it protects, so a correct caller normally never reaches it.
+ */
 function db_tx(callable $fn) {
   global $conn;
   $conn->begin_transaction();
@@ -50,6 +55,7 @@ function db_tx(callable $fn) {
     return $out;
   } catch (Throwable $e) {
     $conn->rollback();
+    if (is_tx_conflict($e)) fail(TX_CONFLICT_MESSAGE, 409);
     throw $e;
   }
 }

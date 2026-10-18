@@ -113,11 +113,16 @@ if ($action === 'record' && method() === 'POST') {
 
 /* ---- VERIFY (one-way) ----------------------------------------------------- */
 if ($action === 'verify' && method() === 'POST') {
-  $jobId = db_tx(function () use ($id, $user) {
-    $p = db_row('SELECT * FROM job_payments WHERE id = ?', 'i', $id);
-    if (!$p) tx_fail('Entry not found', 404);
-    job_lock((int)$p['job_id']);
+  // An entry's job_id never changes, so it is read before the transaction. No
+  // plain read may run inside it before job_lock(): under MariaDB snapshot
+  // isolation that read fixes the snapshot, and the loser of a race then gets
+  // "Record has changed since last read" instead of a clean answer.
+  $owner = db_row('SELECT job_id FROM job_payments WHERE id = ?', 'i', $id);
+  if (!$owner) fail('Entry not found', 404);
+  $jobId = db_tx(function () use ($id, $user, $owner) {
+    job_lock((int)$owner['job_id']);
     $p = db_row('SELECT * FROM job_payments WHERE id = ? FOR UPDATE', 'i', $id);
+    if (!$p) tx_fail('Entry not found', 404);
     if ((int)$p['verified'] === 1) return (int)$p['job_id'];                    // already verified: no change
     if ($p['kind'] === 'reversal' || db_row('SELECT id FROM job_payments WHERE reverses_id = ?', 'i', $id)) tx_fail('A reversed entry cannot be verified', 409);
     db_exec('UPDATE job_payments SET verified = 1, verified_by = ?, verified_at = UTC_TIMESTAMP() WHERE id = ? AND verified = 0', 'ii', $user['id'], $id);
@@ -135,10 +140,13 @@ if ($action === 'reverse' && method() === 'POST') {
   $key = body_request_key($b);
   $reason = mb_substr(trim((string)($b['reason'] ?? '')), 0, 200);
   if (mb_strlen($reason) < 3) fail('Give a reason for the reversal');
-  [$row, $dup, $jobId] = db_tx(function () use ($id, $key, $reason, $user) {
-    $p = db_row('SELECT * FROM job_payments WHERE id = ?', 'i', $id);
+  // Lock first, then read (see VERIFY): the job_id is read outside the transaction.
+  $owner = db_row('SELECT job_id FROM job_payments WHERE id = ?', 'i', $id);
+  if (!$owner) fail('Entry not found', 404);
+  [$row, $dup, $jobId] = db_tx(function () use ($id, $key, $reason, $user, $owner) {
+    job_lock((int)$owner['job_id']);
+    $p = db_row('SELECT * FROM job_payments WHERE id = ? FOR UPDATE', 'i', $id);
     if (!$p) tx_fail('Entry not found', 404);
-    job_lock((int)$p['job_id']);
     $mine = db_row('SELECT * FROM job_payments WHERE request_key = ?', 's', $key);
     if ($mine) return [$mine, true, (int)$p['job_id']];
     if ($p['kind'] === 'reversal') tx_fail('A reversal cannot itself be reversed; record a new entry instead', 409);

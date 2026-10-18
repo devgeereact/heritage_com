@@ -857,6 +857,19 @@ function is_duplicate_key($e) {
   return $e instanceof mysqli_sql_exception && (int)$e->getCode() === 1062;
 }
 
+/**
+ * Did a statement lose a race with another transaction? 1213 is a deadlock
+ * (InnoDB has already rolled the transaction back); 1020 is MariaDB's "Record
+ * has changed since last read" under innodb_snapshot_isolation (on by default
+ * from 11.8). Both mean "someone else changed this at the same time", never a
+ * fault in the request or the server, so db_tx() answers them with a 409.
+ */
+function is_tx_conflict($e) {
+  return $e instanceof mysqli_sql_exception && in_array((int)$e->getCode(), [1020, 1213], true);
+}
+
+const TX_CONFLICT_MESSAGE = 'Someone else changed this at the same time. Reload and try again.';
+
 /** Does $table have $column? Cached per request. Lets CI-deployed endpoints keep
  * working on a database that has not imported the newest schema file yet. */
 function has_column($table, $column) {
