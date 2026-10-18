@@ -126,6 +126,23 @@ const RETENTION_PROTECTED_TABLES = [
 ];
 
 /** The settings keys, in display order. */
+/**
+ * Finish one category of a run: write its audit row, then pass on any failure.
+ * If the audit itself throws, the deletion error that was already on its way
+ * (if any) is the one rethrown and the audit error goes to $log, so the real
+ * cause is never hidden behind a secondary one. With no earlier failure the
+ * audit error is rethrown, as before.
+ */
+function retention_finish_category(callable $audit, $failure, callable $log) {
+  try {
+    $audit();
+  } catch (Throwable $auditError) {
+    $log('retention: audit failed: ' . $auditError->getMessage());
+    if ($failure === null) throw $auditError;
+  }
+  if ($failure !== null) throw $failure;
+}
+
 function retention_keys() {
   return array_values(array_map(fn($c) => $c['key'], RETENTION_CATEGORIES));
 }

@@ -120,3 +120,23 @@ check('edit: retention keys found among other keys, in display order',
   ['retention_expired_tokens_days', 'retention_waitlist_days']);
 check('edit: an empty value still counts as a change (it turns the period off)',
   retention_keys_sent(['retention_audit_log_days' => '']), ['retention_audit_log_days']);
+
+/* ---- A failing audit never hides the deletion error -------------------------- */
+$caught = function (callable $run) { try { $run(); return null; } catch (Throwable $e) { return $e; } };
+$logged = [];
+$log = function ($m) use (&$logged) { $logged[] = $m; };
+$deleteError = new RuntimeException('delete failed');
+$auditBoom = function () { throw new RuntimeException('audit failed'); };
+$e = $caught(fn() => retention_finish_category($auditBoom, $deleteError, $log));
+check('retention finish: audit and delete both fail, the delete error is rethrown', $e === $deleteError, true);
+check('retention finish: the audit error is logged', $logged, ['retention: audit failed: audit failed']);
+$logged = [];
+$e = $caught(fn() => retention_finish_category($auditBoom, null, $log));
+check('retention finish: audit fails alone, its error is rethrown', $e ? $e->getMessage() : null, 'audit failed');
+$ran = false;
+$auditOk = function () use (&$ran) { $ran = true; };
+$e = $caught(fn() => retention_finish_category($auditOk, $deleteError, $log));
+check('retention finish: the audit runs even when the delete failed', $ran, true);
+check('retention finish: then the delete error is rethrown', $e === $deleteError, true);
+$e = $caught(fn() => retention_finish_category(function () {}, null, $log));
+check('retention finish: nothing failed, nothing thrown', $e, null);

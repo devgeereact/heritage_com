@@ -84,6 +84,7 @@ $byCat = [];
 foreach ($plan['steps'] as $s) $byCat[$s['category']][] = $s;
 foreach ($byCat as $cat => $steps) {
   $tables = [];
+  $failure = null;
   try {
     foreach ($steps as $s) {
       $missing = array_values(array_filter($s['needs'], fn($c) => !isset($columns[$c])));
@@ -115,16 +116,19 @@ foreach ($byCat as $cat => $steps) {
         $cat, $s['table'], $s['cutoff'], $s['clock'] === 'local' ? 'server time' : 'UTC', $s['days'],
         $apply ? $deleted : $count, $apply ? 'deleted' : 'would be deleted');
     }
-  } finally {
-    // Audit this category now (also when one of its tables failed part way),
-    // so a failure later in the run cannot leave these deletions unrecorded.
-    if ($apply) {
-      audit(null, 'retention_purge', 'retention', null, [
-        'category' => $cat, 'days' => $steps[0]['days'], 'cutoff' => $steps[0]['cutoff'], 'clock' => $steps[0]['clock'],
-        'deleted' => array_sum(array_filter($tables, 'is_int')), 'tables' => $tables,
-      ]);
-    }
+  } catch (Throwable $e) {
+    $failure = $e;
   }
+  // Audit this category now (also when one of its tables failed part way), so a
+  // failure later in the run cannot leave these deletions unrecorded. If the audit
+  // fails too, the deletion error is the one rethrown; the audit error goes to STDERR.
+  retention_finish_category(function () use ($apply, $cat, $steps, $tables) {
+    if (!$apply) return;
+    audit(null, 'retention_purge', 'retention', null, [
+      'category' => $cat, 'days' => $steps[0]['days'], 'cutoff' => $steps[0]['cutoff'], 'clock' => $steps[0]['clock'],
+      'deleted' => array_sum(array_filter($tables, 'is_int')), 'tables' => $tables,
+    ]);
+  }, $failure, fn($msg) => fwrite(STDERR, $msg . "\n"));
 }
 
 $conn->query("DO RELEASE_LOCK('heritos_retention')");
