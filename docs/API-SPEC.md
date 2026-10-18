@@ -61,7 +61,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `payments.php` | Money in and out, cash position | super_admin, admin, manager | Manual |
 | `referrals.php` | Referral codes and rewards | super_admin, admin, manager | Manual |
 | `reviews.php` | Reviews, ratings and photo moderation | super_admin, admin, manager, editor | Manual |
-| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php`; the retention keys (K-18) through `_retention.php` | super_admin, admin, manager | Manual |
+| `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php`; the retention keys (K-18) through `_retention.php` and only from super_admin (403 for anyone else) | super_admin, admin, manager | Manual |
 | `retention.php` | Data retention job (K-18): dry run by default, `--apply` deletes ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)) | Command line only; 404 over HTTP | Manual |
 | `_retention.php` | Pure retention plan: category to table, date column and guard; protected tables | Not an endpoint | Manual |
 | `stock.php` | Stock adjustments | super_admin, admin, manager, employee | Manual |
@@ -352,7 +352,7 @@ Settings: `company_portal_enabled` (`0` or `1`, default `0`).
 
 ## Data retention settings keys (K-18)
 
-Branch `feat/hardening-2026-10-18`. Seeded by `schema_phase30.sql`; saved through `settings.php` (owner roles: super_admin, admin, manager) and shown in Settings > Data retention. Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. Cutoffs are UTC; a row goes when its date column is older than now minus the period.
+Branch `feat/hardening-2026-10-18`. Seeded by `schema_phase30.sql`; saved through `settings.php` by `super_admin` only: a request from admin or manager that contains any of these keys answers 403 "Only the owner can change how long data is kept." and saves nothing, although they can still read the values (GET) and see them read-only in Settings > Data retention. The `settings_update` audit entry records `meta.retention` as `{key: {old, new}}` for each retention key sent (`old` is null when the key was never stored). Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. Cutoffs are UTC; a row goes when its date column is older than now minus the period.
 
 | Key | Default | Range | Deletes from (date column, condition) |
 |---|---|---|---|

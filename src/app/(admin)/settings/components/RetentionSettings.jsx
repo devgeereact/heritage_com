@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import heritApi from '@/helpers/heritApi';
+import { useAuthContext } from '@/context/useAuthContext';
 import LoadError from '@/components/herit/LoadError';
 import SaveState from '@/components/herit/SaveState';
 
@@ -18,9 +19,13 @@ const FIELDS = [
   { key: 'retention_closed_enquiries_days', label: 'Closed enquiries that never became a job', hint: 'Days after the last change' },
 ];
 const MAX = 3650;
+// Only the owner may change these; settings.php refuses anyone else with a 403.
+const OWNER_ONLY = ['super_admin'];
 
 /** How long personal data is kept (owner). Empty keeps it forever; jobs, payments and clients are never deleted. */
 const RetentionSettings = () => {
+  const { user } = useAuthContext();
+  const canEdit = OWNER_ONLY.includes(user?.role);
   const [f, setF] = useState(null);
   const [error, setError] = useState(null);
   const [fieldErr, setFieldErr] = useState({});
@@ -40,6 +45,7 @@ const RetentionSettings = () => {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!canEdit) return;
     const errs = {};
     for (const { key, min = 1 } of FIELDS) {
       const v = f[key].trim();
@@ -63,12 +69,13 @@ const RetentionSettings = () => {
             How long each kind of record is kept before the nightly clean-up deletes it. Leave a box empty to keep it forever.
             Jobs, payments, quotes, measurements and client records are never deleted by the clean-up.
           </p>
+          {!canEdit && <p className="small mb-3" data-testid="retention-readonly">Only the owner can change these periods.</p>}
           <Row className="g-3">
             {FIELDS.map(({ key, label, hint, min = 1 }) => (
               <Col md={6} key={key}>
                 <Form.Group controlId={`rt-${key}`}>
                   <Form.Label>{label} <span className="text-muted fw-normal">(days)</span></Form.Label>
-                  <Form.Control type="number" inputMode="numeric" min={min} max={MAX} placeholder="Keep forever" value={f[key]}
+                  <Form.Control type="number" inputMode="numeric" min={min} max={MAX} placeholder="Keep forever" value={f[key]} disabled={!canEdit}
                     onChange={(e) => setF((x) => ({ ...x, [key]: e.target.value }))} isInvalid={!!fieldErr[key]} />
                   <Form.Text>{hint}</Form.Text>
                   <Form.Control.Feedback type="invalid">{fieldErr[key]}</Form.Control.Feedback>
@@ -76,10 +83,12 @@ const RetentionSettings = () => {
               </Col>
             ))}
           </Row>
-          <div className="d-flex align-items-center gap-3 mt-3">
-            <Button type="submit" variant="outline-secondary">Save retention periods</Button>
-            <SaveState state={save.state} error={save.error} />
-          </div>
+          {canEdit && (
+            <div className="d-flex align-items-center gap-3 mt-3">
+              <Button type="submit" variant="outline-secondary">Save retention periods</Button>
+              <SaveState state={save.state} error={save.error} />
+            </div>
+          )}
         </Card.Body>
       </Card>
     </Form>

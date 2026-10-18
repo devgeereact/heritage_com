@@ -83,3 +83,15 @@ check('protected: the map itself names no protected table', array_values(array_f
   array_merge(...array_map(fn($c) => array_column($c['steps'], 'table'), array_values(RETENTION_CATEGORIES))),
   fn($t) => in_array($t, RETENTION_PROTECTED_TABLES, true))), []);
 check('keys: one settings key per category, all prefixed', count(array_filter(retention_keys(), fn($k) => str_starts_with($k, 'retention_') && str_ends_with($k, '_days'))), count(RETENTION_CATEGORIES));
+
+/* ---- Who may change a period (settings.php, K-18 M1) -------------------------- */
+check('edit: the owner may change retention periods', retention_can_edit('super_admin'), true);
+foreach (['admin', 'manager', 'tailor', 'editor', 'seller', 'employee', '', null] as $r) {
+  check('edit: ' . var_export($r, true) . ' may not change retention periods', retention_can_edit($r), false);
+}
+check('edit: a body with no retention key sends none', retention_keys_sent(['store_name' => 'x', 'vat_rate' => '7.5']), []);
+check('edit: retention keys found among other keys, in display order',
+  retention_keys_sent(['retention_waitlist_days' => '', 'store_name' => 'x', 'retention_expired_tokens_days' => '30']),
+  ['retention_expired_tokens_days', 'retention_waitlist_days']);
+check('edit: an empty value still counts as a change (it turns the period off)',
+  retention_keys_sent(['retention_audit_log_days' => '']), ['retention_audit_log_days']);

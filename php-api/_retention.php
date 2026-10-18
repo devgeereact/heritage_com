@@ -118,6 +118,23 @@ function retention_keys() {
   return array_values(array_map(fn($c) => $c['key'], RETENTION_CATEGORIES));
 }
 
+/** Only the owner may change a retention period: periods delete data (K-18 M1). */
+const RETENTION_EDIT_ROLES = ['super_admin'];
+
+/**
+ * The retention keys present in a settings.php POST body, in display order.
+ * settings.php refuses the whole request with 403 when this is not empty and
+ * retention_can_edit() is false for the caller.
+ */
+function retention_keys_sent(array $body) {
+  return array_values(array_filter(retention_keys(), fn($k) => array_key_exists($k, $body)));
+}
+
+/** True when $role may change retention periods. */
+function retention_can_edit($role) {
+  return in_array($role, RETENTION_EDIT_ROLES, true);
+}
+
 /**
  * Parse one stored or submitted value. Returns ['days' => int|null, 'error' => string|null]:
  * days null means OFF. Empty, null and 0 are OFF without an error; text, decimals,

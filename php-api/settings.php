@@ -6,7 +6,9 @@
  *   GET  /settings.php                      → { store_name, currency, free_ship_threshold, channels:{}, shop_enabled }
  *   POST /settings.php  { ...keys }         → upsert any of the known keys
  *
- * Admins / managers only.
+ * Admins / managers only. Retention periods (retention_keys()) delete data, so
+ * only the owner (super_admin) may change them; their old and new values are
+ * written to the audit entry.
  */
 require __DIR__ . '/_lib.php';
 require __DIR__ . '/_cms.php';
@@ -96,6 +98,23 @@ if (method() === 'GET') {
 
 if (method() === 'POST') {
   $b = body();
+  // K-18: retention periods delete data, so only the owner may send them.
+  $retSent = retention_keys_sent($b);
+  if ($retSent && !retention_can_edit($user['role'])) {
+    fail('Only the owner can change how long data is kept.', 403);
+  }
+  $retOld = [];
+  if ($retSent) {
+    $q = $conn->prepare('SELECT svalue FROM settings WHERE skey = ?');
+    foreach ($retSent as $k) {
+      $q->bind_param('s', $k);
+      $q->execute();
+      $row = $q->get_result()->fetch_assoc();
+      $retOld[$k] = $row ? (string)$row['svalue'] : null;
+    }
+    $q->close();
+  }
+  $retChanges = [];
   $stmt = $conn->prepare('INSERT INTO settings (skey, svalue, updated_by) VALUES (?,?,?)
                           ON DUPLICATE KEY UPDATE svalue = VALUES(svalue), updated_by = VALUES(updated_by)');
   $saved = [];
@@ -107,13 +126,16 @@ if (method() === 'POST') {
     $stmt->bind_param('ssi', $k, $val, $user['id']);
     $stmt->execute();
     $saved[] = $k;
+    if (array_key_exists($k, $retOld)) $retChanges[$k] = ['old' => $retOld[$k], 'new' => $val];
   }
   if (array_intersect($saved, PROFILE_KEYS)) {
     // The public site caches on this number (site.php ETag).
     $conn->query("INSERT INTO settings (skey, svalue) VALUES ('site_rev', '1')
                   ON DUPLICATE KEY UPDATE svalue = CAST(svalue AS UNSIGNED) + 1");
   }
-  audit($user['id'], 'settings_update', 'settings', null, ['keys' => $saved]);
+  $meta = ['keys' => $saved];
+  if ($retChanges) $meta['retention'] = $retChanges;
+  audit($user['id'], 'settings_update', 'settings', null, $meta);
   json(['ok' => true, 'saved' => $saved]);
 }
 
