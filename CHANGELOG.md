@@ -6,7 +6,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### Hardening on `feat/hardening-2026-10-18`, 18 October 2026
 
-Stacked on PR #17 (which carries #14 to #16). The work was integrated on this one branch; the earlier working branches for K-18, A15 and the review fixes are not separate pull requests. Owner actions: the "PR (hardening)" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+Stacked on PR #17 (which carries #14 to #16). The work was integrated on this one branch; the earlier working branches for K-18, A15 and the review fixes are not separate pull requests. Owner actions: the "PR #18" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
 
 Added
 

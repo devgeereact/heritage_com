@@ -20,7 +20,7 @@ Status as of 18 October 2026. Work is on stacked branches and pull requests, non
 | #15 | `feat/staff-password-reset` | Staff password reset by email (K-04, `schema_phase29.sql`), with #14's audit fixes merged in | Open, stacked on #14 |
 | #16 | `feat/link-previews` | Link previews (K-06): public page-head defaults and `spa.php` behind `SPA_HEAD_INJECTION` (off) | Open, stacked on #15 |
 | #17 | `feat/offline-a16` | Offline behaviour (A16), one implementation kept after merging #14's | Open, stacked on #16 |
-| PR (hardening), none yet | `feat/hardening-2026-10-18` | K-07 Today ordering, K-14 order lookup by POST, K-18 retention job (`schema_phase30.sql`), A15 staff cookie behind a switch (off), A13 first frontend test suite, sanitiser and session-cookie fixes | Pushed, stacked on #17 |
+| #18 | `feat/hardening-2026-10-18` | K-07 Today ordering, K-14 order lookup by POST, K-18 retention job (`schema_phase30.sql`), A15 staff cookie behind a switch (off), A13 first frontend test suite, sanitiser and session-cookie fixes | Pushed, stacked on #17 |
 
 Owner actions at each merge: [DEPLOYMENT.md](DEPLOYMENT.md#owner-actions-per-pull-request).
 
