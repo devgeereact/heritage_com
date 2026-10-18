@@ -85,6 +85,47 @@ function json($data, $code = 200) {
 
 function fail($msg, $code = 400) { json(['error' => $msg], $code); }
 
+/** Microseconds still to wait so that an answer leaves no sooner than $minMs after
+ * $startedAt (both Unix seconds as floats). 0 when that time has passed (K-25). */
+function min_duration_wait_us($startedAt, $now, $minMs) {
+  $left = (float)$startedAt + max(0, (int)$minMs) / 1000 - (float)$now;
+  return $left > 0 ? (int) ceil($left * 1000000) : 0;
+}
+
+/** Sleep until $minMs have passed since $startedAt (default: the request start). */
+function wait_min_duration($minMs, $startedAt = null) {
+  $start = $startedAt ?? (float)($_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
+  $us = min_duration_wait_us($start, microtime(true), $minMs);
+  if ($us > 0) usleep($us);
+}
+
+/** The SAPI function that ends the response early, or null where there is none. */
+function json_send_early_finisher() {
+  if (function_exists('fastcgi_finish_request')) return 'fastcgi_finish_request';
+  if (function_exists('litespeed_finish_request')) return 'litespeed_finish_request';
+  return null;
+}
+
+/**
+ * Send a JSON answer to the client now and keep the script running, so slow work
+ * after it (database writes, email) cannot be seen in the response time (K-25).
+ * Needs PHP-FPM (fastcgi_finish_request) or LiteSpeed (litespeed_finish_request);
+ * returns false, having sent nothing, where neither exists (the PHP CLI server,
+ * mod_php). The caller then does the work and answers with json() as usual.
+ */
+function json_send_early($data, $code = 200) {
+  $finish = json_send_early_finisher();
+  if ($finish === null) return false;
+  ignore_user_abort(true);
+  http_response_code($code);
+  header('Content-Type: application/json');
+  echo json_encode($data);
+  while (ob_get_level() > 0) ob_end_flush();
+  flush();
+  $finish();
+  return true;
+}
+
 /** Decode the JSON request body to an associative array. */
 function body() {
   $raw = file_get_contents('php://input');

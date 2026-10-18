@@ -472,5 +472,19 @@ require __DIR__ . '/staff_cookie_cases.php';
 /* ---- A02: release manifest check (_release.php) ---------------------------- */
 require __DIR__ . '/release_cases.php';
 
+/* ---- K-25: reset request answers take a fixed minimum time ----------------- */
+$t0 = 1_800_000_000.0;
+check('min duration: fresh request waits the whole floor', min_duration_wait_us($t0, $t0, 600), 600000);
+check('min duration: waits only what is left', min_duration_wait_us($t0, $t0 + 0.25, 600), 350000);
+check('min duration: slow work past the floor waits nothing', min_duration_wait_us($t0, $t0 + 0.9, 600), 0);
+check('min duration: exactly at the floor waits nothing', min_duration_wait_us($t0, $t0 + 0.6, 600), 0);
+check('min duration: a negative floor counts as none', min_duration_wait_us($t0, $t0, -50), 0);
+$s = microtime(true); wait_min_duration(120, $s); $took = microtime(true) - $s;
+check('min duration: wait_min_duration sleeps at least the floor', $took >= 0.12 && $took < 0.5, true);
+$s = microtime(true); wait_min_duration(100, $s - 1); $took = microtime(true) - $s;
+check('min duration: no sleep once the floor has passed', $took < 0.05, true);
+check('early answer: the CLI has no way to end a response early', json_send_early_finisher(), null);
+check('early answer: json_send_early sends nothing and says so on the CLI', json_send_early(['ok' => true]), false);
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

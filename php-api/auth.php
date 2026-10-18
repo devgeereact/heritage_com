@@ -147,26 +147,45 @@ if ($action === 'reset_request' && method() === 'POST') {
   // A suspended account gets no link, the same rule as login and require_auth (K-23).
   $user = db_row("SELECT id, name, email FROM users
                    WHERE email = ? AND deleted_at IS NULL AND (status IS NULL OR status <> 'suspended')", 's', $email);
-  if ($user) {
-    $token = bin2hex(random_bytes(32));
-    $ttl = max(5, min(240, (int) cfg('RESET_TTL_MINUTES', 30)));
-    db_tx(function () use ($user, $token, $ttl) {
-      db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$user['id']);
-      db_exec('INSERT INTO password_resets (user_id, token_hash, expires_at, ip) VALUES (?, ?, UTC_TIMESTAMP() + INTERVAL ? MINUTE, ?)',
-        'isis', (int)$user['id'], staff_token_hash($token), $ttl, client_ip());
-    });
-    $site = rtrim((string) cfg('SITE_URL', CORS_ORIGIN), '/');
-    $url = $site . '/auth/reset-pass?token=' . $token;
-    $first = htmlspecialchars(trim(explode(' ', trim((string)$user['name']))[0] ?? ''), ENT_QUOTES, 'UTF-8');
-    $link = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
-    $html = '<p>Hello ' . $first . ',</p>'
-      . '<p>Someone asked to reset the password for your HeritOS account. If it was you, choose a new password here:</p>'
-      . '<p><a href="' . $link . '">' . $link . '</a></p>'
-      . '<p>The link works once and expires in ' . $ttl . ' minutes. If you did not ask, ignore this email: your password stays the same.</p>';
-    mail_send_html($user['email'], 'Reset your HeritOS password', $html, ['user_id' => (int)$user['id'], 'entity' => 'password_reset']);
-    audit((int)$user['id'], 'password_reset_requested');
+  // Equal timing (K-25): every answer leaves no sooner than RESET_MIN_MS after the
+  // request started. Where the server can (PHP-FPM or LiteSpeed) the answer goes
+  // first and the link and email for a real account are made afterwards; elsewhere
+  // the work runs first and the same floor hides it while it takes less than that.
+  $answer = ['ok' => true, 'message' => 'If that address has a HeritOS account, a reset link is on its way. Check your inbox and spam folder.'];
+  $minMs = max(0, min(5000, (int) cfg('RESET_MIN_MS', 600)));
+  if (json_send_early_finisher() !== null) {
+    wait_min_duration($minMs);
+    json_send_early($answer);
+    if ($user) {
+      try { reset_link_send($user); }
+      catch (Throwable $e) { error_log('reset_request after answer: ' . $e->getMessage()); }
+    }
+    exit;
   }
-  json(['ok' => true, 'message' => 'If that address has a HeritOS account, a reset link is on its way. Check your inbox and spam folder.']);
+  if ($user) reset_link_send($user);
+  wait_min_duration($minMs);
+  json($answer);
+}
+
+/** Retire earlier links, store a new one (hash only) and email it (K-04). */
+function reset_link_send(array $user) {
+  $token = bin2hex(random_bytes(32));
+  $ttl = max(5, min(240, (int) cfg('RESET_TTL_MINUTES', 30)));
+  db_tx(function () use ($user, $token, $ttl) {
+    db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$user['id']);
+    db_exec('INSERT INTO password_resets (user_id, token_hash, expires_at, ip) VALUES (?, ?, UTC_TIMESTAMP() + INTERVAL ? MINUTE, ?)',
+      'isis', (int)$user['id'], staff_token_hash($token), $ttl, client_ip());
+  });
+  $site = rtrim((string) cfg('SITE_URL', CORS_ORIGIN), '/');
+  $url = $site . '/auth/reset-pass?token=' . $token;
+  $first = htmlspecialchars(trim(explode(' ', trim((string)$user['name']))[0] ?? ''), ENT_QUOTES, 'UTF-8');
+  $link = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+  $html = '<p>Hello ' . $first . ',</p>'
+    . '<p>Someone asked to reset the password for your HeritOS account. If it was you, choose a new password here:</p>'
+    . '<p><a href="' . $link . '">' . $link . '</a></p>'
+    . '<p>The link works once and expires in ' . $ttl . ' minutes. If you did not ask, ignore this email: your password stays the same.</p>';
+  mail_send_html($user['email'], 'Reset your HeritOS password', $html, ['user_id' => (int)$user['id'], 'entity' => 'password_reset']);
+  audit((int)$user['id'], 'password_reset_requested');
 }
 
 if ($action === 'reset_confirm' && method() === 'POST') {

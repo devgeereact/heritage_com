@@ -69,7 +69,12 @@ check R3c "the raw token is not stored" eq "$(count "SELECT COUNT(*) FROM passwo
 MINS="$(count "SELECT TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), expires_at) FROM password_resets WHERE token_hash = SHA2('$T1', 256)")"
 check R3d "link expires in about 30 minutes ($MINS)" bash -c "[ '$MINS' -ge 28 ] && [ '$MINS' -le 30 ]"
 
-req POST "auth.php?action=reset_request" "{\"email\":\"$EMAIL\"}"
+secs() { curl -s -o /dev/null -w '%{time_total}' -H 'Content-Type: application/json' -X POST "$API/auth.php?action=reset_request" -d "{\"email\":\"$1\"}"; }
+TU="$(secs "nobody2-$RUN@example.test")"
+TK="$(secs "$EMAIL")"
+CODE="unknown=${TU}s known=${TK}s"; BODY=""
+check R5 "known and unknown address both take the 600 ms floor, within 150 ms of each other ($CODE)" \
+  php -r '$u = (float)$argv[1]; $k = (float)$argv[2]; exit($u >= 0.6 && $k >= 0.6 && abs($u - $k) < 0.15 ? 0 : 1);' "$TU" "$TK"
 T2="$(last_token)"
 check R4 "a second request sends a new link" bash -c "[ -n '$T2' ] && [ '$T2' != '$T1' ]"
 req POST "auth.php?action=reset_confirm" "{\"token\":\"$T1\",\"password\":\"$NEW_PW\"}"
