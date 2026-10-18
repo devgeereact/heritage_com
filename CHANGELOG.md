@@ -4,6 +4,19 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Hardening on `feat/hardening-2026-10-18`, 18 October 2026
+
+Stacked on PR #14. Owner actions: the "Hardening" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+
+Fixed
+
+- Today lists a due or overdue enquiry follow-up first, and every capped block returns `more` (items not listed) with an "And N more" link on the page (K-07).
+- The order lookup sends the phone in a POST body instead of the query string; the old GET form answers only while `ALLOW_LEGACY_ORDER_CODE_LOOKUP` is on (K-14).
+
+Changed
+
+- `e2e-phase2.sh` seeds its own fixtures (an imported measurement set, a due follow-up) and has 51 checks, so it no longer depends on leftover staging rows (K-07).
+
 ### Audit fixes on `feat/redesign-dark-luxury`, 17 October 2026
 
 Production-readiness and privacy audit. Evidence: [qa/SECURITY-AUDIT.md](qa/SECURITY-AUDIT.md), [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md), [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md#inventory-17-october-2026).
