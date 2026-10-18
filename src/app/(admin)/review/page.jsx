@@ -95,11 +95,11 @@ const OverdueCard = ({ o }) => (
           <tbody>
             {o.items.map((j) => (
               <tr key={j.id}>
-                <td>
+                <td className="text-nowrap">
                   <Link to={`/jobs/${j.id}`}>{j.code}</Link>
                 </td>
                 <td>{j.client_name || 'Unknown client'}</td>
-                <td>{fmtDate(j.due_date)}</td>
+                <td className="text-nowrap">{fmtDate(j.due_date)}</td>
                 <td className="text-end tnum">{j.days_overdue}</td>
               </tr>
             ))}
