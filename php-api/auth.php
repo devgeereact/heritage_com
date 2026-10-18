@@ -186,7 +186,7 @@ if ($action === 'reset_confirm' && method() === 'POST') {
                     AND (u.status IS NULL OR u.status <> 'suspended')
                   FOR UPDATE", 's', staff_token_hash($token));
     if (!$r) return null;
-    db_exec('UPDATE users SET password_hash = ? WHERE id = ?', 'si', password_hash($password, PASSWORD_BCRYPT), (int)$r['user_id']);
+    db_exec('UPDATE users SET password_hash = ? WHERE id = ?', 'si', staff_secret_hash($password), (int)$r['user_id']);
     db_exec('UPDATE password_resets SET used_at = UTC_TIMESTAMP() WHERE user_id = ? AND used_at IS NULL', 'i', (int)$r['user_id']);
     db_exec('DELETE FROM auth_tokens WHERE user_id = ?', 'i', (int)$r['user_id']);
     return (int)$r['user_id'];
