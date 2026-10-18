@@ -65,7 +65,7 @@ function cors_headers() {
   header('Access-Control-Allow-Origin: ' . ($allowed ? $origin : CORS_ORIGIN));
   header('Vary: Origin');
   header('Access-Control-Allow-Credentials: true');
-  header('Access-Control-Allow-Headers: Content-Type, Authorization');
+  header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Herit-CSRF');
   header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 }
 
@@ -120,14 +120,114 @@ function bearer() {
   return null;
 }
 
+/* ---- STAFF SESSION COOKIE (A15) ------------------------------------------ */
+/* With STAFF_COOKIE_AUTH on in config.php, staff sign-in sets the token in an
+ * HttpOnly cookie that page scripts cannot read, plus a readable CSRF cookie.
+ * Every cookie-authenticated write must echo the CSRF cookie in X-Herit-CSRF
+ * (double submit). The Bearer header keeps working either way, so the e2e
+ * scripts and any client still holding a token are unaffected. Off by default. */
+const STAFF_COOKIE = 'herit_staff';
+const STAFF_CSRF_COOKIE = 'herit_csrf';
+
+function staff_cookie_auth_on() { return (bool) cfg('STAFF_COOKIE_AUTH', false); }
+
+/** Session tokens and CSRF values are both 32 random bytes as hex. */
+function staff_hex64_ok($v) { return is_string($v) && (bool) preg_match('/^[0-9a-f]{64}$/', $v); }
+
+/**
+ * Which staff credential does this request carry? Pure. A Bearer header wins;
+ * the cookie counts only while cookie auth is on and it looks like a token.
+ * Returns ['token' => …, 'source' => 'bearer'|'cookie'] or null.
+ */
+function staff_credential_pick($authHeader, $cookieValue, $cookieAuthOn) {
+  if (preg_match('/Bearer\s+(.+)/i', (string)$authHeader, $m) && trim($m[1]) !== '') {
+    return ['token' => trim($m[1]), 'source' => 'bearer'];
+  }
+  if ($cookieAuthOn && staff_hex64_ok($cookieValue)) return ['token' => $cookieValue, 'source' => 'cookie'];
+  return null;
+}
+
+/** The staff credential on the current request (see staff_credential_pick). */
+function staff_credential() {
+  $h = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+  return staff_credential_pick($h, $_COOKIE[STAFF_COOKIE] ?? null, staff_cookie_auth_on());
+}
+
+/** The staff token on the current request, from the header or the cookie, or null. */
+function staff_token() {
+  $c = staff_credential();
+  return $c ? $c['token'] : null;
+}
+
+/**
+ * May this request go ahead under the CSRF rule? Pure. Only a cookie credential
+ * on a method other than GET, HEAD or OPTIONS needs the check: the header must
+ * equal the CSRF cookie, compared in constant time.
+ */
+function staff_csrf_ok($method, $source, $headerValue, $cookieValue) {
+  if ($source !== 'cookie') return true;
+  if (in_array(strtoupper((string)$method), ['GET', 'HEAD', 'OPTIONS'], true)) return true;
+  if (!staff_hex64_ok($cookieValue) || !is_string($headerValue)) return false;
+  return hash_equals($cookieValue, $headerValue);
+}
+
+/** Send 403 unless the current request passes staff_csrf_ok(). */
+function staff_csrf_enforce($source) {
+  $ok = staff_csrf_ok(method(), $source, $_SERVER['HTTP_X_HERIT_CSRF'] ?? null, $_COOKIE[STAFF_CSRF_COOKIE] ?? null);
+  if (!$ok) fail('Security check failed. Reload the page and try again.', 403);
+}
+
+/**
+ * Plain http on the laptop (local staging), where a Secure cookie would not
+ * stick? Pure. Needs no HTTPS, a localhost or 127.0.0.1 Host and a loopback
+ * client, so a forged Host header alone never drops Secure on the live site.
+ */
+function request_is_local_http(array $server) {
+  $https = strtolower((string)($server['HTTPS'] ?? ''));
+  if ($https !== '' && $https !== 'off') return false;
+  $host = strtolower((string) preg_replace('/:\d+$/', '', (string)($server['HTTP_HOST'] ?? '')));
+  $remote = (string)($server['REMOTE_ADDR'] ?? '');
+  return in_array($host, ['localhost', '127.0.0.1'], true) && in_array($remote, ['127.0.0.1', '::1'], true);
+}
+
+/**
+ * One Set-Cookie value for the staff session cookies. Pure. Path=/ and
+ * SameSite=Strict always; Max-Age 0 clears the cookie.
+ */
+function staff_cookie_header($name, $value, $maxAge, $secure, $httpOnly) {
+  $parts = [$name . '=' . rawurlencode((string)$value), 'Max-Age=' . max(0, (int)$maxAge), 'Path=/'];
+  if ($secure) $parts[] = 'Secure';
+  if ($httpOnly) $parts[] = 'HttpOnly';
+  $parts[] = 'SameSite=Strict';
+  return implode('; ', $parts);
+}
+
+/** Set the session and CSRF cookies for a newly issued staff token. */
+function staff_session_cookies_set($token) {
+  $secure = !request_is_local_http($_SERVER);
+  $ttl = (int) TOKEN_TTL_DAYS * 86400;
+  header('Set-Cookie: ' . staff_cookie_header(STAFF_COOKIE, $token, $ttl, $secure, true), false);
+  header('Set-Cookie: ' . staff_cookie_header(STAFF_CSRF_COOKIE, bin2hex(random_bytes(32)), $ttl, $secure, false), false);
+}
+
+/** Clear both staff cookies (sign-out). Harmless when they were never set. */
+function staff_session_cookies_clear() {
+  $secure = !request_is_local_http($_SERVER);
+  header('Set-Cookie: ' . staff_cookie_header(STAFF_COOKIE, '', 0, $secure, true), false);
+  header('Set-Cookie: ' . staff_cookie_header(STAFF_CSRF_COOKIE, '', 0, $secure, false), false);
+}
+
 /**
  * Require a valid session token; returns the user row (id, name, email, role).
  * Pass a list of allowed roles to gate by role (server-side, never trust client).
+ * The token comes from the Bearer header or, with STAFF_COOKIE_AUTH on, the
+ * session cookie; a cookie-authenticated write must also pass the CSRF check.
  */
 function require_auth($roles = null) {
   global $conn;
-  $tok = bearer();
-  if (!$tok) fail('Not authenticated', 401);
+  $cred = staff_credential();
+  if (!$cred) fail('Not authenticated', 401);
+  $tok = $cred['token'];
   $stmt = $conn->prepare(
     "SELECT u.id, u.name, u.email, u.role
        FROM auth_tokens t JOIN users u ON u.id = t.user_id
@@ -140,6 +240,7 @@ function require_auth($roles = null) {
   $res = $stmt->get_result();
   $user = $res->fetch_assoc();
   if (!$user) fail('Session expired', 401);
+  staff_csrf_enforce($cred['source']);
   if ($roles && !in_array($user['role'], (array)$roles, true)) fail('Forbidden', 403);
   return $user;
 }

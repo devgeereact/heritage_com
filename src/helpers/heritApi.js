@@ -6,7 +6,11 @@
 // production is same-origin.
 import { API_BASE } from '@/context/constants'
 
-/** Pull the Bearer token from the session cookie (set by useAuthContext). */
+/**
+ * Pull the Bearer token from the session cookie (set by useAuthContext). With
+ * cookie auth on the server (STAFF_COOKIE_AUTH, A15) that cookie holds only the
+ * profile, so this is null and the HttpOnly herit_staff cookie signs requests.
+ */
 function token() {
   const m = document.cookie.match(/_LARKON_AUTH_KEY_=([^;]+)/)
   if (!m) return null
@@ -15,6 +19,21 @@ function token() {
   } catch {
     return null
   }
+}
+
+/** The readable CSRF cookie set beside herit_staff; writes echo it in X-Herit-CSRF. */
+function csrfToken() {
+  const m = document.cookie.match(/(?:^|;\s*)herit_csrf=([0-9a-f]{64})(?:;|$)/)
+  return m ? m[1] : null
+}
+
+/** Staff credentials for one request: Bearer when an old-style token exists, the CSRF header on writes. */
+function staffHeaders(method, headers = {}) {
+  const t = token()
+  if (t) headers.Authorization = `Bearer ${t}`
+  const c = method !== 'GET' ? csrfToken() : null
+  if (c) headers['X-Herit-CSRF'] = c
+  return headers
 }
 
 /**
@@ -45,15 +64,15 @@ async function send(url, init, { lookup = false } = {}) {
 
 async function request(path, { method = 'GET', body, auth = true, lookup = false } = {}) {
   const headers = { 'Content-Type': 'application/json' }
-  if (auth) {
-    const t = token()
-    if (t) headers.Authorization = `Bearer ${t}`
-  }
+  if (auth) staffHeaders(method, headers)
+  // credentials: 'include' so the staff session cookie travels to the local
+  // staging API on another port too, and a sign-in answer can set it.
   const res = await send(
     `${API_BASE}${path}`,
     {
       method,
       headers,
+      credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
     },
     { lookup },
@@ -139,10 +158,8 @@ async function upload(path, file, fields = {}) {
   Object.entries(fields).forEach(([k, v]) => {
     if (v !== undefined && v !== null) form.append(k, v)
   })
-  const headers = {}
-  const t = token()
-  if (t) headers.Authorization = `Bearer ${t}`
-  const res = await send(`${API_BASE}${path}`, { method: 'POST', headers, body: form })
+  const headers = staffHeaders('POST')
+  const res = await send(`${API_BASE}${path}`, { method: 'POST', headers, credentials: 'include', body: form })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)
   return data

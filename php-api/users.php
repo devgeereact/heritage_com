@@ -75,8 +75,9 @@ if ($action === 'password' && method() === 'POST') {
   $stmt = $conn->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
   $stmt->bind_param('si', $hash, $user['id']);
   $stmt->execute();
-  // Drop all other sessions for this user; keep the current one.
-  $tok = bearer();
+  // Drop all other sessions for this user; keep the current one (header or
+  // cookie, A15). The current token is not rotated, so its cookie stays valid.
+  $tok = (string) staff_token();
   $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE user_id = ? AND token NOT IN (?, ?)');
   $hash = staff_token_hash($tok);
   $stmt->bind_param('iss', $user['id'], $hash, $tok);

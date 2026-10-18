@@ -11,6 +11,8 @@ npm run dev      # http://localhost:5112, strictPort: fails loudly if the port i
 
 In development `API_BASE` is `VITE_API_BASE` when set, otherwise the local staging API `http://127.0.0.1:8088` (`src/context/constants.js`). Start staging first, or every request fails cleanly instead of touching production. The service worker does not register on `localhost` or `127.0.0.1` (`index.html:100`).
 
+Staff cookie auth (`STAFF_COOKIE_AUTH`, A15) needs the page and the API on one origin, because the `herit_staff` cookie is SameSite=Strict and `localhost:5112` and `127.0.0.1:8088` are different sites. To try it locally: add `define('STAFF_COOKIE_AUTH', true);` to `php-api/config.local.php`, put `VITE_API_BASE=/api-staging` in `.env.local` and restart `npm run dev`. The Vite dev server then proxies `/api-staging/*` to the staging API (`vite.config.js`; `HERITOS_STAGING_API` overrides the target, default `http://127.0.0.1:8088`). Over plain http on localhost the cookies are set without Secure; everything else matches production. Remove the line and the variable to return to the default Bearer flow, which needs neither. The e2e scripts send Bearer tokens and pass with the flag on or off.
+
 Pointing development at production (`VITE_API_BASE=https://heritclothing.com` in `.env.local`) reads and writes real client records. Do that only with the owner's explicit agreement and for a specific reason. The live server also refuses localhost origins unless `ALLOW_LOCALHOST_CORS` is true in the server `config.php` (default off, A15); switch it on only for that session and off again afterwards. `.env.example` documents the variable.
 
 ## Local staging

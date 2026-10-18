@@ -31,6 +31,12 @@ define('DB_PASS', 'CHANGE_ME');                        // the DB user's password
 // ---- Auth --------------------------------------------------------------------
 define('TOKEN_SECRET',   'CHANGE_ME_long_random_string'); // reserved for signed tokens
 define('TOKEN_TTL_DAYS', 14);                             // session lifetime in days
+// Staff session cookie (A15). true: sign-in puts the staff token in an HttpOnly
+// cookie (herit_staff) that page scripts cannot read, and every write must send
+// the X-Herit-CSRF header. false or unset: the token is returned in the JSON
+// body and kept by the app, as before. Switching it back off is the rollback;
+// staff signed in under the cookie then sign out and in again. See DEPLOYMENT.md.
+define('STAFF_COOKIE_AUTH', false);
 // Login throttling (auth.php). Failed attempts are counted in audit_log over a
 // sliding window and answered with HTTP 429 once a limit is reached; 0 switches
 // a limit off. The values below are the built-in defaults, so these lines are optional.

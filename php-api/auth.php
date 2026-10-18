@@ -2,11 +2,13 @@
 /**
  * HeritOS — authentication.
  *   POST /auth.php?action=login   {email, password}  → {token, user}
- *   POST /auth.php?action=logout  (Bearer token)     → {ok:true}
- *   GET  /auth.php?action=me      (Bearer token)      → {user}
+ *   POST /auth.php?action=logout  (staff session)    → {ok:true}
+ *   GET  /auth.php?action=me      (staff session)    → {user}
  *
  * Tokens are random 64-char strings; auth_tokens keeps their SHA-256 and an expiry.
  * Passwords are verified with password_verify against a bcrypt hash.
+ * With STAFF_COOKIE_AUTH on, login and pin_login answer {user, cookie_auth:true}
+ * and put the token in the HttpOnly herit_staff cookie instead (A15, _lib.php).
  */
 require __DIR__ . '/_lib.php';
 cors();
@@ -28,6 +30,15 @@ function issue_token($userId) {
   $stmt->bind_param('isssi', $userId, $stored, $device, $ip, $ttl);
   $stmt->execute();
   return $token;
+}
+
+/** Answer a successful sign-in: the token in the body, or (cookie auth) in cookies only. */
+function login_response($token, array $user) {
+  if (staff_cookie_auth_on()) {
+    staff_session_cookies_set($token);
+    json(['user' => $user, 'cookie_auth' => true]);
+  }
+  json(['token' => $token, 'user' => $user]);
 }
 
 /* ---- BRUTE-FORCE THROTTLING ---------------------------------------------- */
@@ -92,7 +103,7 @@ if ($action === 'login' && method() === 'POST') {
   $token = issue_token($user['id']);
   audit($user['id'], 'login');
   unset($user['password_hash']);
-  json(['token' => $token, 'user' => $user]);
+  login_response($token, $user);
 }
 
 /* ---- PIN LOGIN (shared market-stall device) ------------------------------ */
@@ -130,7 +141,7 @@ if ($action === 'pin_login' && method() === 'POST') {
   $token = issue_token($match['id']);
   audit($match['id'], 'pin_login');
   unset($match['pin_hash']);
-  json(['token' => $token, 'user' => $match]);
+  login_response($token, $match);
 }
 
 /* ---- SET PIN (own account) ----------------------------------------------- */
@@ -174,7 +185,7 @@ if ($action === 'set_pin' && method() === 'POST') {
 /* ---- SESSIONS (device list + revoke) ------------------------------------- */
 if ($action === 'sessions' && method() === 'GET') {
   $user = require_auth();
-  $current = bearer();
+  $current = staff_token();
   $rows = [];
   $stmt = $conn->prepare('SELECT id, token, device, ip, last_seen, created_at, expires_at FROM auth_tokens WHERE user_id = ? ORDER BY last_seen DESC, id DESC');
   $stmt->bind_param('i', $user['id']);
@@ -202,7 +213,10 @@ if ($action === 'revoke' && method() === 'POST') {
 }
 
 if ($action === 'logout' && method() === 'POST') {
-  $tok = bearer();
+  $cred = staff_credential();
+  if ($cred) staff_csrf_enforce($cred['source']);
+  $tok = $cred['token'] ?? null;
+  staff_session_cookies_clear();
   if ($tok) {
     $stmt = $conn->prepare('DELETE FROM auth_tokens WHERE token IN (?, ?)');
     $hash = staff_token_hash($tok);

@@ -38,13 +38,15 @@ const useSignIn = () => {
     else navigate(roleHome(role));
   };
   const finishLogin = (res, okMsg) => {
-    if (!res.token) return;
+    if (!res.token && !res.cookie_auth) return;
     // Flatten user fields to the top level so existing Larkon UI that reads
     // session.email / session.role keeps working, alongside session.user.
+    // Under cookie auth (A15) the server kept the token in an HttpOnly cookie,
+    // so only the profile is stored here.
     saveSession({
       ...(res.user ?? {}),
       user: res.user,
-      token: res.token
+      ...(res.cookie_auth ? { cookie_auth: true } : { token: res.token })
     });
     redirectUser(res.user?.role);
     showNotification({
