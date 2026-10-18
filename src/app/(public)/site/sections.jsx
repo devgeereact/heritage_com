@@ -168,11 +168,15 @@ export const Testimonials = ({ eyebrow = 'What clients say', quotes }) => {
   const n = quotes?.length || 0
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
+  // Stopped by the pause button or by choosing a review (WCAG 2.2.2).
+  const [stopped, setStopped] = useState(false)
+  const [still] = useState(() => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  const moving = n > 1 && !paused && !stopped && !still
   useEffect(() => {
-    if (n < 2 || paused || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
+    if (!moving) return undefined
     const t = setInterval(() => setI((v) => (v + 1) % n), 6500)
     return () => clearInterval(t)
-  }, [n, paused])
+  }, [n, moving])
   if (!n) return null
   const q = quotes[i % n]
   return (
@@ -187,7 +191,7 @@ export const Testimonials = ({ eyebrow = 'What clients say', quotes }) => {
         <h2 id="voice-title" className="hc-eyebrow">
           {eyebrow}
         </h2>
-        <figure key={i} className="hc-voice-quote" aria-live="polite">
+        <figure key={i} className="hc-voice-quote" aria-live={moving ? 'off' : 'polite'}>
           <blockquote>“{q.text}”</blockquote>
           <figcaption>{[q.name, q.role || q.location].filter(Boolean).join(', ')}</figcaption>
         </figure>
@@ -199,9 +203,22 @@ export const Testimonials = ({ eyebrow = 'What clients say', quotes }) => {
                 type="button"
                 aria-label={`Review ${k + 1} of ${n}`}
                 aria-pressed={k === i % n}
-                onClick={() => setI(k)}
+                onClick={() => {
+                  setI(k)
+                  setStopped(true)
+                }}
               />
             ))}
+            {!still && (
+              <button
+                type="button"
+                className="hc-voice-toggle"
+                aria-label={stopped ? 'Play reviews' : 'Pause reviews'}
+                aria-pressed={stopped}
+                onClick={() => setStopped((v) => !v)}>
+                <Icon name={stopped ? 'play' : 'pause'} />
+              </button>
+            )}
           </div>
         )}
       </div>

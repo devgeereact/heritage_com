@@ -24,9 +24,16 @@ const PasswordFormInput = ({
           <div className="position-relative">
             <FormControl id={id} type={showPassword ? 'text' : 'password'} {...other} {...field} isInvalid={Boolean(fieldState.error?.message)} />
             {!noValidate && fieldState.error?.message && <Feedback type="invalid">{fieldState.error?.message}</Feedback>}
-            <span className="d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2" onClick={() => setShowPassword(!showPassword)}>
-              {!fieldState.error && (showPassword ? <IconifyIcon icon="bi:eye-slash-fill" height={18} width={18} className="cursor-pointer" /> : <IconifyIcon icon="bi:eye-fill" height={18} width={18} className="cursor-pointer" />)}
-            </span>
+            {!fieldState.error && (
+              <button
+                type="button"
+                className="btn btn-link d-flex position-absolute top-50 end-0 translate-middle-y p-0 pe-2 me-2 text-reset"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}>
+                <IconifyIcon icon={showPassword ? 'bi:eye-slash-fill' : 'bi:eye-fill'} height={18} width={18} aria-hidden="true" />
+              </button>
+            )}
           </div>
         </FormGroup>} />;
 };

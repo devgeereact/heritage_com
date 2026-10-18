@@ -29,14 +29,30 @@ if ($action === 'webhook') {
     $challenge = $_GET['hub_challenge'] ?? ($_GET['hub.challenge'] ?? '');
     if ($mode === 'subscribe' && $token !== '' && $token === cfg('WHATSAPP_VERIFY_TOKEN')) {
       header('Content-Type: text/plain');
-      echo $challenge;
+      echo htmlspecialchars(preg_replace("/[^A-Za-z0-9_-]/", "", (string)$challenge), ENT_QUOTES, "UTF-8"); // Meta sends a plain token; nothing else is echoed
       exit;
     }
     http_response_code(403);
     exit;
   }
 
-  // Inbound messages + delivery status updates.
+  // Inbound messages + delivery status updates. Meta signs every POST with
+  // X-Hub-Signature-256 (HMAC-SHA256 of the raw body with the app secret). When
+  // WA_APP_SECRET is set, unsigned or wrongly signed posts are refused, so nobody
+  // can inject fake customer messages into the inbox. While it is not set the
+  // webhook still works, and the server log carries a warning.
+  $secret = (string)cfg('WA_APP_SECRET', '');
+  if ($secret !== '') {
+    $raw = (string)file_get_contents('php://input');
+    $sig = (string)($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '');
+    $expected = 'sha256=' . hash_hmac('sha256', $raw, $secret);
+    if ($sig === '' || !hash_equals($expected, $sig)) {
+      http_response_code(403);
+      exit;
+    }
+  } else {
+    error_log('HeritOS whatsapp.php: WA_APP_SECRET is not set; webhook signatures are not checked.');
+  }
   $b = body();
   try {
     foreach (($b['entry'] ?? []) as $entry) {
@@ -157,6 +173,11 @@ if ($action === 'send' && method() === 'POST') {
 
 /* ---- BROADCAST ----------------------------------------------------------- */
 if ($action === 'broadcast' && method() === 'POST') {
+  // Owner decision D-024 (K-11): broadcasts reach customers who never opted in,
+  // so they stay off until a recorded marketing opt-in exists. One-to-one
+  // service messages (send) are unchanged.
+  require_auth();
+  fail('Promotional messages are switched off until customers can opt in (D-024).', 403);
   $b = body();
   $text = trim($b['body'] ?? '');
   $segment = trim($b['segment'] ?? '');

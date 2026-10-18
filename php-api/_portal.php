@@ -66,6 +66,20 @@ function require_customer_session() {
   fail('Your session has expired. Please sign in again.', 401);
 }
 
+/**
+ * The signed-in customer behind the bearer token, or null (never fails). Used by
+ * public endpoints that offer extra things to a verified customer, such as store
+ * credit at checkout, without requiring sign-in for everyone.
+ */
+function customer_session_optional() {
+  $tok = bearer();
+  if (!$tok || strlen($tok) > 128 || !has_table('customer_sessions')) return null;
+  $c = db_row('SELECT c.id, c.name, c.phone FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
+                WHERE s.token_hash = ? AND s.revoked_at IS NULL AND s.expires_at > UTC_TIMESTAMP() AND c.deleted_at IS NULL',
+    's', token_hash($tok));
+  return $c ?: null;
+}
+
 /** Revoke the session behind the current bearer token (logout). */
 function customer_session_revoke_current(array $me) {
   if (!empty($me['_session_id'])) {

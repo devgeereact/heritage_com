@@ -125,6 +125,7 @@ $IMAP_PASS = 'CHANGE_ME';
 define('WHATSAPP_TOKEN',        '');       // permanent access token (server only)
 define('WHATSAPP_PHONE_ID',     '');       // phone number ID from the Meta dashboard
 define('WHATSAPP_VERIFY_TOKEN', '');       // any random string; must match the webhook config
+define('WA_APP_SECRET',         '');       // Meta App secret: when set, webhook POSTs must carry a valid X-Hub-Signature-256 (server only)
 
 // ---- Loyalty / store credit -------------------------------------------------
 // Read by store.php pay_verify. Fraction of the goods value awarded back as

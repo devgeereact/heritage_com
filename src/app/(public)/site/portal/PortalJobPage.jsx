@@ -56,7 +56,7 @@ const PortalJobPage = () => {
   ] : [];
 
   return (
-    <SiteLayout title="Your order">
+    <SiteLayout title="Your order" noindex>
       <section className="hc-pagehead">
         <div className="hc-container">
           <div className="hc-crumb"><Link to="/">Home</Link> / <Link to="/account">Your orders</Link> / <span>{ref}</span></div>

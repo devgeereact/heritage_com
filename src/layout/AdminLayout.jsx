@@ -2,6 +2,7 @@ import FallbackLoading from '@/components/FallbackLoading'
 import Footer from '@/components/layout/Footer'
 import BottomNav from '@/components/layout/BottomNav'
 import Preloader from '@/components/Preloader'
+import OfflineBanner from '@/components/OfflineBanner'
 import '@/assets/tokens/tokens.scss'
 import '@/assets/scss/app.scss'
 import '@/assets/scss/heritos-admin.css'
@@ -44,6 +45,7 @@ const AdminLayout = ({ children }) => {
 
       <div className="page-content">
         <div className="container-fluid">
+          <OfflineBanner />
           <Suspense fallback={<Preloader />}>{children}</Suspense>
         </div>
 

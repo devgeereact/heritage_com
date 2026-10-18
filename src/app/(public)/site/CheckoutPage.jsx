@@ -5,6 +5,7 @@ import SiteLayout from './SiteLayout';
 import { formatNgn } from './products';
 import { useCart } from './cart';
 import heritApi from '@/helpers/heritApi';
+import { readAttribution } from './attribution';
 
 const DELIVERY = [
   { key: 'lagos', label: 'Lagos delivery', note: 'Free over ₦25,000, else ₦2,500' },
@@ -49,7 +50,7 @@ const CheckoutPage = () => {
 
   // Prefill a referral code captured from a share link (?ref=) by SiteLayout.
   useEffect(() => {
-    try { const r = localStorage.getItem('herit_ref'); if (r) setReferral(r); } catch { /* ignore */ }
+    const r = readAttribution('herit_ref'); if (r) setReferral(r);
   }, []);
 
   // Abandoned-cart capture: once a usable phone is entered, save the basket so
@@ -78,16 +79,15 @@ const CheckoutPage = () => {
   const creditApplied = useCredit ? Math.min(creditBalance, afterGift) : 0;
   const total = Math.max(0, afterGift - creditApplied);
 
-  // Look up store credit for the entered phone (privacy: returns a number only).
+  // Store credit belongs to the signed-in customer only (verified portal session);
+  // a typed phone number never reveals or spends anyone's balance.
   useEffect(() => {
-    const digits = (form.phone || '').replace(/\D/g, '');
-    if (digits.length < 10) { setCreditBalance(0); setUseCredit(false); return; }
     let live = true;
-    heritApi.store.creditBalance(form.phone)
+    heritApi.store.creditBalance()
       .then((r) => { if (live) setCreditBalance(Number(r.balance || 0)); })
       .catch(() => { if (live) setCreditBalance(0); });
     return () => { live = false; };
-  }, [form.phone]);
+  }, []);
 
   const applyGift = async () => {
     const code = gift.trim();
@@ -138,8 +138,8 @@ const CheckoutPage = () => {
         gift_card: giftCard ? giftCard.code : '',
         use_credit: useCredit ? -1 : 0,
         referral_code: referral.trim(),
-        source: (() => { try { return localStorage.getItem('herit_src') || ''; } catch { return ''; } })(),
-        utm_campaign: (() => { try { return localStorage.getItem('herit_camp') || ''; } catch { return ''; } })(),
+        source: readAttribution('herit_src'),
+        utm_campaign: readAttribution('herit_camp'),
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.
@@ -170,7 +170,7 @@ const CheckoutPage = () => {
   // ---- Confirmation / verify states ----
   if (verifying) {
     return (
-      <SiteLayout title="Confirming payment">
+      <SiteLayout title="Confirming payment" noindex>
         <section className="hc-section hc-text-center"><div className="hc-container">
           <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:refresh-bold" /></span>
           <h1 className="hc-h2">Confirming your payment…</h1>
@@ -183,7 +183,7 @@ const CheckoutPage = () => {
   if (done) {
     const paidNow = done.status === 'paid';
     return (
-      <SiteLayout title="Order received">
+      <SiteLayout title="Order received" noindex>
         <section className="hc-section"><div className="hc-container" style={{ maxWidth: '40rem' }}>
           <div className="hc-card hc-text-center" style={{ padding: '3rem 2rem' }}>
             <span className="hc-card-ico" style={{ margin: '0 auto 1rem', background: 'var(--hc-accent)', color: 'var(--hc-on-accent)' }}>
@@ -224,7 +224,7 @@ const CheckoutPage = () => {
   // ---- Empty bag guard ----
   if (items.length === 0) {
     return (
-      <SiteLayout title="Checkout">
+      <SiteLayout title="Checkout" noindex>
         <section className="hc-section hc-text-center"><div className="hc-container">
           <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:bag-4-bold" /></span>
           <h1 className="hc-h2">Your bag is empty</h1>
@@ -237,7 +237,7 @@ const CheckoutPage = () => {
 
   // ---- Checkout form ----
   return (
-    <SiteLayout title="Checkout">
+    <SiteLayout title="Checkout" noindex>
       <section className="hc-pagehead"><div className="hc-container">
         <div className="hc-crumb"><Link to="/cart">Bag</Link> / <span>Checkout</span></div>
         <h1 className="hc-h1">Checkout.</h1>
@@ -311,7 +311,7 @@ const CheckoutPage = () => {
             {!applied ? (
               <div style={{ marginBottom: '0.8rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Promo code" value={coupon}
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Promo code" placeholder="Promo code" value={coupon}
                     onChange={(e) => setCoupon(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyCoupon} disabled={couponBusy || !coupon.trim()} style={{ whiteSpace: 'nowrap' }}>
@@ -331,7 +331,7 @@ const CheckoutPage = () => {
             {!giftCard ? (
               <div style={{ marginBottom: '0.8rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Gift card code" value={gift}
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Gift card code" placeholder="Gift card code" value={gift}
                     onChange={(e) => setGift(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyGift(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyGift} disabled={!gift.trim()} style={{ whiteSpace: 'nowrap' }}>Apply</button>
@@ -355,7 +355,7 @@ const CheckoutPage = () => {
 
             {/* Referral — first-time buyers only; both you and your friend earn credit */}
             <div style={{ marginBottom: '0.8rem' }}>
-              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
+              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Referral code (optional)" placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
               {referral.trim() && <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', margin: '0.3rem 0 0' }}>New here? You and your friend each earn store credit once this order is paid.</p>}
             </div>
 

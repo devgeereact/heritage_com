@@ -48,7 +48,7 @@ const Waitlist = () => {
                 <td className="text-center"><Badge bg={s.waiting > 0 ? 'primary' : 'secondary'} className="bg-opacity-75">{s.waiting}</Badge></td>
                 <td className="text-center text-muted">{s.total}</td>
                 <td className="text-end">
-                  <Button size="sm" variant="success" disabled={s.waiting === 0 || busy === s.ref} onClick={() => notify(s)}>
+                  <Button size="sm" variant="success" disabled title="Switched off until customers can opt in (D-024)" onClick={() => notify(s)}>
                     {busy === s.ref ? <Spinner size="sm" /> : <><IconifyIcon icon="mdi:whatsapp" className="me-1" /> Notify {s.waiting}</>}
                   </Button>
                 </td>
@@ -119,7 +119,7 @@ const Abandoned = () => {
               <td className="text-end">{naira(c.subtotal)}</td>
               <td className="text-muted small">{c.updated_at}</td>
               <td className="text-end">
-                <Button size="sm" variant={Number(c.nudged) ? 'light' : 'success'} disabled={busy === c.id} onClick={() => nudge(c)}>
+                <Button size="sm" variant={Number(c.nudged) ? 'light' : 'success'} disabled title="Switched off until customers can opt in (D-024)" onClick={() => nudge(c)}>
                   {busy === c.id ? <Spinner size="sm" /> : <><IconifyIcon icon="mdi:whatsapp" className="me-1" />{Number(c.nudged) ? 'Nudge again' : 'Nudge'}</>}
                 </Button>
               </td>
@@ -166,6 +166,7 @@ const EngagePage = () => (
       <h4 className="mb-1">Re-engagement</h4>
       <p className="text-muted mb-0">Win back baskets and tell waiting customers when a piece is back.</p>
     </div>
+    <Alert variant="warning">Promotional WhatsApp messages are switched off until customers can opt in (D-024). The lists below stay visible.</Alert>
     <Tabs defaultActiveKey="abandoned" className="mb-3">
       <Tab eventKey="abandoned" title="Abandoned carts"><Abandoned /></Tab>
       <Tab eventKey="waitlist" title="Restock waitlist"><Waitlist /></Tab>

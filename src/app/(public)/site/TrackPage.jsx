@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import IconifyIcon from './ui/Icon'
 import heritApi from '@/helpers/heritApi'
@@ -36,6 +36,11 @@ const TrackPage = () => {
   const [order, setOrder] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // Take focus to the result so it is read out once found (K-16).
+  const resultRef = useRef(null)
+  useEffect(() => {
+    if (order) resultRef.current?.focus()
+  }, [order])
 
   const lookup = async (e) => {
     e.preventDefault()
@@ -56,7 +61,7 @@ const TrackPage = () => {
   const cancelled = order?.status === 'cancelled'
 
   return (
-    <SiteLayout title="Track your order">
+    <SiteLayout title="Track your order" noindex>
       <section className="hc-pagehead">
         <div className="hc-container">
           <div className="hc-crumb">
@@ -118,6 +123,9 @@ const TrackPage = () => {
                     <input
                       className="hc-input"
                       style={field}
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       placeholder="e.g. 0803…"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -129,14 +137,14 @@ const TrackPage = () => {
                   {busy ? 'Looking…' : 'Track order'}
                 </button>
                 {error && (
-                  <p style={{ color: 'var(--hc-danger)', margin: 0 }}>
+                  <p role="alert" style={{ color: 'var(--hc-danger)', margin: 0 }}>
                     <IconifyIcon icon="solar:danger-circle-bold" /> {error}
                   </p>
                 )}
               </form>
 
               {order && (
-                <div className="hc-card mt-4" style={{ padding: '1.5rem' }}>
+                <div className="hc-card mt-4" style={{ padding: '1.5rem' }} ref={resultRef} tabIndex={-1} aria-label="Order status">
                   <div className="d-flex justify-content-between align-items-start flex-wrap" style={{ gap: '.5rem' }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{order.public_ref || order.code}</div>

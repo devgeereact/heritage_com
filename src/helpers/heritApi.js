@@ -17,13 +17,38 @@ function token() {
   }
 }
 
+/**
+ * Offline handling (D-016, A16): writes are refused while the device is
+ * offline, before anything is sent, so nothing half-saves. A request that fails
+ * to reach the server becomes a plain-language error marked `network` (status
+ * 0); the POS checks that flag to queue a sale.
+ */
+const OFFLINE_WRITE = 'You are offline, so nothing was saved. Reconnect and try again.'
+const NO_CONNECTION = 'Could not reach the server. Check your connection and try again.'
+const NO_CONNECTION_WRITE = 'Could not reach the server, so this may not have been saved. Check your connection, then check before trying again.'
+function networkError(message) {
+  const err = new Error(message)
+  err.status = 0
+  err.network = true
+  return err
+}
+async function send(url, init) {
+  const write = (init.method || 'GET') !== 'GET'
+  if (write && typeof navigator !== 'undefined' && navigator.onLine === false) throw networkError(OFFLINE_WRITE)
+  try {
+    return await fetch(url, init)
+  } catch {
+    throw networkError(write ? NO_CONNECTION_WRITE : NO_CONNECTION)
+  }
+}
+
 async function request(path, { method = 'GET', body, auth = true } = {}) {
   const headers = { 'Content-Type': 'application/json' }
   if (auth) {
     const t = token()
     if (t) headers.Authorization = `Bearer ${t}`
   }
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await send(`${API_BASE}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
@@ -95,7 +120,7 @@ async function crequest(path, { method = 'GET', body } = {}) {
   const headers = { 'Content-Type': 'application/json' }
   const t = customerToken()
   if (t) headers.Authorization = `Bearer ${t}`
-  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined })
+  const res = await send(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)
   return data
@@ -112,7 +137,7 @@ async function upload(path, file, fields = {}) {
   const headers = {}
   const t = token()
   if (t) headers.Authorization = `Bearer ${t}`
-  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', headers, body: form })
+  const res = await send(`${API_BASE}${path}`, { method: 'POST', headers, body: form })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)
   return data
@@ -341,7 +366,8 @@ export const heritApi = {
   // Reviews + UGC
   reviews: {
     list: (slug) => request(`/reviews.php?action=list&slug=${encodeURIComponent(slug)}`, { auth: false }),
-    submit: (data) => request('/reviews.php?action=submit', { method: 'POST', body: data, auth: false }),
+    // Carries the customer session when signed in: only a verified session marks a review verified.
+    submit: (data) => crequest('/reviews.php?action=submit', { method: 'POST', body: data }),
     gallery: () => request('/reviews.php?action=gallery', { auth: false }),
     moderate: (status = 'pending') => request(`/reviews.php?action=moderate&status=${status}`),
     setStatus: (id, status) => request(`/reviews.php?action=status&id=${id}`, { method: 'POST', body: { status } }),
@@ -435,12 +461,13 @@ export const heritApi = {
     blog: (limit = 24) => request(`/store.php?action=blog&limit=${limit}`, { auth: false }),
     blogPost: (slug) => request(`/store.php?action=blog&slug=${encodeURIComponent(slug)}`, { auth: false }),
     testimonials: () => request('/store.php?action=testimonials', { auth: false }),
-    checkout: (data) => request('/store.php?action=checkout', { method: 'POST', body: data, auth: false }),
+    // Store credit applies only for the signed-in customer's own session (server rule).
+    checkout: (data) => crequest('/store.php?action=checkout', { method: 'POST', body: data }),
     payInit: (code, email) => request('/store.php?action=pay_init', { method: 'POST', body: { code, email }, auth: false }),
     payVerify: (reference) => request(`/store.php?action=pay_verify&reference=${encodeURIComponent(reference)}`, { auth: false }),
     validateCoupon: (code, subtotal, shipping = 0) =>
       request(`/coupons.php?action=validate&code=${encodeURIComponent(code)}&subtotal=${subtotal}&shipping=${shipping}`, { auth: false }),
-    creditBalance: (phone) => request(`/loyalty.php?action=credit_balance&phone=${encodeURIComponent(phone)}`, { auth: false }),
+    creditBalance: () => crequest('/loyalty.php?action=credit_balance'),
     giftCheck: (code) => request(`/loyalty.php?action=gift_check&code=${encodeURIComponent(code)}`, { auth: false }),
     track: (code, phone) => request(`/store.php?action=track&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`, { auth: false }),
     waitlistJoin: (data) => request('/store.php?action=waitlist_join', { method: 'POST', body: data, auth: false }),

@@ -7,6 +7,7 @@ import useSeo from './seo/useSeo'
 import { usePreviewMode, useSiteConfig } from './siteData'
 import './site.css'
 import './ui/ui.css'
+import { saveAttribution } from './attribution'
 
 /**
  * Shared shell for every public page: skip link, sticky header, main and
@@ -43,17 +44,14 @@ const SiteLayout = ({ title, seo = {}, noindex = false, children }) => {
   // Capture a referral code (?ref=CODE) and campaign attribution (?utm_source /
   // ?utm_campaign) from the landing URL so they survive browse → checkout.
   useEffect(() => {
+    // Kept for 30 days only (D-024, K-13); see attribution.js.
     const q = new URLSearchParams(window.location.search)
-    try {
-      const ref = q.get('ref')
-      if (ref) localStorage.setItem('herit_ref', ref.toUpperCase())
-      const src = q.get('utm_source') || q.get('source')
-      if (src) localStorage.setItem('herit_src', src.slice(0, 60))
-      const camp = q.get('utm_campaign')
-      if (camp) localStorage.setItem('herit_camp', camp.slice(0, 120))
-    } catch {
-      /* ignore */
-    }
+    const ref = q.get('ref')
+    if (ref) saveAttribution('herit_ref', ref.toUpperCase().slice(0, 40))
+    const src = q.get('utm_source') || q.get('source')
+    if (src) saveAttribution('herit_src', src.slice(0, 60))
+    const camp = q.get('utm_campaign')
+    if (camp) saveAttribution('herit_camp', camp.slice(0, 120))
   }, [pathname])
 
   return (

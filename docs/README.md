@@ -15,7 +15,8 @@ Documentation follows the GEE OS "Standard application" profile: one flat `docs/
 | [DATA-MODEL.md](DATA-MODEL.md) | Tables and schema files, codes and references, target record model |
 | [API-SPEC.md](API-SPEC.md) | Endpoint inventory, server role gates, deploy route per file, action contracts, settings keys |
 | [SECURITY.md](SECURITY.md) | Threats and controls, private files and content safety, authentication, permissions |
-| [DATA-PRIVACY.md](DATA-PRIVACY.md) | Nigeria privacy position, data categories, retention, rights, AI |
+| [DATA-PRIVACY.md](DATA-PRIVACY.md) | Nigeria privacy position, data categories, retention, rights, AI, cookie and storage inventory, recipients, owner questions |
+| [PRIVACY-NOTICE-DRAFT.md](PRIVACY-NOTICE-DRAFT.md) | Draft public privacy notice for owner input and legal review (not publication-ready) |
 | [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | Tokens, contrast, type, spacing, motion, Tesla reference and deviations |
 | [UX-SPEC.md](UX-SPEC.md) | Navigation (target and as built), screens, required states, forms |
 | [ACCESSIBILITY.md](ACCESSIBILITY.md) | Target, focus, touch targets, reduced motion, test widths |

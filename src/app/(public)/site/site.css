@@ -44,6 +44,8 @@
 
 /* The public bundle has no Bootstrap reboot, so reset the page frame here. */
 html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--hc-surface); }
+/* Fragment links and error-summary jumps land below the sticky header. */
+html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-space-3)); }
 
 .hc-page {
   min-height: 100vh;
@@ -467,6 +469,9 @@ html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--h
 .hc-voice-dots button { width: 28px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--hc-divider); cursor: pointer; position: relative; }
 .hc-voice-dots button::after { content: ""; position: absolute; inset: -20px -4px; }
 .hc-voice-dots button[aria-pressed="true"] { background: var(--hc-accent); }
+.hc-voice-dots .hc-voice-toggle { width: var(--hc-touch); height: var(--hc-touch); margin-top: calc((var(--hc-touch) - 4px) / -2); display: inline-flex; align-items: center; justify-content: center; background: none; color: var(--hc-text-muted); }
+.hc-voice-dots .hc-voice-toggle::after { content: none; }
+.hc-voice-dots .hc-voice-toggle[aria-pressed="true"] { background: none; color: var(--hc-text); }
 
 /* Note and link under a grid (home work). */
 .hc-section-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--hc-space-4); margin-top: var(--hc-space-7); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }

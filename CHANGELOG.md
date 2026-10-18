@@ -10,6 +10,63 @@ Added
 
 - Staff password reset by email (K-04): "Reset password" on the sign-in page sends a single-use link that expires in 30 minutes; the request answers the same whether or not the address has an account; only a hash of the link token is stored (`password_resets`, `schema_phase29.sql`); a new request retires earlier links; choosing a new password signs the person out on every device; requests and failed attempts are throttled. `scripts/staging/e2e-reset.sh` checks it end to end on local staging.
 
+Fixed (merge of #14 audit fixes, 18 October 2026)
+
+- The reset page keeps the audit's plain wording and sign-in logo link, and offers the working email reset in place of the explanation; reset links are hashed with `staff_token_hash` and refused for suspended accounts, the same rules as sign-in (K-04, K-15, K-23).
+### Audit fixes on `feat/redesign-dark-luxury`, 17 October 2026
+
+Production-readiness and privacy audit. Evidence: [qa/SECURITY-AUDIT.md](qa/SECURITY-AUDIT.md), [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md), [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md#inventory-17-october-2026).
+
+Fixed
+
+- Seed tailor accounts in `schema.sql` no longer carry the known staging password (K-08).
+- Suspended staff can no longer sign in or keep using a token; admins can no longer create, promote, reset or suspend a super_admin; owner and admin roles are kept off PIN sign-in (K-09).
+- Store credit is no longer revealed or spent by typing someone's phone number; it needs the customer's verified session (K-09).
+- WhatsApp webhook checks Meta's signature when `WA_APP_SECRET` is set; CSV exports neutralise spreadsheet formulas; AI calls have per-user daily caps; `ai.php` and `weather.php` no longer return transport errors (K-09, K-10).
+- Public shop writes are throttled, length-capped and refused while the shop is off; the shop pages show the not-found page to visitors while it is off (K-10).
+- Security headers, HTTPS redirect, caching and compression in `php-api/.htaccess` (K-10).
+- Unknown URLs show a real noindex not-found page instead of a blank screen; a root error screen replaces white-screen failures (K-24).
+- The public tab title no longer turns into the staff title after switching tabs (K-24).
+- Home has one h1; hero and testimonials have a pause button and stop announcing every rotation; paper success colour meets 4.5:1 (K-24).
+- Private pages (track, account, portal, bag, checkout) are noindex; default description and link-preview tags in `index.html` and `useSeo` (K-24).
+- Sign-in password label, autocomplete and an accessible show-password button; the reset page now explains recovery honestly instead of a form that sent nothing (K-04 partly).
+
+Added
+
+- Privacy note beside the send button on the contact, booking and company brief forms, linking to the privacy notice once one is published (K-24).
+- Cookie and storage inventory, recipients, retention schedule, sources and owner questions in [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md); a draft notice in [docs/PRIVACY-NOTICE-DRAFT.md](docs/PRIVACY-NOTICE-DRAFT.md) (not publication-ready).
+
+Changed
+
+- Fonts are self-hosted from `public/fonts` (SIL OFL), so no visitor request goes to Google.
+
+Removed
+
+- Larkon template pages `/pages-404`, `/auth/sign-up` and `/auth/lock-screen`, whose forms did nothing.
+
+Fixed (third batch, 17 October 2026)
+
+- Saving is refused while the device is offline, with a plain message, and staff screens show an offline banner; connection failures read as plain sentences instead of "Failed to fetch" (A16, D-016).
+- New gift card codes are 64-bit (K-23).
+- Each staff PIN belongs to one person: a PIN already in use is refused, and a shared PIN signs in nobody (K-23).
+- Content Security Policy: scripts only from this site, with the boot scripts moved out of `index.html` into `public/boot.js` (K-23).
+
+Changed (owner decisions D-024, 17 October 2026)
+
+- Promotional WhatsApp sends (broadcast, waitlist and abandoned-cart nudges) are switched off until customers can opt in; the admin buttons are disabled with an explanation (K-11).
+- The AI reply drafter no longer sends the customer's name or message to the AI provider (K-12).
+- Referral and campaign codes are kept in the browser for 30 days, then removed (K-13).
+- Only staff pages offer the installable app, which opens at `/today` (K-20).
+
+Fixed (second batch, 17 October 2026)
+
+- Staff tokens are stored as SHA-256; tokens issued earlier keep working until they expire (K-15).
+- Staff sign-in takes the same time whether or not the email exists (K-23).
+- Form focus and announcements on booking, access, track, contact and company brief; names for shop inputs (K-16).
+- `e2e-phase5.sh` runs on macOS (K-17).
+- Stack verification recorded in `docs/TEST-STRATEGY.md`: local CI steps PASS on PR #14 and PR #17, e2e phases 2 to 5 PASS on fresh staging, and a note that stacked PRs get no GitHub CI (K-17).
+- Sitemap lists the shop, gifting and products while the shop is on; the service worker caches only unchanging files and keeps a fresh offline shell (K-20).
+
 ### PR #14 `feat/redesign-dark-luxury`, 13 October 2026
 
 Changed

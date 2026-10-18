@@ -27,7 +27,7 @@ key() { echo "e2e5-$1-$RUN-$RANDOM"; }
 mint() {      # staff token for an @example.test user
   local tok; tok="$(php -r 'echo bin2hex(random_bytes(32));')"
   sql "INSERT INTO auth_tokens (user_id, token, expires_at)
-       SELECT id, '$tok', DATE_ADD(NOW(), INTERVAL 1 DAY) FROM users WHERE email = '$1' AND email LIKE '%@example.test'" || return 1
+       SELECT id, SHA2('$tok', 256), DATE_ADD(NOW(), INTERVAL 1 DAY) FROM users WHERE email = '$1' AND email LIKE '%@example.test'" || return 1
   echo "$tok"
 }
 csess() {     # portal session for a customer id (only the hash is stored, as in _portal.php)
@@ -78,7 +78,7 @@ CKEY="$(key create)"
 req POST "company_jobs.php?action=create" "{\"company_id\":$X,\"contact_id\":$KA,\"po_number\":\"PO-$RUN\",\"measurement_method\":\"sizes\",\"sample_required\":1,\"items\":$ITEMS,\"request_key\":\"$CKEY\"}"
 check C1 "company job created with 5 items and quantity 5" bash -c "[ '$CODE' = 201 ] && [ '$(j '.items|length')' = 5 ] && [ '$(j .job.quantity)' = 5 ]"
 JOB="$(j .job.id)"; REF="$(j .job.ref)"
-mapfile -t IT < <(echo "$BODY" | jq -r '.items[].id')
+IT=(); while IFS= read -r _id; do IT+=("$_id"); done < <(echo "$BODY" | jq -r '.items[].id')  # bash 3.2 has no mapfile (K-17)
 req POST "company_jobs.php?action=create" "{\"company_id\":$X,\"contact_id\":$KA,\"items\":$ITEMS,\"request_key\":\"$CKEY\"}"
 check C1b "same request key returns the same job" bash -c "[ '$CODE' = 200 ] && [ '$(j .job.id)' = '$JOB' ]"
 check C12 "no automatic discount: price 0 until quoted, no group" \
