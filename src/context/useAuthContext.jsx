@@ -14,6 +14,10 @@ export function useAuthContext() {
 // it holds no token: the HttpOnly herit_staff cookie carries the session. With it
 // off it also holds the Bearer token, as before.
 const authSessionKey = '_LARKON_AUTH_KEY_';
+// Keep this equal to TOKEN_TTL_DAYS in the server config.php (default 14,
+// config.sample.php), so the profile cookie never expires while the server
+// session still lives and the device looks signed out while signed in (A15).
+const SESSION_DAYS = 14;
 export function AuthProvider({
   children
 }) {
@@ -26,7 +30,7 @@ export function AuthProvider({
   const [user, setUser] = useState(getSession());
   const saveSession = user => {
     Cookies.set(authSessionKey, JSON.stringify(user), {
-      expires: 7 // cookie valid for 7 days
+      expires: SESSION_DAYS
     });
     setUser(user);
   };

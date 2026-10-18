@@ -298,8 +298,12 @@ if ($action === 'revoke' && method() === 'POST') {
 }
 
 if ($action === 'logout' && method() === 'POST') {
+  // No CSRF check here (A15 review): sign-out only takes access away, the
+  // SameSite=Strict cookie is never sent by a cross-site request anyway, and
+  // refusing a stale CSRF header used to leave the HttpOnly session alive
+  // while the app showed the person signed out. So always clear both cookies
+  // and delete the token that came with the request.
   $cred = staff_credential();
-  if ($cred) staff_csrf_enforce($cred['source']);
   $tok = $cred['token'] ?? null;
   staff_session_cookies_clear();
   if ($tok) {
