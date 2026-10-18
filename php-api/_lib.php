@@ -626,15 +626,22 @@ const SANITIZE_DROP = ['script', 'style', 'iframe', 'frame', 'frameset', 'object
 const SANITIZE_ATTRS = ['a' => ['href', 'title'], 'img' => ['src', 'alt', 'width', 'height']];
 
 /**
- * Is this URL safe for href/src? http(s), protocol-relative and relative URLs
- * pass; mailto: and tel: only when $allowMailTel. javascript:, data:, vbscript:
- * and every other scheme fail. Control characters and spaces are ignored when
- * reading the scheme, as browsers do ("java\tscript:" is still javascript:).
+ * Is this URL safe for href/src? http and https URLs pass, and site paths that
+ * start with a single "/"; mailto: and tel: only when $allowMailTel. Refused:
+ * javascript:, data:, vbscript: and every other scheme; protocol-relative
+ * "//host" and "/\host" (browsers read "\" as "/", so both leave the site);
+ * and anything else without a scheme ("page", "#top", "?q"), matching the
+ * browser-side rules in src/app/(public)/site/safeHtml.js and
+ * src/helpers/richText.js. Control characters and spaces are ignored when
+ * reading the URL, as browsers do ("java\tscript:" is still javascript:,
+ * "/\t/host" is still "//host").
  */
 function sanitize_url_ok($url, $allowMailTel) {
   $probe = preg_replace('/[\x00-\x20\x7F]+/', '', (string)$url);
   if ($probe === '') return false;
-  if (!preg_match('/^([a-z][a-z0-9+.\-]*):/i', $probe, $m)) return true;   // relative, no scheme
+  if (!preg_match('/^([a-z][a-z0-9+.\-]*):/i', $probe, $m)) {
+    return (bool)preg_match('#^/(?![/\\\\])#', $probe);   // a site path: one "/", then not "/" or "\"
+  }
   $scheme = strtolower($m[1]);
   if ($scheme === 'http' || $scheme === 'https') return true;
   return $allowMailTel && ($scheme === 'mailto' || $scheme === 'tel');

@@ -119,6 +119,25 @@ check('sanitize: empty stays empty', sanitize_html(''), '');
 check('sanitize: fallback strips attributes and scripts',
   sanitize_html_fallback('<p onclick="x()">a</p><script>alert(1)</script><a href="javascript:x">b</a>'), '<p>a</p><a>b</a>');
 
+/* ---- sanitize_url_ok: off-site paths (matches safeHtml.js and richText.js) --- */
+foreach (['/shop' => 'a site path', '/' => 'the home page', '/journal/linen-agbada?ref=1#fit' => 'a path with query and fragment',
+          'https://heritclothing.com/x' => 'https', 'http://example.test/' => 'http', 'HTTPS://EXAMPLE.TEST' => 'upper-case scheme'] as $u => $what) {
+  check("url ok: $what passes", sanitize_url_ok($u, false), true);
+}
+foreach (['//evil.test/x' => 'protocol-relative //host', '/\\evil.test' => '/\\host (browsers read \\ as /)',
+          '\\\\evil.test' => '\\\\host', '/ /evil.test' => '"/ /host" (spaces ignored)', "/\t/evil.test" => 'tab between the slashes',
+          "/\n\\evil.test" => 'newline before the backslash', '///evil.test' => 'three slashes',
+          'shop' => 'a relative path without "/"', '#top' => 'a bare fragment', '?q=1' => 'a bare query', '' => 'empty', '   ' => 'spaces only',
+          'javascript:alert(1)' => 'javascript:', 'data:text/html,x' => 'data:', 'vbscript:x' => 'vbscript:', 'ftp://x.test' => 'ftp:'] as $u => $what) {
+  check("url ok: $what refused", sanitize_url_ok($u, true), false);
+}
+check('url ok: mailto only when allowed', [sanitize_url_ok('mailto:a@b.test', true), sanitize_url_ok('mailto:a@b.test', false)], [true, false]);
+check('url ok: tel only when allowed', [sanitize_url_ok('tel:+2348000000000', true), sanitize_url_ok('tel:+2348000000000', false)], [true, false]);
+check('sanitize: //host href removed', $has(sanitize_html('<a href="//evil.test/x">x</a>'), 'href'), false);
+check('sanitize: /\\host href removed', $has(sanitize_html('<a href="/\\evil.test">x</a>'), 'href'), false);
+check('sanitize: //host img src removed', $has(sanitize_html('<img src="//evil.test/p.gif" alt="p">'), 'src'), false);
+check('sanitize: site path link kept', $has(sanitize_html('<a href="/book">Book</a>'), 'href="/book"'), true);
+
 /* ---- cors_origin_allowed ------------------------------------------------- */
 $prod = 'https://heritclothing.com';
 check('cors: configured origin allowed', cors_origin_allowed($prod, $prod, false), true);
