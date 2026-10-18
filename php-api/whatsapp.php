@@ -3,7 +3,8 @@
  * HeritOS — WhatsApp (the brand's #1 channel: sales + support in one inbox).
  *
  *   GET  /whatsapp.php?action=threads                → conversations (one per phone)
- *   GET  /whatsapp.php?action=thread&phone=…         → full message history, marks inbound seen
+ *   GET  /whatsapp.php?action=thread&phone=…         → full message history (read-only, K-28)
+ *   POST /whatsapp.php?action=mark_seen {phone}      → marks that phone's inbound messages seen
  *   POST /whatsapp.php?action=send {phone, body, customer_id?, template?}
  *   POST /whatsapp.php?action=broadcast {body, segment?}   → blast a customer segment
  *   GET  /whatsapp.php?action=templates              → quick replies
@@ -136,9 +137,6 @@ if ($action === 'thread' && method() === 'GET') {
   $r = $stmt->get_result();
   while ($row = $r->fetch_assoc()) $msgs[] = $row;
 
-  // Mark inbound as seen now that staff has opened the thread.
-  $conn->query("UPDATE whatsapp_messages SET seen = 1 WHERE phone = '" . $conn->real_escape_string($phone) . "' AND direction = 'in' AND seen = 0");
-
   // Best-effort customer name.
   $name = null;
   $cstmt = $conn->prepare("SELECT name FROM customers WHERE deleted_at IS NULL AND RIGHT(REGEXP_REPLACE(phone,'[^0-9]',''),9) = RIGHT(?,9) LIMIT 1");
@@ -147,6 +145,16 @@ if ($action === 'thread' && method() === 'GET') {
   if ($row = $cstmt->get_result()->fetch_assoc()) $name = $row['name'];
 
   json(['phone' => $phone, 'customer_name' => $name, 'messages' => $msgs]);
+}
+
+/* ---- MARK SEEN (K-28: the thread GET is read-only) ------------------------ */
+if ($action === 'mark_seen' && method() === 'POST') {
+  $phone = wa_normalize_phone(body()['phone'] ?? '');
+  if ($phone === '') fail('phone is required');
+  $stmt = $conn->prepare("UPDATE whatsapp_messages SET seen = 1 WHERE phone = ? AND direction = 'in' AND seen = 0");
+  $stmt->bind_param('s', $phone);
+  $stmt->execute();
+  json(['ok' => true, 'marked' => (int)$stmt->affected_rows]);
 }
 
 /* ---- SEND ---------------------------------------------------------------- */

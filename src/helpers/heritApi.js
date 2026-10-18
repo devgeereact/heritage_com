@@ -410,7 +410,9 @@ export const heritApi = {
   // Referrals
   referrals: {
     leaderboard: () => request('/referrals.php?action=leaderboard'),
+    // GET only reads: code is null until ensureCode (POST) creates one (K-28).
     code: (customerId) => request(`/referrals.php?action=code&customer_id=${customerId}`),
+    ensureCode: (customerId) => request('/referrals.php?action=ensure_code', { method: 'POST', body: { customer_id: customerId } }),
   },
 
   // Coupons & promotions
@@ -470,6 +472,8 @@ export const heritApi = {
   whatsapp: {
     threads: () => request('/whatsapp.php?action=threads'),
     thread: (phone) => request(`/whatsapp.php?action=thread&phone=${encodeURIComponent(phone)}`),
+    // The thread GET is read-only; opening a conversation marks it seen with this POST (K-28).
+    markSeen: (phone) => request('/whatsapp.php?action=mark_seen', { method: 'POST', body: { phone } }),
     send: (data) => request('/whatsapp.php?action=send', { method: 'POST', body: data }),
     broadcast: (data) => request('/whatsapp.php?action=broadcast', { method: 'POST', body: data }),
     templates: () => request('/whatsapp.php?action=templates'),

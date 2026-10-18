@@ -531,3 +531,37 @@ describe('heritApi: staff cookie auth (A15)', () => {
     await expect(heritApi.pinLogin('1234')).resolves.toEqual(answer)
   })
 })
+
+describe('heritApi: reads that used to change state are now separate writes (K-28)', () => {
+  it.each([
+    ['WhatsApp thread', () => heritApi.whatsapp.thread('+2348000000000'), '/whatsapp.php?action=thread&phone=%2B2348000000000'],
+    ['inbox message', () => heritApi.inbox.get(7), '/inbox.php?action=get&uid=7'],
+    ['referral code', () => heritApi.referrals.code(5), '/referrals.php?action=code&customer_id=5'],
+  ])('%s is a GET with no body', async (_name, run, path) => {
+    setOnline(true)
+    const fetchMock = mockFetch()
+
+    await run()
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`${API_BASE}${path}`)
+    expect((init.method || 'GET').toUpperCase()).toBe('GET')
+    expect(init.body).toBeUndefined()
+  })
+
+  it.each([
+    ['marking a WhatsApp thread seen', () => heritApi.whatsapp.markSeen('+2348000000000'), '/whatsapp.php?action=mark_seen', { phone: '+2348000000000' }],
+    ['marking an email read', () => heritApi.inbox.setSeen(7, true), '/inbox.php?action=seen&uid=7', { seen: true }],
+    ['creating a referral code', () => heritApi.referrals.ensureCode(5), '/referrals.php?action=ensure_code', { customer_id: 5 }],
+  ])('%s is a POST with a JSON body', async (_name, run, path, body) => {
+    setOnline(true)
+    const fetchMock = mockFetch()
+
+    await run()
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`${API_BASE}${path}`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual(body)
+  })
+})

@@ -3,7 +3,8 @@
  * HeritOS — Referral program ("give ₦, get ₦").
  *
  *   GET /referrals.php?action=leaderboard            → top referrers (staff)
- *   GET /referrals.php?action=code&customer_id=N     → a customer's share code (staff)
+ *   GET  /referrals.php?action=code&customer_id=N    → a customer's share code, or code:null (staff, read-only)
+ *   POST /referrals.php?action=ensure_code {customer_id} → creates the code if missing (staff, K-28)
  *
  * The reward maths lives in referral_settle() (_lib.php), fired when a referred
  * friend's order is genuinely paid. This file is the staff read/share surface.
@@ -43,18 +44,32 @@ if ($action === 'leaderboard' && method() === 'GET') {
   json(['reward' => $reward, 'pending' => $pending, 'referrers' => $rows]);
 }
 
-/* ---- CODE (ensure + share) ----------------------------------------------- */
+/* ---- CODE (read) and ENSURE_CODE (create) -------------------------------- */
+// K-28: the GET only reads; a customer with no code gets code:null. Creating a
+// code is the POST ensure_code, so the CSRF check on writes covers it.
+function referral_code_answer($cid, $code, $reward) {
+  return ['customer_id' => $cid, 'code' => $code, 'reward' => $reward,
+          'share_url' => $code ? 'https://heritclothing.com/shop?ref=' . rawurlencode($code) : null];
+}
+
 if ($action === 'code' && method() === 'GET') {
   $cid = (int)($_GET['customer_id'] ?? 0);
   if (!$cid) fail('customer_id is required');
+  $stmt = $conn->prepare('SELECT referral_code FROM customers WHERE id = ?');
+  $stmt->bind_param('i', $cid);
+  $stmt->execute();
+  $row = $stmt->get_result()->fetch_assoc();
+  if (!$row) fail('Customer not found', 404);
+  json(referral_code_answer($cid, ($row['referral_code'] ?? '') !== '' ? $row['referral_code'] : null, $reward));
+}
+
+if ($action === 'ensure_code' && method() === 'POST') {
+  $cid = (int)(body()['customer_id'] ?? 0);
+  if (!$cid) fail('customer_id is required');
   $code = ensure_referral_code($cid);
   if (!$code) fail('Could not generate a code', 500);
-  json([
-    'customer_id' => $cid,
-    'code' => $code,
-    'reward' => $reward,
-    'share_url' => 'https://heritclothing.com/shop?ref=' . rawurlencode($code),
-  ]);
+  audit($user['id'], 'referral_code_ensure', 'customer', $cid);
+  json(referral_code_answer($cid, $code, $reward));
 }
 
 fail('Unknown action', 404);

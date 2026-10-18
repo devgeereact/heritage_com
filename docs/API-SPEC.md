@@ -53,13 +53,13 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `coupons.php` | Promo codes and public validation | super_admin, admin, manager, editor (validation public) | Manual |
 | `engage.php` | Restock waitlist and abandoned-cart recovery | super_admin, admin, manager, editor | Manual |
 | `export.php` | CSV export of orders, payments, expenses, customers | super_admin, admin, manager | Manual |
-| `inbox.php` | IMAP mailbox reader | super_admin, admin, manager, editor, employee | Manual |
+| `inbox.php` | IMAP mailbox reader. `get` is read-only (body fetched with `FT_PEEK`, `\Seen` left alone); the app marks a message read with POST `seen` (K-28) | super_admin, admin, manager, editor, employee | Manual |
 | `loyalty.php` | Store credit and gift cards | super_admin, admin, manager | Manual |
 | `mail.php` | Staff email send; a thin endpoint over `_mail.php` on the Phase 3 branch | super_admin, admin, manager, editor, employee | Manual |
 | `marketing.php` | Campaign planner | super_admin, admin, manager, editor | Manual |
 | `orders.php` | Staff retail orders and market (POS) sales | super_admin, admin, manager, seller, employee | Manual |
 | `payments.php` | Money in and out, cash position | super_admin, admin, manager | Manual |
-| `referrals.php` | Referral codes and rewards | super_admin, admin, manager | Manual |
+| `referrals.php` | Referral codes and rewards. GET `code` only reads (`code: null` when the customer has none); POST `ensure_code {customer_id}` creates one, audited `referral_code_ensure` (K-28) | super_admin, admin, manager | Manual |
 | `reviews.php` | Reviews, ratings and photo moderation | super_admin, admin, manager, editor | Manual |
 | `settings.php` | Channel toggles, store configuration (`shop_enabled`) and the Phase 2 business settings; on the Phase 4 branch the business profile keys go through the same validator as `cms.php`; the retention keys (K-18) through `_retention.php` and only from super_admin (403 for anyone else) | super_admin, admin, manager | Manual |
 | `retention.php` | Data retention job (K-18): dry run by default, `--apply` deletes ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)) | Command line only; 404 over HTTP | Manual |
@@ -69,7 +69,7 @@ This file owns the endpoint inventory, the server role gate on each file, the de
 | `suppliers.php` | Suppliers and purchase orders (receiving bumps stock) | super_admin, admin, manager | Manual |
 | `users.php` | Team and access: staff CRUD, last super_admin guard; only a super_admin changes a super_admin (redesign branch) | Management super_admin, admin; self actions any staff | Manual |
 | `weather.php` | Lagos forecast from Open-Meteo, no key (weather.php:23) | super_admin, admin, manager, seller, employee | Manual |
-| `whatsapp.php` | WhatsApp threads, templates, Cloud API or wa.me fallback | super_admin, admin, manager, seller, editor, employee; webhook public | Manual |
+| `whatsapp.php` | WhatsApp threads, templates, Cloud API or wa.me fallback. GET `thread` only reads; POST `mark_seen {phone}` marks that number's inbound messages seen, `{ok, marked}` (K-28) | super_admin, admin, manager, seller, editor, employee; webhook public | Manual |
 | `config.sample.php` | Template for server-only `config.php` | Not an endpoint | Never deployed |
 | `config.local.php` | Local staging config written by `scripts/staging/setup.sh`; gitignored | Not an endpoint | Never deployed |
 

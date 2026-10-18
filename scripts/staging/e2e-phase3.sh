@@ -404,6 +404,28 @@ check L4 "legacy login (flag on in staging) now issues a hashed, expiring sessio
 req GET "portal.php?action=jobs" "" "$LTOK"
 check L4b "that session reads the portal too" eq "$CODE" 200
 
+# ---- G: staff GETs change nothing; the matching POSTs do (K-28) -------------------
+WAP="23470${RUN: -8}"
+sql "INSERT INTO whatsapp_messages (phone, direction, body, status, seen) VALUES ('$WAP', 'in', 'E2E inbound $RUN', 'delivered', 0)"
+req GET "whatsapp.php?action=thread&phone=$WAP"
+check G1 "WhatsApp thread GET returns the message and leaves it unseen" \
+  bash -c "[ '$CODE' = 200 ] && [ '$(j '.messages | length')' = 1 ] && [ '$(sql "SELECT seen FROM whatsapp_messages WHERE phone = '$WAP'")' = 0 ]"
+req POST "whatsapp.php?action=mark_seen" "{\"phone\":\"$WAP\"}"
+check G2 "POST mark_seen marks it seen" \
+  bash -c "[ '$CODE' = 200 ] && [ '$(j .marked)' = 1 ] && [ '$(sql "SELECT seen FROM whatsapp_messages WHERE phone = '$WAP'")' = 1 ]"
+req GET "whatsapp.php?action=mark_seen&phone=$WAP"
+check G2b "mark_seen by GET is refused" eq "$CODE" 404
+req GET "referrals.php?action=code&customer_id=$A_CID"
+check G3 "referral code GET answers code:null and creates nothing" \
+  bash -c "[ '$CODE' = 200 ] && [ '$(j .code)' = null ] && [ '$(sql "SELECT COALESCE(referral_code, 'none') FROM customers WHERE id = $A_CID")' = none ]"
+req POST "referrals.php?action=ensure_code" "{\"customer_id\":$A_CID}"
+RC="$(j .code)"
+check G4 "POST ensure_code creates and stores the code" \
+  bash -c "[ '$CODE' = 200 ] && [ -n '$RC' ] && [ '$RC' != null ] && [ '$(sql "SELECT referral_code FROM customers WHERE id = $A_CID")' = '$RC' ]"
+req GET "referrals.php?action=code&customer_id=$A_CID"
+check G4b "the GET then reads the same code" eq "$(j .code)" "$RC"
+sql "DELETE FROM whatsapp_messages WHERE phone = '$WAP'"
+
 reset_throttles
 echo
 echo "$PASS passed, $FAIL failed"

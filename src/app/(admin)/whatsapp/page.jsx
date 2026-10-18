@@ -104,7 +104,10 @@ const WhatsAppPage = () => {
     try {
       const c = await heritApi.whatsapp.thread(phone);
       setConvo(c);
-      setThreads((prev) => prev.map((t) => (t.phone === phone ? { ...t, unread: 0 } : t)));
+      // Reading is a GET and changes nothing; marking seen is its own POST (K-28).
+      heritApi.whatsapp.markSeen(phone)
+        .then(() => setThreads((prev) => prev.map((t) => (t.phone === phone ? { ...t, unread: 0 } : t))))
+        .catch(() => {});
       setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch (e) {
       showNotification({ message: e.message || 'Could not load conversation', variant: 'danger' });
