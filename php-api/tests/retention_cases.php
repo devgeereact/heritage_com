@@ -93,10 +93,19 @@ foreach (["status = 'closed'", 'job_id IS NULL', 'converted_at IS NULL', 'FROM q
 check('enquiries: count and delete use the same condition',
   substr($e[0]['count_sql'], strpos($e[0]['count_sql'], 'WHERE')), substr($e[0]['delete_sql'], strpos($e[0]['delete_sql'], 'WHERE'), -strlen(' LIMIT ' . RETENTION_BATCH)));
 
+/* ---- Usage counts (Phase 7, schema_phase31.sql) ---------------------------- */
+check('usage: off by default like every other category', in_array('usage_daily', retention_plan([], $now)['off'], true), true);
+$u = $steps(retention_plan(['retention_usage_daily_days' => '400'], $now), 'usage_daily');
+check('usage: one step on usage_daily by day', [count($u), $u[0]['table'], $u[0]['column'], $u[0]['clock']], [1, 'usage_daily', 'day', 'utc']);
+check('usage: cutoff is 400 days back', $u[0]['cutoff'], retention_cutoff($now, 400));
+check('usage: no extra condition', $u[0]['count_sql'], 'SELECT COUNT(*) AS n FROM `usage_daily` WHERE `day` < ?');
+check('usage: the key is seeded by schema_phase31.sql', strpos(file_get_contents(__DIR__ . '/../schema_phase31.sql'), "'retention_usage_daily_days'") !== false, true);
+check('usage: usage_daily is not a protected table', in_array('usage_daily', RETENTION_PROTECTED_TABLES, true), false);
+
 /* ---- Protected tables never appear ------------------------------------------- */
 $everything = array_fill_keys(retention_keys(), '3650');
 $full = retention_plan($everything, $now);
-check('protected: every category on plans every mapped table', count($full['steps']), 9);
+check('protected: every category on plans every mapped table', count($full['steps']), 10);
 check('protected: no step deletes from a protected table',
   array_values(array_intersect(array_column($full['steps'], 'table'), RETENTION_PROTECTED_TABLES)), []);
 $deleteTargets = array_map(fn($s) => preg_match('/^DELETE FROM `([a-z_]+)`/', $s['delete_sql'], $m) ? $m[1] : '?', $full['steps']);

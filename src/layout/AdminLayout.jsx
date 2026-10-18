@@ -8,6 +8,9 @@ import '@/assets/scss/app.scss'
 import '@/assets/scss/heritos-admin.css'
 import '@/components/herit/herit-daily.css'
 import { lazy, Suspense, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+import heritApi from '@/helpers/heritApi'
+import { recordSectionVisit } from '@/helpers/usage'
 const VerticalNavigationBar = lazy(() => import('@/components/layout/VerticalNavigationBar/page'))
 const TopNavigationBar = lazy(() => import('@/components/layout/TopNavigationBar/page'))
 
@@ -31,8 +34,17 @@ const useNoIndex = () => {
   }, [])
 }
 
+/** Phase 7: count the section once per browser per day (no person stored; errors ignored). */
+const useSectionUsage = () => {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    recordSectionVisit(pathname, { send: heritApi.usage.hit })
+  }, [pathname])
+}
+
 const AdminLayout = ({ children }) => {
   useNoIndex()
+  useSectionUsage()
   return (
     <div className="wrapper">
       <Suspense fallback={<FallbackLoading />}>

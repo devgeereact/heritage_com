@@ -63,6 +63,7 @@ export const SCHEMA_MARKERS = {
   'schema_phase28.sql': { table: 'cms_items', column: 'entity', type_contains: "'slide'" },
   'schema_phase29.sql': { table: 'password_resets' },
   'schema_phase30.sql': { setting: 'retention_expired_tokens_days' },
+  'schema_phase31.sql': { table: 'usage_daily' },
 }
 
 /** File names copied into dist/ by deploy.yml (`cp php-api/NAME dist/`), comments ignored. */

@@ -17,6 +17,7 @@ const FIELDS = [
   { key: 'retention_abandoned_carts_days', label: 'Abandoned shop carts', hint: 'Days after the last change' },
   { key: 'retention_waitlist_days', label: 'Restock waitlist sign-ups', hint: 'Days after signing up' },
   { key: 'retention_closed_enquiries_days', label: 'Closed enquiries that never became a job', hint: 'Days after the last change' },
+  { key: 'retention_usage_daily_days', label: 'Section usage counts (no names)', hint: 'Days after the day counted' },
 ];
 const MAX = 3650;
 // Only the owner may change these; settings.php refuses anyone else with a 403.

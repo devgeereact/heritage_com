@@ -204,6 +204,12 @@ export const heritApi = {
   // Today: the owner's daily worklist (owner roles)
   today: () => request('/today.php'),
 
+  // Section usage counts (Phase 7): one hit per section per browser per day, any staff.
+  // Sent by src/helpers/usage.js only; it stores day, section and role, no person.
+  usage: {
+    hit: (section) => request('/usage.php?action=hit', { method: 'POST', body: { section } }),
+  },
+
   // Enquiry pipeline (staff side; convert is owner-only)
   enquiries: {
     list: (params = {}) => request(`/enquiries.php?action=list${qs(params)}`),

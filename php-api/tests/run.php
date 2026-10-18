@@ -466,6 +466,9 @@ require __DIR__ . '/company_cases.php';
 /* ---- Retention plan (_retention.php, K-18) ---------------------------------- */
 require __DIR__ . '/retention_cases.php';
 
+/* ---- Phase 7: usage allowlist and review report (_review.php) --------------- */
+require __DIR__ . '/review_cases.php';
+
 /* ---- A15: staff session cookie and CSRF (_lib.php) ------------------------- */
 require __DIR__ . '/staff_cookie_cases.php';
 

@@ -114,6 +114,17 @@ const RETENTION_CATEGORIES = [
          'quotes.enquiry_id', 'tailoring_orders.enquiry_id', 'appointments.enquiry_id']],
     ],
   ],
+  'usage_daily' => [
+    'key' => 'retention_usage_daily_days',
+    'label' => 'Section usage counts (day, section, role; no person), days after the day',
+    'min' => 1,
+    'steps' => [
+      // `day` is a DATE (the Lagos day of the visit), compared with the UTC
+      // cutoff's date and time: a row goes once the whole day is older than the
+      // period, give or take Lagos's one hour ahead of UTC (schema_phase31.sql).
+      ['table' => 'usage_daily', 'column' => 'day', 'where' => '', 'needs' => ['usage_daily.day']],
+    ],
+  ],
 ];
 
 /** Business and tax records. Never deleted by the retention job. */
