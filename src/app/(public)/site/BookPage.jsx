@@ -102,12 +102,12 @@ const BookPage = () => {
         <div className="hc-container hc-detail">
           <aside className="hc-price-card" aria-label="How booking works" style={{ order: 2 }}>
             <p className="hc-eyebrow">How booking works</p>
-            <p className="hc-price-card-note">You ask for a time, and I confirm it myself.</p>
+            <p className="hc-price-card-note">You ask for a time, and we confirm it ourselves.</p>
             <dl className="hc-glance">
               <dt>Request</dt>
               <dd>Choose the type of visit and a free time</dd>
               <dt>Confirm</dt>
-              <dd>I confirm it, or suggest another time</dd>
+              <dd>We confirm it, or suggest another time</dd>
               <dt>Visit</dt>
               <dd>Bring photos or cloth you like</dd>
             </dl>

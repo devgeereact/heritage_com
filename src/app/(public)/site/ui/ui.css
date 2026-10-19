@@ -502,3 +502,48 @@ a.hc-service-card:hover .hc-service-card-foot .hc-icon { transform: translateX(4
 
 /* Form column width on CMS pages. */
 .hc-form-wrap { max-width: 48rem; }
+
+/* ---- African print art (PrintArt.jsx, 19 October 2026) ----------------------
+   Inline SVG cloth from printPatterns.js in the --hc-print-* colours. Fills its
+   box; a shade lays an ink scrim over it for text. Decorative unless labelled. */
+.hc-print { position: relative; display: block; overflow: hidden; isolation: isolate; background: var(--hc-print-shade); }
+.hc-print-svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.hc-print--shade-soft::after,
+.hc-print--shade-strong::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hc-print--shade-soft::after { background: linear-gradient(180deg, var(--hc-scrim-clear) 30%, var(--hc-scrim-mid) 100%); }
+.hc-print--shade-strong::after { background: linear-gradient(90deg, var(--hc-scrim-strong) 0%, var(--hc-scrim-mid) 55%, var(--hc-scrim-glass) 100%); }
+.hc-print-over { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding: var(--hc-space-5); color: var(--hc-on-image); }
+.hc-print--drift .hc-print-svg { inset: -96px; width: calc(100% + 192px); height: calc(100% + 192px); animation: hc-print-drift 60s linear infinite alternate; }
+@keyframes hc-print-drift { from { transform: translate(0, 0); } to { transform: translate(64px, 48px); } }
+.hc-print-rule { height: 14px; border-top: 1px solid var(--hc-divider); border-bottom: 1px solid var(--hc-divider); }
+@media (prefers-reduced-motion: reduce) {
+  .hc-print--drift .hc-print-svg { animation: none; }
+}
+
+/* Print fallbacks where a card or band has no photograph. */
+.hc-service-card-media.hc-print { aspect-ratio: 4 / 5; }
+.hc-service-card:hover .hc-print .hc-print-svg { transform: scale(1.06); }
+.hc-print .hc-print-svg { transition: transform 1s var(--hc-ease-emph); }
+.hc-print-tag {
+  align-self: flex-start; font-size: var(--hc-text-xs); font-weight: var(--hc-w-semibold); letter-spacing: 0.04em;
+  background: var(--hc-print-gold); color: var(--hc-print-shade); padding: var(--hc-space-1) var(--hc-space-3); border-radius: var(--hc-radius-chip);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hc-print .hc-print-svg, .hc-service-card:hover .hc-print .hc-print-svg { transition: none; transform: none; }
+}
+
+/* ---- Staff edit control (EditLink.jsx) ------------------------------------- */
+.hc-edit-host { position: relative; }
+.hc-edit {
+  position: absolute; top: var(--hc-space-3); right: var(--hc-space-3); z-index: 5;
+  display: inline-flex; align-items: center; gap: var(--hc-space-1); min-height: 32px;
+  padding: 0 var(--hc-space-3); border-radius: var(--hc-radius-chip);
+  font: var(--hc-w-semibold) var(--hc-text-xs) / 1 var(--hc-font-sans);
+  color: var(--hc-on-accent); background: var(--hc-accent); border: 1px solid var(--hc-accent);
+  text-decoration: none; opacity: 0.86; transition: opacity var(--hc-dur-ui) var(--hc-ease);
+}
+.hc-edit:hover, .hc-edit:focus-visible { opacity: 1; color: var(--hc-on-accent); }
+.hc-edit:focus-visible { outline: 2px solid var(--hc-focus); outline-offset: 2px; }
+.hc-edit svg { width: 14px; height: 14px; }
+.hc-edit--inline { position: static; }
+@media print { .hc-edit { display: none; } }

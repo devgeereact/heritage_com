@@ -1,10 +1,13 @@
+import EditLink from './EditLink'
+
 /**
  * Page section and its heading block. `tone="alt"` uses the raised ink
  * surface; `tone="paper"` is a warm ivory band (its tokens switch to the
- * light palette). The heading block reveals on first view and draws the
+ * light palette). `edit` ({to, label}) adds the staff-only Edit control
+ * (EditLink) linking to that section's editor. The heading block reveals on first view and draws the
  * amber measure line beside the eyebrow.
  */
-export const Section = ({ tone, tight, id, className = '', labelledBy, children, ...rest }) => (
+export const Section = ({ tone, tight, id, className = '', labelledBy, edit, children, ...rest }) => (
   <section
     id={id}
     aria-labelledby={labelledBy}
@@ -13,11 +16,13 @@ export const Section = ({ tone, tight, id, className = '', labelledBy, children,
       tone === 'alt' && 'hc-section--alt',
       tone === 'paper' && 'hc-paper hc-section--ivory',
       tight && 'hc-section--tight',
+      edit && 'hc-edit-host',
       className,
     ]
       .filter(Boolean)
       .join(' ')}
     {...rest}>
+    {edit && <EditLink to={edit.to} label={edit.label} />}
     <div className="hc-container">{children}</div>
   </section>
 )

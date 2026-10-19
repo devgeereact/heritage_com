@@ -6,10 +6,15 @@ import Icon from './ui/Icon'
 import { LoadingPage, NotFoundPage } from './cmsBlocks'
 import { ClosingAction } from './sections'
 import useActions from './ui/useActions'
+import PrintArt from './ui/PrintArt'
+import { printAt } from './ui/printPatterns'
 
-/** One journal card: category, date, title link and excerpt. Shared with the post page. */
-export const JournalCard = ({ p }) => (
+/** One journal card over its African print: category, date, title link and excerpt. Shared with the post page. */
+export const JournalCard = ({ p, i = 0 }) => (
   <article className="hc-journal-card" data-reveal="">
+    <PrintArt variant={p.print || printAt(i)} className="hc-journal-media" scale={0.9}>
+      {p.cat && <span className="hc-print-tag">{p.cat}</span>}
+    </PrintArt>
     <div className="hc-journal-body">
       {(p.cat || p.date) && <span className="hc-journal-date">{[p.cat, p.date].filter(Boolean).join(' · ')}</span>}
       <h2 className="hc-h4">
@@ -35,19 +40,19 @@ const BlogPage = () => {
 
   return (
     <SiteLayout title="Journal" seo={{ description: 'Notes from the Herit Clothing workroom in Lagos.' }}>
-      <Section className="hc-section--pagehead">
+      <Section className="hc-section--pagehead" edit={{ to: '/content', label: 'the journal' }}>
         <SectionHead as="h1" eyebrow="Journal" title="Notes from the workroom" lead="Cloth, fit and care, written down as the work happens." />
       </Section>
       <Section tone="alt" aria-label="Posts">
         <div className="hc-grid hc-grid--3">
-          {posts.map((p) => (
-            <JournalCard key={p.slug} p={p} />
+          {posts.map((p, i) => (
+            <JournalCard key={p.slug} p={p} i={i} />
           ))}
         </div>
       </Section>
       <ClosingAction
-        title="Tell me what you want to make."
-        text="Send a short message with the occasion and the date, and I will get back to you."
+        title="Tell us what you want to make."
+        text="Send a short message with the occasion and the date, and we will get back to you."
         primary={{ to: primary.to, label: primary.label }}
         secondary={secondary}
       />

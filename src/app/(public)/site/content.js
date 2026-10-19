@@ -16,7 +16,7 @@ const dateText = (iso) => {
 /** site.php journal post -> the shape the journal pages use. */
 const toPost = (p) => ({
   slug: p.slug, title: p.title, excerpt: p.excerpt || '', body: p.body,
-  cat: p.category || '', author: p.author || '', date: dateText(p.published_at),
+  cat: p.category || '', author: p.author || '', date: dateText(p.published_at), print: p.print || '',
   iso: p.published_at ? String(p.published_at).slice(0, 10) : '', to: `/journal/${p.slug}`,
 });
 

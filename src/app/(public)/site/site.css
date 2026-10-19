@@ -563,3 +563,55 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 /* figures never jitter in tables or prices */
 .hc-price, .hc-product-price, .hc-table td { font-variant-numeric: tabular-nums; }
 .hc main:focus { outline: none; }
+
+/* ---- African prints in the landing (19 October 2026) -------------------------
+   PrintArt placements: hero fallback, fabric story, story bands on About,
+   statements, journal cards and dividers. Tokens only. */
+.hc-slide-media .hc-print { position: absolute; inset: 0; }
+.hc-hero > .hc-edit { top: calc(var(--hc-header-h) + var(--hc-space-3)); }
+.hc-footer > .hc-print-rule { position: absolute; top: 0; left: 0; right: 0; border-top: 0; }
+.hc-footer > .hc-edit { top: calc(14px + var(--hc-space-3)); }
+.hc-print-rule + .hc-section, .hc-print-rule + .hc-section--promise { border-top: 0; }
+
+/* Fabric story: one tall print card per cloth. */
+.hc-fabric-grid { display: grid; gap: var(--hc-space-5); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hc-fabric-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.hc-fabric-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hc-fabric { display: flex; flex-direction: column; gap: var(--hc-space-4); }
+.hc-fabric-art { border-radius: var(--hc-radius-card); border: 1px solid var(--hc-divider); }
+.hc-fabric-art .hc-print-over { justify-content: flex-end; }
+.hc-fabric:hover .hc-fabric-art .hc-print-svg { transform: scale(1.05); }
+.hc-fabric-copy h3 { margin-bottom: var(--hc-space-2); }
+.hc-fabric-copy .hc-prose p { color: var(--hc-text-muted); }
+@media (max-width: 991px) { .hc-fabric-grid, .hc-fabric-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .hc-fabric-grid, .hc-fabric-grid--4, .hc-fabric-grid--2 { grid-template-columns: minmax(0, 1fr); }
+  .hc-fabric-art { aspect-ratio: 16 / 9 !important; }
+}
+
+/* About teaser on Home: the mission as a pull quote; a print when there is no photograph. */
+.hc-mission { margin: var(--hc-space-5) 0; padding-left: var(--hc-space-5); border-left: 2px solid var(--hc-accent); }
+.hc-mission .hc-prose p { font-family: var(--hc-font-serif); font-size: var(--hc-text-lg); line-height: 1.45; color: var(--hc-text); }
+.hc-about-print { border-radius: var(--hc-radius-card); }
+
+/* Story bands (About and other page bodies). */
+.hc-story-lead { max-width: var(--hc-measure); margin-bottom: var(--hc-space-6); }
+.hc-story-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--hc-space-5); grid-template-columns: repeat(3, minmax(0, 1fr)); counter-reset: hc-story; }
+.hc-story-cards--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.hc-story-cards--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hc-story-card {
+  display: flex; flex-direction: column; gap: var(--hc-space-3); overflow: hidden;
+  background: var(--hc-surface-raised); border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-card);
+  padding: 0 var(--hc-space-5) var(--hc-space-5);
+}
+.hc-story-card-art { height: 72px; margin: 0 calc(var(--hc-space-5) * -1) var(--hc-space-2); }
+.hc-story-card .hc-prose p { font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
+@media (max-width: 991px) { .hc-story-cards, .hc-story-cards--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .hc-story-cards, .hc-story-cards--4, .hc-story-cards--2 { grid-template-columns: minmax(0, 1fr); } }
+
+.hc-statements { display: grid; gap: var(--hc-space-7); grid-template-columns: minmax(0, 1fr); }
+.hc-statements--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hc-statement { display: flex; flex-direction: column; gap: var(--hc-space-4); }
+.hc-statement-rule { border-radius: var(--hc-radius-chip); width: 96px; height: 10px; border: 0; }
+.hc-statement-text p { font-family: var(--hc-font-serif); font-size: var(--hc-text-xl); line-height: 1.4; color: var(--hc-text); max-width: 34ch; }
+@media (max-width: 760px) { .hc-statements--2 { grid-template-columns: minmax(0, 1fr); } }

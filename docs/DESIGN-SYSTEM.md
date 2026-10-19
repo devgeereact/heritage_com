@@ -10,7 +10,7 @@ Contrast figures are calculated from token values with the WCAG formula on 10 Oc
 
 - **One brand, two dialects.** The public site is photography-led and spacious. The app is quiet precision: calm, fast, legible, with decoration treated as the enemy. Same tokens, different volume.
 - **One accent per screen.** Amber marks the primary action or the active state, not both shouting at once. Fabric and garment photography carries the rest of the colour.
-- **Real work only.** No generic fabric gradients, no AI garments presented as delivered work, no stock logos, no team carousel for a one-person business.
+- **Real work only.** No generic fabric gradients, no AI garments presented as delivered work, no stock logos, no team carousel for a one-person business. The African print illustrations ([African print art](#african-print-art)) are drawn cloth patterns named as illustrations, never presented as garments or delivered work; they were asked for by the owner on 19 October 2026 (the decision record is the lead's to add to [DECISIONS.md](DECISIONS.md)).
 - **Function over flourish.** Forms and sensitive records get explicit Herit adaptations wherever the marketing-oriented Tesla reference falls short.
 
 ## Colour and contrast
@@ -215,12 +215,24 @@ Sitewide consistency rules (14 October 2026): every public page opens with the s
 | CMS blocks (`site/cmsBlocks.jsx`) | `Rich` (CMS rich text through `safeHtml()`), `PageHead` (h1, intro, optional hero image), `RichSection`, loading, not-found (noindex) and error pages, `MoreLink`. Empty content renders nothing |
 | `useSeo` (`site/seo/useSeo.js`) | Title ("{Page} \| Herit Clothing", Home "Herit Clothing \| Men's tailoring in Lagos"), description, canonical, Open Graph (absolute image URL), Twitter card, robots and one JSON-LD block; restores defaults on unmount. Called once by `SiteLayout` from its `title`, `seo` and `noindex` props; preview mode is always noindex |
 
+### African print art
+
+Built 19 October 2026 on `feat/real-content`, at the owner's request to bring back the African print illustrations of the live site. The live site drew them with CSS gradients (`.hc-tile-*`, removed from this site in Phase 4); they are now one data source and two renderers:
+
+- `src/app/(public)/site/ui/printPatterns.js`: one repeat tile per print as shapes (circles and rectangles) with colour names, no colour values. Four prints: **Adire** (indigo ground, interlocking cream resist rings with an amber inner ring), **Ankara** (deep red ground, cream ring-and-dot medallions with rust rings), **Aso-Oke** (ochre and umber warp strips with a gold lurex grid) and the **woven check** (Kente-like crimson and rust blocks with amber squares). `printVariant()` maps a fabric name or an older tile class (`hc-tile-adire`) to a print; `printAt(i)` cycles them.
+- `ui/PrintArt.jsx`: an inline SVG `<pattern>` filled from the `--hc-print-*` tokens. Props: `variant`, `label` (makes it `role="img"` with that name; otherwise `aria-hidden`), `scale`, `shade` (`soft` or `strong` ink scrim for text on top), `drift` (a 60s pan; none under `prefers-reduced-motion`), `ratio` and children laid over the cloth. `PrintRule` is a 14px strip used as a divider. Each instance has its own pattern id (`useId`).
+- `scripts/content/render-prints.mjs`: the same tiles rendered with headless Chrome into the media-library illustrations ([CONTENT.md](CONTENT.md#real-content-from-the-live-site)).
+
+Tokens: a `$hc-print` map in `src/assets/tokens/_tokens-map.scss`, emitted on `:root` (the same in every theme): `print-indigo` `#1B1F2E`, `print-cream` `#E7D6B0`, `print-sand` `#CDB98A`, `print-amber` `#F59E0B`, `print-red` `#8F2723`, `print-rust` `#B45309`, `print-ochre` `#9A4D12`, `print-umber` `#8A3D0E`, `print-gold` `#FEF3C7`, `print-brown` `#6D3410`, `print-crimson` `#9B2C2C`, `print-shade` `#0E0D0B`. They are illustration colours only, never text, control or status colours, so amber stays the one interface accent. Text over a print sits on an ink scrim or on the gold tag (`.hc-print-tag`, ink `#0E0D0B` on `#FEF3C7`, calculated 17.44:1).
+
+Where prints appear: a slide without a photograph (hero), a service card without one, the company band without one, every closing band without a photograph, the fabric story cards on Home, the card tops and statement rules of the About story bands, journal cards (each post's stored tile picks the print, `site.php` `print`), and `PrintRule` dividers under the hero, page heads, a journal post and at the top of the footer. Sections are never an empty grey box. Styles: the end of `ui/ui.css` (PrintArt, edit control) and of `site.css` (placements).
+
 Older page markup (`.hc-card`, `.hc-product`, `.hc-journal-card`, `.hc-chip`, `.hc-table` and so on) is restyled on the tokens in `site.css`; fabric pattern tiles, the marquee, slider, counter, team and logo strip styles are gone. `npm run check:tokens` (`scripts/check-tokens.mjs`, also run by `npm run lint` and so in CI) fails if `site.css`, `ui.css`, `portal.css`, `heritos-admin.css`, `herit-daily.css` or any JS/JSX file under `src/app/(public)` holds a raw colour; inline styles use `var(--hc-*)`.
 
 ## Icon and image direction
 
 - Icons: one family per surface, consistent stroke and size: the bundled `Icon` set on public pages, Iconify (Solar) in the admin. Icons accompany labels for important tasks, never replace them.
-- Images: real garment and workshop photography only ([CONTENT.md](CONTENT.md#photography)).
+- Images: real garment and workshop photography for anything that shows work; African print illustrations (above) for cloth, mood and empty states, always with alt text that says they are illustrations ([CONTENT.md](CONTENT.md#photography)).
 
 ## What the Tesla reference contributes
 

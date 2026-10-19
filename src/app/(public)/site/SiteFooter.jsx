@@ -7,6 +7,8 @@ import { useSiteNav } from './siteData'
 import Icon from './ui/Icon'
 import Button from './ui/Button'
 import useActions from './ui/useActions'
+import EditLink from './ui/EditLink'
+import { PrintRule } from './ui/PrintArt'
 
 const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`
 
@@ -49,7 +51,9 @@ const SiteFooter = ({ business: given }) => {
   const line = `Men's tailoring made to measure${b.area ? ` in ${b.area}` : ''}. Every piece is cut to your own measurements.`
 
   return (
-    <footer className="hc-footer">
+    <footer className="hc-footer hc-edit-host">
+      <PrintRule variant="kente" />
+      <EditLink to="/website/profile" label="the business details" />
       <div className="hc-container">
         <div className="hc-footer-cols">
           <div className="hc-footer-brand">

@@ -8,6 +8,7 @@ import { useSiteConfig, useSiteResource, previewItem, clip, loadSiteConfig } fro
 import { Section } from './ui/Section';
 import Icon from './ui/Icon';
 import { PageHead, Rich } from './cmsBlocks';
+import { PrintRule } from './ui/PrintArt';
 
 const telHref = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`;
 
@@ -47,7 +48,7 @@ const ContactPage = () => {
     b.whatsapp && { icon: 'whatsapp', label: 'WhatsApp', value: 'Send a WhatsApp message', href: b.whatsapp, external: true },
     b.email && { icon: 'mail', label: 'Email', value: b.email, href: `mailto:${b.email}` },
     b.address && { icon: 'map-pin', label: 'Address', value: b.address },
-    !b.address && b.area && { icon: 'map-pin', label: 'Where I work', value: b.area },
+    !b.address && b.area && { icon: 'map-pin', label: 'Where we work', value: b.area },
     b.hours && { icon: 'clock', label: 'Hours', value: b.hours },
   ].filter(Boolean);
 
@@ -58,16 +59,18 @@ const ContactPage = () => {
     >
       <PageHead
         eyebrow="Contact"
-        title={page?.headline || 'Tell me what you need'}
-        intro={page?.intro || 'Send a short note about what you want to make and I will reply with the next step.'}
+        title={page?.headline || 'Tell us what you need'}
+        intro={page?.intro || 'Send a short note about what you want to make and we will reply with the next step.'}
         hero={page?.hero}
+        edit={{ to: '/website/pages/contact', label: 'the contact page' }}
       />
+      <PrintRule variant="ankara" />
 
-      <Section tone="alt">
+      <Section tone="alt" edit={{ to: '/website/profile', label: 'the business details' }}>
         <div className={channels.length ? 'hc-split' : ''}>
           {channels.length > 0 && (
             <div data-reveal="">
-              <h2 className="hc-h3">Other ways to reach me</h2>
+              <h2 className="hc-h3">Other ways to reach us</h2>
               <ul className="hc-contact-list hc-mt-3">
                 {channels.map((c) => (
                   <li key={c.label}>

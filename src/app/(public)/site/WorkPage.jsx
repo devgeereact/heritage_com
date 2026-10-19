@@ -31,7 +31,7 @@ const WorkPage = () => {
 
   return (
     <SiteLayout title="Our work" seo={{ description: 'Finished pieces from Herit Clothing in Lagos.', image: items[0]?.cover?.url }}>
-      <Section className="hc-section--pagehead">
+      <Section className="hc-section--pagehead" edit={{ to: '/website/work', label: 'our work' }}>
         <SectionHead
           as="h1"
           eyebrow="Our work"

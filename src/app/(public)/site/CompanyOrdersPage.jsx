@@ -43,7 +43,13 @@ const CompanyOrdersPage = () => {
 
   return (
     <SiteLayout title={page?.seo_title || 'Company orders'} seo={{ description: page?.seo_description || clip(page?.intro), image: page?.hero?.url }}>
-      <PageHead eyebrow="Company orders" title={page?.headline || 'Company orders'} intro={page?.intro} hero={page?.hero} />
+      <PageHead
+        eyebrow="Company orders"
+        title={page?.headline || 'Company orders'}
+        intro={page?.intro}
+        hero={page?.hero}
+        edit={{ to: '/website/pages/company', label: 'the company orders page' }}
+      />
       <CompanyBand
         title="What a company order includes"
         lead="One brief for the whole group. Each wearer is measured and fitted as a person, and you see where every garment is."
@@ -72,7 +78,7 @@ const CompanyOrdersPage = () => {
             <p className="hc-price-card-note">A reply about your brief, then a plan for every wearer.</p>
             <dl className="hc-glance">
               <dt>First</dt>
-              <dd>I reply to confirm the details and the timing</dd>
+              <dd>We reply to confirm the details and the timing</dd>
               <dt>Then</dt>
               <dd>We agree the cloth, the style and a sample</dd>
               <dt>After</dt>

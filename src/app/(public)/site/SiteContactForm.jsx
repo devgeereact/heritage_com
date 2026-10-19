@@ -50,7 +50,7 @@ const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shop
     setSendError('');
     const found = [];
     if (!form.name.trim()) found.push({ id: 'cf-name', message: 'Enter your name.' });
-    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cf-phone', message: 'Enter a phone number or an email address so I can reply.' });
+    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cf-phone', message: 'Enter a phone number or an email address so we can reply.' });
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) found.push({ id: 'cf-email', message: 'Check the email address.' });
     setErrors(found);
     if (found.length) return;
@@ -81,7 +81,7 @@ const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shop
       <div className="hc-success-panel" role="status" tabIndex={-1} ref={focusOnMount}>
         <h3><Icon name="check-circle" /> Message received</h3>
         <p>
-          Thank you, I have your message. I will reply {responseTime || 'as soon as I can'}.
+          Thank you, we have your message. We will reply {responseTime || 'as soon as we can'}.
           Nothing is booked or priced until we agree it.
         </p>
         <Button variant="secondary" className="hc-mt-3" onClick={() => setStatus('idle')}>Send another</Button>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import HcImage from './HcImage'
+import PrintArt from './PrintArt'
 
 /** Flat card on the light-ash surface. No shadows. */
 export const Card = ({ title, children, to, linkLabel, as = 'h3', className = '' }) => {
@@ -20,17 +21,18 @@ export const Card = ({ title, children, to, linkLabel, as = 'h3', className = ''
 
 /**
  * Service: 4:5 image on top, serif title, summary and a footer row with the
- * link label and an arrow. The whole card is one link when `to` is given;
+ * link label and an arrow. Without a photograph the African print `print`
+ * fills the image area. The whole card is one link when `to` is given;
  * cards in a row share the same height and footer line.
  */
-export const ServiceCard = ({ image, title, summary, meta, to, linkLabel = 'View service' }) => {
+export const ServiceCard = ({ image, title, summary, meta, to, linkLabel = 'View service', print = 'kente' }) => {
   const body = (
     <>
       <span className="hc-service-card-media-wrap">
         {image ? (
           <HcImage {...image} ratio="4 / 5" className="hc-service-card-media" />
         ) : (
-          <span className="hc-service-card-media hc-service-card-media--empty" aria-hidden="true" />
+          <PrintArt variant={print} className="hc-service-card-media" scale={1.2} />
         )}
       </span>
       <span className="hc-service-card-body">

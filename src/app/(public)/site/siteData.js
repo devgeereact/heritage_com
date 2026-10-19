@@ -85,7 +85,24 @@ export const useSiteNav = () => useSiteConfig()?.nav || {}
 
 /* ---- Preview ---------------------------------------------------------------- */
 
-const staffSignedIn = () => typeof document !== 'undefined' && /(?:^|;\s*)_LARKON_AUTH_KEY_=/.test(document.cookie)
+export const staffSignedIn = () => typeof document !== 'undefined' && /(?:^|;\s*)_LARKON_AUTH_KEY_=/.test(document.cookie)
+
+/**
+ * The signed-in staff role from the profile cookie the admin writes
+ * (useAuthContext), or '' for visitors. It only decides whether to show the
+ * staff edit controls; every CMS write is checked on the server.
+ */
+export const staffRole = () => {
+  if (typeof document === 'undefined') return ''
+  const m = document.cookie.match(/(?:^|;\s*)_LARKON_AUTH_KEY_=([^;]*)/)
+  if (!m) return ''
+  try {
+    const v = JSON.parse(decodeURIComponent(m[1]))
+    return typeof v?.role === 'string' ? v.role : ''
+  } catch {
+    return ''
+  }
+}
 
 /** True on `?preview=1` with a staff session. Without a session the page renders the published copy. */
 export const usePreviewMode = () => {

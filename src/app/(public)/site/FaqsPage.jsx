@@ -48,7 +48,7 @@ const FaqsPage = () => {
 
   return (
     <SiteLayout title="Questions" seo={{ description: 'Answers to common questions about Herit Clothing.', jsonld }}>
-      <Section className="hc-section--pagehead">
+      <Section className="hc-section--pagehead" edit={{ to: '/website/faqs', label: 'questions' }}>
         <SectionHead
           as="h1"
           eyebrow="Questions"
@@ -84,7 +84,7 @@ const FaqsPage = () => {
       <ClosingAction
         eyebrow="Still unsure?"
         title="Still have a question?"
-        text="Send a message and I will get back to you."
+        text="Send a message and we will get back to you."
         primary={{ to: primary.to, label: primary.label }}
         secondary={{ to: '/contact', label: 'Contact' }}
       />

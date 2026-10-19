@@ -31,10 +31,10 @@ export const Rich = ({ html, className = '' }) => {
 }
 
 /** Page header: h1 headline and intro, beside the hero image when there is one. */
-export const PageHead = ({ eyebrow, title, intro, hero, tone, children }) => {
+export const PageHead = ({ eyebrow, title, intro, hero, tone, edit, children }) => {
   const img = toImage(hero)
   return (
-    <Section tone={tone} className="hc-section--pagehead">
+    <Section tone={tone} className="hc-section--pagehead" edit={edit}>
       <div className={`hc-pagetop ${img ? 'hc-pagetop--media' : ''}`.trim()}>
         <SectionHead as="h1" eyebrow={eyebrow} title={title} lead={intro || undefined}>
           {children}

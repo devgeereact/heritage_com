@@ -9,6 +9,10 @@ import { Section, SectionHead } from './ui/Section'
 import Button from './ui/Button'
 import Icon from './ui/Icon'
 import HcImage from './ui/HcImage'
+import PrintArt from './ui/PrintArt'
+import { printAt, printVariant } from './ui/printPatterns'
+import { Rich } from './cmsBlocks'
+import { splitSections, hasSubheads } from './storySections'
 
 export { SectionHead }
 
@@ -54,7 +58,7 @@ const FACTS = [
 ]
 
 const PROCESS = [
-  { title: 'Tell me what you need', desc: 'Send an enquiry with the occasion, the date and any photos you like.' },
+  { title: 'Tell us what you need', desc: 'Send an enquiry with the occasion, the date and any photos you like.' },
   { title: 'Measurement appointment', desc: 'We meet, choose the cloth and take your measurements. You get a written quote before any work starts.' },
   { title: 'Cutting and fittings', desc: 'Once the quote is agreed, the piece is cut to your pattern and fitted until it sits right.' },
   { title: 'Collect', desc: 'Pay any balance and collect. Your account shows each stage along the way.' },
@@ -68,8 +72,8 @@ const COMPANY_POINTS = [
 ]
 
 /* Statement beside three facts about the way the work is done. `children` (CMS rich text) replaces the default statement. */
-export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'paper', children }) => (
-  <Section tone={tone} className="hc-section--promise" aria-label={eyebrow}>
+export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'paper', edit, children }) => (
+  <Section tone={tone} className="hc-section--promise" aria-label={eyebrow} edit={edit}>
     <div className="hc-promise">
       <div className="hc-promise-copy" data-reveal="">
         <p className="hc-eyebrow">{eyebrow}</p>
@@ -90,9 +94,10 @@ export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'pape
   </Section>
 )
 
-/* Four steps on a rail that fills amber as the steps are revealed. */
-export const ProcessBand = ({ tone = 'paper', title = 'From first message to handover', lead, moreTo }) => (
-  <Section tone={tone} labelledBy="process-title" className="hc-section--process">
+/* Steps on a rail that fills amber as the steps are revealed. `steps` ([{title, desc}],
+   for example from the How it works page) replace the fixed four when given. */
+export const ProcessBand = ({ tone = 'paper', title = 'From first message to handover', lead, moreTo, steps, edit }) => (
+  <Section tone={tone} labelledBy="process-title" className="hc-section--process" edit={edit}>
     <SectionHead id="process-title" eyebrow="How it works" title={title} lead={lead}>
       {moreTo && (
         <p>
@@ -103,7 +108,7 @@ export const ProcessBand = ({ tone = 'paper', title = 'From first message to han
       )}
     </SectionHead>
     <ol className="hc-process">
-      {PROCESS.map((s, i) => (
+      {(steps?.length ? steps : PROCESS).map((s, i) => (
         <li key={s.title} data-reveal="" style={{ '--hc-reveal-delay': `${i * 90}ms` }}>
           <span className="hc-process-n">Step {i + 1}</span>
           <h3>{s.title}</h3>
@@ -115,10 +120,14 @@ export const ProcessBand = ({ tone = 'paper', title = 'From first message to han
 )
 
 /* Company orders: photograph, what a company gets, one action. */
-export const CompanyBand = ({ title, lead, image, to, tone }) => (
-  <Section tone={tone} labelledBy="company-band" className="hc-section--band">
-    <div className={`hc-band${image?.src ? '' : ' hc-band--text'}`}>
-      {image?.src && <HcImage {...image} ratio="5 / 6" sizes="(min-width: 1024px) 50vw, 100vw" className="hc-band-media" />}
+export const CompanyBand = ({ title, lead, image, to, tone, edit }) => (
+  <Section tone={tone} labelledBy="company-band" className="hc-section--band" edit={edit}>
+    <div className="hc-band">
+      {image?.src ? (
+        <HcImage {...image} ratio="5 / 6" sizes="(min-width: 1024px) 50vw, 100vw" className="hc-band-media" />
+      ) : (
+        <PrintArt variant="asooke" ratio="5 / 6" className="hc-band-media" />
+      )}
       <div className="hc-band-copy" data-reveal="">
         <p className="hc-eyebrow">Company orders</p>
         <h2 id="company-band" className="hc-h2">
@@ -226,18 +235,28 @@ export const Testimonials = ({ eyebrow = 'What clients say', quotes }) => {
   )
 }
 
-/* Published journal posts only. Not rendered when there are none. */
-export const JournalGrid = ({ eyebrow, title, posts }) => {
+/* Published journal posts only, each over its African print. Not rendered when there are none. */
+export const JournalGrid = ({ eyebrow, title, lead, posts, moreTo, edit }) => {
   if (!posts?.length) return null
   return (
-    <Section>
-      <SectionHead eyebrow={eyebrow} title={title} />
+    <Section edit={edit} labelledBy="journal-title">
+      <SectionHead id="journal-title" eyebrow={eyebrow} title={title} lead={lead}>
+        {moreTo && (
+          <p>
+            <Link to={moreTo} className="hc-card-link">
+              All posts <Icon name="arrow-right" />
+            </Link>
+          </p>
+        )}
+      </SectionHead>
       <div className="hc-grid hc-grid--3">
-        {posts.slice(0, 3).map((p) => (
+        {posts.slice(0, 3).map((p, i) => (
           <article key={p.slug} className="hc-journal-card" data-reveal="">
-            {p.cat && <span className="hc-journal-date">{p.cat}</span>}
+            <PrintArt variant={p.print || printAt(i)} className="hc-journal-media" scale={0.9}>
+              {p.cat && <span className="hc-print-tag">{p.cat}</span>}
+            </PrintArt>
             <div className="hc-journal-body">
-              {p.date && <span className="hc-journal-date">{p.date}</span>}
+              {(p.cat || p.date) && <span className="hc-journal-date">{[p.cat, p.date].filter(Boolean).join(' · ')}</span>}
               <h3 className="hc-h4">
                 <Link to={p.to || `/journal/${p.slug}`}>{p.title}</Link>
               </h3>
@@ -251,13 +270,11 @@ export const JournalGrid = ({ eyebrow, title, posts }) => {
 }
 
 /* Closing action: one primary, one secondary, over an optional dimmed photograph. */
-export const ClosingAction = ({ eyebrow = 'Start here', title, text, primary, secondary, image }) => (
-  <Section className={`hc-section--closing${image?.src ? ' hc-section--closing-media' : ''}`}>
-    {image?.src && (
-      <div className="hc-closing-media" aria-hidden="true">
-        <HcImage {...image} alt="" sizes="100vw" />
-      </div>
-    )}
+export const ClosingAction = ({ eyebrow = 'Start here', title, text, primary, secondary, image, print = 'adire', edit }) => (
+  <Section className="hc-section--closing hc-section--closing-media" edit={edit}>
+    <div className="hc-closing-media" aria-hidden="true">
+      {image?.src ? <HcImage {...image} alt="" sizes="100vw" /> : <PrintArt variant={print} scale={1.4} drift />}
+    </div>
     <div className="hc-cta-band" data-reveal="">
       {eyebrow && <p className="hc-eyebrow">{eyebrow}</p>}
       <h2 className="hc-h2">{title}</h2>
@@ -277,3 +294,91 @@ export const ClosingAction = ({ eyebrow = 'Start here', title, text, primary, se
     </div>
   </Section>
 )
+
+/* ------------------------------------------------------------
+   Fabric story (Home, the "fabrics" page) and story bands (About
+   and other page bodies). Words come from the CMS page body: each
+   "## Heading" in the Website editor becomes a card or a band.
+   ------------------------------------------------------------ */
+
+/* The cloths: one tall print card per "## Fabric" section of the page body. */
+export const FabricStory = ({ page, eyebrow = 'The cloth', edit }) => {
+  if (!page) return null
+  const { sections } = splitSections(page.body)
+  if (!sections.length) return null
+  return (
+    <Section tone="alt" labelledBy="fabric-title" className="hc-section--fabrics" edit={edit}>
+      <SectionHead id="fabric-title" eyebrow={eyebrow} title={page.headline} lead={page.intro || undefined} />
+      <div className={`hc-fabric-grid hc-fabric-grid--${Math.min(sections.length, 4)}`}>
+        {sections.map((f, i) => (
+          <article key={f.title} className="hc-fabric" data-reveal="" style={{ '--hc-reveal-delay': `${i * 90}ms` }}>
+            <PrintArt variant={printVariant(f.title, printAt(i))} ratio="4 / 5" scale={1.25} shade="soft" className="hc-fabric-art">
+              <span className="hc-print-tag">{f.title}</span>
+            </PrintArt>
+            <div className="hc-fabric-copy">
+              <h3 className="hc-h4">{f.title}</h3>
+              <Rich html={f.html} />
+            </div>
+          </article>
+        ))}
+      </div>
+    </Section>
+  )
+}
+
+/* One "## Heading" section that holds "### Sub-heading" items: a grid of print-topped cards. */
+const StoryCards = ({ section, index, tone, edit }) => {
+  const { lead, sections: items } = splitSections(section.html, 'h3')
+  return (
+    <Section tone={tone} labelledBy={`story-${index}`} edit={edit}>
+      <SectionHead id={`story-${index}`} title={section.title} />
+      {lead && <Rich html={lead} className="hc-story-lead" />}
+      <ol className={`hc-story-cards hc-story-cards--${Math.min(items.length, 4)}`}>
+        {items.map((it, i) => (
+          <li key={it.title} className="hc-story-card" data-reveal="" style={{ '--hc-reveal-delay': `${i * 70}ms` }}>
+            <PrintArt variant={printAt(index + i)} className="hc-story-card-art" />
+            <h3 className="hc-h4">{it.title}</h3>
+            <Rich html={it.html} />
+          </li>
+        ))}
+      </ol>
+    </Section>
+  )
+}
+
+/* Short sections side by side (mission and vision), each under a strip of cloth. */
+const StoryStatements = ({ group, index, tone, edit }) => (
+  <Section tone={tone} aria-label={group.map((g) => g.title).join(', ')} edit={edit}>
+    <div className={`hc-statements hc-statements--${group.length}`}>
+      {group.map((g, i) => (
+        <div key={g.title} className="hc-statement" data-reveal="">
+          <PrintArt variant={printAt(index + i + 1)} className="hc-print-rule hc-statement-rule" />
+          <h2 className="hc-h3">{g.title}</h2>
+          <Rich html={g.html} className="hc-statement-text" />
+        </div>
+      ))}
+    </div>
+  </Section>
+)
+
+/**
+ * The "## Heading" sections of a page body laid out as bands: a section with
+ * "### items" becomes a card grid, and runs of up to two plain sections sit
+ * side by side. Text before the first heading is the caller's to show.
+ */
+export const StoryBands = ({ sections, edit }) => {
+  const groups = []
+  sections.forEach((s) => {
+    const last = groups[groups.length - 1]
+    if (hasSubheads(s.html)) groups.push({ cards: s })
+    else if (last?.plain && last.plain.length < 2) last.plain.push(s)
+    else groups.push({ plain: [s] })
+  })
+  return groups.map((g, i) =>
+    g.cards ? (
+      <StoryCards key={g.cards.title} section={g.cards} index={i} tone={i % 2 ? 'paper' : 'alt'} edit={edit} />
+    ) : (
+      <StoryStatements key={g.plain[0].title} group={g.plain} index={i} tone={i % 2 ? 'paper' : 'alt'} edit={edit} />
+    ),
+  )
+}

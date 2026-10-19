@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Button, { Actions } from './Button'
 import HcImage from './HcImage'
 import Icon from './Icon'
+import PrintArt from './PrintArt'
+import EditLink from './EditLink'
 
 const DURATION = 7500
 
@@ -40,14 +42,16 @@ const Title = ({ text, first }) => {
  * slowly zoom, the headline rises word by word, and progress bars show the
  * time left. It pauses on hover, on keyboard focus and in a hidden tab, and
  * takes arrows, the left and right keys and a swipe. Under reduced motion it
- * never advances on its own and nothing moves. Without any photograph it is a
- * text-only hero on the ink surface.
+ * never advances on its own and nothing moves. A slide without a photograph
+ * shows an African print (`print`, or the slide's own `print`) under the
+ * same scrim, so the hero is never an empty box. `edit` ({to, label}) adds
+ * the staff-only Edit control.
  *
  * `slides`: [{ label, eyebrow, title, lead, image, primary, secondary }];
  * `label` names the slide in its progress bar (defaults to the title). The single
  * slide props are still accepted for one-slide use.
  */
-const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, note }) => {
+const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, note, print = 'adire', edit }) => {
   const slides = (input?.length ? input : [{ eyebrow, title, lead, primary, secondary, image }]).filter((s) => s?.title)
   const count = slides.length
   const many = count > 1
@@ -71,7 +75,6 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
   }, [])
 
   if (!count) return null
-  const media = slides.some((s) => s.image?.src)
   const paused = hover || focus || hidden || still || stopped
 
   const onKeyDown = (e) => {
@@ -94,7 +97,7 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
 
   return (
     <section
-      className={['hc-hero', media && 'hc-hero--media', many && 'hc-hero--slider', paused && 'is-paused', still && 'is-still']
+      className={['hc-hero', 'hc-hero--media', 'hc-edit-host', many && 'hc-hero--slider', paused && 'is-paused', still && 'is-still']
         .filter(Boolean)
         .join(' ')}
       aria-roledescription={many ? 'carousel' : undefined}
@@ -109,6 +112,7 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
       onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
       onTouchEnd={onTouchEnd}
       style={{ '--hc-slide-ms': `${DURATION}ms` }}>
+      {edit && <EditLink to={edit.to} label={edit.label} />}
       {slides.map((s, i) => {
         const on = i === idx
         return (
@@ -119,12 +123,14 @@ const Hero = ({ slides: input, eyebrow, title, lead, primary, secondary, image, 
             aria-label={many ? `${i + 1} of ${count}` : undefined}
             aria-hidden={on ? undefined : true}
             inert={!on}>
-            {s.image?.src && (
-              <div className="hc-slide-media">
+            <div className="hc-slide-media">
+              {s.image?.src ? (
                 <HcImage {...s.image} priority={i === 0} sizes="100vw" />
-                <span className="hc-slide-scrim" aria-hidden="true" />
-              </div>
-            )}
+              ) : (
+                <PrintArt variant={s.print || print} scale={1.6} drift={!still} className="hc-slide-print" />
+              )}
+              <span className="hc-slide-scrim" aria-hidden="true" />
+            </div>
             <div className="hc-container hc-slide-copy">
               <div className="hc-hero-copy">
                 {s.eyebrow && <p className="hc-eyebrow hc-hero-eyebrow">{s.eyebrow}</p>}

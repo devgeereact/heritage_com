@@ -113,7 +113,7 @@ describe('public enquiry form: sending', () => {
 
     const panel = await screen.findByRole('status')
     expect(panel).toHaveTextContent('Message received')
-    expect(panel).toHaveTextContent('I will reply within a day')
+    expect(panel).toHaveTextContent('We will reply within a day')
     expect(panel).toHaveTextContent('Nothing is booked or priced until we agree it.')
     await waitFor(() => expect(panel).toHaveFocus())
 

@@ -8,6 +8,8 @@ import Button, { Actions } from './ui/Button'
 import Icon from './ui/Icon'
 import { PageHead, Rich, resourceState } from './cmsBlocks'
 import { ClosingAction, ProcessBand } from './sections'
+import { PrintRule } from './ui/PrintArt'
+import { printVariant } from './ui/printPatterns'
 
 /**
  * One service (BUILD-SPEC 4.7): header, description, what's included,
@@ -45,7 +47,8 @@ const ServicePage = () => {
 
   return (
     <SiteLayout title={s.seo_title || s.title} seo={{ description: s.seo_description || clip(s.summary || s.body), image: s.hero?.url, jsonld }}>
-      <PageHead eyebrow="Service" title={s.title} intro={s.summary} hero={s.hero} />
+      <PageHead eyebrow="Service" title={s.title} intro={s.summary} hero={s.hero} edit={{ to: `/website/services/${s.slug}`, label: s.title }} />
+      <PrintRule variant={printVariant(s.title, 'kente')} />
 
       <Section tone="paper" aria-label={`About ${s.title}`}>
         <div className="hc-detail">
@@ -114,7 +117,7 @@ const ServicePage = () => {
       <ClosingAction
         eyebrow={s.title}
         title="Ask about this service"
-        text="Tell me the occasion and the date, and I will reply with the next step."
+        text="Tell us the occasion and the date, and we will reply with the next step."
         primary={{ to: `/contact?service=${encodeURIComponent(s.slug)}`, label: 'Ask about this service' }}
         secondary={{ to: '/services', label: 'All services' }}
         image={toImage(s.hero)}

@@ -52,7 +52,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
     const found = []
     if (!form.company.trim()) found.push({ id: 'cb-company', message: 'Enter the company name.' })
     if (!form.name.trim()) found.push({ id: 'cb-name', message: 'Enter your name.' })
-    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cb-phone', message: 'Enter a phone number or an email address so I can reply.' })
+    if (!form.phone.trim() && !form.email.trim()) found.push({ id: 'cb-phone', message: 'Enter a phone number or an email address so we can reply.' })
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
       found.push({ id: 'cb-email', message: 'Check the email address.' })
     if (form.quantity !== '') {
@@ -100,7 +100,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
         <h3>
           <Icon name="check-circle" /> Brief received
         </h3>
-        <p>Thank you, I have your brief. I will reply {responseTime || 'as soon as I can'}. Nothing is booked or priced until we agree it.</p>
+        <p>Thank you, we have your brief. We will reply {responseTime || 'as soon as we can'}. Nothing is booked or priced until we agree it.</p>
         <Button variant="secondary" className="hc-mt-3" onClick={() => setStatus('idle')}>
           Send another brief
         </Button>
@@ -199,7 +199,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
           value={form.brief}
           onChange={set('brief')}
           maxLength={2000}
-          help={`What the pieces are for, styles, sizes and anything else I should know. ${form.brief.length} of 2000 characters.`}
+          help={`What the pieces are for, styles, sizes and anything else we should know. ${form.brief.length} of 2000 characters.`}
           error={errorFor('cb-brief')}
         />
         <div className="hc-hp" aria-hidden="true">
@@ -215,7 +215,7 @@ const CompanyBriefForm = ({ services = [], responseTime }) => {
           />
         </div>
         <div className="hc-field--full">
-          <PrivacyNote>I use these details only to reply to this brief.</PrivacyNote>
+          <PrivacyNote>We use these details only to reply to this brief.</PrivacyNote>
           <Button type="submit" block disabled={status === 'sending'} icon={status === 'sending' ? undefined : 'send'} className="hc-mt-3">
             {status === 'sending' ? 'Sending…' : 'Send your company brief'}
           </Button>

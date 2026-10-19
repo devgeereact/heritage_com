@@ -8,6 +8,7 @@ import { Rich, LoadingPage, NotFoundPage } from './cmsBlocks'
 import { JournalCard } from './BlogPage'
 import { ClosingAction } from './sections'
 import useActions from './ui/useActions'
+import { PrintRule } from './ui/PrintArt'
 
 /**
  * One journal post: title, category and date, excerpt and the body (sanitised
@@ -27,7 +28,7 @@ const BlogPostPage = () => {
 
   return (
     <SiteLayout title={post.title} seo={{ description: clip(post.excerpt || post.body), type: 'article' }}>
-      <Section className="hc-section--pagehead">
+      <Section className="hc-section--pagehead" edit={{ to: '/content', label: 'this post' }}>
         <p className="hc-crumb">
           <Link to="/journal">Journal</Link> / <span>{post.cat || 'Post'}</span>
         </p>
@@ -40,6 +41,7 @@ const BlogPostPage = () => {
           )}
         </SectionHead>
       </Section>
+      <PrintRule variant={post.print || 'kente'} />
       <Section tone="paper" aria-label="Post">
         <div className="hc-detail hc-detail--single">
           <Rich html={post.body} className="hc-detail-body" />
@@ -55,15 +57,15 @@ const BlogPostPage = () => {
         <Section tone="alt" labelledBy="more-posts">
           <SectionHead id="more-posts" eyebrow="Journal" title="Keep reading" />
           <div className="hc-grid hc-grid--3">
-            {more.map((p) => (
-              <JournalCard key={p.slug} p={p} />
+            {more.map((p, i) => (
+              <JournalCard key={p.slug} p={p} i={i} />
             ))}
           </div>
         </Section>
       )}
       <ClosingAction
-        title="Tell me what you want to make."
-        text="Send a short message with the occasion and the date, and I will get back to you."
+        title="Tell us what you want to make."
+        text="Send a short message with the occasion and the date, and we will get back to you."
         primary={{ to: primary.to, label: primary.label }}
         secondary={secondary}
       />

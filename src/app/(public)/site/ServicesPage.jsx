@@ -6,6 +6,8 @@ import { Section } from './ui/Section'
 import { ServiceCard } from './ui/Card'
 import { PageHead, Rich, resourceState } from './cmsBlocks'
 import { ClosingAction, ProcessBand, CompanyBand } from './sections'
+import { PrintRule } from './ui/PrintArt'
+import { printAt, printVariant } from './ui/printPatterns'
 
 const load = () => heritApi.site.services()
 const loadPreview = async () => {
@@ -30,7 +32,14 @@ const ServicesPage = () => {
 
   return (
     <SiteLayout title={intro?.seo_title || 'Services'} seo={{ description: intro?.seo_description || clip(intro?.intro), image: intro?.hero?.url }}>
-      <PageHead eyebrow="Services" title={intro?.headline || 'Services'} intro={intro?.intro} hero={intro?.hero} />
+      <PageHead
+        eyebrow="Services"
+        title={intro?.headline || 'Services'}
+        intro={intro?.intro}
+        hero={intro?.hero}
+        edit={{ to: '/website/pages/services_intro', label: 'the services introduction' }}
+      />
+      <PrintRule variant="asooke" />
 
       {intro?.body && (
         <Section>
@@ -39,12 +48,13 @@ const ServicesPage = () => {
       )}
 
       {items.length > 0 && (
-        <Section tone="alt" aria-label="Services">
-          <div className="hc-grid hc-grid--3">
-            {items.map((s) => (
+        <Section tone="alt" aria-label="Services" edit={{ to: '/website/services', label: 'services' }}>
+          <div className={`hc-grid ${items.length === 4 ? 'hc-grid--4' : 'hc-grid--3'}`}>
+            {items.map((s, i) => (
               <ServiceCard
                 key={s.slug}
                 image={toImage(s.hero)}
+                print={printVariant(s.title, printAt(i))}
                 title={s.title}
                 summary={s.summary}
                 meta={s.price_note || undefined}
@@ -60,11 +70,11 @@ const ServicesPage = () => {
       <CompanyBand image={toImage(items.find((s) => s.hero?.url)?.hero)} to={cfg?.nav?.company ? '/company-orders' : '/contact?type=company'} />
 
       <ClosingAction
-        title={items.length ? 'Not sure which service fits?' : 'Tell me what you want to make.'}
+        title={items.length ? 'Not sure which service fits?' : 'Tell us what you want to make.'}
         text={
           items.length
             ? 'Send a short note about the piece and the date you need it.'
-            : 'Send a short message with the occasion and the date, and I will get back to you.'
+            : 'Send a short message with the occasion and the date, and we will get back to you.'
         }
         primary={{ to: primary.to, label: primary.label }}
         secondary={secondary}
