@@ -75,7 +75,6 @@ $out['overdue_jobs'] = ['count' => $count, 'items' => $items, 'more' => max(0, $
 
 /* ---- Refused attempts (from the audit log) ---------------------------------- */
 // Only refusals that are audited one row per attempt (REVIEW_REFUSAL_ACTIONS).
-// Failed saves (400, 409, 500 answers) are not audited, so they are not here.
 $actions = array_keys(REVIEW_REFUSAL_ACTIONS);
 $marks = implode(',', array_fill(0, count($actions), '?'));
 $counts = [];
@@ -83,6 +82,14 @@ foreach (db_rows("SELECT action, COUNT(*) AS n FROM audit_log WHERE created_at >
   'i' . str_repeat('s', count($actions)), $startTs, ...$actions) as $r) $counts[$r['action']] = (int)$r['n'];
 $refusals = review_refusals($counts);
 $out['refusals'] = ['available' => true, 'total' => array_sum(array_column($refusals, 'count')), 'items' => $refusals];
+
+/* ---- Failed saves (K-31): lost races (409) and server errors (500) ------------ */
+// audit_failure() writes one row per failure with the endpoint and its ?action,
+// no person. 400 answers (bad input) are not counted: they are the form doing its job.
+$rows = db_rows("SELECT action, entity, JSON_UNQUOTE(JSON_EXTRACT(meta, '$.action')) AS sub, COUNT(*) AS n
+                   FROM audit_log WHERE created_at >= FROM_UNIXTIME(?) AND action IN ('save_conflict', 'server_error')
+                  GROUP BY action, entity, sub", 'i', $startTs);
+$out['failed_saves'] = ['available' => true] + review_failed_saves($rows);
 
 /* ---- Notifications sent and failed ------------------------------------------ */
 /** {available, sent, failed, other, total, by_status} from status => count rows. */

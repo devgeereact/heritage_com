@@ -30,6 +30,15 @@ const summary = (days, over = {}) => ({
       { action: 'pin_login_fail', label: 'Staff PIN sign-in refused', count: 0 },
     ],
   },
+  failed_saves: {
+    available: true,
+    total: 5,
+    kinds: [
+      { kind: 'save_conflict', label: 'Two people changed the same record at once', count: 3 },
+      { kind: 'server_error', label: 'Server error', count: 2 },
+    ],
+    endpoints: [{ endpoint: 'ledger.php', action: 'reverse', count: 4 }, { endpoint: 'quotes.php', action: '', count: 1 }],
+  },
   notifications: {
     whatsapp: { ...none, sent: 6, failed: 2, other: 5, total: 13 },
     reminders: none,
@@ -89,7 +98,7 @@ describe('owner review page', () => {
       expect(screen.getByTestId(`note-${id}`).textContent.length).toBeGreaterThan(40),
     )
     expect(screen.getByTestId('note-usage')).toHaveTextContent('not proof')
-    expect(screen.getByTestId('note-refusals')).toHaveTextContent('does not record failed saves')
+    expect(screen.getByTestId('note-refusals')).toHaveTextContent('Failed emails are in Messages sent and failed')
   })
 
   it('switches to 90 days and asks the server again', async () => {
@@ -131,6 +140,29 @@ describe('owner review page', () => {
     expect(screen.getByRole('button', { name: 'Last 30 days' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('heading', { name: 'Enquiry conversion' })).toBeInTheDocument()
     expect(screen.queryByText(/22 Jul 2026 to/)).toBeNull()
+  })
+
+  it('shows failed saves by kind and by screen, with no person named', async () => {
+    mockFetch((url) => jsonResponse(summary(daysOf(url))))
+    renderPage()
+    const card = (await screen.findByRole('heading', { name: 'Failed saves' })).closest('.card')
+    const c = within(card)
+    expect(c.getByText('Two people changed the same record at once').closest('tr')).toHaveTextContent('3')
+    expect(c.getByText('Server error').closest('tr')).toHaveTextContent('2')
+    expect(c.getByText('ledger.php').closest('tr')).toHaveTextContent('(reverse)4')
+    expect(c.getByText('quotes.php').closest('tr')).not.toHaveTextContent('(')
+    expect(c.getByText(/Forms that ask you to correct a field are not counted/)).toBeInTheDocument()
+  })
+
+  it('says plainly when there were no failed saves, or when the server does not count them yet', async () => {
+    let block = { available: true, total: 0, kinds: [], endpoints: [] }
+    mockFetch((url) => jsonResponse(summary(daysOf(url), { failed_saves: block })))
+    const { unmount } = renderPage()
+    expect(await screen.findByText('No failed saves in the last 30 days.')).toBeInTheDocument()
+    unmount()
+    block = undefined
+    renderPage()
+    expect(await screen.findByText('Not counted yet on this server.')).toBeInTheDocument()
   })
 
   it('shows plain empty states', async () => {

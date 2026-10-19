@@ -29,6 +29,7 @@ cors_headers();
 // Any uncaught error/exception (including "prepare() returned false" Errors)
 // becomes a clean JSON 500. Detail is only included when GK_DEBUG is on.
 set_exception_handler(function ($e) use ($__debug) {
+  audit_failure('server_error');   // K-31: counted on Owner review; never masks the answer
   cors_headers(); // safe to re-call; header() just overwrites
   if (!headers_sent()) {
     http_response_code(500);
@@ -648,6 +649,39 @@ function audit($userId, $action, $entity = null, $entityId = null, $meta = null)
   );
   $stmt->bind_param('issis', $userId, $action, $entity, $entityId, $m);
   $stmt->execute();
+}
+
+/** Most failure rows (one kind) written per hour, so a burst cannot flood the log. */
+const AUDIT_FAILURE_HOURLY_CAP = 200;
+
+/**
+ * Pure: the audit row for a failed save (K-31, D-025): kind 'server_error' or
+ * 'save_conflict', the endpoint file and its ?action only. No user, no IP, no
+ * request body, so a failure row never holds personal data. Null for other kinds.
+ */
+function audit_failure_row($kind, $script, $action, $method) {
+  if (!in_array($kind, ['server_error', 'save_conflict'], true)) return null;
+  $endpoint = preg_replace('/[^a-z0-9_.]/i', '', basename((string)$script));
+  $act = is_string($action) ? substr(preg_replace('/[^a-z0-9_]/i', '', $action), 0, 40) : '';
+  $m = strtoupper(is_string($method) ? $method : '');
+  return ['action' => $kind, 'entity' => substr($endpoint, 0, 60), 'meta' => ['action' => $act, 'method' => in_array($m, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], true) ? $m : '']];
+}
+
+/** Record a failed save for Owner review. Swallows every error of its own. */
+function audit_failure($kind) {
+  global $conn;
+  try {
+    if (!($conn instanceof mysqli)) return;
+    $row = audit_failure_row($kind, $_SERVER['SCRIPT_NAME'] ?? '', $_GET['action'] ?? '', $_SERVER['REQUEST_METHOD'] ?? '');
+    if ($row === null) return;
+    $stmt = $conn->prepare('SELECT COUNT(*) AS n FROM audit_log WHERE action = ? AND created_at >= NOW() - INTERVAL 1 HOUR');
+    $stmt->bind_param('s', $row['action']);
+    $stmt->execute();
+    if ((int)$stmt->get_result()->fetch_assoc()['n'] >= AUDIT_FAILURE_HOURLY_CAP) return;
+    audit(null, $row['action'], $row['entity'], null, $row['meta']);
+  } catch (Throwable $ignored) {
+    // a failure log must never turn one error into another
+  }
 }
 
 /* ---- Login throttling (pure decision; auth.php supplies the counts) ------- */

@@ -173,3 +173,30 @@ function review_refusals(array $counts) {
   }
   return $out;
 }
+
+/** Kinds of failed save counted on Owner review (K-31, written by audit_failure). */
+const REVIEW_FAILURE_KINDS = ['save_conflict' => 'Two people changed the same record at once', 'server_error' => 'Server error'];
+
+/**
+ * Failed saves as {total, kinds: [{kind, label, count}], endpoints: [{endpoint, action, count}]}
+ * from rows of {action, entity, sub, n}. Zeros kept for kinds; endpoints biggest first, at most 10.
+ */
+function review_failed_saves(array $rows) {
+  $kinds = []; $ends = [];
+  foreach ($rows as $r) {
+    $k = (string)($r['action'] ?? ''); $n = (int)($r['n'] ?? 0);
+    if (!isset(REVIEW_FAILURE_KINDS[$k]) || $n <= 0) continue;
+    $kinds[$k] = ($kinds[$k] ?? 0) + $n;
+    $key = (string)($r['entity'] ?? '') . '|' . (string)($r['sub'] ?? '');
+    $ends[$key] = ($ends[$key] ?? 0) + $n;
+  }
+  $outKinds = [];
+  foreach (REVIEW_FAILURE_KINDS as $k => $label) $outKinds[] = ['kind' => $k, 'label' => $label, 'count' => $kinds[$k] ?? 0];
+  arsort($ends);
+  $outEnds = [];
+  foreach (array_slice($ends, 0, 10, true) as $key => $n) {
+    [$e, $a] = explode('|', $key, 2);
+    $outEnds[] = ['endpoint' => $e, 'action' => $a, 'count' => $n];
+  }
+  return ['total' => array_sum($kinds), 'kinds' => $outKinds, 'endpoints' => $outEnds];
+}

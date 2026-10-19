@@ -104,3 +104,24 @@ check('refusals: email failures belong to the Email card, not here', array_key_e
 check('refusals: the second row of a staff sign-in refusal is not counted', array_key_exists('login_fail_acct', array_column($r, 'count', 'action')), false);
 check('refusals: unlisted actions are ignored', array_sum(array_column($r, 'count')), 5);
 check('refusals: each has a plain label', count(array_filter($r, fn($x) => is_string($x['label']) && $x['label'] !== '')), count($r));
+
+/* ---- Failed saves (K-31) ----------------------------------------------------- */
+$f = review_failed_saves([
+  ['action' => 'save_conflict', 'entity' => 'ledger.php', 'sub' => 'reverse', 'n' => '3'],
+  ['action' => 'server_error', 'entity' => 'quotes.php', 'sub' => 'send', 'n' => 1],
+  ['action' => 'server_error', 'entity' => 'ledger.php', 'sub' => 'reverse', 'n' => 2],
+  ['action' => 'login_fail_ip', 'entity' => 'auth.php', 'sub' => 'login', 'n' => 9],
+  ['action' => 'save_conflict', 'entity' => 'x.php', 'sub' => '', 'n' => 0],
+]);
+check('failed saves: total counts only the two failure kinds', $f['total'], 6);
+check('failed saves: both kinds listed, zeros kept, in order', array_column($f['kinds'], 'count', 'kind'), ['save_conflict' => 3, 'server_error' => 3]);
+check('failed saves: endpoints summed and biggest first', $f['endpoints'][0], ['endpoint' => 'ledger.php', 'action' => 'reverse', 'count' => 5]);
+check('failed saves: nothing recorded gives zeros, no endpoints', review_failed_saves([]), ['total' => 0, 'kinds' => [['kind' => 'save_conflict', 'label' => REVIEW_FAILURE_KINDS['save_conflict'], 'count' => 0], ['kind' => 'server_error', 'label' => 'Server error', 'count' => 0]], 'endpoints' => []]);
+
+/* ---- audit_failure_row (K-31): no person, cleaned names ---------------------- */
+$row = audit_failure_row('server_error', '/public_html/quotes.php', 'send', 'post');
+check('failure row: endpoint file and action only', [$row['action'], $row['entity'], $row['meta']], ['server_error', 'quotes.php', ['action' => 'send', 'method' => 'POST']]);
+check('failure row: unknown kind gives null', audit_failure_row('login_fail_ip', 'a.php', 'x', 'GET'), null);
+check('failure row: hostile action text is stripped to letters, digits and _', audit_failure_row('save_conflict', 'a.php', "rev<script>'x", 'GET')['meta']['action'], 'revscriptx');
+check('failure row: a list action becomes empty', audit_failure_row('save_conflict', 'a.php', ['x'], 'GET')['meta']['action'], '');
+check('failure row: unknown method is dropped', audit_failure_row('save_conflict', 'a.php', 'x', 'TRACE')['meta']['method'], '');

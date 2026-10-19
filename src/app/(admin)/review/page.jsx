@@ -117,7 +117,7 @@ const RefusalsCard = ({ r, days }) => {
     <ReviewCard
       id="refusals"
       title="Refused attempts"
-      note="Refused sign-ins, codes and checks, and emails that failed, from the audit log. HeritOS does not record failed saves (for example two people changing the same job at once), so those are not counted. Many refusals in a short time can mean someone guessing."
+      note="Refused sign-ins, codes and checks, from the audit log. Many refusals in a short time can mean someone guessing. Failed emails are in Messages sent and failed."
     >
       {rows.length === 0 ? (
         <p className="mb-0">Nothing was refused in the last {days} days.</p>
@@ -136,6 +136,56 @@ const RefusalsCard = ({ r, days }) => {
     </ReviewCard>
   )
 }
+
+const FailedSavesCard = ({ f, days }) => (
+  <ReviewCard
+    id="failed-saves"
+    title="Failed saves"
+    note="Saves the server could not finish: two people changing the same record at once, or a server error. Counted from the day this was switched on (19 October 2026), with the screen and action but no person. Forms that ask you to correct a field are not counted. A few are normal; a steady number on one screen is worth looking at."
+  >
+    {!f || !f.available ? (
+      <p className="mb-0">Not counted yet on this server.</p>
+    ) : f.total === 0 ? (
+      <p className="mb-0">No failed saves in the last {days} days.</p>
+    ) : (
+      <>
+        <Table responsive size="sm" className="mb-2">
+          <tbody>
+            {f.kinds.map((k) => (
+              <tr key={k.kind}>
+                <td>{k.label}</td>
+                <td className="text-end tnum">{k.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+        {f.endpoints.length > 0 && (
+          <Table responsive size="sm" className="mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Where</th>
+                <th scope="col" className="text-end">
+                  Count
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {f.endpoints.map((e) => (
+                <tr key={`${e.endpoint}|${e.action}`}>
+                  <td>
+                    <code>{e.endpoint}</code>
+                    {e.action ? ` (${e.action})` : ''}
+                  </td>
+                  <td className="text-end tnum">{e.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+      </>
+    )}
+  </ReviewCard>
+)
 
 const NotificationsCard = ({ n }) => (
   <ReviewCard
@@ -298,6 +348,9 @@ const ReviewPage = () => {
           </Col>
           <Col xs={12} lg={6}>
             <RefusalsCard r={data.refusals} days={days} />
+          </Col>
+          <Col xs={12} lg={6}>
+            <FailedSavesCard f={data.failed_saves} days={days} />
           </Col>
           <Col xs={12}>
             <UsageCard u={data.usage} days={days} />
