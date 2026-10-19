@@ -374,12 +374,13 @@ Never deleted (protected in `_retention.php`, checked by the helper tests): jobs
 
 ## Phase 7 usage counts and owner review
 
-Branch `wip/phase7`, 19 October 2026. Evidence for the plan's Phase 7 ("learn and simplify"): nothing is removed or added by these endpoints. Verified on local staging only; production NOT TESTED.
+Branch `feat/phase7-review`, 19 October 2026. Evidence for the plan's Phase 7 ("learn and simplify"): nothing is removed or added by these endpoints. Verified on local staging only; production NOT TESTED.
 
 ### `usage.php` (any staff)
 
 - `POST ?action=hit {section}` (all seven staff roles, `require_auth(USAGE_ROLES)`). `section` must be one of `USAGE_SECTIONS` in `_review.php`, the first URL segment of each admin menu item (`src/__tests__/usage.test.js` fails if the two lists differ). Answers `{ok:true, counted:true}` and runs `INSERT ... ON DUPLICATE KEY UPDATE hits = hits + 1` on `usage_daily (day, section, role)` with `day = lagos_today()`. Before `schema_phase31.sql` it answers `{ok:true, counted:false}` and stores nothing.
 - Errors: unknown or missing section 400 "Unknown section"; a list or object 400 "section must be text"; no session 401; GET 405; another action 404.
+- One `(day, section, role)` row holds at most `USAGE_DAILY_CAP` (50) hits, so a looping client or hand-made posts cannot turn one row into a misleading number (staging: 60 posts stop at 50, 19 October 2026). The browser keeps its once-a-day list per role, so on a shared device the next role to open a section the same day is still counted.
 - Stores no user id, IP address or path. The admin layout (`src/helpers/usage.js`) sends at most one hit per section per browser per Lagos day, remembered in localStorage `herit_usage_sent`; it never waits for the answer, ignores errors and sends nothing offline or without working storage.
 
 ### `review.php` (super_admin)

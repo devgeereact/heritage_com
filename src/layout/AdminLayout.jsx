@@ -8,6 +8,7 @@ import '@/assets/scss/app.scss'
 import '@/assets/scss/heritos-admin.css'
 import '@/components/herit/herit-daily.css'
 import { lazy, Suspense, useEffect } from 'react'
+import { useAuthContext } from '@/context/useAuthContext'
 import { useLocation } from 'react-router-dom'
 import heritApi from '@/helpers/heritApi'
 import { recordSectionVisit } from '@/helpers/usage'
@@ -37,9 +38,10 @@ const useNoIndex = () => {
 /** Phase 7: count the section once per browser per day (no person stored; errors ignored). */
 const useSectionUsage = () => {
   const { pathname } = useLocation()
+  const role = useAuthContext().user?.role ?? null
   useEffect(() => {
-    recordSectionVisit(pathname, { send: heritApi.usage.hit })
-  }, [pathname])
+    recordSectionVisit(pathname, { send: heritApi.usage.hit, role })
+  }, [pathname, role])
 }
 
 const AdminLayout = ({ children }) => {

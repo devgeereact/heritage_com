@@ -96,10 +96,11 @@ check('zero hits: menu order kept', $z, array_values(array_diff(USAGE_SECTIONS, 
 check('zero hits: nothing counted means every section', review_zero_hit_sections([]), USAGE_SECTIONS);
 
 /* ---- Refusals --------------------------------------------------------------------- */
-$r = review_refusals(['login_fail_ip' => 3, 'mail_send_failed' => '2', 'login_fail_acct' => 3, 'something_else' => 9]);
+$r = review_refusals(['login_fail_ip' => 3, 'track_fail_ip' => '2', 'login_fail_acct' => 3, 'mail_send_failed' => 4, 'something_else' => 9]);
 check('refusals: every listed action appears, zeros kept', count($r), count(REVIEW_REFUSAL_ACTIONS));
 check('refusals: counts are read', array_column($r, 'count', 'action')['login_fail_ip'], 3);
-check('refusals: text counts become numbers', array_column($r, 'count', 'action')['mail_send_failed'], 2);
+check('refusals: text counts become numbers', array_column($r, 'count', 'action')['track_fail_ip'], 2);
+check('refusals: email failures belong to the Email card, not here', array_key_exists('mail_send_failed', array_column($r, 'count', 'action')), false);
 check('refusals: the second row of a staff sign-in refusal is not counted', array_key_exists('login_fail_acct', array_column($r, 'count', 'action')), false);
 check('refusals: unlisted actions are ignored', array_sum(array_column($r, 'count')), 5);
 check('refusals: each has a plain label', count(array_filter($r, fn($x) => is_string($x['label']) && $x['label'] !== '')), count($r));

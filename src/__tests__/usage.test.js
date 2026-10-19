@@ -31,12 +31,20 @@ describe('section usage sender', () => {
     expect(send).toHaveBeenCalledWith('jobs')
   })
 
+  it('on a shared device, counts the next role that opens the same section that day', () => {
+    recordSectionVisit('/jobs', { send, storage, day: '2026-10-19', online: true, role: 'super_admin' })
+    recordSectionVisit('/jobs', { send, storage, day: '2026-10-19', online: true, role: 'tailor' })
+    recordSectionVisit('/jobs/3', { send, storage, day: '2026-10-19', online: true, role: 'tailor' })
+    expect(send).toHaveBeenCalledTimes(2)
+    expect(JSON.parse(storage.getItem(USAGE_STORAGE_KEY))).toEqual({ day: '2026-10-19', role: 'tailor', sections: ['jobs'] })
+  })
+
   it('counts each section separately and starts again on a new day', () => {
     recordSectionVisit('/jobs', { send, storage, day: '2026-10-19', online: true })
     recordSectionVisit('/clients/4', { send, storage, day: '2026-10-19', online: true })
     recordSectionVisit('/jobs', { send, storage, day: '2026-10-20', online: true })
     expect(send.mock.calls.map((c) => c[0])).toEqual(['jobs', 'clients', 'jobs'])
-    expect(JSON.parse(storage.getItem(USAGE_STORAGE_KEY))).toEqual({ day: '2026-10-20', sections: ['jobs'] })
+    expect(JSON.parse(storage.getItem(USAGE_STORAGE_KEY))).toEqual({ day: '2026-10-20', role: null, sections: ['jobs'] })
   })
 
   it('sends nothing while offline and does not mark the section as sent', () => {

@@ -30,6 +30,9 @@ $role = usage_role($user['role']);
 if ($role === null) fail('Forbidden', 403);
 
 if (!has_table('usage_daily')) json(['ok' => true, 'counted' => false]);
+// The browser sends one hit per section per role per day, so a team this size
+// never comes near USAGE_DAILY_CAP; the cap stops a looping client (or a staff
+// member posting by hand) from turning one row into a misleading number.
 db_exec('INSERT INTO usage_daily (day, section, role, hits) VALUES (?, ?, ?, 1)
-         ON DUPLICATE KEY UPDATE hits = hits + 1', 'sss', lagos_today(), $section, $role);
+         ON DUPLICATE KEY UPDATE hits = LEAST(hits + 1, ' . USAGE_DAILY_CAP . ')', 'sss', lagos_today(), $section, $role);
 json(['ok' => true, 'counted' => true]);

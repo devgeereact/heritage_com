@@ -46,8 +46,10 @@ const REVIEW_REFUSAL_ACTIONS = [
   'cust_login_fail_ip' => 'Legacy client sign-in refused',
   'track_fail_ip' => 'Order tracking lookup refused',
   'gift_check_fail' => 'Gift card check refused',
-  'mail_send_failed' => 'Email not sent',
 ];
+
+/** Most hits one (day, section, role) row can hold (usage.php). */
+const USAGE_DAILY_CAP = 50;
 
 /** WhatsApp statuses (whatsapp_messages.status) counted as sent by the system. */
 const REVIEW_WA_SENT = ['sent', 'delivered', 'read'];

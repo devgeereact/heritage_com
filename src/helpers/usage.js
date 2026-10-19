@@ -21,18 +21,20 @@ export const USAGE_SECTIONS = flat(MENU_ITEMS)
 
 export const USAGE_STORAGE_KEY = 'herit_usage_sent'
 
-const readSent = (storage, day) => {
+// The list is kept per day AND role, so a shared shop tablet still counts the
+// tailor who opens Jobs after the owner did on the same day.
+const readSent = (storage, day, role) => {
   try {
     const raw = JSON.parse(storage.getItem(USAGE_STORAGE_KEY) || 'null')
-    return raw && raw.day === day && Array.isArray(raw.sections) ? raw.sections : []
+    return raw && raw.day === day && (raw.role ?? null) === role && Array.isArray(raw.sections) ? raw.sections : []
   } catch {
     return []
   }
 }
 
-const writeSent = (storage, day, sections) => {
+const writeSent = (storage, day, role, sections) => {
   try {
-    storage.setItem(USAGE_STORAGE_KEY, JSON.stringify({ day, sections }))
+    storage.setItem(USAGE_STORAGE_KEY, JSON.stringify({ day, role, sections }))
     return true
   } catch {
     return false
@@ -53,16 +55,16 @@ const defaultStorage = () => {
  * by the caller and its errors are swallowed. Without working storage nothing is
  * sent, so a browser that cannot remember never counts the same section twice.
  */
-export function recordSectionVisit(path, { send, storage = defaultStorage(), day = lagosToday(), online } = {}) {
+export function recordSectionVisit(path, { send, storage = defaultStorage(), day = lagosToday(), online, role = null } = {}) {
   const section = pathSection(path)
   if (!USAGE_SECTIONS.includes(section) || typeof send !== 'function' || !storage) return false
   const isOnline = online ?? (typeof navigator === 'undefined' || navigator.onLine !== false)
   if (!isOnline) return false
-  const sent = readSent(storage, day)
+  const sent = readSent(storage, day, role)
   if (sent.includes(section)) return false
   // Remember first: a failed or slow request is not retried, so one section is
   // counted at most once a day even if the answer never arrives.
-  if (!writeSent(storage, day, [...sent, section])) return false
+  if (!writeSent(storage, day, role, [...sent, section])) return false
   try {
     Promise.resolve(send(section)).catch(() => {})
   } catch {

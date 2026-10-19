@@ -107,6 +107,32 @@ describe('owner review page', () => {
     expect(daysOf(fetchMock.mock.calls.at(-1)[0])).toBe(90)
   })
 
+  it('keeps the latest choice when an older, slower answer arrives last', async () => {
+    const pending = []
+    mockFetch((url) => {
+      const days = daysOf(url)
+      if (days === 30 && pending.length === 0) return jsonResponse(summary(30))
+      return new Promise((done) => pending.push({ days, done }))
+    })
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByRole('heading', { name: 'Enquiry conversion' })
+
+    await user.click(screen.getByRole('button', { name: 'Last 90 days' }))
+    await user.click(screen.getByRole('button', { name: 'Last 30 days' }))
+    expect(pending.map((p) => p.days)).toEqual([90, 30])
+
+    // The 30-day answer lands first, then the stale 90-day one.
+    pending[1].done(jsonResponse(summary(30)))
+    await screen.findByRole('heading', { name: 'Enquiry conversion' })
+    pending[0].done(jsonResponse(summary(90)))
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(screen.getByRole('button', { name: 'Last 30 days' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('heading', { name: 'Enquiry conversion' })).toBeInTheDocument()
+    expect(screen.queryByText(/22 Jul 2026 to/)).toBeNull()
+  })
+
   it('shows plain empty states', async () => {
     mockFetch((url) =>
       jsonResponse(

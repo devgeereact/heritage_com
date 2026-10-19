@@ -119,9 +119,10 @@ const RETENTION_CATEGORIES = [
     'label' => 'Section usage counts (day, section, role; no person), days after the day',
     'min' => 1,
     'steps' => [
-      // `day` is a DATE (the Lagos day of the visit), compared with the UTC
-      // cutoff's date and time: a row goes once the whole day is older than the
-      // period, give or take Lagos's one hour ahead of UTC (schema_phase31.sql).
+      // `day` is a DATE (the Lagos day of the visit) compared with the UTC cutoff's
+      // date and time, so MySQL reads the DATE as midnight: the cutoff day itself
+      // also goes, up to one day before the period ends. Counts only, so a day
+      // early is harmless (schema_phase31.sql).
       ['table' => 'usage_daily', 'column' => 'day', 'where' => '', 'needs' => ['usage_daily.day']],
     ],
   ],

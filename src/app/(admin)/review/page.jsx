@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Card, Col, Row, Spinner, Table } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import PageTitle from '@/components/PageTitle'
@@ -233,13 +233,20 @@ const ReviewPage = () => {
   const [state, setState] = useState('loading')
   const [error, setError] = useState(null)
 
+  // Only the latest request may update the page: switching 90 then 30 quickly
+  // must not leave the slower 90-day answer on screen (or a blank page).
+  const latest = useRef(0)
   const load = useCallback(async () => {
+    const id = ++latest.current
     setState('loading')
     setError(null)
     try {
-      setData(await heritApi.review.summary(days))
+      const answer = await heritApi.review.summary(days)
+      if (id !== latest.current) return
+      setData(answer)
       setState('ready')
     } catch (e) {
+      if (id !== latest.current) return
       setError(e)
       setState('error')
     }
