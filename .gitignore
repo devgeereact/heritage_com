@@ -48,3 +48,7 @@ public/uploads/site/
 
 # Release manifest (scripts/release/manifest.mjs): generated per release, never committed or published
 release-manifest.json
+
+# Rendered print images for the content loader (scripts/content/render-prints.mjs)
+scripts/content/.out/
+scripts/content/.state/

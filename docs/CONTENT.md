@@ -67,6 +67,41 @@ Current public routes are listed in [ARCHITECTURE.md](ARCHITECTURE.md#route-inve
 - Form fields: company name, contact name, phone or email, garment type, approximate quantity, required date, material responsibility, short brief. Attachments come later and only with safe private storage ([SECURITY.md](SECURITY.md#private-files-and-content-safety)).
 - The honeypot is now `website_url_confirm` and `company` is a real optional field stored on `enquiries` (A11, fixed in PR #7; needs `schema_phase17.sql` in production).
 
+## Real content from the live site
+
+Loaded 19 October 2026 on `feat/real-content` into the local `heritos_clean` database through the real API (`scripts/content/load-real-content.php`, words in `scripts/content/real-content.php`). Source: the live heritclothing.com (read 19 October 2026) and the Journal posts in the old site code (`origin/main`, `src/app/(public)/site/content.js`). Voice: the brand's "we", as on the live site; the fixed band copy moved from "I" to "we" in the same change (owner to confirm).
+
+Imported (Owner-confirmed by being live; the owner can edit each in the Website admin):
+
+| Where | What |
+|---|---|
+| Business details | Herit Clothing; hello@heritclothing.com; address "Ajuwon Market, Lagos, Nigeria" (shown); area "Lagos, Nigeria"; journal switched on. Phone, WhatsApp, hours and social links stay empty: the live site shows "+234 …" and bare `instagram.com/` links (A12) |
+| Home page | "Wear your heritage.", "Your culture, cut for now.", founded 2024 in Ajuwon Market |
+| Fabric story (new page key `fabrics`, Home only) | Ankara (bold wax prints), Adire (hand-dyed indigo, resist patterns carry meaning), Aso-Oke (hand-woven strip cloth, ceremonial) |
+| About | The live story, mission and vision word for word; How we work (01 to 04), values, who we serve (Lagos and Nigeria, the diaspora, gifters) |
+| How it works | The four order steps the app supports, with the live reply promise "we aim to reply within one business day" |
+| Company orders, Services introduction, Contact | Neutral descriptions of what the app does; the reply promise on Contact |
+| Hero slides | "Wear your heritage.", "Heritage, tailored for now.", "Matching pieces for weddings and celebrations.", "Made in Lagos, worn everywhere." |
+| Services | Made-to-measure, Aso-ebi and groups, Gifting (live wording, gift notes included), Company and uniform orders (neutral wording, Phase 5) |
+| Questions | How do I know my size, Do you ship internationally, Can I order matching aso-ebi, How do payments work: neutral answers with no commercial commitment |
+| Journal | "Reading Adire: the language of indigo", "Why we cut for now, not for one occasion", "From Ajuwon Market to your doorstep" |
+
+Left out on purpose:
+
+| Live content | Why |
+|---|---|
+| Counters (pieces delivered, countries, 98%), the four named makers, the four testimonials, the press strip (Vogue NG, BellaNaija, Guardian Life, ThisDay Style, OkayAfrica) | Invented (D-003, D-013) |
+| HERIT10, free delivery, the Founders' Drop, the shipping price table | Invented or unconfirmed offers (D-003, BR-34) |
+| Tiered aso-ebi pricing on six or more; the 14-day returns answer; "Every parcel is tracked" in the third journal post | Commercial commitments the owner has not confirmed |
+| Shop products and prices; "Ready-to-wear" as a service | The shop stays hidden (D-006, D-014) |
+| Dress wording in testimonials and products | Scope is men's tailoring and fashion (D-001) |
+| Social links | No verified handle (A12) |
+| Our work and testimonials | No real photographs or consented quotes yet; both sections stay hidden |
+
+Images: 14 African print illustrations (4 hero slides, 4 services, 6 pages) rendered by `scripts/content/render-prints.mjs` and uploaded through `cms.php` `media_upload`, so they are processed into the 800 and 1600px WebP and JPEG variants like any owner upload. Each has alt text that describes the print as an illustration and the caption "Illustration of African print cloth (not a photograph)". The staging library held only synthetic swatches (staging projects and e2e navy swatches); these replace them by role, not one for one.
+
+Re-running the loader changes nothing; an item the owner has edited since is kept unless `--update` is given. It refuses any host but `127.0.0.1` or `localhost` unless `--allow-remote` (https only), so the live site can be loaded later only when the owner chooses.
+
 ## Fixed copy in the shared bands (D-023)
 
 Verified in `src/app/(public)/site/sections.jsx`, 14 October 2026. These bands appear on several pages so no page is left as a lone heading. Their text describes how HeritOS really works and holds no numbers, offers, deposits or client claims; edit it here and in the file together.
@@ -83,7 +118,7 @@ Photographs in these bands come only from published content (the company or abou
 ## Copy rules
 
 - Specific captions: what was made, a useful fabric or fit detail, and the occasion where permission exists.
-- Useful information instead of repeated heritage slogans. Keep the local voice and the owner's first person where it fits.
+- Useful information instead of repeated heritage slogans. Keep the local voice; since 19 October 2026 the site speaks as "we", as the live site did.
 - British and Nigerian spelling (colour, honour), readable sentences, honest examples. Sentence case for headings and buttons; only the wordmark is all caps; no all-caps paragraphs. Fabric names are proper nouns: Ankara, Adire, Aso-Oke, Kente. Naira as `₦18,500`.
 - No stock client logos, no team carousel, no animated statistics without a source, no urgency banner unless it reflects real booking capacity. Testimonials can be absent without the page looking unfinished.
 - Social links: only verified URLs from CMS settings; unconfigured links are hidden. Today they fall back to platform home pages (A12).
@@ -91,7 +126,7 @@ Photographs in these bands come only from published content (the company or abou
 ## Photography
 
 - Genuine cloth and garment photographs: front, back and detail, ideally on a consistent neutral backdrop. Workshop moments: measuring, cutting, stitching, finishing.
-- Never generic fabric gradients, and never AI-made garments presented as delivered work.
+- Never AI-made garments presented as delivered work. African print illustrations ([DESIGN-SYSTEM.md](DESIGN-SYSTEM.md#african-print-art)) are drawn cloth, used for mood and empty states and always described as illustrations in their alt text; they never stand in for a photograph of a real piece.
 - Client photos and reviews need explicit, separate publication permission ([BR-33](BUSINESS-RULES.md)).
 - Strip location metadata from public images; keep public derivatives separate from private originals.
 - No team carousel for a one-person business. A page without testimonials is not unfinished.
