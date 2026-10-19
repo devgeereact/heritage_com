@@ -4,6 +4,21 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Real content and African prints on `feat/real-content`, 19 October 2026
+
+Stacked on #21. Decision D-026.
+
+Added
+
+- African print art (`PrintArt`, `PrintRule`, print tokens) used as section art and as the fallback wherever a section has no photograph (D-026).
+- Full landing built from the CMS: hero slides, fabric story (new `fabrics` page), services, how it works, company orders, about and mission, questions, journal, contact call to action.
+- Edit controls on public sections for signed-in staff, each opening the matching Website editor; the editor opens services and projects by web address.
+- `scripts/content/load-real-content.php` loads the real company content and 14 rendered print illustrations through the CMS API as the owner; idempotent, localhost only unless `--allow-remote`.
+
+Changed
+
+- Fixed public copy speaks as "we", as on the live site.
+
 ### CEO decisions on `feat/ceo-decisions`, 19 October 2026
 
 Stacked on #20 (this branch will be PR #21). Decisions: D-025 in [docs/DECISIONS.md](docs/DECISIONS.md). Owner actions: the "#21" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
