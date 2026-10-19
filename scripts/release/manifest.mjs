@@ -64,6 +64,7 @@ export const SCHEMA_MARKERS = {
   'schema_phase29.sql': { table: 'password_resets' },
   'schema_phase30.sql': { setting: 'retention_expired_tokens_days' },
   'schema_phase31.sql': { table: 'usage_daily' },
+  'schema_phase32.sql': { setting: 'policy_defaults_d025' },
 }
 
 /** File names copied into dist/ by deploy.yml (`cp php-api/NAME dist/`), comments ignored. */
