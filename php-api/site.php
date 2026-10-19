@@ -7,7 +7,7 @@
  *   ?action=home                  home page plus up to 6 services, 6 projects (featured
  *                                 first) and 4 home FAQs
  *   ?action=page&key=K            one published page (home, about, how_it_works,
- *                                 company, services_intro, contact)
+ *                                 company, services_intro, contact, fabrics)
  *   ?action=services              published services (and the services_intro page)
  *   ?action=service&slug=S        one service and its published projects
  *   ?action=work[&service=S]      published portfolio projects
@@ -15,6 +15,7 @@
  *   ?action=faqs[&home=1]         published FAQs
  *   ?action=policy&key=K          privacy or terms
  *   ?action=journal               published journal posts while journal_enabled is on
+ *                                 (each with `print`, the African print that illustrates it)
  *   ?action=journal_post&slug=S   one post
  *
  * Only published content leaves this file, and only through the whitelist
@@ -191,10 +192,11 @@ if ($action === 'policy') {
 if ($action === 'journal') {
   $items = [];
   if (journal_on()) {
-    foreach (db_rows("SELECT slug, title, excerpt, category, author, published_at FROM blog_posts
+    foreach (db_rows("SELECT slug, title, excerpt, category, tile, author, published_at FROM blog_posts
                        WHERE status = 'published' ORDER BY published_at DESC LIMIT 50") as $p) {
       $items[] = ['slug' => $p['slug'], 'title' => $p['title'], 'excerpt' => (string)$p['excerpt'],
-        'category' => (string)$p['category'], 'author' => (string)$p['author'], 'published_at' => $p['published_at']];
+        'category' => (string)$p['category'], 'print' => journal_print_name($p['tile'] ?? ''),
+        'author' => (string)$p['author'], 'published_at' => $p['published_at']];
     }
   }
   site_json(['enabled' => journal_on(), 'items' => $items]);
@@ -202,10 +204,12 @@ if ($action === 'journal') {
 
 if ($action === 'journal_post') {
   if (!journal_on()) site_404('Post not found');
-  $p = db_row("SELECT slug, title, excerpt, body, category, author, published_at FROM blog_posts
+  $p = db_row("SELECT slug, title, excerpt, body, category, tile, author, published_at FROM blog_posts
                 WHERE slug = ? AND status = 'published' LIMIT 1", 's', in_str($_GET, 'slug'));
   if (!$p) site_404('Post not found');
   $p['body'] = sanitize_html($p['body'] ?? '');
+  $p['print'] = journal_print_name($p['tile'] ?? '');
+  unset($p['tile']);
   site_json(['post' => $p]);
 }
 

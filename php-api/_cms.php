@@ -14,8 +14,12 @@
  */
 
 const CMS_ENTITIES = ['service', 'project', 'faq', 'policy', 'page', 'slide'];
-/** Pages and policies are fixed keys; their slug is the key. */
-const CMS_PAGE_KEYS = ['home', 'about', 'how_it_works', 'company', 'services_intro', 'contact'];
+/**
+ * Pages and policies are fixed keys; their slug is the key. 'fabrics' is the
+ * fabric story band on Home (no page of its own, so it has no CMS_PAGE_PATHS
+ * entry and is not in the sitemap).
+ */
+const CMS_PAGE_KEYS = ['home', 'about', 'how_it_works', 'company', 'services_intro', 'contact', 'fabrics'];
 const CMS_POLICY_KEYS = ['privacy', 'terms'];
 /** Entities whose slug the staff choose (and which then never changes once published). */
 const CMS_SLUGGED = ['service', 'project'];
@@ -128,6 +132,20 @@ function cms_private_leak_check($text) {
   if (preg_match('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i', $t)) $found[] = 'email';
   if (preg_match('/\b(?:HC|HCG|ORD|QT|RCT)-\d+/i', $t)) $found[] = 'staff_code';
   return $found;
+}
+
+/**
+ * The African print a journal post is illustrated with: one of adire, ankara,
+ * asooke or kente, read from the post's stored tile name (the older
+ * 'hc-tile-<fabric>' classes or a fabric name). Anything else is the woven
+ * check ('kente'), the same as printVariant() in printPatterns.js.
+ */
+function journal_print_name($tile) {
+  $s = strtolower((string)$tile);
+  if (preg_match('/adire|indigo/', $s)) return 'adire';
+  if (preg_match('/ankara|wax/', $s)) return 'ankara';
+  if (preg_match('/aso-?\s?oke|asooke|strip/', $s)) return 'asooke';
+  return 'kente';
 }
 
 /* ---- Social links and WhatsApp -------------------------------------------- */

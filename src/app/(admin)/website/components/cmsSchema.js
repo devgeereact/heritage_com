@@ -9,6 +9,7 @@ export const PAGE_LABELS = {
   company: 'Company orders',
   services_intro: 'Services introduction',
   contact: 'Contact',
+  fabrics: 'Fabric story (Home)',
 }
 export const PAGE_PATHS = {
   home: '/',
@@ -17,6 +18,7 @@ export const PAGE_PATHS = {
   company: '/company-orders',
   services_intro: '/services',
   contact: '/contact',
+  fabrics: '/',
 }
 export const POLICY_LABELS = { privacy: 'Privacy', terms: 'Terms' }
 

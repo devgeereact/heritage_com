@@ -225,7 +225,7 @@ Branch `feat/phase4-website` (no PR yet). Verified on local staging, 11 October 
 
 ### Content model
 
-Entities: `service`, `project` (portfolio), `faq`, `policy` (keys `privacy`, `terms`), `page` (keys `home`, `about`, `how_it_works`, `company`, `services_intro`, `contact`) and `slide` (home hero slides, D-023; needs `schema_phase28.sql`, otherwise `save_draft` answers 409 "Hero slides are not set up yet"). A slide's fields are `label` (30), `eyebrow` (40), `headline` (90, required), `lead` (220), `hero_media_id` (required, with alt text) and an optional button: `cta_label` (40) and `cta_path` (120, an internal path starting with one `/`; outside links, `//` and `..` are refused). Each item keeps a public `live` copy, an unpublished `draft` and one earlier version (`prev`). Saving a draft never changes the public site. Publishing copies the draft to live and keeps the old live copy; rolling back swaps live and the earlier version, so a second rollback undoes the first. Unpublishing hides the item and keeps its content. An item that was ever published is never deleted (unpublish it), and its slug never changes.
+Entities: `service`, `project` (portfolio), `faq`, `policy` (keys `privacy`, `terms`), `page` (keys `home`, `about`, `how_it_works`, `company`, `services_intro`, `contact`, and since 19 October 2026 `fabrics`, the fabric story band on Home, which has no page or sitemap entry of its own) and `slide` (home hero slides, D-023; needs `schema_phase28.sql`, otherwise `save_draft` answers 409 "Hero slides are not set up yet"). A slide's fields are `label` (30), `eyebrow` (40), `headline` (90, required), `lead` (220), `hero_media_id` (required, with alt text) and an optional button: `cta_label` (40) and `cta_path` (120, an internal path starting with one `/`; outside links, `//` and `..` are refused). Each item keeps a public `live` copy, an unpublished `draft` and one earlier version (`prev`). Saving a draft never changes the public site. Publishing copies the draft to live and keeps the old live copy; rolling back swaps live and the earlier version, so a second rollback undoes the first. Unpublishing hides the item and keeps its content. An item that was ever published is never deleted (unpublish it), and its slug never changes.
 
 Fields (`data` in `save_draft`; required ones are checked only at publish):
 
@@ -276,8 +276,8 @@ Answers carry an ETag (304 on a match) and `Cache-Control: public, max-age=60, s
 | `work_item&slug=S` | `{item:project}` |
 | `faqs[&home=1]` | `{items:[{id, question, answer, category, show_on_home}]}` |
 | `policy&key=privacy\|terms` | `{policy:{key, title, body, effective_date, updated_at}}` |
-| `journal` | `{enabled, items:[{slug, title, excerpt, category, author, published_at}]}`; empty while `journal_enabled` is off |
-| `journal_post&slug=S` | `{post:{slug, title, excerpt, body (sanitised), category, author, published_at}}`; 404 while the journal is off |
+| `journal` | `{enabled, items:[{slug, title, excerpt, category, print, author, published_at}]}`; empty while `journal_enabled` is off. `print` (since 19 October 2026) is `adire`, `ankara`, `asooke` or `kente`, from the post's stored `tile` (`journal_print_name()` in `_cms.php`) |
+| `journal_post&slug=S` | `{post:{slug, title, excerpt, body (sanitised), category, print, author, published_at}}`; 404 while the journal is off |
 
 Images (`hero`, `cover`, `images[]`): `{url (JPEG fallback), srcset:[{url, width, type:'image/webp'}], width, height, alt, caption?}`, or null.
 

@@ -169,3 +169,5 @@ check('spa head: no photograph falls back to the brand icon, summary card, en_NG
 $page = "<head>\n  <!--hc:head-->\n  <title>Old</title>\n  <!--/hc:head-->\n</head>";
 check('spa inject: replaces only the marked block', [str_contains(spa_inject($page, '<title>New $1 \\0</title>'), '<title>New $1 \\0</title>'), str_contains(spa_inject($page, '<title>New</title>'), 'Old')], [true, false]);
 check('spa inject: page without markers unchanged', spa_inject('<head><title>X</title></head>', '<title>Y</title>'), '<head><title>X</title></head>');
+check('journal print: tile classes and fabric names map to a print', [journal_print_name('hc-tile-adire'), journal_print_name('Ankara'), journal_print_name('hc-tile-asooke'), journal_print_name('Aso-Oke'), journal_print_name('hc-tile-mixed'), journal_print_name('')], ['adire', 'ankara', 'asooke', 'asooke', 'kente', 'kente']);
+check('page keys: the fabric story band is a page with no public path of its own', [in_array('fabrics', CMS_PAGE_KEYS, true), isset(CMS_PAGE_PATHS['fabrics']), spa_route('/fabrics')], [true, false, null]);

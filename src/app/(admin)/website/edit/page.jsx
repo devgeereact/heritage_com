@@ -287,7 +287,16 @@ const WebsiteEditPage = () => {
           .get(entity, { key: ref })
           .then((r) => r.item)
           .catch((e) => (e.status === 404 ? null : Promise.reject(e)))
-      else if (!isNew) it = (await heritApi.cms.get(entity, { id: ref })).item
+      else if (!isNew && ent.slugged && !/^\d+$/.test(ref)) {
+        // Opened by web address (the public site's Edit control knows the slug, not the id).
+        const found = ((await heritApi.cms.list(entity)).items || []).find((i) => i.slug === ref)
+        if (!found) {
+          navigate(`/website/${section}`, { replace: true })
+          return
+        }
+        navigate(`/website/${section}/${found.id}`, { replace: true })
+        return
+      } else if (!isNew) it = (await heritApi.cms.get(entity, { id: ref })).item
       setItem(it)
       setForm(toForm(entity, it?.editable))
       setSlug(it?.slug || '')
@@ -301,7 +310,7 @@ const WebsiteEditPage = () => {
     } catch (e) {
       setLoadError(e)
     }
-  }, [ent, entity, ref, isNew])
+  }, [ent, entity, ref, isNew, navigate, section])
   useEffect(() => {
     load()
   }, [load])
