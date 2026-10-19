@@ -24,7 +24,7 @@ Status as of 19 October 2026. Work is on stacked branches and pull requests, non
 | #19 | `feat/release-readiness` | A02 and A20 release tools (manifest, `release_check.php`, smoke test, backup and restore check), the 152-check launch matrix (`e2e-launch.sh`) and the defects it found (K-29, K-30), K-25 to K-28 fixed, `npm run check:php` in CI | Pushed, stacked on #18; PR number to be confirmed |
 | #20 | `feat/phase7-review` | Phase 7 evidence: section usage counts (`schema_phase31.sql`) and the owner-only Owner review page | Open, stacked on #19 (19 October 2026) |
 | #21 | `feat/ceo-decisions` | CEO decisions ([D-025](DECISIONS.md)): policy defaults in `schema_phase32.sql` (retention periods, quote validity, deposit wording), failed saves counted on Owner review (K-31), release order and switches | Open, stacked on #20 (19 October 2026) |
-| None yet | `feat/real-content` | D-026: real company content from the live site, African print illustrations, full landing, staff edit controls, content loader | Pushed, stacked on #21 (19 October 2026) |
+| #22 | `feat/real-content` | D-026: real company content from the live site, African print illustrations, full landing, staff edit controls, content loader | Open, stacked on #21 (19 October 2026) |
 
 Owner actions at each merge: [DEPLOYMENT.md](DEPLOYMENT.md#owner-actions-per-pull-request).
 
