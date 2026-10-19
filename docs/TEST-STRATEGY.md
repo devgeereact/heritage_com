@@ -52,6 +52,8 @@ Phase 7 evidence tool, 19 October 2026 (`feat/phase7-review`, PR #20; built on l
 
 Rerun by the lead on the integrated `feat/phase7-review`, 19 October 2026 (local staging, port 8088): `e2e-phase2.sh` 52 of 52, `e2e-phase3.sh` 100 of 100, `e2e-phase4.sh` 63 of 63, `e2e-phase5.sh` 25 of 25, `e2e-reset.sh` 23 of 23, `e2e-launch.sh` 152 of 152; `php php-api/tests/run.php` 757 passed; `npm test` 304 passed; `npm run check:php` PASS. After the review fixes: 758 helper tests and 306 frontend tests passed.
 
+CEO decisions, 19 October 2026 (`feat/ceo-decisions`, stacked on #20, local staging). Cheap checks rerun by the documentation step on the branch head: `php php-api/tests/run.php` 767 passed, 0 failed (new checks for `audit_failure_row()` and `review_failed_saves()`); `npm test` 308 passed in 18 files (the Failed saves card is covered in `reviewPage.test.jsx`); `npm run check:php` PASS (63 PHP files); `npm run lint` 0 errors, 87 warnings; `check-tokens` PASS; `npm run build` PASS. Run by the lead: `e2e-phase2.sh` 52 of 52 and `e2e-launch.sh` 152 of 152 after K-31; a probe 500 on staging was recorded with user NULL and shown in the report; `schema_phase32.sql` imported twice and a saved value was kept; the retention dry run plans every category and deletes nothing; `release_check.php --db` shows `schema_phase32.sql` PRESENT. NOT TESTED: the Failed saves card in a browser, `schema_phase32.sql` on the host, the retention job with `--apply` against the new periods, and every hand upload on the host.
+
 ## Coverage plan
 
 | Level | Purpose | Target behaviour | Environment | Command or method | Owner |

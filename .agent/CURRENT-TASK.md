@@ -21,9 +21,31 @@ Build the full Plans 2026 roadmap (owner instruction, 10 October 2026: "build ev
 | Production-readiness and privacy audit | `feat/redesign-dark-luxury` (audit commits, 17 October 2026) | Done, two commits on PR #14 (owner pasted two audit briefs). Fixed K-08 (P0 seed passwords), K-09, K-10 (server security), K-24 (website: not-found page, error screen, SEO tags, pause controls, shop off for visitors, privacy notes, self-hosted fonts). Docs: privacy inventory, retention schedule, sources and owner questions in `docs/DATA-PRIVACY.md`; draft notice `docs/PRIVACY-NOTICE-DRAFT.md`. Evidence: lint 0 errors, build, 374 helper tests, e2e phase2 48, phase3 93, phase4 63, browser checks on staging. NOT TESTED: e2e-phase5 on the Mac (K-17), HSTS under TLS, webhook signature, AI caps, error screen at runtime, booking note in a browser, real phones, screen readers. Second batch the same day: K-15 (hashed staff tokens), K-16 (form focus), K-17 (phase 5 on macOS, 25 of 25), K-20 (sitemap, service worker; manifest choice left to the owner), K-23 (login timing). Owner decisions D-024 the same day built: promotional WhatsApp sends off (K-11), AI drafter without personal data (K-12), 30-day attribution (K-13), staff-only install (K-20). Then A16 (offline write blocking and banner) and 64-bit gift codes. Then one PIN per person and a tested Content Security Policy (K-23). Next: legal entity and privacy contact, retention periods; Terms BLOCKED on commercial rules |
 | Hardening (K-07, K-14, K-18, A15, A13) | `feat/hardening-2026-10-18` | Built and integrated 18 October 2026, stacked on #17 (which carries #14 to #16); PR #18, number not assigned yet. K-07 Today ordering, `more` and the hidden count on screen; K-14 order lookup by POST; K-18 retention job (`retention.php`, `_retention.php`, `schema_phase30.sql`, Settings > Data retention); A15 staff cookie with `X-Herit-CSRF` behind `STAFF_COOKIE_AUTH` (default off) and its review fixes; A13 first frontend suite (`npm test`); corrupt session cookie fix; sanitisers refuse `//host` and `/\host`; `e2e-phase2.sh` self-seeds (52 checks). Evidence ([docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results)): 559 helper tests, 263 frontend tests in 14 files, lint 0 errors, build PASS, `e2e-phase2.sh` 52, `e2e-phase3.sh` 93 (B5c flaky once, K-27), `e2e-phase4.sh` 63, `e2e-phase5.sh` 25, `e2e-reset.sh` 19. NOT TESTED: the cookie flow and the retention cron on the live server, browser journeys for the new screens, admin screens beyond sign-in under the frontend tests |
 | Release readiness (A02, A20, K-25 to K-30) | `feat/release-readiness` | Built and integrated 18 October 2026, stacked on #18; PR #19, number to be confirmed. Release tools (`release:manifest`, `release_check.php`, `release:smoke`, `backup.sh`, `restore-check.sh`), the 152-check launch matrix (`e2e-launch.sh`), `npm run check:php` in CI, and fixes for K-25 to K-30. No schema change. Evidence: [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results). NOT TESTED: every release tool on the host. Owner actions: the "#19" row in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request) |
-| Phase 7 evidence | `feat/phase7-review` | Built 19 October 2026, PR #20 stacked on #19: `usage.php`, `review.php`, `_review.php`, `schema_phase31.sql`, Owner review page `/review`. Evidence: 758 helper tests, 306 frontend tests, `check:php` PASS, lint 0 errors, build, e2e phase2 52, phase3 100, phase4 63, phase5 25, reset 23, launch 152; browser `/review` at 1280 and 390px, light and dark. Owner to confirm: owner-only access, a usage retention period (400 days proposed), role counts with one person per role, whether to audit failed saves (K-31), the label "Owner review" under Settings |
+| Phase 7 evidence | `feat/phase7-review` | Built 19 October 2026, PR #20 stacked on #19: `usage.php`, `review.php`, `_review.php`, `schema_phase31.sql`, Owner review page `/review`. Evidence: 758 helper tests, 306 frontend tests, `check:php` PASS, lint 0 errors, build, e2e phase2 52, phase3 100, phase4 63, phase5 25, reset 23, launch 152; browser `/review` at 1280 and 390px, light and dark. Owner to confirm: owner-only access, a usage retention period (400 days, decided in D-025), role counts with one person per role, whether to audit failed saves (K-31, now decided: D-025), the label "Owner review" under Settings |
+| CEO decisions (D-025, K-31) | `feat/ceo-decisions` | Built 19 October 2026, PR #21 stacked on #20: `schema_phase32.sql` (retention periods, quote validity, deposit wording; fills only empty settings), failed saves counted through `audit_failure()` and shown on Owner review (K-31), release order and switches recorded. Evidence: 767 helper tests, 308 frontend tests, `check:php` PASS, lint 0 errors, build PASS, e2e phase2 52 and launch 152 after K-31, `schema_phase32.sql` imported twice with a saved value kept, retention dry run plans every category. NOT TESTED: the Failed saves card in a browser, everything on the host. Owner actions: the "#21" row in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request) |
 
 Phase 6 (release, pilot, social publishing) and Phase 7 (learn and simplify) need the owner and live systems; this task prepares their checklists only.
+
+## Handoff: D-025 decisions (19 October 2026)
+
+State at handoff: the decisions, the policy-defaults import and the failed-saves count are on `feat/ceo-decisions`, stacked on PR #20 (`feat/phase7-review`); the pull request will be #21. The documentation step did not commit or push. Nothing is deployed and `main` is untouched.
+
+Where the facts live (do not copy them here):
+
+- The decisions: D-025 in [docs/DECISIONS.md](../docs/DECISIONS.md).
+- What changed: the CEO decisions section under Unreleased in [CHANGELOG.md](../CHANGELOG.md); issue status (K-31 fixed in code, K-18, A15 and K-14 notes): [KNOWN-ISSUES.md](../KNOWN-ISSUES.md).
+- Retention periods: [docs/DATA-PRIVACY.md](../docs/DATA-PRIVACY.md#retention-schedule); settings and the failed-saves rows: [docs/API-SPEC.md](../docs/API-SPEC.md#failed-saves-k-31).
+- Owner actions in order (import, hand uploads, release switches, cron): the "#21" row in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+- Release decision (NO-GO today, with the conditions for GO): [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#release-decision).
+- Test counts and results: [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results).
+
+Open decisions now made in D-025: the retention periods; quote validity and the deposit wording; whether to audit failed saves (K-31); the `STAFF_COOKIE_AUTH` switch (required at release, once HTTPS is confirmed); when the legacy order lookup goes (30 days after release); public booking (only after the pilot); the owner-only Owner review under Settings; removal of the older module pages (after eight weeks with no visits); and confirmation of the K-07, K-25, K-26 and link-rule choices from earlier handoffs.
+
+Still owner facts, not decided because they are facts or legal advice (D-013): legal entity name, privacy contact, Terms commercial rules, counsel on GAID Article 19, garment range, address, hours and capacity, link-preview photographs (K-19), and the statutory period for financial records.
+
+Next step: the release window with the owner at cPanel. Follow the [Release procedure](../docs/DEPLOYMENT.md#release-procedure) and the "#21" row, merge the stack in order only when the owner can run the cPanel steps in the same window, then record the results in the Production check table in [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#production-check).
+
+Checks to rerun before any further change: `npm test`, `npm run check:php`, `npm run lint`, `npm run build`, `npm run check:tokens`, `node scripts/check-docs.mjs`, `php php-api/tests/run.php`, `bash scripts/staging/e2e-phase{2,3,4,5}.sh`, `e2e-reset.sh` and `e2e-launch.sh`. Last results: helper tests 767; frontend tests 308 in 18 files; e2e phase2 52 and launch 152 after K-31.
 
 ## Handoff: release readiness (18 October 2026)
 
@@ -37,7 +59,7 @@ Where the facts live (do not copy them here):
 - Test counts and results: [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results); the launch matrix rows: [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#launch-verification-matrix) (Payment integrity and Failure handling now pass on staging; Recovery and Release stay PARTIAL).
 - Reset timing and lockout design: [docs/SECURITY.md](../docs/SECURITY.md#staff).
 
-Owner decisions to confirm:
+Owner decisions to confirm (decided in D-025, 19 October 2026: the reset timing and lockout, the manifest and the backup location were confirmed as built):
 
 - `RESET_MIN_MS` default of 600 ms for every reset request.
 - The reset throttle numbers: 3 requests per address from one IP (`RESET_MAX_PER_ACCOUNT_IP`), an hourly ceiling of 10 per address (`RESET_MAX_PER_ACCOUNT`, window `RESET_ACCOUNT_WINDOW`), and the accepted residual that a stranger with several IPs can still reach the ceiling (K-26).
@@ -64,7 +86,7 @@ Where the facts live (do not copy them here):
 - Auth design (cookie, CSRF, sign-in checks, hashing): [docs/SECURITY.md](../docs/SECURITY.md#staff); the retention policy and settings: [docs/DATA-PRIVACY.md](../docs/DATA-PRIVACY.md#retention-schedule) and [docs/API-SPEC.md](../docs/API-SPEC.md#data-retention-settings-keys-k-18).
 - Test counts and results: [docs/TEST-STRATEGY.md](../docs/TEST-STRATEGY.md#commands-and-latest-results).
 
-Lead decisions the owner should confirm:
+Lead decisions the owner should confirm (decided in D-025, 19 October 2026: Today ordering, the cookie design and its required switch, the link rule and the banner choice were confirmed; the retention periods were set):
 
 - Today ranks a due or overdue enquiry follow-up first, then new enquiries (K-07).
 - A15 design: an HttpOnly SameSite=Strict staff cookie with a double-submit `X-Herit-CSRF` header, and it stays off until the owner switches `STAFF_COOKIE_AUTH` on over HTTPS.
@@ -105,7 +127,7 @@ Next for a developer:
 3. K-18: retention jobs, after the owner sets periods.
 4. K-07: Today's lists stop at 20 items (enquiries and unverified payments); `e2e-phase2.sh` E9b and E15c fail on accumulated staging data. Clear old staging rows or fix the ordering rule with the owner.
 
-Waiting on the owner: legal name, privacy contact, retention periods, Terms commercial rules, counsel on GAID Article 19 (attribution), photographs for link previews (K-19), switching off the legacy order-code login (K-14).
+Waiting on the owner: legal name, privacy contact, Terms commercial rules, counsel on GAID Article 19 (attribution), photographs for link previews (K-19). Retention periods and the switch-off of the legacy order-code login (K-14, 30 days after release) are decided in D-025.
 
 Checks to rerun before any further change: `npm run lint`, `npm run build`, `npm run check:tokens`, `node scripts/check-docs.mjs`, `php php-api/tests/run.php`, `bash scripts/staging/e2e-phase{2,3,4,5}.sh` (phase 5 now runs on macOS). Last results: helper tests 374; e2e phase3 93, phase4 63, phase5 25, phase2 46 of 48 (K-07).
 
@@ -154,7 +176,7 @@ Existing Application. Workflow: Change Safety for every change.
 ## Open items for the owner
 
 - Merge PRs #6 to #17 in order, then the hardening branch (`feat/hardening-2026-10-18`, #18), then the release readiness branch (`feat/release-readiness`, #19, number to be confirmed), with the owner actions listed in `docs/DEPLOYMENT.md`.
-- Approve or refuse the deletion candidates in `docs/ROADMAP.md`.
+- Deletion candidates in `docs/ROADMAP.md`: decided in D-025 (kit screens already removed; older module pages go after eight weeks with no visits).
 - Phase 3: fill in availability in Settings, decide when to open public requests, confirm the proposed feedback consent wording, and choose when to switch off `ALLOW_LEGACY_ORDER_CODE_LOOKUP` (D-021).
 
 ## Previous task

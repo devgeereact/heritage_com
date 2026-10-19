@@ -64,8 +64,8 @@ The release decision and its criteria. Allowed decisions are `GO`, `NO-GO` and `
 - Version: none; the app has no release versioning yet ([DEPLOYMENT.md](../docs/DEPLOYMENT.md#environments-and-promotion-path))
 - Candidate: none. Work is on stacked feature branches ([ROADMAP.md](../docs/ROADMAP.md))
 - Environment: production (heritclothing.com)
-- Decision: `NOT DECIDED`
-- Decision owner and date: business owner; no date
+- Decision: `NO-GO` today: production checks not yet run. GO when: the release procedure in [DEPLOYMENT.md](../docs/DEPLOYMENT.md#release-procedure) has been run with the owner at cPanel (backup and restore proved, `release_check.php` all MATCH, schema imports to phase 32, smoke PASS) and the pilot is reviewed.
+- Decision owner and date: lead developer under the owner's delegation ([D-025](../docs/DECISIONS.md)), 19 October 2026. The business owner stays the release owner for the cPanel steps.
 
 ### Decision criteria (Plans 2026, approved 10 October 2026)
 

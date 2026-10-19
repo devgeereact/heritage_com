@@ -354,21 +354,23 @@ Off until the owner sets `company_portal_enabled` to 1 (setting, default 0); whi
 
 Settings: `company_portal_enabled` (`0` or `1`, default `0`).
 
+Policy defaults ([D-025](DECISIONS.md), `schema_phase32.sql`, 19 October 2026): `quote_validity_days` `14` and `deposit_policy_text` `Work starts once the deposit shown on this quote is paid. The balance is due before collection.` (states the existing rule and names no amount, which stays per quote), written only where the setting is empty. The same file sets the `retention_*_days` keys below and a marker row `policy_defaults_d025` (`2026-10-19`) that `release_check.php --db` reads. Both policy values stay editable by the owner in Settings.
+
 ## Data retention settings keys (K-18)
 
-Branch `feat/hardening-2026-10-18`. Seeded by `schema_phase30.sql`; saved through `settings.php` by `super_admin` only: a request from admin or manager that contains any of these keys answers 403 "Only the owner can change how long data is kept." and saves nothing, although they can still read the values (GET) and see them read-only in Settings > Data retention. The `settings_update` audit entry records `meta.retention` as `{key: {old, new}}` for each retention key sent (`old` is null when the key was never stored). Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. A row goes when its date column is older than now minus the period. Cutoffs are UTC, except for `auth_tokens` and `customer_tokens`: their `expires_at` is a DATETIME written with `NOW()` in the server's zone, so the job compares them with the server's own clock (read before it switches its session to UTC) minus the period.
+Branch `feat/hardening-2026-10-18`. Seeded by `schema_phase30.sql`; saved through `settings.php` by `super_admin` only: a request from admin or manager that contains any of these keys answers 403 "Only the owner can change how long data is kept." and saves nothing, although they can still read the values (GET) and see them read-only in Settings > Data retention. The `settings_update` audit entry records `meta.retention` as `{key: {old, new}}` for each retention key sent (`old` is null when the key was never stored). The defaults were decided in [D-025](DECISIONS.md) and are written by `schema_phase32.sql` only where the value is still empty; a value the owner saved is never changed. Each value is a whole number of days. Empty or `0` means keep forever (stored as empty); anything else outside the range answers 400 with the rule. Read only by `retention.php`, which treats a bad stored value as off and reports it. A row goes when its date column is older than now minus the period. Cutoffs are UTC, except for `auth_tokens` and `customer_tokens`: their `expires_at` is a DATETIME written with `NOW()` in the server's zone, so the job compares them with the server's own clock (read before it switches its session to UTC) minus the period.
 
 | Key | Default | Range | Deletes from (date column, condition) |
 |---|---|---|---|
 | `retention_expired_tokens_days` | `30` | 1 to 3650 | `auth_tokens` and `customer_tokens` (`expires_at`) |
-| `retention_customer_sessions_days` | Empty (off) | 1 to 3650 | `customer_sessions` (`expires_at`) |
-| `retention_access_attempts_days` | Empty (off) | 1 to 3650 | `customer_access_challenges` (`expires_at`) |
-| `retention_audit_log_days` | Empty (off) | 90 to 3650 | `audit_log` (`created_at`); the floor keeps sign-in throttling and recent history |
-| `retention_whatsapp_log_days` | Empty (off) | 1 to 3650 | `whatsapp_messages` (`created_at`) |
-| `retention_abandoned_carts_days` | Empty (off) | 1 to 3650 | `abandoned_carts` (`updated_at`, one row per phone) |
-| `retention_waitlist_days` | Empty (off) | 1 to 3650 | `waitlist` (`created_at`) |
-| `retention_closed_enquiries_days` | Empty (off) | 1 to 3650 | `enquiries` (`updated_at`), only `status = 'closed'` with no `job_id`, no `converted_at` and no quote, job or appointment pointing at it |
-| `retention_usage_daily_days` | Empty (off) | 1 to 3650 | `usage_daily` (`day`, a Lagos DATE compared with the UTC cutoff, so a row may go up to an hour early or late); seeded by `schema_phase31.sql` (Phase 7) |
+| `retention_customer_sessions_days` | Empty, then `30` from `schema_phase32.sql` (D-025) | 1 to 3650 | `customer_sessions` (`expires_at`) |
+| `retention_access_attempts_days` | Empty, then `90` from `schema_phase32.sql` (D-025) | 1 to 3650 | `customer_access_challenges` (`expires_at`) |
+| `retention_audit_log_days` | Empty, then `365` from `schema_phase32.sql` (D-025) | 90 to 3650 | `audit_log` (`created_at`); the floor keeps sign-in throttling and recent history |
+| `retention_whatsapp_log_days` | Empty, then `365` from `schema_phase32.sql` (D-025) | 1 to 3650 | `whatsapp_messages` (`created_at`) |
+| `retention_abandoned_carts_days` | Empty, then `30` from `schema_phase32.sql` (D-025) | 1 to 3650 | `abandoned_carts` (`updated_at`, one row per phone) |
+| `retention_waitlist_days` | Empty, then `180` from `schema_phase32.sql` (D-025) | 1 to 3650 | `waitlist` (`created_at`) |
+| `retention_closed_enquiries_days` | Empty, then `730` from `schema_phase32.sql` (D-025) | 1 to 3650 | `enquiries` (`updated_at`), only `status = 'closed'` with no `job_id`, no `converted_at` and no quote, job or appointment pointing at it |
+| `retention_usage_daily_days` | Empty, then `400` from `schema_phase32.sql` (D-025) | 1 to 3650 | `usage_daily` (`day`, a Lagos DATE compared with the UTC cutoff, so a row may go up to an hour early or late); seeded by `schema_phase31.sql` (Phase 7) |
 
 Never deleted (protected in `_retention.php`, checked by the helper tests): jobs and their events, items, handovers, samples, messages, change requests and feedback; `job_payments`, `payments`, `expenses`, quotes, orders, store credit, gift cards, coupon redemptions, measurement sets and templates, customers, companies and their contacts, appointments, users and settings.
 
@@ -391,6 +393,18 @@ Branch `feat/phase7-review`, 19 October 2026. Evidence for the plan's Phase 7 ("
 |---|---|---|
 | `enquiries {available, created, converted, rate, median_days_to_convert, timed}` | `enquiries.created_at`, `job_id`, `converted_at` (UTC DATETIME) | Enquiries created in the window and how many of those have a job so far; `rate` is null when none were created; the median uses those with `converted_at`. `available:false` before `schema_phase18.sql` |
 | `overdue_jobs {count, items[<=20], more}` | `tailoring_orders`, same rule as Today's Overdue | Open jobs past `due_date` now, oldest first: `id, code, client_name, due_date, days_overdue` |
-| `refusals {available, total, items[{action, label, count}]}` | `audit_log` | One audited row per refused attempt: `login_fail_ip`, `pin_login_fail`, `reset_fail_ip`, `set_pin_taken`, `access_verify_fail_ip`, `cust_login_fail_ip`, `track_fail_ip`, `gift_check_fail`, `mail_send_failed` (`REVIEW_REFUSAL_ACTIONS`). Failed saves are not available: a 400, 409 or 500 answer (including the `is_tx_conflict()` 409) writes no audit row, so the report does not estimate them |
+| `refusals {available, total, items[{action, label, count}]}` | `audit_log` | One audited row per refused attempt: `login_fail_ip`, `pin_login_fail`, `reset_fail_ip`, `set_pin_taken`, `access_verify_fail_ip`, `cust_login_fail_ip`, `track_fail_ip`, `gift_check_fail`, `mail_send_failed` (`REVIEW_REFUSAL_ACTIONS`). Failed saves are counted separately in `failed_saves`; 400 answers are not audited |
+| `failed_saves {available, total, kinds[{kind, label, count}], endpoints[{endpoint, action, count}]}` | `audit_log` | Lost races and server errors in the window (K-31, D-025): `save_conflict` (the 409 from `db_tx`, including deadlock and lock-timeout) and `server_error` (the JSON 500 handler). `kinds` keeps both with zeros; `endpoints` are the ten busiest by endpoint file and `?action`, biggest first. See [Failed saves](#failed-saves-k-31) |
 | `notifications {whatsapp, reminders, email, portal_messages}`, each `{available, sent, failed, other, total, by_status}` | `whatsapp_messages` (direction `out`; reminders are `template = 'tailoring_reminder'`), `audit_log` `mail_send` and `mail_send_failed`, `job_messages` (owner to client, `delivery_status <> 'na'`) | Sent is `sent`, `delivered` or `read` for WhatsApp; `manual` (wa.me links) and `queued` are other |
 | `usage {available, counting_since, sections[{section, hits, roles}], zero_hit_sections}` | `usage_daily` | Per section and role over the window, most used first; allowlisted sections with no hits, in menu order; `counting_since` is the first day recorded |
+
+### Failed saves (K-31)
+
+Branch `feat/ceo-decisions`, 19 October 2026 ([D-025](DECISIONS.md)). `audit_failure($kind)` in `_lib.php` writes one `audit_log` row per failed save, from two places: the uncaught-error handler (`server_error`, the JSON 500) and `db_tx` (`save_conflict`, the 409 for a lost race, deadlock or lock timeout).
+
+- The row holds the kind as `action`, the endpoint file as `entity` and, in `meta`, the `?action` and the HTTP method. It holds no user, no IP, no request body and no record id, so a failure row carries no personal data (`user_id` is NULL). `audit_failure_row()` is the pure part and is covered by the helper tests.
+- At most 200 rows per kind per hour (`AUDIT_FAILURE_HOURLY_CAP`), so a burst cannot flood the log.
+- It swallows every error of its own: counting a failure never turns one error into another or changes the answer the caller gets.
+- 400 answers (bad input) are not counted; they are the form doing its job.
+- Kept as long as the rest of the audit log (`retention_audit_log_days`, [DATA-PRIVACY.md](DATA-PRIVACY.md#retention-schedule)).
+- Read only by `review.php` (`failed_saves` block above). Staging: a probe 500 was recorded with user NULL and shown in the report; the card in a browser and the host are NOT TESTED. `_lib.php` and `_jobs.php` go up with the deploy; `_review.php` and `review.php` are hand uploads.

@@ -4,6 +4,22 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### CEO decisions on `feat/ceo-decisions`, 19 October 2026
+
+Stacked on #20 (this branch will be PR #21). Decisions: D-025 in [docs/DECISIONS.md](docs/DECISIONS.md). Owner actions: the "#21" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+
+Added
+
+- `schema_phase32.sql` (D-025): policy defaults written only into settings that are still empty, so a saved value is never changed: the eight `retention_*_days` periods, `quote_validity_days` (14) and the `deposit_policy_text` wording, with the marker `policy_defaults_d025` for `release_check.php --db` (K-18).
+- Failed saves are counted (K-31, D-025): `audit_failure()` in `_lib.php` writes one audit row for each lost race (`save_conflict`, the 409 from `db_tx`) and server error (`server_error`, the JSON 500), with the endpoint and its action only and at most 200 rows per kind per hour. `review.php` returns a `failed_saves` block and Owner review shows a Failed saves card.
+
+Changed
+
+- The release order is fixed (D-025): `STAFF_COOKIE_AUTH` is a required release step once HTTPS is confirmed (A15), `ALLOW_LEGACY_ORDER_CODE_LOOKUP` goes off 30 days after release (K-14), and `public_booking_enabled` stays off until the pilot is reviewed.
+- Launch checklist: release decision recorded as NO-GO today, with the conditions for GO ([qa/LAUNCH-CHECKLIST.md](qa/LAUNCH-CHECKLIST.md#release-decision)).
+- Roadmap: the sign-up and lock-screen kit screens are marked removed (commit `83a6d38`); the older module pages go after eight weeks with no visits on Owner review.
+- Data privacy, API, data model and product spec docs now state the D-025 retention periods, quote validity and deposit wording, and which owner decisions remain facts for the owner.
+
 ### Phase 7 evidence on `feat/phase7-review`, 19 October 2026
 
 Stacked on #19 (PR #20). Owner actions: the Phase 7 row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).

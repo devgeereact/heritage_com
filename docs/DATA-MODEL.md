@@ -130,6 +130,10 @@ Branch `feat/hardening-2026-10-18` (K-18); import it after `schema_phase29.sql`.
 
 Branch `feat/phase7-review` (plan Phase 7); import it after `schema_phase30.sql`. Additive and re-runnable. Creates `usage_daily (day DATE, section VARCHAR(40), role VARCHAR(20), hits INT UNSIGNED, PRIMARY KEY (day, section, role))`: one row per Lagos day, admin section and staff role, written only by `usage.php` with an upsert. No user id, IP address or path. Seeds `retention_usage_daily_days` (empty, keep forever) with `INSERT IGNORE`. Release marker: table `usage_daily`. What it means for privacy: [DATA-PRIVACY.md](DATA-PRIVACY.md#cookies-and-browser-storage); the endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
 
+## Policy defaults (schema_phase32)
+
+Branch `feat/ceo-decisions` ([D-025](DECISIONS.md), 19 October 2026); import it after `schema_phase31.sql`. No table or column changes. One `INSERT ... ON DUPLICATE KEY UPDATE` writes the D-025 values into `settings` only where the stored value is missing or empty, so a value the owner saved is never changed and a second import changes nothing: the eight `retention_*_days` periods, `quote_validity_days` and `deposit_policy_text`, plus the marker `policy_defaults_d025` (`2026-10-19`). The values are listed in [API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18) and the policy in [DATA-PRIVACY.md](DATA-PRIVACY.md#retention-schedule). Release marker: settings key `policy_defaults_d025`. The audit log rows that K-31 adds need no schema change ([API-SPEC.md](API-SPEC.md#failed-saves-k-31)).
+
 ## Phase 5 tables and columns (schema_phase27)
 
 Branch `feat/phase5-company-orders`. Additive and re-runnable (`IF NOT EXISTS` throughout); existing jobs keep `job_kind = 'individual'` and are unchanged. Numbered 27 because the Phase 4 `schema_phase27` was not needed ([DECISIONS.md](DECISIONS.md) D-022). A company order is one `tailoring_orders` row with `job_kind = 'company'`; groups (`tailoring_groups`) stay "coordinated, separate payers" and are not the company parent.

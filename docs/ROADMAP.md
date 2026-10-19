@@ -4,7 +4,7 @@ This file owns live status: the phases in dependency order with their completion
 
 Production confidence is PARTIAL: the source holds a lot of real work, but a successful build does not prove that the deployed APIs, database, appointments, customer access or payments work safely together. Do not give a launch date based on file counts; first reproduce the critical workflows in staging and measure the gaps. Treat the old "all 14 modules built" claim as historical, not a launch certificate.
 
-Status as of 18 October 2026. Work is on stacked branches and pull requests, none merged yet; merging each one deploys, in this order:
+Status as of 19 October 2026. Work is on stacked branches and pull requests, none merged yet; merging each one deploys, in this order:
 
 | PR | Branch | Content | State |
 |---|---|---|---|
@@ -23,6 +23,7 @@ Status as of 18 October 2026. Work is on stacked branches and pull requests, non
 | #18 | `feat/hardening-2026-10-18` | K-07 Today ordering, K-14 order lookup by POST, K-18 retention job (`schema_phase30.sql`), A15 staff cookie behind a switch (off), A13 first frontend test suite, sanitiser and session-cookie fixes | Pushed, stacked on #17 |
 | #19 | `feat/release-readiness` | A02 and A20 release tools (manifest, `release_check.php`, smoke test, backup and restore check), the 152-check launch matrix (`e2e-launch.sh`) and the defects it found (K-29, K-30), K-25 to K-28 fixed, `npm run check:php` in CI | Pushed, stacked on #18; PR number to be confirmed |
 | #20 | `feat/phase7-review` | Phase 7 evidence: section usage counts (`schema_phase31.sql`) and the owner-only Owner review page | Open, stacked on #19 (19 October 2026) |
+| #21 | `feat/ceo-decisions` | CEO decisions ([D-025](DECISIONS.md)): policy defaults in `schema_phase32.sql` (retention periods, quote validity, deposit wording), failed saves counted on Owner review (K-31), release order and switches | Open, stacked on #20 (19 October 2026) |
 
 Owner actions at each merge: [DEPLOYMENT.md](DEPLOYMENT.md#owner-actions-per-pull-request).
 
@@ -38,7 +39,7 @@ Owner actions at each merge: [DEPLOYMENT.md](DEPLOYMENT.md#owner-actions-per-pul
 | 4: Website and shared CMS | Tesla-based tokens and merged token layer, real imagery, service and portfolio pages, true business details, verified links, sanitised publication, sitemap, SEO and responsive checks; removal of invented claims | Owner approves screenshots; publish and unpublish work; enquiry and booking usable on a phone; no fabricated proof | Built, PR #12 open (`feat/phase4-website`): token layer and fallback removal (frontend); server CMS, image uploads, public projection, business profile and sitemap built, with `e2e-phase4.sh` 62 of 62 and 323 helper tests ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#phase-4-api-checks-on-staging-11-october-2026)). Public data layer, SEO hook, every public page and the admin Website area built on the CMS (browser checks on staging, [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md)); owner content and photographs still to come. Redesigned on `feat/redesign-dark-luxury` (PR #14, D-023, 13 and 14 October 2026): dark luxury tokens and Fraunces, full-screen hero slider, prototype sections and shared bands on every public page, consistent headers and closing bands, staff sign-in, admin skin, Website hub hero preview and the Website > Hero slides editor (`schema_phase28.sql`, 374 helper tests); browser checks at 1440 and 390px on staging ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)) |
 | 5: Company-order pilot | Parent job with member list where needed, sample approval, company quote and PO field, partial handover, wearer privacy | One small agreed company job completed end to end; no capacity overpromise | Built, PR #13 open (`feat/phase5-company-orders`, stacked on Phase 4): schema `schema_phase27.sql`, pure helpers in `_company.php` (43 tests), `companies.php`, `company_jobs.php` and the company and wearer portal views; `e2e-phase5.sh` 25 of 25 on staging; admin Companies pages and company job tabs, portal company and wearer views (browser checks on staging). Needs the owner's pilot company, wording and the portal switch |
 | 6: Release and promotion | Staging sign-off, production manifest, backup, deploy and rollback, smoke checks, limited real pilot, final social drafts and verified accounts | Release gate passes ([qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#release-decision)); pilot reviewed; each external publication individually authorised | Started: release tools and launch-matrix checks built and proved on local staging (PR #19: `release:manifest`, `release_check.php`, `release:smoke`, `backup.sh`, `restore-check.sh`, `e2e-launch.sh` 152 of 152); the production run needs the owner |
-| 7: Learn and simplify | Review friction, failed saves and reminders, enquiry conversion, overdue jobs, unused sections; add only requested features | Confirmed unused runtime surface removed safely; no feature without a repeated need | Started (PR #20, 19 October 2026): evidence tool built (Owner review page and anonymous section counts), 758 helper tests, 306 frontend tests, all e2e PASS on staging. Removals wait for several weeks of real counts and owner decisions |
+| 7: Learn and simplify | Review friction, failed saves and reminders, enquiry conversion, overdue jobs, unused sections; add only requested features | Confirmed unused runtime surface removed safely; no feature without a repeated need | Started (PR #20, 19 October 2026): evidence tool built (Owner review page and anonymous section counts), 758 helper tests, 306 frontend tests, all e2e PASS on staging. Failed saves (lost races and server errors) are now counted too (K-31, `feat/ceo-decisions`, [D-025](DECISIONS.md)). Removals wait for several weeks of real counts and owner decisions |
 
 Suggested local batches, each with its own acceptance criteria and rollback: baseline checks; access and content safety; ledger integrity; enquiry, client and job flow; measurements; appointments; customer portal; design tokens and navigation; public services and portfolio; CMS settings; company workflow; release proof. Public copy and photo preparation can run while records are made safe, without exposing unready booking or payment controls. No automatic `main` push during development.
 
@@ -75,10 +76,10 @@ From the 10 October 2026 audit, every row re-checked by file and line. Evidence 
 
 ## Deletion candidates awaiting owner approval
 
-Nothing below is deleted yet. Each needs explicit approval, and links must be re-checked afterwards.
+Only the module pages below are still waiting; links must be re-checked after they go.
 
 | Candidate | Reason |
 |---|---|
-| `/auth/sign-up` and `/auth/lock-screen` kit screens | Unlinked; there is no self-registration and no lock-screen flow. Kept on `chore/cleanup-docs-sync` pending approval |
-| Older module pages under More tools (Finance, Marketing, Loyalty, Coupons, Weather and others) | Deferred by the scope table ([PRODUCT-SPEC.md](PRODUCT-SPEC.md#scope)); remove only after the owner confirms nobody uses them |
+| `/auth/sign-up` and `/auth/lock-screen` kit screens | Done: removed in commit `83a6d38` (17 October 2026), confirmed in [D-025](DECISIONS.md) |
+| Older module pages under More tools (Finance, Marketing, Loyalty, Coupons, Weather and others) | Deferred by the scope table ([PRODUCT-SPEC.md](PRODUCT-SPEC.md#scope)); remove after eight weeks with no visits on Owner review ([D-025](DECISIONS.md)) |
 

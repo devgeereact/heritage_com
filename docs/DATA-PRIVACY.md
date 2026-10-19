@@ -22,8 +22,8 @@ Legal bases and periods are Proposed for owner and legal review; none is decided
 | Messages and feedback | Service, quality | To decide | Client | Unknown | Owner | Manual request workflow. Phase 3 branch: internal notes never reach the client; feedback keeps the consent wording the client saw |
 | Public reviews and portfolio photos | Marketing | Separate consent (BR-33) | Client | While published | Public | Withdraw consent, unpublish |
 | Marketing opt-in | Promotion | Consent, separate from service messages (BR-35) | Client | Until withdrawn | Owner | Unsubscribe |
-| Staff accounts and audit log | Security | To decide | Owner | Unknown | Owner | Not applicable |
-| Customer sessions and access attempts (Phase 3) | Secure portal access | To decide | Client, server | Sessions expire after `customer_session_days` (default 7); attempt rows hold hashes, IP and time, retention Unknown (Proposed: purge after 90 days) | Owner | Not applicable; codes and tokens are stored only as hashes |
+| Staff accounts and audit log | Security | To decide | Owner | Audit log 365 days (D-025); the log also counts failed saves with no person | Owner | Not applicable |
+| Customer sessions and access attempts (Phase 3) | Secure portal access | To decide | Client, server | Sessions expire after `customer_session_days` (default 7); attempt rows hold hashes, IP and time, kept 90 days (D-025) | Owner | Not applicable; codes and tokens are stored only as hashes |
 
 Never keep everything for ever, and never promise immediate deletion of records the law requires to remain.
 
@@ -103,24 +103,25 @@ Transfers outside Nigeria: Meta, OpenRouter, the image AI providers and the paym
 
 ### Retention schedule
 
-The periods below are not decided. Proposed periods follow data minimisation and all REQUIRE OWNER INPUT and LEGAL REVIEW.
+The periods were decided by the lead developer under the owner's delegation on 19 October 2026 ([D-025](DECISIONS.md)). They follow data minimisation, stay editable in Settings > Data retention (owner only), and still REQUIRE LEGAL REVIEW for the statutory record periods. `schema_phase32.sql` writes them only into settings that are still empty, so a period the owner already saved is never changed. Until that file is imported and the cron line added ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)), the job deletes nothing beyond expired tokens. Verified on local staging only: the dry run plans every category below; NOT TESTED on the live server.
 
-Mechanism (K-18, branch `feat/hardening-2026-10-18`, 18 October 2026): a command-line job, `php-api/retention.php`, deletes rows older than a period the owner sets in Settings > Data retention, one `retention_*_days` key per category ([API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18)). Empty or 0 means keep forever, so nothing is deleted until the owner chooses. The one exception is expired staff sign-in tokens and legacy portal tokens (`auth_tokens`, `customer_tokens`), which start at 30 days past their own expiry because they are not personal history. Without `--apply` the job is a dry run that only counts; with it, it deletes in batches of 500 and writes one `retention_purge` audit entry per category with the count. It never deletes jobs, payments, the ledger, quotes, orders, measurements, appointments or client records: those are business and tax records, out of scope here and listed as protected in `php-api/_retention.php`. Messages and feedback belong to jobs and are not covered. The job runs only once the owner adds the cron line ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)). Verified on local staging only; NOT TESTED on the live server.
+Mechanism (K-18, branch `feat/hardening-2026-10-18`, 18 October 2026): a command-line job, `php-api/retention.php`, deletes rows older than a period the owner sets in Settings > Data retention, one `retention_*_days` key per category ([API-SPEC.md](API-SPEC.md#data-retention-settings-keys-k-18)). Empty or 0 means keep forever, so nothing is deleted for a category until a period is set (D-025 sets them through `schema_phase32.sql`). The one exception is expired staff sign-in tokens and legacy portal tokens (`auth_tokens`, `customer_tokens`), which start at 30 days past their own expiry because they are not personal history. Without `--apply` the job is a dry run that only counts; with it, it deletes in batches of 500 and writes one `retention_purge` audit entry per category with the count. It never deletes jobs, payments, the ledger, quotes, orders, measurements, appointments or client records: those are business and tax records, out of scope here and listed as protected in `php-api/_retention.php`. Messages and feedback belong to jobs and are not covered. The job runs only once the owner adds the cron line ([DEPLOYMENT.md](DEPLOYMENT.md#retention-job)). Verified on local staging only; NOT TESTED on the live server.
 
-| Data | System of record | Proposed period | Trigger | Method | Status |
+| Data | System of record | Period (D-025) | Trigger | Method | Status |
 |---|---|---|---|---|---|
-| Unconverted enquiries and booking requests | `enquiries`, `appointments` | 12 months | Last activity | Delete or anonymise | Enquiries: built, off until set (`retention_closed_enquiries_days`; closed, never converted and not linked to a quote, job or appointment). Booking requests: not built |
+| Closed enquiries that never led anywhere | `enquiries` | 730 days (2 years) | Last update | Delete | Built (`retention_closed_enquiries_days`); only closed enquiries with no job, quote or appointment linked |
+| Unconverted booking requests | `appointments` | Unknown | Last activity | Delete or anonymise | Not built; not decided in D-025 |
 | Client records, measurements, job photos | `customers`, measurement sets, job files | Review after 3 years inactive | Last job | Owner review, then delete or anonymise | Not built |
 | Payments, receipts, ledger | `ledger`, quotes, orders | Statutory period, Unknown | Financial year end | Keep; anonymise contact fields after the period | REQUIRES LEGAL REVIEW |
 | Messages and feedback | `messages`, `job_feedback` | 3 years | Job closed | Delete; keep consent records while a review is published | Not built |
-| Customer sessions, access challenges, staff tokens | `customer_sessions`, `customer_access_challenges`, `auth_tokens` (and legacy `customer_tokens`) | 90 days after expiry | Expiry | Delete | Built: staff and legacy tokens 30 days after expiry by default; sessions and access challenges off until set |
-| IP and throttle rows, mail and audit logs | `audit_log` | 12 months; security events may need longer | Created | Delete | Built, off until set (90 days at least) |
-| WhatsApp message log | `whatsapp_messages` | 12 months | Sent | Delete | Built, off until set |
-| Abandoned carts, waitlist | `abandoned_carts`, `waitlist` | 30 days, or on order | Created (carts: last change) | Delete | Built, off until set (two keys) |
-| Section usage counts (day, section, role, count; no person) | `usage_daily` | Proposed: 400 days, so a year can be compared | Day counted | Delete | Built, off until set (`retention_usage_daily_days`, Phase 7) |
+| Customer sessions, access challenges, staff tokens | `customer_sessions`, `customer_access_challenges`, `auth_tokens` (and legacy `customer_tokens`) | Sessions 30 days after expiry; access attempts 90 days; staff and legacy tokens 30 days after expiry | Expiry | Delete | Built (`retention_customer_sessions_days`, `retention_access_attempts_days`, `retention_expired_tokens_days`) |
+| IP and throttle rows, mail and audit logs, failed-save rows | `audit_log` | 365 days (never under 90) | Created | Delete | Built (`retention_audit_log_days`). Since K-31 the log also holds failed-save rows (`server_error`, `save_conflict`): endpoint and action only, no person, IP or request body ([API-SPEC.md](API-SPEC.md#failed-saves-k-31)); they leave with the same period |
+| WhatsApp message log | `whatsapp_messages` | 365 days | Sent | Delete | Built (`retention_whatsapp_log_days`) |
+| Abandoned carts, restock waitlist | `abandoned_carts`, `waitlist` | Carts 30 days; waitlist 180 days | Created (carts: last change) | Delete | Built (`retention_abandoned_carts_days`, `retention_waitlist_days`) |
+| Section usage counts (day, section, role, count; no person) | `usage_daily` | 400 days, so a year can be compared | Day counted | Delete | Built (`retention_usage_daily_days`, Phase 7) |
 | Backups | cPanel | Rotation Unknown | Backup date | Rotation | REQUIRES OWNER INPUT (A20) |
 
-Backups keep deleted data until they rotate out; the notice must say so.
+Not decided in D-025, because they are facts or legal advice: the statutory period for payments and the ledger, and the review periods for client records and messages. Jobs, payments, the ledger, quotes, orders, measurements and clients are never deleted by the job. Backups keep deleted data until they rotate out; the notice must say so.
 
 ### Rights and deletion
 
@@ -144,7 +145,7 @@ Accessed 17 October 2026. Article titles only were read for the GAID; the substa
 1. Legal name, entity type and registration number (if any) of the business that runs the site.
 2. Privacy contact: an email address (and phone, if wanted) that is checked, and a postal or workshop address to publish.
 3. Whether the business must register with the NDPC as a data controller of major importance, given its real volume of clients (counsel to confirm).
-4. Retention periods in the schedule above, and the statutory period for financial records.
+4. Decided 19 October 2026 (D-025): the retention periods in the schedule above. Still open: the statutory period for financial records, and counsel's view of the periods.
 5. Decided 17 October 2026 (D-024): promotional WhatsApp sends off (K-11); AI drafter without personal data (K-12).
 6. Decided 17 October 2026 (D-024): attribution kept 30 days (K-13); whether that needs consent is still for counsel.
 7. Who handles rights requests, and how identity is checked (proposed: a code sent to the phone or email already on file, never identity documents).
