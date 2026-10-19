@@ -4,6 +4,19 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Phase 7 evidence on `feat/phase7-review`, 19 October 2026
+
+Stacked on #19 (PR #20). Owner actions: the Phase 7 row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request).
+
+Added
+
+- Owner review page `/review` (super_admin only) over `review.php`: enquiry conversion and median days to convert, overdue jobs, audited refusals, messages sent and failed, and section use, for 30 or 90 days; each card says what it does and does not prove (Phase 7).
+- Section usage counts: `usage.php` stores day, section, role and a count only, at most once per section per browser per day (`usage_daily`, `schema_phase31.sql`); retention key `retention_usage_daily_days`, off until the owner sets it (Phase 7, K-18).
+
+Changed
+
+- `roles.js`: the old `review` key (a removed kit page managers could open) now gates Owner review to the owner only.
+
 ### Release readiness on `feat/release-readiness`, 18 October 2026
 
 Stacked on PR #18 (`feat/hardening-2026-10-18`); the pull request will be #19. Owner actions: the "#19" row in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#owner-actions-per-pull-request). No schema change.

@@ -79,7 +79,7 @@ None of these is used for advertising or cross-site tracking. No analytics, pixe
 
 The server sets no cookies (`setcookie` and `session_start` are not used).
 
-Section usage counting (Phase 7, `wip/phase7`, 19 October 2026). To find which admin sections are used before anything is removed, the server keeps `usage_daily`: per Lagos day, admin section key (for example `jobs`) and staff role (for example `tailor`), a count of visits. It stores no user id, name, IP address, device or full path, and the browser sends at most one count per section a day. With one person in a role the role can still point to that person; the owner sees the counts only on Owner review (super_admin). Kept until the owner sets `retention_usage_daily_days` (Settings > Data retention). Endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
+Section usage counting (Phase 7, `feat/phase7-review`, 19 October 2026). To find which admin sections are used before anything is removed, the server keeps `usage_daily`: per Lagos day, admin section key (for example `jobs`) and staff role (for example `tailor`), a count of visits. It stores no user id, name, IP address, device or full path, and the browser sends at most one count per section a day. With one person in a role the role can still point to that person; the owner sees the counts only on Owner review (super_admin). Kept until the owner sets `retention_usage_daily_days` (Settings > Data retention). Endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
 
 ### Recipients and transfers
 

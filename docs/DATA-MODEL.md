@@ -128,7 +128,7 @@ Branch `feat/hardening-2026-10-18` (K-18); import it after `schema_phase29.sql`.
 
 ## Section usage counts (schema_phase31)
 
-Branch `wip/phase7` (plan Phase 7); import it after `schema_phase30.sql`. Additive and re-runnable. Creates `usage_daily (day DATE, section VARCHAR(40), role VARCHAR(20), hits INT UNSIGNED, PRIMARY KEY (day, section, role))`: one row per Lagos day, admin section and staff role, written only by `usage.php` with an upsert. No user id, IP address or path. Seeds `retention_usage_daily_days` (empty, keep forever) with `INSERT IGNORE`. Release marker: table `usage_daily`. What it means for privacy: [DATA-PRIVACY.md](DATA-PRIVACY.md#cookies-and-browser-storage); the endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
+Branch `feat/phase7-review` (plan Phase 7); import it after `schema_phase30.sql`. Additive and re-runnable. Creates `usage_daily (day DATE, section VARCHAR(40), role VARCHAR(20), hits INT UNSIGNED, PRIMARY KEY (day, section, role))`: one row per Lagos day, admin section and staff role, written only by `usage.php` with an upsert. No user id, IP address or path. Seeds `retention_usage_daily_days` (empty, keep forever) with `INSERT IGNORE`. Release marker: table `usage_daily`. What it means for privacy: [DATA-PRIVACY.md](DATA-PRIVACY.md#cookies-and-browser-storage); the endpoints: [API-SPEC.md](API-SPEC.md#phase-7-usage-counts-and-owner-review).
 
 ## Phase 5 tables and columns (schema_phase27)
 
