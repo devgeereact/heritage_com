@@ -118,6 +118,27 @@ $hc-media: (
   'scrim-glass':    rgba(14, 13, 11, 0.35),
 );
 
+// African print illustrations (PrintArt, 19 October 2026). Cloth colours for
+// the Adire, Ankara, Aso-Oke and woven-check patterns drawn in
+// src/app/(public)/site/ui/printPatterns.js, and read by
+// scripts/content/render-prints.mjs for the media library images. They are
+// illustration colours, never text or control colours; amber stays the one
+// interface accent. Same in every theme.
+$hc-print: (
+  'print-indigo':  #1B1F2E,  // Adire ground: indigo so deep it reads as ink
+  'print-cream':   #E7D6B0,  // resist lines and rings
+  'print-sand':    #CDB98A,
+  'print-amber':   #F59E0B,  // Herit amber inside the prints
+  'print-red':     #8F2723,  // Ankara ground
+  'print-rust':    #B45309,
+  'print-ochre':   #9A4D12,  // Aso-Oke strips
+  'print-umber':   #8A3D0E,
+  'print-gold':    #FEF3C7,  // lurex thread
+  'print-brown':   #6D3410,  // woven check ground
+  'print-crimson': #9B2C2C,
+  'print-shade':   #0E0D0B,  // weft shadow and fold shading
+);
+
 // Shadow colour for overlays (dropdowns and dialogs only).
 $hc-overlay-shadow: rgba(14, 13, 11, 0.18);
 

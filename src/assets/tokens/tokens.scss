@@ -15,6 +15,7 @@
 :root {
   @include hc-colours($hc-light);
   @include hc-colours($hc-media);
+  @include hc-colours($hc-print);
   @each $name, $value in $hc-scale {
     --hc-#{$name}: #{$value};
   }
