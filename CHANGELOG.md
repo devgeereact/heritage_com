@@ -6,6 +6,7 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ### Repository consolidation, 22 October 2026
 
+- Fixed: `e2e-phase4.sh` check U7 expected image variants 800 and 1600; since D-030 a 2000px upload also gets a 2000px variant (never upscaled), so it now expects 800, 1600 and 2000. Phase 4 e2e: 63 of 63.
 - Changed: the whole stacked branch chain (Phases 1 to 7, hardening, release readiness, landing redesign, CMS Workroom) is merged into `main` in one merge commit. Superseded local branches, stale agent branches and the stacked remote branches are retired; a full bundle backup was taken first.
 
 ### CMS Workroom on `feat/real-content`, 20 October 2026
