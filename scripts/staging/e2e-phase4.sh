@@ -191,8 +191,8 @@ php -r '$e = @exif_read_data($argv[1], null, true); exit(isset($e["IFD0"]["Make"
 check U6 "test image really has EXIF Make and GPS" eq "$?" 0
 upload "$TMP/exif.jpg" "$TOKEN" "E2E navy swatch, front view"
 EXIF_ID="$(j .media.id)"; EXIF_BODY="$BODY"
-check U7 "JPEG with EXIF accepted (201) with variants 800 and 1600" \
-  bash -c "[ '$CODE' = 201 ] && [ '$(j '[.media.public.srcset[].width]|join(",")')' = '800,1600' ] && [ '$(j .media.width)' = 2000 ]"
+check U7 "JPEG with EXIF accepted (201) with variants 800, 1600 and 2000 (never upscaled)" \
+  bash -c "[ '$CODE' = 201 ] && [ '$(j '[.media.public.srcset[].width]|join(",")')' = '800,1600,2000' ] && [ '$(j .media.width)' = 2000 ]"
 NOEXIF=1
 for u in $(echo "$EXIF_BODY" | jq -r '.media.public.srcset[].url, .media.public.url'); do
   curl -s "$API$u" -o "$TMP/out.bin"
