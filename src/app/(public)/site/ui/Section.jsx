@@ -15,6 +15,7 @@ export const Section = ({ tone, tight, id, className = '', labelledBy, edit, chi
       'hc-section',
       tone === 'alt' && 'hc-section--alt',
       tone === 'paper' && 'hc-paper hc-section--ivory',
+      tone === 'ink' && 'hc-ink hc-section--ink',
       tight && 'hc-section--tight',
       edit && 'hc-edit-host',
       className,

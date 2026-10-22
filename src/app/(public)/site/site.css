@@ -45,7 +45,7 @@
 /* The public bundle has no Bootstrap reboot, so reset the page frame here. */
 html[data-hc-public], html[data-hc-public] body { margin: 0; background: var(--hc-surface); }
 /* Fragment links and error-summary jumps land below the sticky header. */
-html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-space-3)); }
+html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + 16px + var(--hc-space-3)); }
 
 .hc-page {
   min-height: 100vh;
@@ -63,13 +63,16 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 .hc a { color: inherit; text-decoration: none; }
 .hc h1, .hc h2, .hc h3, .hc h4, .hc h5, .hc h6 {
   font-family: var(--hc-font-serif);
-  font-weight: var(--hc-w-medium);
+  font-weight: 300;
   line-height: var(--hc-lh-heading);
   color: var(--hc-text);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
+/* Newsreader is thin at display sizes (D-030); smaller serif headings take
+   a little more weight so they stay crisp. */
+.hc h3, .hc .hc-h3, .hc .hc-h4 { font-weight: 400; letter-spacing: -0.01em; }
 .hc h4, .hc h5, .hc h6 { font-family: var(--hc-font-sans); font-weight: var(--hc-w-semibold); }
 .hc p { margin: 0; text-wrap: pretty; }
 .hc ul, .hc ol { margin: 0; }
@@ -179,25 +182,24 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 .hc .d-flex { display: flex; }
 
 /* ---------------------------------------------------------- type */
-.hc-h1 { font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
-.hc-h2 { font-size: clamp(var(--hc-text-2xl), 1.2rem + 2.6vw, var(--hc-text-5xl)); }
+.hc-h1 { font-size: clamp(var(--hc-text-4xl), 1.6rem + 4vw, 4.75rem); line-height: 1.04; letter-spacing: -0.022em; }
+.hc-h2 { font-size: clamp(var(--hc-text-2xl), 1.2rem + 2.6vw, 3.25rem); line-height: 1.08; letter-spacing: -0.02em; }
 .hc-h3 { font-size: var(--hc-text-xl); }
 .hc-h4 { font-size: var(--hc-text-lg); }
 .hc-lead { font-size: var(--hc-text-md); color: var(--hc-text-body); max-width: var(--hc-measure); }
 
-/* Eyebrow above a heading: Inter 600, small capitals in the amber text colour.
-   The 28px "measure line" before it is drawn by .hc-eyebrow::before (ui.css). */
+/* Quiet overline (D-030, after Oura): small tracked capitals in the muted
+   text colour, no rule, no gold. Used only where it adds context the heading
+   does not already give. */
 .hc-kicker,
 .hc-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: var(--hc-space-3);
+  display: block;
   font-family: var(--hc-font-sans);
-  font-size: var(--hc-text-xs);
+  font-size: 0.75rem;
   font-weight: var(--hc-w-semibold);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--hc-accent-text);
+  color: var(--hc-text-muted);
 }
 
 .hc-head { max-width: 46rem; margin-bottom: clamp(var(--hc-space-6), 5vw, var(--hc-space-8)); }
@@ -402,8 +404,7 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 .hc-promise-statement p { margin-top: var(--hc-space-5); font-family: var(--hc-font-serif); font-size: clamp(var(--hc-text-xl), 1rem + 1.7vw, 2.5rem); line-height: 1.22; letter-spacing: -0.015em; color: var(--hc-text); max-width: none; }
 .hc-promise-statement p + p { margin-top: var(--hc-space-4); }
 .hc-facts-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--hc-divider); }
-.hc-facts-list li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: var(--hc-space-4); padding: var(--hc-space-5) 0; border-bottom: 1px solid var(--hc-divider); }
-.hc-facts-list .hc-icon { width: 24px; height: 24px; color: var(--hc-accent-text); margin-top: 2px; }
+.hc-facts-list li { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--hc-space-4); padding: var(--hc-space-5) 0; border-bottom: 1px solid var(--hc-divider); }
 .hc-facts-list h3 { font-family: var(--hc-font-sans); font-size: var(--hc-text-base); font-weight: var(--hc-w-semibold); letter-spacing: 0; }
 .hc-facts-list p { margin-top: var(--hc-space-1); font-size: var(--hc-text-sm); color: var(--hc-text-muted); }
 
@@ -567,8 +568,9 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 /* ---- African prints in the landing (19 October 2026) -------------------------
    PrintArt placements: hero fallback, fabric story, story bands on About,
    statements, journal cards and dividers. Tokens only. */
-.hc-slide-media .hc-print { position: absolute; inset: 0; }
-.hc-hero > .hc-edit { top: calc(var(--hc-header-h) + var(--hc-space-3)); }
+/* opposite the illustration tag (right on wide screens, left on phones) */
+.hc-hero > .hc-edit { top: calc(var(--hc-header-h) + var(--hc-space-3)); right: auto; left: var(--hc-space-3); }
+@media (max-width: 599px) { .hc-hero > .hc-edit { left: auto; right: var(--hc-space-3); } }
 .hc-footer > .hc-print-rule { position: absolute; top: 0; left: 0; right: 0; border-top: 0; }
 .hc-footer > .hc-edit { top: calc(14px + var(--hc-space-3)); }
 .hc-print-rule + .hc-section, .hc-print-rule + .hc-section--promise { border-top: 0; }
@@ -590,8 +592,8 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 }
 
 /* About teaser on Home: the mission as a pull quote; a print when there is no photograph. */
-.hc-mission { margin: var(--hc-space-5) 0; padding-left: var(--hc-space-5); border-left: 2px solid var(--hc-accent); }
-.hc-mission .hc-prose p { font-family: var(--hc-font-serif); font-size: var(--hc-text-lg); line-height: 1.45; color: var(--hc-text); }
+.hc-mission { margin: var(--hc-space-6) 0; padding-top: var(--hc-space-5); border-top: 1px solid var(--hc-divider); }
+.hc-mission .hc-prose p { font-family: var(--hc-font-serif); font-style: italic; font-size: clamp(var(--hc-text-lg), 1rem + 0.8vw, 1.6rem); line-height: 1.4; color: var(--hc-text); }
 .hc-about-print { border-radius: var(--hc-radius-card); }
 
 /* Story bands (About and other page bodies). */
@@ -615,3 +617,41 @@ html[data-hc-public] { scroll-padding-top: calc(var(--hc-header-h) + var(--hc-sp
 .hc-statement-rule { border-radius: var(--hc-radius-chip); width: 96px; height: 10px; border: 0; }
 .hc-statement-text p { font-family: var(--hc-font-serif); font-size: var(--hc-text-xl); line-height: 1.4; color: var(--hc-text); max-width: 34ch; }
 @media (max-width: 760px) { .hc-statements--2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Service index (Home, D-029) ------------------------------------------- */
+/* Numbered rows beside one framed photograph that follows the row under the
+   pointer or focus (sections.jsx ServiceIndex). Below 992px each row shows its
+   own photograph and the frame is hidden. */
+.hc-sindex { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(var(--hc-space-7), 5vw, 80px); align-items: start; }
+.hc-sindex-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hc-divider); }
+.hc-sindex-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--hc-space-4); align-items: start;
+  padding: var(--hc-space-6) 0; border-bottom: 1px solid var(--hc-divider);
+  color: var(--hc-text); text-decoration: none;
+  transition: color var(--hc-dur-ui) var(--hc-ease), border-color var(--hc-dur-ui) var(--hc-ease);
+}
+.hc-sindex-text { display: flex; flex-direction: column; gap: var(--hc-space-2); min-width: 0; }
+.hc-sindex-title { font-family: var(--hc-font-serif); font-weight: var(--hc-w-medium); font-size: clamp(1.6rem, 1.1rem + 1.6vw, 2.6rem); line-height: 1.1; letter-spacing: -0.02em; }
+.hc-sindex-sum { max-width: 34rem; color: var(--hc-text-muted); font-size: var(--hc-text-base); line-height: 1.55; }
+.hc-sindex-meta { font-size: var(--hc-text-sm); color: var(--hc-accent-text); }
+.hc-sindex-arrow { width: 22px; height: 22px; margin-top: 0.7em; color: var(--hc-text-muted); transition: color var(--hc-dur-ui) var(--hc-ease); }
+.hc-sindex-row:hover, .hc-sindex-row:focus-visible, .hc-sindex-row.is-active { border-bottom-color: var(--hc-control-border); }
+.hc-sindex-row:hover .hc-sindex-arrow, .hc-sindex-row:focus-visible .hc-sindex-arrow { color: var(--hc-accent-text); }
+.hc-sindex-thumb { display: none; }
+.hc-sindex-frame { position: sticky; top: calc(var(--hc-header-h) + var(--hc-space-6)); aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--hc-radius-card); background: var(--hc-surface-alt); }
+.hc-sindex-shot { position: absolute; inset: 0; overflow: hidden; }
+.hc-sindex-shot:not(:first-child) { visibility: hidden; }
+.hc-sindex-zoom { position: absolute; inset: 0; }
+.hc-sindex-zoom .hc-img, .hc-sindex-zoom .hc-print { position: absolute; inset: 0; height: 100%; border-radius: 0; }
+@media (max-width: 991px) {
+  .hc-sindex { grid-template-columns: minmax(0, 1fr); }
+  .hc-sindex-frame { display: none; }
+  .hc-sindex-row { grid-template-columns: minmax(0, 1fr) 5.5rem; padding: var(--hc-space-5) 0; }
+  .hc-sindex-title { font-size: 1.6rem; }
+  .hc-sindex-arrow { display: none; }
+  .hc-sindex-thumb { display: block; position: relative; aspect-ratio: 1; overflow: hidden; border-radius: var(--hc-radius-control); background: var(--hc-surface-alt); }
+  .hc-sindex-thumb .hc-img, .hc-sindex-thumb .hc-print { position: absolute; inset: 0; height: 100%; border-radius: 0; }
+}
+
+/* Ink bands (D-030): <Section tone="ink"> paints its own near-black ground. */
+.hc-section--ink { background: var(--hc-surface); color: var(--hc-text-body); }

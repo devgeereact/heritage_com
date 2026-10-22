@@ -1,78 +1,32 @@
 import { useState } from 'react'
 import SiteLayout from './SiteLayout'
-import heritApi from '@/helpers/heritApi'
 import { useCatalogue, formatNgn } from './products'
 import { useBlog, useTestimonials } from './content'
 import { useShopEnabled } from './storeConfig'
 import { useBusiness } from './business'
-import { useSiteConfig, useSiteResource, previewItem, toImage, clip, loadSiteConfig } from './siteData'
+import { useSiteConfig, useSiteResource, toImage, clip } from './siteData'
 import useActions from './ui/useActions'
 import Hero from './ui/Hero'
 import { Section, SectionHead } from './ui/Section'
-import { ServiceCard, WorkCard } from './ui/Card'
-import HcImage from './ui/HcImage'
+import { WorkCard } from './ui/Card'
 import Icon from './ui/Icon'
-import PrintArt from './ui/PrintArt'
 import { MoreLink, Rich } from './cmsBlocks'
-import { Lookbook, Testimonials, JournalGrid, ClosingAction, PromiseBand, ProcessBand, CompanyBand, FabricStory } from './sections'
-import { PrintRule } from './ui/PrintArt'
+import { Lookbook, Testimonials, JournalGrid, ServiceIndex } from './sections'
+import { OrderPaths, ClothRun, MeasureDocket, StitchProcess, MissionBand, EnquiryBand } from './landing'
 import { printAt, printVariant } from './ui/printPatterns'
-import { splitSections, htmlText } from './storySections'
-
-/* Where the staff Edit control on each Home section leads (Website admin). */
-const EDIT = {
-  slides: { to: '/website/slides', label: 'hero slides' },
-  home: { to: '/website/pages/home', label: 'the home page text' },
-  fabrics: { to: '/website/pages/fabrics', label: 'the fabric story' },
-  services: { to: '/website/services', label: 'services' },
-  work: { to: '/website/work', label: 'our work' },
-  how: { to: '/website/pages/how_it_works', label: 'how it works' },
-  company: { to: '/website/pages/company', label: 'the company orders page' },
-  about: { to: '/website/pages/about', label: 'the about page' },
-  faqs: { to: '/website/faqs', label: 'questions' },
-  journal: { to: '/content', label: 'the journal' },
-  contact: { to: '/website/pages/contact', label: 'the contact page' },
-}
-
-/** "## Heading" sections of a page body as process steps ({title, desc}). */
-const stepsOf = (page) => splitSections(page?.body).sections.map((s) => ({ title: s.title, desc: htmlText(s.html) }))
-
-/** A published page, or null when it is not published (asked only when the config lists it). */
-const pageOrNull = (key, published) =>
-  !published.includes(key)
-    ? Promise.resolve(null)
-    : heritApi.site
-        .page(key)
-        .then((r) => r?.page || null)
-        .catch((e) => {
-          if (e?.status === 404) return null
-          throw e
-        })
+import { EDIT, loadHome, homeStates, stepsOf, clothsOf, missionOf, madeToMeasureOf } from './homeMap'
+import './landing.css'
 
 /**
- * Home and the pages it previews (company, how it works, about, the fabric
- * story, the services introduction and contact). In preview mode the home page
- * itself comes from its draft; the rest stays published, as visitors would see it.
- */
-const loadHome = async (preview) => {
-  const published = (await loadSiteConfig()).pages || []
-  const [home, company, how, about, fabrics, servicesIntro, contact] = await Promise.all([
-    heritApi.site.home(),
-    ...['company', 'how_it_works', 'about', 'fabrics', 'services_intro', 'contact'].map((k) => pageOrNull(k, published)),
-  ])
-  const page = preview ? await previewItem('page', { key: 'home' }) : home?.page || null
-  return { ...home, page, company, how, about, fabrics, servicesIntro, contact }
-}
-
-/**
- * Home (BUILD-SPEC 4.7): a full landing built only from published CMS content,
- * with the African prints woven through it. Sections in a fixed order, each
- * hidden while its content is unpublished or empty: hero slides, the promise
- * (home page), the fabric story (fabrics page), services, our work, how it
- * works (its page's steps), company orders, about with the mission, reviews,
- * questions, journal and the closing action (contact page). Where a section
- * has no photograph an African print fills the space. Signed-in staff see an
- * Edit control on each section that opens its editor.
+ * Home, "the cutting table" (D-031): a landing built only from published CMS
+ * content. The sections, their order, their source and when each one shows
+ * are defined once in homeMap.js (HOME_SECTIONS), which the Website hub also
+ * lists for the owner. Order: hero slides, two ways to order (home page,
+ * made-to-measure service, company page), the cloth (fabric story page),
+ * services, the measurement docket, our work, how it works, our mission
+ * (about page), the shop, reviews, questions, journal and enquire (contact
+ * page, business details and the enquiry form). Signed-in staff see an Edit
+ * control on each section that opens its editor.
  */
 const HomePage = () => {
   const cfg = useSiteConfig()
@@ -93,12 +47,12 @@ const HomePage = () => {
   const services = d.services || []
   const work = d.work || []
   const faqs = d.faqs || []
-  const aboutImg = toImage(d.about?.hero)
-  const aboutParts = splitSections(d.about?.body)
-  const mission = aboutParts.sections.find((x) => /mission/i.test(x.title))
+  const show = homeStates(d, { quotes, journal, shopOn, products })
+  const on = (k) => !!res.data && show[k]?.shown
   const proof = [business.area, business.hours].filter(Boolean).join(' · ')
   const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4)
   const book = { to: primary.to, label: primary.label }
+  const companyTo = cfg?.nav?.company ? '/company-orders' : '/contact?type=company'
 
   // Hero slides come from published content only (D-023). Owner-made slides
   // (Website > Hero slides) win; without any, the home page and up to four
@@ -139,11 +93,21 @@ const HomePage = () => {
       })),
   ]
   const slides = ownSlides.length ? ownSlides : autoSlides
+
+  const mtmService = madeToMeasureOf(services)
+  const mtm = mtmService && {
+    title: mtmService.title,
+    summary: mtmService.summary,
+    image: toImage(mtmService.hero),
+    to: `/services/${mtmService.slug}`,
+  }
   const firstCover = work.find((w) => w.cover?.url)?.cover
-  const companyImg = toImage(d.company?.hero) || toImage(firstCover)
-  const closingImg = toImage(d.contact?.hero) || toImage(page?.hero)
-  const statement = `${business.name || 'Herit Clothing'} is a tailoring workroom${business.area ? ` in ${business.area}` : ''}. We make men's clothing to your measurements and keep you posted at every step, from the first fitting to handover.`
-  const howSteps = stepsOf(d.how)
+  const company = d.company && {
+    headline: d.company.headline,
+    intro: d.company.intro,
+    image: toImage(d.company.hero) || toImage(firstCover),
+  }
+  const fabrics = d.fabrics && { ...d.fabrics, image: toImage(d.fabrics.hero) }
 
   // Work filter chips: only services that have published work.
   const workServices = services.filter((s) => work.some((w) => w.service_slug === s.slug))
@@ -159,19 +123,15 @@ const HomePage = () => {
       }}>
       <Hero slides={slides} note={proof || undefined} edit={EDIT.slides} />
 
-      <PrintRule variant="kente" />
+      {on('paths') && <OrderPaths lead={page?.body} mtm={mtm} company={company} companyTo={companyTo} edit={EDIT.home} />}
 
-      <PromiseBand eyebrow="The Herit way" statement={page?.intro || statement} edit={EDIT.home}>
-        {page?.body ? <Rich html={page.body} className="hc-promise-statement" /> : null}
-      </PromiseBand>
+      {on('cloth') && <ClothRun page={fabrics} cloths={clothsOf(d.fabrics)} edit={EDIT.fabrics} />}
 
-      <FabricStory page={d.fabrics} edit={EDIT.fabrics} />
-
-      {services.length > 0 && (
-        <Section labelledBy="home-services" edit={EDIT.services}>
+      {on('services') && (
+        <Section labelledBy="home-services" className="hc-land" edit={EDIT.services}>
           <SectionHead
             id="home-services"
-            eyebrow="What we make"
+            eyebrow="Services"
             title={d.servicesIntro?.headline || 'Services, cut to measure'}
             lead={
               d.servicesIntro?.intro ||
@@ -179,24 +139,23 @@ const HomePage = () => {
             }>
             <MoreLink to="/services">All services</MoreLink>
           </SectionHead>
-          <div className={`hc-grid ${services.length === 4 ? 'hc-grid--4' : 'hc-grid--3'}`}>
-            {services.map((s, i) => (
-              <ServiceCard
-                key={s.slug}
-                image={toImage(s.hero)}
-                print={printVariant(s.title, printAt(i))}
-                title={s.title}
-                summary={s.summary}
-                meta={s.price_note || undefined}
-                to={`/services/${s.slug}`}
-              />
-            ))}
-          </div>
+          <ServiceIndex
+            services={services.map((s, i) => ({
+              to: `/services/${s.slug}`,
+              title: s.title,
+              summary: s.summary,
+              meta: s.price_note || undefined,
+              image: toImage(s.hero),
+              print: printVariant(s.title, printAt(i)),
+            }))}
+          />
         </Section>
       )}
 
-      {work.length > 0 && (
-        <Section tone="alt" labelledBy="home-work" edit={EDIT.work}>
+      {on('docket') && <MeasureDocket bookTo={book.to} bookLabel={book.label} />}
+
+      {on('work') && (
+        <Section tone="alt" labelledBy="home-work" className="hc-land" edit={EDIT.work}>
           <SectionHead
             id="home-work"
             eyebrow="Selected work"
@@ -233,49 +192,24 @@ const HomePage = () => {
         </Section>
       )}
 
-      <ProcessBand
-        title={d.how?.headline || undefined}
-        lead={d.how?.intro || undefined}
-        steps={howSteps}
-        moreTo={d.how ? '/how-it-works' : undefined}
-        edit={EDIT.how}
-      />
-
-      <CompanyBand
-        title={d.company?.headline}
-        lead={d.company?.intro || undefined}
-        image={companyImg}
-        to={cfg?.nav?.company ? '/company-orders' : '/contact?type=company'}
-        edit={EDIT.company}
-      />
-
-      {d.about && (
-        <Section tone="alt" labelledBy="home-about" className="hc-section--about" edit={EDIT.about}>
-          <div className="hc-pagetop hc-pagetop--media">
-            <SectionHead id="home-about" eyebrow="About" title={d.about.headline} lead={d.about.intro || undefined} split={false}>
-              {mission && (
-                <blockquote className="hc-mission" data-reveal="">
-                  <p className="hc-eyebrow">{mission.title}</p>
-                  <Rich html={mission.html} />
-                </blockquote>
-              )}
-              <MoreLink to="/about">Our story</MoreLink>
-            </SectionHead>
-            {aboutImg ? (
-              <HcImage {...aboutImg} sizes="(min-width: 1024px) 58vw, 100vw" ratio="4 / 3" />
-            ) : (
-              <PrintArt variant="adire" ratio="4 / 3" scale={1.4} className="hc-about-print" />
-            )}
-          </div>
-        </Section>
+      {on('process') && (
+        <StitchProcess
+          title={d.how?.headline || undefined}
+          lead={d.how?.intro || undefined}
+          steps={stepsOf(d.how)}
+          moreTo={d.how ? '/how-it-works' : undefined}
+          edit={EDIT.how}
+        />
       )}
 
-      {shopOn && <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />}
+      {on('mission') && <MissionBand about={d.about} mission={missionOf(d.about)} image={toImage(d.about?.hero)} edit={EDIT.about} />}
 
-      <Testimonials eyebrow="What clients say" quotes={quotes} />
+      {on('shop') && <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />}
 
-      {faqs.length > 0 && (
-        <Section tone="paper" labelledBy="home-faqs" edit={EDIT.faqs}>
+      {on('reviews') && <Testimonials eyebrow="What clients say" quotes={quotes} />}
+
+      {on('faqs') && (
+        <Section tone="paper" labelledBy="home-faqs" className="hc-land" edit={EDIT.faqs}>
           <div className="hc-split hc-split--faq">
             <SectionHead
               id="home-faqs"
@@ -301,24 +235,17 @@ const HomePage = () => {
         </Section>
       )}
 
-      <JournalGrid
-        eyebrow="Journal"
-        title="Stories from the cutting table"
-        posts={journal}
-        moreTo={cfg?.nav?.journal ? '/journal' : undefined}
-        edit={EDIT.journal}
-      />
+      {on('journal') && (
+        <JournalGrid
+          eyebrow="Journal"
+          title="Notes on cloth and craft"
+          posts={journal}
+          moreTo={cfg?.nav?.journal ? '/journal' : undefined}
+          edit={EDIT.journal}
+        />
+      )}
 
-      <ClosingAction
-        eyebrow="Start here"
-        title={d.contact?.headline || 'Tell us what you want to make.'}
-        text={d.contact?.intro || 'Send a short message with the occasion and the date, and we will get back to you.'}
-        primary={book}
-        secondary={{ to: '/contact', label: 'Contact us' }}
-        image={closingImg}
-        print="ankara"
-        edit={EDIT.contact}
-      />
+      {on('enquire') && <EnquiryBand contact={d.contact} business={business} shopOn={shopOn} edit={EDIT.contact} />}
     </SiteLayout>
   )
 }

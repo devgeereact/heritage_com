@@ -98,9 +98,12 @@ const SiteContactForm = ({ defaultType, defaultInterest = '', responseTime, shop
         <Field id="cf-type" label="What is it about?" as="select" value={form.choice} onChange={set('choice')}>
           {choices.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
         </Field>
+        {/* One shared note under the phone and email pair, so the two fields stay level. */}
         <Field id="cf-phone" label="Phone or WhatsApp" type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" inputMode="tel"
-          help="A phone number or an email address is needed." error={errorFor('cf-phone')} />
-        <Field id="cf-email" label="Email" type="email" value={form.email} onChange={set('email')} autoComplete="email" error={errorFor('cf-email')} />
+          error={errorFor('cf-phone')} aria-describedby={[errorFor('cf-phone') && 'cf-phone-error', 'cf-reach-help'].filter(Boolean).join(' ')} />
+        <Field id="cf-email" label="Email" type="email" value={form.email} onChange={set('email')} autoComplete="email" error={errorFor('cf-email')}
+          aria-describedby={[errorFor('cf-email') && 'cf-email-error', 'cf-reach-help'].filter(Boolean).join(' ')} />
+        <p id="cf-reach-help" className="hc-form-note">A phone number or an email address is needed, so we can reply.</p>
         {form.choice === 'company' && (
           <Field id="cf-company" label="Company or organisation (optional)" className="hc-field--full" value={form.company} onChange={set('company')} autoComplete="organization" />
         )}

@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useLenis } from 'lenis/react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useCart } from './cart'
 import { useShopEnabled } from './storeConfig'
 import { useSiteNav } from './siteData'
@@ -7,6 +10,9 @@ import useActions from './ui/useActions'
 import Button from './ui/Button'
 import Icon from './ui/Icon'
 import logoLight from '@/assets/images/logo-light.svg'
+import logoDark from '@/assets/images/logo-dark.svg'
+
+gsap.registerPlugin(ScrollTrigger)
 
 // Each link shows only while its page has published content (site.php config
 // `nav` flags); the shop links only while the retail shop is switched on.
@@ -19,6 +25,9 @@ const NAV = [
   { to: '/shop', label: 'Shop', shop: true },
   { to: '/contact', label: 'Contact' },
 ]
+
+// Numbers on the header tape: one every 10cm (100px), wide enough for any screen.
+const TAPE_CM = Array.from({ length: 40 }, (_, i) => (i + 1) * 10)
 
 const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`))
 
@@ -39,6 +48,9 @@ const SiteHeader = () => {
   const [scrolled, setScrolled] = useState(false)
   const toggleRef = useRef(null)
   const sheetRef = useRef(null)
+  const tapeRef = useRef(null)
+  // Smooth scrolling (D-027) is null under reduced motion.
+  const lenis = useLenis()
 
   const links = NAV.filter((n) => (n.shop ? shopOn : !n.flag || nav[n.flag] === true))
   const primary = { to: action.to, label: action.short }
@@ -54,12 +66,28 @@ const SiteHeader = () => {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Tape measure under the header: its gold fill follows how far down the page
+  // you are (D-031). Decorative; it follows the scroll and never moves on its own.
+  useEffect(() => {
+    const fill = tapeRef.current
+    if (!fill) return undefined
+    const st = ScrollTrigger.create({
+      start: 0,
+      end: 'max',
+      onUpdate: (s) => {
+        fill.style.transform = `scaleX(${s.progress.toFixed(4)})`
+      },
+    })
+    return () => st.kill()
+  }, [pathname])
+
   // Sheet: lock page scroll, trap focus, close on Escape, return focus.
   useEffect(() => {
     if (!open) return undefined
     const toggle = toggleRef.current
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    lenis?.stop()
     const focusables = () => [toggle, ...(sheetRef.current?.querySelectorAll('a[href], button:not([disabled])') || [])].filter(Boolean)
     focusables()[1]?.focus()
     const onKey = (e) => {
@@ -83,15 +111,18 @@ const SiteHeader = () => {
     document.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = prevOverflow
+      lenis?.start()
       document.removeEventListener('keydown', onKey)
     }
-  }, [open])
+  }, [open, lenis])
 
   return (
     <header className={['hc-header', pathname === '/' && 'hc-header--overlay', (scrolled || open) && 'is-scrolled'].filter(Boolean).join(' ')}>
       <div className="hc-container hc-header-inner">
         <Link to="/" className="hc-brand" aria-label="Herit Clothing, home">
-          <img src={logoLight} alt="" width="52" height="36" />
+          {/* Light logo over the home photograph, dark logo on paper (D-030). */}
+          <img className="hc-brand-light" src={logoLight} alt="" width="52" height="36" />
+          <img className="hc-brand-dark" src={logoDark} alt="" width="52" height="36" />
         </Link>
 
         <nav className="hc-nav" aria-label="Main">
@@ -134,6 +165,15 @@ const SiteHeader = () => {
             <span>{open ? 'Close' : 'Menu'}</span>
           </button>
         </div>
+      </div>
+
+      <div className="hc-tape" aria-hidden="true">
+        {TAPE_CM.map((cm) => (
+          <span key={cm} className="hc-tape-cm" style={{ left: `${cm * 10}px` }}>
+            {cm}
+          </span>
+        ))}
+        <span className="hc-tape-fill" ref={tapeRef} />
       </div>
 
       {open && (

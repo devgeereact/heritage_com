@@ -3,7 +3,7 @@
    marquees or logo strips (the home hero slider is the one carousel,
    D-023): every section shows real data or is not rendered at all.
    ============================================================ */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Section, SectionHead } from './ui/Section'
 import Button from './ui/Button'
@@ -11,8 +11,12 @@ import Icon from './ui/Icon'
 import HcImage from './ui/HcImage'
 import PrintArt from './ui/PrintArt'
 import { printAt, printVariant } from './ui/printPatterns'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { Rich } from './cmsBlocks'
 import { splitSections, hasSubheads } from './storySections'
+
+gsap.registerPlugin(useGSAP)
 
 export { SectionHead }
 
@@ -52,9 +56,9 @@ export const Lookbook = ({ eyebrow, title, products, formatNgn }) => {
    ------------------------------------------------------------ */
 
 const FACTS = [
-  { icon: 'ruler', title: 'Made to your measurements', desc: 'A pattern is drafted from your own measurements, not a standard size.' },
-  { icon: 'clock', title: 'Fittings by appointment', desc: 'You choose the time. The date for your piece is agreed in the written quote.' },
-  { icon: 'notes', title: 'Follow your order online', desc: 'Your account shows the stage, the payments and the next fitting.' },
+  { title: 'Made to your measurements', desc: 'A pattern is drafted from your own measurements, not a standard size.' },
+  { title: 'Fittings by appointment', desc: 'You choose the time. The date for your piece is agreed in the written quote.' },
+  { title: 'Follow your order online', desc: 'Your account shows the stage, the payments and the next fitting.' },
 ]
 
 const PROCESS = [
@@ -72,7 +76,7 @@ const COMPANY_POINTS = [
 ]
 
 /* Statement beside three facts about the way the work is done. `children` (CMS rich text) replaces the default statement. */
-export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'paper', edit, children }) => (
+export const PromiseBand = ({ eyebrow = 'How we work', statement, tone = 'paper', edit, children }) => (
   <Section tone={tone} className="hc-section--promise" aria-label={eyebrow} edit={edit}>
     <div className="hc-promise">
       <div className="hc-promise-copy" data-reveal="">
@@ -82,7 +86,6 @@ export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'pape
       <ul className="hc-facts-list" data-reveal="">
         {FACTS.map((f) => (
           <li key={f.title}>
-            <Icon name={f.icon} />
             <div>
               <h3>{f.title}</h3>
               <p>{f.desc}</p>
@@ -93,6 +96,85 @@ export const PromiseBand = ({ eyebrow = 'The Herit way', statement, tone = 'pape
     </div>
   </Section>
 )
+
+/**
+ * Services as an index (Home): each row is one link with the service name
+ * and summary. From 992px a framed photograph beside the list shows the
+ * service under the pointer or keyboard focus; the new one wipes up over the
+ * old with GSAP (instant under reduced motion). Below 992px each row carries
+ * its own photograph. A service without a photograph shows its print.
+ */
+export const ServiceIndex = ({ services }) => {
+  const scope = useRef(null)
+  const [active, setActive] = useState(0)
+  const shown = useRef(0)
+  const { contextSafe } = useGSAP({ scope })
+  const show = contextSafe((i) => {
+    setActive(i)
+    if (i === shown.current) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const shots = gsap.utils.toArray('.hc-sindex-shot')
+    gsap.killTweensOf(shots)
+    shots.forEach((el, k) => {
+      if (k !== i && k !== shown.current) gsap.set(el, { autoAlpha: 0, zIndex: 0 })
+    })
+    gsap.set(shots[shown.current], { zIndex: 1 })
+    if (reduce) {
+      gsap.set(shots[shown.current], { autoAlpha: 0 })
+      gsap.set(shots[i], { autoAlpha: 1, zIndex: 2, clipPath: 'inset(0% 0% 0% 0%)' })
+    } else {
+      const prev = shots[shown.current]
+      gsap.fromTo(
+        shots[i],
+        { autoAlpha: 1, zIndex: 2, clipPath: 'inset(100% 0% 0% 0%)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'expo.out', onComplete: () => gsap.set(prev, { autoAlpha: 0 }) },
+      )
+      gsap.fromTo(shots[i].querySelector('.hc-sindex-zoom'), { scale: 1.12 }, { scale: 1, duration: 1.1, ease: 'expo.out' })
+    }
+    shown.current = i
+  })
+  useGSAP(
+    () => {
+      gsap.set('.hc-sindex-shot', { autoAlpha: 0 })
+      gsap.set('.hc-sindex-shot:first-child', { autoAlpha: 1, zIndex: 2 })
+    },
+    { scope, dependencies: [services.length] },
+  )
+  const art = (s, i, sizes) =>
+    s.image?.src ? (
+      <HcImage {...s.image} sizes={sizes} />
+    ) : (
+      <PrintArt variant={s.print || printAt(i)} label={`Illustration: ${s.title}`} scale={1.2} />
+    )
+  return (
+    <div ref={scope} className="hc-sindex">
+      <ol className="hc-sindex-list">
+        {services.map((s, i) => (
+          <li key={s.to} data-reveal="" style={{ '--hc-reveal-delay': `${i * 70}ms` }}>
+            <Link to={s.to} className={`hc-sindex-row${i === active ? ' is-active' : ''}`} onPointerEnter={() => show(i)} onFocus={() => show(i)}>
+              <span className="hc-sindex-text">
+                <span className="hc-sindex-title">{s.title}</span>
+                {s.summary && <span className="hc-sindex-sum">{s.summary}</span>}
+                {s.meta && <span className="hc-sindex-meta">{s.meta}</span>}
+              </span>
+              <span className="hc-sindex-thumb" aria-hidden="true">
+                {art(s, i, '(max-width: 991px) 30vw, 1px')}
+              </span>
+              <Icon name="arrow-right" className="hc-sindex-arrow" />
+            </Link>
+          </li>
+        ))}
+      </ol>
+      <div className="hc-sindex-frame" aria-hidden="true">
+        {services.map((s, i) => (
+          <div key={s.to} className="hc-sindex-shot">
+            <div className="hc-sindex-zoom">{art(s, i, '(min-width: 992px) 40vw, 1px')}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 /* Steps on a rail that fills amber as the steps are revealed. `steps` ([{title, desc}],
    for example from the How it works page) replace the fixed four when given. */
@@ -121,7 +203,7 @@ export const ProcessBand = ({ tone = 'paper', title = 'From first message to han
 
 /* Company orders: photograph, what a company gets, one action. */
 export const CompanyBand = ({ title, lead, image, to, tone, edit }) => (
-  <Section tone={tone} labelledBy="company-band" className="hc-section--band" edit={edit}>
+  <Section tone={tone || 'ink'} labelledBy="company-band" className="hc-section--band" edit={edit}>
     <div className="hc-band">
       {image?.src ? (
         <HcImage {...image} ratio="5 / 6" sizes="(min-width: 1024px) 50vw, 100vw" className="hc-band-media" />
@@ -129,7 +211,7 @@ export const CompanyBand = ({ title, lead, image, to, tone, edit }) => (
         <PrintArt variant="asooke" ratio="5 / 6" className="hc-band-media" />
       )}
       <div className="hc-band-copy" data-reveal="">
-        <p className="hc-eyebrow">Company orders</p>
+        <p className="hc-eyebrow">For teams and events</p>
         <h2 id="company-band" className="hc-h2">
           {title || 'Uniforms and event wear for your whole team'}
         </h2>
@@ -252,9 +334,7 @@ export const JournalGrid = ({ eyebrow, title, lead, posts, moreTo, edit }) => {
       <div className="hc-grid hc-grid--3">
         {posts.slice(0, 3).map((p, i) => (
           <article key={p.slug} className="hc-journal-card" data-reveal="">
-            <PrintArt variant={p.print || printAt(i)} className="hc-journal-media" scale={0.9}>
-              {p.cat && <span className="hc-print-tag">{p.cat}</span>}
-            </PrintArt>
+            <PrintArt variant={p.print || printAt(i)} className="hc-journal-media" scale={0.9} />
             <div className="hc-journal-body">
               {(p.cat || p.date) && <span className="hc-journal-date">{[p.cat, p.date].filter(Boolean).join(' · ')}</span>}
               <h3 className="hc-h4">
@@ -271,7 +351,7 @@ export const JournalGrid = ({ eyebrow, title, lead, posts, moreTo, edit }) => {
 
 /* Closing action: one primary, one secondary, over an optional dimmed photograph. */
 export const ClosingAction = ({ eyebrow = 'Start here', title, text, primary, secondary, image, print = 'adire', edit }) => (
-  <Section className="hc-section--closing hc-section--closing-media" edit={edit}>
+  <Section tone="ink" className="hc-section--closing hc-section--closing-media" edit={edit}>
     <div className="hc-closing-media" aria-hidden="true">
       {image?.src ? <HcImage {...image} alt="" sizes="100vw" /> : <PrintArt variant={print} scale={1.4} drift />}
     </div>
@@ -312,9 +392,13 @@ export const FabricStory = ({ page, eyebrow = 'The cloth', edit }) => {
       <div className={`hc-fabric-grid hc-fabric-grid--${Math.min(sections.length, 4)}`}>
         {sections.map((f, i) => (
           <article key={f.title} className="hc-fabric" data-reveal="" style={{ '--hc-reveal-delay': `${i * 90}ms` }}>
-            <PrintArt variant={printVariant(f.title, printAt(i))} ratio="4 / 5" scale={1.25} shade="soft" className="hc-fabric-art">
-              <span className="hc-print-tag">{f.title}</span>
-            </PrintArt>
+            <PrintArt
+              variant={printVariant(f.title, printAt(i))}
+              label={`Illustration: ${f.title} print`}
+              ratio="4 / 5"
+              scale={1.25}
+              className="hc-fabric-art"
+            />
             <div className="hc-fabric-copy">
               <h3 className="hc-h4">{f.title}</h3>
               <Rich html={f.html} />

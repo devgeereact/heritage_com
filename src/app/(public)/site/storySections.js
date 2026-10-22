@@ -42,7 +42,11 @@ export const splitSections = (html, tag = 'h2') => {
 /** Plain text of a short HTML fragment (for card copy and leads). */
 export const htmlText = (html) => {
   if (!html) return ''
-  if (typeof DOMParser === 'undefined') return String(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  if (typeof DOMParser === 'undefined')
+    return String(html)
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
   // Blocks are joined with a space, so "<p>One.</p><p>Two.</p>" reads "One. Two.".
   const body = new DOMParser().parseFromString(`<body>${safeHtml(html)}</body>`, 'text/html').body
   return Array.from(body.childNodes)

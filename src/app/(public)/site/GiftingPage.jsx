@@ -5,7 +5,7 @@ import SiteContactForm from './SiteContactForm';
 
 const features = [
   { icon: 'solar:notes-bold', t: 'Handwritten note', d: 'Add a personal message at checkout — we write it by hand and tuck it in with the piece.' },
-  { icon: 'solar:gift-bold', t: 'Branded wrap', d: 'Considered, branded packaging that matches the meaning of the gift inside.' },
+  { icon: 'solar:gift-bold', t: 'Branded wrap', d: 'Wrapped for giving, with a card about the cloth.' },
   { icon: 'solar:card-bold', t: 'Herit gift card', d: 'Not sure on size? Send a gift card and let them choose the piece that&apos;s theirs.' },
 ];
 

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
 import useReveal from './ui/useReveal'
+import SmoothScroll from './ui/SmoothScroll'
 import useSeo from './seo/useSeo'
 import { usePreviewMode, useSiteConfig } from './siteData'
 import './site.css'
@@ -65,6 +66,7 @@ const SiteLayout = ({ title, seo = {}, noindex = false, children }) => {
           <Link to={pathname}>Leave preview</Link>
         </div>
       )}
+      <SmoothScroll />
       <SiteHeader />
       <main id="main" tabIndex={-1} ref={revealRef}>
         {children}
