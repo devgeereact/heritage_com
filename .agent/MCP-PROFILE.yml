@@ -1,13 +1,14 @@
 mcp_profile:
   project: "heritage_com"
-  stage: "local-adoption"
+  stage: "active"
 
   permitted_reads:
     - "local files and Git metadata inside this worktree"
     - "installed package metadata and official documentation when relevant"
 
   permitted_writes:
-    - "local GEE OS adoption documents explicitly included in the migration"
+    - "local files within the current task contract"
+    - "feature-branch push and pull request on GitHub when the task contract allows it"
 
   production_capabilities: []
 
@@ -16,7 +17,7 @@ mcp_profile:
     - "DNS, hosting, billing and payment mutations"
     - "outbound email, messages and notifications"
     - "copying or printing credentials"
-    - "remote Git operations during local migration"
+    - "push, merge or rebase of main"
 
   environment_confirmation: "required before every future MCP use"
   evidence: "record non-secret identifiers, operation, result and verification"

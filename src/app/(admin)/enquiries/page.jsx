@@ -1,123 +1,105 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card, CardBody, Table, Spinner, Alert, Badge, Dropdown, Button } from 'react-bootstrap';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import { Button, Card, Form, Spinner } from 'react-bootstrap';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
-import { useNotificationContext } from '@/context/useNotificationContext';
-import AiReplyModal from './components/AiReplyModal';
+import { ENQUIRY_LABELS, fmtDate, fmtUtc, daysFromToday, initials } from '@/helpers/format';
+import LoadError from '@/components/herit/LoadError';
+import PageHeader from '@/components/herit/PageHeader';
+import StatusChip from '@/components/herit/StatusChip';
+import NewEnquiryModal from './components/NewEnquiryModal';
 
-const STATUSES = ['new', 'contacted', 'closed'];
-const statusVariant = (s) => (s === 'new' ? 'primary' : s === 'contacted' ? 'warning' : 'secondary');
-const typeLabel = { fitting: 'Fitting', bespoke: 'Bespoke', wholesale: 'Wholesale', general: 'General' };
+const TABS = ['new', 'awaiting_reply', 'quote_sent', 'accepted', 'closed'];
+const TYPE = { fitting: 'Fitting', bespoke: 'Bespoke', wholesale: 'Wholesale', general: 'General' };
 
 const EnquiriesPage = () => {
-  const [rows, setRows] = useState([]);
-  const [state, setState] = useState('loading'); // loading | ready | offline
-  const [reply, setReply] = useState(null); // enquiry being replied to
-  const { showNotification } = useNotificationContext();
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.includes(params.get('status')) ? params.get('status') : 'new';
+  const [q, setQ] = useState('');
+  const [data, setData] = useState({ items: [], counts: {} });
+  const [state, setState] = useState('loading');
+  const [error, setError] = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
+    setState('loading');
     try {
-      const list = await heritApi.contact.list();
-      setRows(Array.isArray(list) ? list : []);
+      const r = await heritApi.enquiries.list({ status: tab, q: q.trim() });
+      setData({ items: r.items || [], counts: r.counts || {} });
       setState('ready');
-    } catch {
-      setState('offline');
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const setStatus = async (id, status) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    try {
-      await heritApi.contact.setStatus(id, status);
     } catch (e) {
-      showNotification({ message: e.message || 'Could not update', variant: 'danger' });
-      load();
+      setError(e); setState('error');
     }
-  };
+  }, [tab, q]);
 
-  const newCount = rows.filter((r) => r.status === 'new').length;
+  useEffect(() => {
+    const t = setTimeout(load, q ? 250 : 0);
+    return () => clearTimeout(t);
+  }, [load, q]);
 
   return (
-    <>
+    <div className="hd">
       <PageTitle title="Enquiries" />
+      <PageHeader
+        title="Enquiries"
+        subtitle="Reply, quote, then turn the enquiry into a client and a job."
+        actions={<Button variant="primary" onClick={() => setShowNew(true)}><IconifyIcon icon="solar:add-circle-bold" className="me-1" aria-hidden="true" />Add enquiry</Button>}
+      />
 
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-          <h4 className="mb-1">Enquiries</h4>
-          <p className="text-muted mb-0">
-            {state === 'ready'
-              ? `${rows.length} total${newCount ? ` · ${newCount} new` : ''}`
-              : 'Messages from the website'}
-          </p>
-        </div>
-      </div>
+      <nav className="hd-tabs mb-3" aria-label="Enquiry status">
+        {TABS.map((t) => (
+          <Button key={t} variant="outline-secondary" className={t === tab ? 'active' : ''} aria-current={t === tab ? 'page' : undefined}
+            onClick={() => setParams({ status: t })}>
+            {ENQUIRY_LABELS[t]} <span className="hd-tab-n tnum">{data.counts[t] ?? 0}</span>
+          </Button>
+        ))}
+      </nav>
 
-      {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
+      <Form.Group controlId="enq-search" className="mb-3" style={{ maxWidth: 420 }}>
+        <Form.Label className="visually-hidden">Search enquiries</Form.Label>
+        <Form.Control type="search" placeholder="Search name, phone, email or company" value={q} onChange={(e) => setQ(e.target.value)} />
+      </Form.Group>
 
-      {state === 'offline' && (
-        <Alert variant="warning">
-          <strong>Enquiries offline.</strong> Upload <code>php-api/contact.php</code> + <code>config.php</code>
-          and import the <code>enquiries</code> table from <code>schema.sql</code>, then refresh.
-        </Alert>
-      )}
-
+      {state === 'loading' && <div className="text-center py-5"><Spinner role="status" /></div>}
+      {state === 'error' && <LoadError what="enquiries" error={error} onRetry={load} />}
       {state === 'ready' && (
-        <Card>
-          <CardBody className="p-0">
-            <Table responsive hover className="mb-0 align-middle">
-              <thead className="table-light">
-                <tr>
-                  <th>Received</th><th>Name</th><th>Contact</th><th>Type</th>
-                  <th>Interest</th><th>Message</th><th>Status</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 && (
-                  <tr><td colSpan={8} className="text-center text-muted py-4">No enquiries yet.</td></tr>
-                )}
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td className="small text-nowrap">{r.created_at}</td>
-                    <td className="fw-semibold">{r.name}</td>
-                    <td className="small">
-                      {r.phone && <div><IconifyIcon icon="solar:phone-bold" /> {r.phone}</div>}
-                      {r.email && <div><IconifyIcon icon="solar:letter-bold" /> {r.email}</div>}
-                    </td>
-                    <td><Badge bg="light" text="dark">{typeLabel[r.type] || r.type}</Badge></td>
-                    <td className="small">{r.interest || '—'}</td>
-                    <td className="small" style={{ maxWidth: 280 }}>{r.message || '—'}</td>
-                    <td>
-                      <Dropdown>
-                        <Dropdown.Toggle size="sm" variant={statusVariant(r.status)} className="text-capitalize">
-                          {r.status}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          {STATUSES.map((s) => (
-                            <Dropdown.Item key={s} active={s === r.status} className="text-capitalize" onClick={() => setStatus(r.id, s)}>
-                              {s}
-                            </Dropdown.Item>
-                          ))}
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </td>
-                    <td>
-                      <Button size="sm" variant="outline-primary" onClick={() => setReply(r)}>
-                        <IconifyIcon icon="solar:magic-stick-3-bold" /> Reply
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </CardBody>
+        <Card className="hd-card">
+          {data.items.length === 0 ? (
+            <Card.Body className="text-muted">
+              {q ? 'No enquiry matches that search.' : tab === 'new' ? 'No new enquiries. Add one when someone calls or messages.' : `Nothing in ${ENQUIRY_LABELS[tab].toLowerCase()}.`}
+            </Card.Body>
+          ) : (
+            <div>
+              {data.items.map((e) => {
+                const fu = daysFromToday(e.next_follow_up);
+                return (
+                  <Link key={e.id} to={`/enquiries/${e.id}`} className="hd-row">
+                    <span className="hd-avatar" aria-hidden="true">{initials(e.name)}</span>
+                    <span className="hd-row-main">
+                      <span className="hd-row-title d-block text-truncate">{e.name}{e.company ? ` · ${e.company}` : ''}</span>
+                      <span className="hd-row-sub d-block text-truncate">
+                        {TYPE[e.type] || e.type}{e.interest ? ` · ${e.interest}` : ''} · received {fmtUtc(e.created_at, { time: false })}
+                      </span>
+                    </span>
+                    {e.next_follow_up && (
+                      <StatusChip tone={fu < 0 ? 'bad' : fu === 0 ? 'warn' : 'neutral'} icon="solar:calendar-bold">
+                        Follow up {fmtDate(e.next_follow_up, { withYear: false })}
+                      </StatusChip>
+                    )}
+                    {e.job_id && <StatusChip tone="ok">Converted</StatusChip>}
+                    <IconifyIcon icon="solar:alt-arrow-right-linear" aria-hidden="true" className="text-muted" />
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </Card>
       )}
 
-      <AiReplyModal enquiry={reply} show={!!reply} onHide={() => setReply(null)} />
-    </>
+      <NewEnquiryModal show={showNew} onHide={() => setShowNew(false)} onCreated={(id) => navigate(`/enquiries/${id}`)} />
+    </div>
   );
 };
 

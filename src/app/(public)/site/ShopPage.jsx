@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import { useCatalogue, formatNgn } from './products';
 
@@ -116,25 +116,6 @@ const ShopPage = () => {
               ))}
             </div>
           )}
-        </div>
-      </section>
-
-      {/* reassurance */}
-      <section className="hc-section--tight hc-section--dark">
-        <div className="hc-container">
-          <div className="hc-grid hc-grid--3" style={{ textAlign: 'center' }}>
-            {[
-              { i: 'solar:map-point-bold', t: 'Made in Lagos', d: 'Cut and sewn in Ajuwon Market' },
-              { i: 'solar:delivery-bold', t: 'Ships worldwide', d: 'Tracked, with branded packaging' },
-              { i: 'solar:restart-bold', t: '14-day returns', d: 'Unworn items in original condition' },
-            ].map((r) => (
-              <div key={r.t}>
-                <span className="hc-card-ico" style={{ margin: '0 auto 0.75rem' }}><IconifyIcon icon={r.i} /></span>
-                <h4 style={{ color: '#fff' }}>{r.t}</h4>
-                <p style={{ color: '#c4c4c4', marginTop: '0.3rem', fontSize: '0.92rem' }}>{r.d}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
     </SiteLayout>

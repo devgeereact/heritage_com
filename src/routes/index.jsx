@@ -1,872 +1,524 @@
-import { lazy } from 'react';
-import { Navigate } from 'react-router-dom';
+import { lazy } from 'react'
+import RedirectWithParams from './RedirectWithParams'
 
-// Dashboard Routes
-const Dashboard = lazy(() => import('@/app/(admin)/dashboard/page'));
+// Daily records (Phase 2)
+const Today = lazy(() => import('@/app/(admin)/today/page'))
+const Payments = lazy(() => import('@/app/(admin)/payments/page'))
+const Appointments = lazy(() => import('@/app/(admin)/appointments/page'))
+const Messages = lazy(() => import('@/app/(admin)/messages/page'))
+const PrintDoc = lazy(() => import('@/app/(admin)/print/page'))
+// Phase 7: the owner's review (super_admin)
+const Review = lazy(() => import('@/app/(admin)/review/page'))
+const EnquiryDetail = lazy(() => import('@/app/(admin)/enquiries/[id]/page'))
+const EnquiryConvert = lazy(() => import('@/app/(admin)/enquiries/[id]/convert/page'))
+const NewMeasurements = lazy(() => import('@/app/(admin)/crm/[id]/measurements/new/page'))
 
-// Apps Routes
-
-const Chat = lazy(() => import('@/app/(admin)/apps/chat/page'));
-const Email = lazy(() => import('@/app/(admin)/apps/email/page'));
-const Todo = lazy(() => import('@/app/(admin)/apps/todo/page'));
-const Calendar = lazy(() => import('@/app/(admin)/apps/calendar/page'));
+// The old dashboard lives on as Reports
+const Dashboard = lazy(() => import('@/app/(admin)/dashboard/page'))
 
 // Pages Routes
-const Welcome = lazy(() => import('@/app/(admin)/pages/welcome/page'));
-const ComingSoon = lazy(() => import('@/app/(other)/coming-soon/page'));
-const TimelinePage = lazy(() => import('@/app/(admin)/pages/timeline/page'));
-const Pricing = lazy(() => import('@/app/(admin)/pages/pricing/page'));
-const Maintenance = lazy(() => import('@/app/(other)/maintenance/page'));
-const Widgets = lazy(() => import('@/app/(admin)/widgets/page'));
-const NotFound = lazy(() => import('@/app/(other)/pages-404/page'));
-const Pages404Alt = lazy(() => import('@/app/(admin)/pages/pages-404-alt/page'));
-const Settings = lazy(() => import('@/app/(admin)/settings/page'));
-const Profile = lazy(() => import('@/app/(admin)/profile/page'));
-const Permissions = lazy(() => import('@/app/(admin)/permissions/page'));
-const Review = lazy(() => import('@/app/(admin)/review/page'));
-const HelpCenter = lazy(() => import('@/app/(admin)/support/help-center/page'));
-const Faqs = lazy(() => import('@/app/(admin)/support/faqs/page'));
-const PrivacyPolicy = lazy(() => import('@/app/(admin)/support/privacy-policy/page'));
+const PublicNotFound = lazy(() => import('@/app/(public)/site/cmsBlocks').then((m) => ({ default: m.NotFoundPage })))
+const Settings = lazy(() => import('@/app/(admin)/settings/page'))
+const Profile = lazy(() => import('@/app/(admin)/profile/page'))
+const Permissions = lazy(() => import('@/app/(admin)/permissions/page'))
 
-// Base UI Routes
-const Accordions = lazy(() => import('@/app/(admin)/base-ui/accordion/page'));
-const Alerts = lazy(() => import('@/app/(admin)/base-ui/alerts/page'));
-const Avatars = lazy(() => import('@/app/(admin)/base-ui/avatar/page'));
-const Badges = lazy(() => import('@/app/(admin)/base-ui/badge/page'));
-const Breadcrumb = lazy(() => import('@/app/(admin)/base-ui/breadcrumb/page'));
-const Buttons = lazy(() => import('@/app/(admin)/base-ui/buttons/page'));
-const Cards = lazy(() => import('@/app/(admin)/base-ui/cards/page'));
-const Carousel = lazy(() => import('@/app/(admin)/base-ui/carousel/page'));
-const Collapse = lazy(() => import('@/app/(admin)/base-ui/collapse/page'));
-const Dropdown = lazy(() => import('@/app/(admin)/base-ui/dropdown/page'));
-const ListGroup = lazy(() => import('@/app/(admin)/base-ui/list-group/page'));
-const Modals = lazy(() => import('@/app/(admin)/base-ui/modals/page'));
-const Tabs = lazy(() => import('@/app/(admin)/base-ui/tabs/page'));
-const Offcanvas = lazy(() => import('@/app/(admin)/base-ui/offcanvas/page'));
-const Pagination = lazy(() => import('@/app/(admin)/base-ui/pagination/page'));
-const Placeholders = lazy(() => import('@/app/(admin)/base-ui/placeholders/page'));
-const Popovers = lazy(() => import('@/app/(admin)/base-ui/popovers/page'));
-const Progress = lazy(() => import('@/app/(admin)/base-ui/progress/page'));
-const Spinners = lazy(() => import('@/app/(admin)/base-ui/spinners/page'));
-const Toasts = lazy(() => import('@/app/(admin)/base-ui/toasts/page'));
-const Tooltips = lazy(() => import('@/app/(admin)/base-ui/tooltips/page'));
-
-// Product Routes
-const ProductList = lazy(() => import('@/app/(admin)/products/product-list/page'));
-const ProductGrid = lazy(() => import('@/app/(admin)/products/product-grid/page'));
-const Products = lazy(() => import('@/app/(admin)/products/[productId]/page'));
-const ProductEdit = lazy(() => import('@/app/(admin)/products/product-edit/page'));
-const ProductAdd = lazy(() => import('@/app/(admin)/products/product-add/page'));
-
-// Category Routes
-const CategoryList = lazy(() => import('@/app/(admin)/category/category-list/page'));
-const CategoryEdit = lazy(() => import('@/app/(admin)/category/category-edit/page'));
-const CategoryAdd = lazy(() => import('@/app/(admin)/category/category-add/page'));
-
-// inventory Routes
-const Warehouse = lazy(() => import('@/app/(admin)/inventory/warehouse/page'));
-const ReceivedOrders = lazy(() => import('@/app/(admin)/inventory/received-orders/page'));
-
-// Orders Routes
-const OrdersList = lazy(() => import('@/app/(admin)/orders/orders-list/page'));
-const OrdersDetail = lazy(() => import('@/app/(admin)/orders/order-detail/page'));
-const OrdersCart = lazy(() => import('@/app/(admin)/orders/order-cart/page'));
-const OrdersCheckout = lazy(() => import('@/app/(admin)/orders/order-checkout/page'));
-
-// Purchases Routes
-const PurchaseList = lazy(() => import('@/app/(admin)/purchases/purchase-returns/page'));
-const PurchaseOrder = lazy(() => import('@/app/(admin)/purchases/purchase-order/page'));
-const PurchaseReturns = lazy(() => import('@/app/(admin)/purchases/purchase-returns/page'));
-
-// Attributes Routes
-const AttributeList = lazy(() => import('@/app/(admin)/attributes/attributes-list/page'));
-const AttributeEdit = lazy(() => import('@/app/(admin)/attributes/attributes-edit/page'));
-const AttributeAdd = lazy(() => import('@/app/(admin)/attributes/attributes-add/page'));
-
-// Invoice Routes
-const InvoiceList = lazy(() => import('@/app/(admin)/invoice/invoice-list/page'));
-const InvoiceDetails = lazy(() => import('@/app/(admin)/invoice/invoice-details/page'));
-const InvoiceAdd = lazy(() => import('@/app/(admin)/invoice/invoice-add/page'));
-
-// Role Routes
-const RoleList = lazy(() => import('@/app/(admin)/role/role-list/page'));
-const RoleEdit = lazy(() => import('@/app/(admin)/role/role-edit/page'));
-const RoleAdd = lazy(() => import('@/app/(admin)/role/role-add/page'));
-
-// Customer Routes
-const CustomerList = lazy(() => import('@/app/(admin)/customer/customer-list/page'));
-const CustomerDetails = lazy(() => import('@/app/(admin)/customer/customer-detail/page'));
-
-// Seller Routes
-const SellerList = lazy(() => import('@/app/(admin)/seller/seller-list/page'));
-const SellerDetails = lazy(() => import('@/app/(admin)/seller/seller-details/page'));
-const SellerEdit = lazy(() => import('@/app/(admin)/seller/seller-edit/page'));
-const SellerAdd = lazy(() => import('@/app/(admin)/seller/seller-add/page'));
-
-// Coupons Routes
-const CouponsList = lazy(() => import('@/app/(admin)/coupons/coupons-list/page'));
-const CouponsAdd = lazy(() => import('@/app/(admin)/coupons/coupons-add/page'));
-
-// // Advanced UI Routes
-const Ratings = lazy(() => import('@/app/(admin)/advanced-ul/rating/page'));
-const SweetAlerts = lazy(() => import('@/app/(admin)/advanced-ul/sweet-alert/page'));
-const Swiper = lazy(() => import('@/app/(admin)/advanced-ul/swiper-slider/page'));
-const Scrollbar = lazy(() => import('@/app/(admin)/advanced-ul/scrollbar/page'));
-const Toastify = lazy(() => import('@/app/(admin)/advanced-ul/toastify/page'));
-
-// Charts and Maps Routes
-const Area = lazy(() => import('@/app/(admin)/charts/area/page'));
-const Bar = lazy(() => import('@/app/(admin)/charts/bar/page'));
-const Bubble = lazy(() => import('@/app/(admin)/charts/bubble/page'));
-const Candlestick = lazy(() => import('@/app/(admin)/charts/candlestick/page'));
-const Column = lazy(() => import('@/app/(admin)/charts/column/page'));
-const Heatmap = lazy(() => import('@/app/(admin)/charts/heatmap/page'));
-const Line = lazy(() => import('@/app/(admin)/charts/line/page'));
-const Mixed = lazy(() => import('@/app/(admin)/charts/mixed/page'));
-const Timeline = lazy(() => import('@/app/(admin)/charts/timeline/page'));
-const Boxplot = lazy(() => import('@/app/(admin)/charts/boxplot/page'));
-const Treemap = lazy(() => import('@/app/(admin)/charts/treemap/page'));
-const Pie = lazy(() => import('@/app/(admin)/charts/pie/page'));
-const Radar = lazy(() => import('@/app/(admin)/charts/radar/page'));
-const RadialBar = lazy(() => import('@/app/(admin)/charts/radialBar/page'));
-const Scatter = lazy(() => import('@/app/(admin)/charts/scatter/page'));
-const Polar = lazy(() => import('@/app/(admin)/charts/polar/page'));
-const GoogleMaps = lazy(() => import('@/app/(admin)/maps/google/page'));
-const VectorMaps = lazy(() => import('@/app/(admin)/maps/vector/page'));
-
-// Forms Routes
-const Basic = lazy(() => import('@/app/(admin)/forms/basic/page'));
-const Checkbox = lazy(() => import('@/app/(admin)/forms/checkbox/page'));
-const Select = lazy(() => import('@/app/(admin)/forms/select/page'));
-const Clipboard = lazy(() => import('@/app/(admin)/forms/clipboard/page'));
-const FlatPicker = lazy(() => import('@/app/(admin)/forms/flat-picker/page'));
-const Validation = lazy(() => import('@/app/(admin)/forms/validation/page'));
-const Wizard = lazy(() => import('@/app/(admin)/forms/wizard/page'));
-const FileUploads = lazy(() => import('@/app/(admin)/forms/file-uploads/page'));
-const Editors = lazy(() => import('@/app/(admin)/forms/editors/page'));
-const InputMask = lazy(() => import('@/app/(admin)/forms/input-mask/page'));
-const Slider = lazy(() => import('@/app/(admin)/forms/range-slider/page'));
-
-// // Form Routes
-const BasicTable = lazy(() => import('@/app/(admin)/tables/basic/page'));
-const GridjsTable = lazy(() => import('@/app/(admin)/tables/gridjs/page'));
-
-// Icon Routes
-const BoxIcons = lazy(() => import('@/app/(admin)/icons/boxicons/page'));
-const SolarIcons = lazy(() => import('@/app/(admin)/icons/solaricons/page'));
-
-// Public site — multi-page marketing storefront (no auth, OtherLayout)
-const Home = lazy(() => import('@/app/(public)/site/HomePage'));
-const About = lazy(() => import('@/app/(public)/site/AboutPage'));
-const Shop = lazy(() => import('@/app/(public)/site/ShopPage'));
-const Product = lazy(() => import('@/app/(public)/site/ProductPage'));
-const Cart = lazy(() => import('@/app/(public)/site/CartPage'));
-const Checkout = lazy(() => import('@/app/(public)/site/CheckoutPage'));
-const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'));
-const Contact = lazy(() => import('@/app/(public)/site/ContactPage'));
-const Track = lazy(() => import('@/app/(public)/site/TrackPage'));
-const Account = lazy(() => import('@/app/(public)/site/AccountPage'));
-const Blog = lazy(() => import('@/app/(public)/site/BlogPage'));
-const BlogPost = lazy(() => import('@/app/(public)/site/BlogPostPage'));
+// Public site: multi-page website (no auth, PublicLayout)
+const Home = lazy(() => import('@/app/(public)/site/HomePage'))
+const About = lazy(() => import('@/app/(public)/site/AboutPage'))
+const Shop = lazy(() => import('@/app/(public)/site/ShopPage'))
+const Product = lazy(() => import('@/app/(public)/site/ProductPage'))
+const Cart = lazy(() => import('@/app/(public)/site/CartPage'))
+const Checkout = lazy(() => import('@/app/(public)/site/CheckoutPage'))
+const Gifting = lazy(() => import('@/app/(public)/site/GiftingPage'))
+const ShopGate = lazy(() => import('@/app/(public)/site/ShopGate'))
+const Contact = lazy(() => import('@/app/(public)/site/ContactPage'))
+const Track = lazy(() => import('@/app/(public)/site/TrackPage'))
+const Account = lazy(() => import('@/app/(public)/site/AccountPage'))
+const PortalJob = lazy(() => import('@/app/(public)/site/portal/PortalJobPage'))
+const AccessInvite = lazy(() => import('@/app/(public)/site/portal/InvitePage'))
+const Book = lazy(() => import('@/app/(public)/site/BookPage'))
+const Blog = lazy(() => import('@/app/(public)/site/BlogPage'))
+const BlogPost = lazy(() => import('@/app/(public)/site/BlogPostPage'))
+const Services = lazy(() => import('@/app/(public)/site/ServicesPage'))
+const Service = lazy(() => import('@/app/(public)/site/ServicePage'))
+const Work = lazy(() => import('@/app/(public)/site/WorkPage'))
+const WorkItem = lazy(() => import('@/app/(public)/site/WorkItemPage'))
+const HowItWorks = lazy(() => import('@/app/(public)/site/CmsPage').then((m) => ({ default: m.HowItWorksPage })))
+const CompanyOrders = lazy(() => import('@/app/(public)/site/CompanyOrdersPage'))
+const Faqs = lazy(() => import('@/app/(public)/site/FaqsPage'))
+const Privacy = lazy(() => import('@/app/(public)/site/PolicyPage').then((m) => ({ default: m.PrivacyPage })))
+const Terms = lazy(() => import('@/app/(public)/site/PolicyPage').then((m) => ({ default: m.TermsPage })))
 
 // Tailoring & Production (HeritOS core module)
-const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'));
-const TailoringGroups = lazy(() => import('@/app/(admin)/tailoring/groups/page'));
-const TailoringDetail = lazy(() => import('@/app/(admin)/tailoring/[id]/page'));
+const Tailoring = lazy(() => import('@/app/(admin)/tailoring/page'))
+const TailoringGroups = lazy(() => import('@/app/(admin)/tailoring/groups/page'))
+const TailoringDetail = lazy(() => import('@/app/(admin)/tailoring/[id]/page'))
 
 // Products & Variants (catalogue, real PHP)
-const Catalogue = lazy(() => import('@/app/(admin)/catalogue/page'));
-const CatalogueDetail = lazy(() => import('@/app/(admin)/catalogue/[id]/page'));
+const Catalogue = lazy(() => import('@/app/(admin)/catalogue/page'))
+const CatalogueDetail = lazy(() => import('@/app/(admin)/catalogue/[id]/page'))
 
 // Inventory & Stock (real PHP)
-const Stock = lazy(() => import('@/app/(admin)/stock/page'));
+const Stock = lazy(() => import('@/app/(admin)/stock/page'))
 
 // Remaining HeritOS modules (real PHP)
-const Suppliers = lazy(() => import('@/app/(admin)/suppliers/page'));
-const Finance = lazy(() => import('@/app/(admin)/finance/page'));
-const Analytics = lazy(() => import('@/app/(admin)/analytics/page'));
-const Marketing = lazy(() => import('@/app/(admin)/marketing/page'));
-const Pos = lazy(() => import('@/app/(admin)/pos/page'));
-const Studio = lazy(() => import('@/app/(admin)/studio/page'));
-const Content = lazy(() => import('@/app/(admin)/content/page'));
-const Channels = lazy(() => import('@/app/(admin)/channels/page'));
-const Weather = lazy(() => import('@/app/(admin)/weather/page'));
-const Team = lazy(() => import('@/app/(admin)/team/page'));
-const Inbox = lazy(() => import('@/app/(admin)/inbox/page'));
-const WhatsApp = lazy(() => import('@/app/(admin)/whatsapp/page'));
-const Coupons = lazy(() => import('@/app/(admin)/coupons/page'));
-const Loyalty = lazy(() => import('@/app/(admin)/loyalty/page'));
-const Engage = lazy(() => import('@/app/(admin)/engage/page'));
-const Reviews = lazy(() => import('@/app/(admin)/reviews/page'));
+const Suppliers = lazy(() => import('@/app/(admin)/suppliers/page'))
+const Finance = lazy(() => import('@/app/(admin)/finance/page'))
+const Analytics = lazy(() => import('@/app/(admin)/analytics/page'))
+const Marketing = lazy(() => import('@/app/(admin)/marketing/page'))
+const Pos = lazy(() => import('@/app/(admin)/pos/page'))
+const Studio = lazy(() => import('@/app/(admin)/studio/page'))
+const Content = lazy(() => import('@/app/(admin)/content/page'))
+const Website = lazy(() => import('@/app/(admin)/website/page'))
+const WebsiteProfile = lazy(() => import('@/app/(admin)/website/profile/page'))
+const WebsiteMedia = lazy(() => import('@/app/(admin)/website/media/page'))
+const WebsiteList = lazy(() => import('@/app/(admin)/website/list/page'))
+const WebsiteEdit = lazy(() => import('@/app/(admin)/website/edit/page'))
+const WebsiteHome = lazy(() => import('@/app/(admin)/website/home/page'))
+const Channels = lazy(() => import('@/app/(admin)/channels/page'))
+const Weather = lazy(() => import('@/app/(admin)/weather/page'))
+const Team = lazy(() => import('@/app/(admin)/team/page'))
+const Inbox = lazy(() => import('@/app/(admin)/inbox/page'))
+const WhatsApp = lazy(() => import('@/app/(admin)/whatsapp/page'))
+const Coupons = lazy(() => import('@/app/(admin)/coupons/page'))
+const Loyalty = lazy(() => import('@/app/(admin)/loyalty/page'))
+const Engage = lazy(() => import('@/app/(admin)/engage/page'))
+const Reviews = lazy(() => import('@/app/(admin)/reviews/page'))
 
 // Enquiries (public contact form inbox)
-const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'));
+const Enquiries = lazy(() => import('@/app/(admin)/enquiries/page'))
 
 // Customers / CRM
-const Crm = lazy(() => import('@/app/(admin)/crm/page'));
-const CrmDetail = lazy(() => import('@/app/(admin)/crm/[id]/page'));
+const Crm = lazy(() => import('@/app/(admin)/crm/page'))
+const CrmDetail = lazy(() => import('@/app/(admin)/crm/[id]/page'))
+const Companies = lazy(() => import('@/app/(admin)/clients/companies/page'))
+const CompanyDetail = lazy(() => import('@/app/(admin)/clients/companies/[id]/page'))
 
 // Sales / Orders (ready-to-wear)
-const Sales = lazy(() => import('@/app/(admin)/sales/page'));
-const SalesDetail = lazy(() => import('@/app/(admin)/sales/[id]/page'));
+const Sales = lazy(() => import('@/app/(admin)/sales/page'))
+const SalesDetail = lazy(() => import('@/app/(admin)/sales/[id]/page'))
 
 // Auth Routes
-const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'));
-const SignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'));
-const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-pass/page'));
-const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'));
+const SignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'))
+const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-pass/page'))
 
-// Public routes — no auth, rendered in OtherLayout (no admin chrome).
-export const publicRoutes = [{
-  path: '/',
-  name: 'Home',
-  element: <Home />
-}, {
-  path: '/about',
-  name: 'About',
-  element: <About />
-}, {
-  path: '/shop',
-  name: 'Shop',
-  element: <Shop />
-}, {
-  path: '/shop/:slug',
-  name: 'Product',
-  element: <Product />
-}, {
-  path: '/cart',
-  name: 'Cart',
-  element: <Cart />
-}, {
-  path: '/checkout',
-  name: 'Checkout',
-  element: <Checkout />
-}, {
-  path: '/gifting',
-  name: 'Gifting',
-  element: <Gifting />
-}, {
-  path: '/contact',
-  name: 'Contact',
-  element: <Contact />
-}, {
-  path: '/journal',
-  name: 'Journal',
-  element: <Blog />
-}, {
-  path: '/journal/:slug',
-  name: 'Journal Post',
-  element: <BlogPost />
-}, {
-  path: '/track',
-  name: 'Track order',
-  element: <Track />
-}, {
-  path: '/account',
-  name: 'Account',
-  element: <Account />
-}];
-const generalRoutes = [{
-  path: '/dashboard',
-  name: 'Dashboard',
-  element: <Dashboard />
-}, {
-  path: '/tailoring',
-  name: 'Tailoring',
-  element: <Tailoring />
-}, {
-  path: '/tailoring/groups',
-  name: 'Aso-ebi groups',
-  element: <TailoringGroups />
-}, {
-  path: '/tailoring/:id',
-  name: 'Tailoring Detail',
-  element: <TailoringDetail />
-}, {
-  path: '/catalogue',
-  name: 'Catalogue',
-  element: <Catalogue />
-}, {
-  path: '/catalogue/:id',
-  name: 'Catalogue Detail',
-  element: <CatalogueDetail />
-}, {
-  path: '/stock',
-  name: 'Inventory',
-  element: <Stock />
-}, {
-  path: '/suppliers',
-  name: 'Suppliers',
-  element: <Suppliers />
-}, {
-  path: '/finance',
-  name: 'Finance',
-  element: <Finance />
-}, {
-  path: '/analytics',
-  name: 'Analytics',
-  element: <Analytics />
-}, {
-  path: '/marketing',
-  name: 'Marketing',
-  element: <Marketing />
-}, {
-  path: '/pos',
-  name: 'Market Sales',
-  element: <Pos />
-}, {
-  path: '/studio',
-  name: 'Brand Studio',
-  element: <Studio />
-}, {
-  path: '/content',
-  name: 'Content',
-  element: <Content />
-}, {
-  path: '/channels',
-  name: 'Store & Channels',
-  element: <Channels />
-}, {
-  path: '/team',
-  name: 'Team & Access',
-  element: <Team />
-}, {
-  path: '/inbox',
-  name: 'Inbox',
-  element: <Inbox />
-}, {
-  path: '/whatsapp',
-  name: 'WhatsApp',
-  element: <WhatsApp />
-}, {
-  path: '/coupons',
-  name: 'Coupons',
-  element: <Coupons />
-}, {
-  path: '/loyalty',
-  name: 'Loyalty',
-  element: <Loyalty />
-}, {
-  path: '/engage',
-  name: 'Re-engagement',
-  element: <Engage />
-}, {
-  path: '/reviews',
-  name: 'Reviews',
-  element: <Reviews />
-}, {
-  path: '/weather',
-  name: 'Weather & Ops',
-  element: <Weather />
-}, {
-  path: '/enquiries',
-  name: 'Enquiries',
-  element: <Enquiries />
-}, {
-  path: '/crm',
-  name: 'Customers',
-  element: <Crm />
-}, {
-  path: '/crm/:id',
-  name: 'Customer Detail',
-  element: <CrmDetail />
-}, {
-  path: '/sales',
-  name: 'Orders',
-  element: <Sales />
-}, {
-  path: '/sales/:id',
-  name: 'Order Detail',
-  element: <SalesDetail />
-}];
-const appsRoutes = [{
-  name: 'Chat',
-  path: '/apps/chat',
-  element: <Chat />
-}, {
-  name: 'Email',
-  path: '/apps/email',
-  element: <Email />
-}, {
-  name: 'Calendar',
-  path: '/apps/calendar',
-  element: <Calendar />
-}, {
-  name: 'Todo',
-  path: '/apps/todo',
-  element: <Todo />
-}];
-const customRoutes = [{
-  name: 'Welcome',
-  path: '/pages/welcome',
-  element: <Welcome />
-}, {
-  name: 'Timeline',
-  path: '/pages/timeline',
-  element: <TimelinePage />
-}, {
-  name: 'Pricing',
-  path: '/pages/pricing',
-  element: <Pricing />
-}, {
-  name: 'Error 404 Alt',
-  path: '/pages/pages-404-alt',
-  element: <Pages404Alt />
-}, {
-  name: 'Widgets',
-  path: '/widgets',
-  element: <Widgets />
-}, {
-  name: 'Settings',
-  path: '/settings',
-  element: <Settings />
-}, {
-  name: 'Profile',
-  path: '/profile',
-  element: <Profile />
-}, {
-  name: 'Permissions',
-  path: '/permissions',
-  element: <Permissions />
-}, {
-  name: 'Review',
-  path: '/review',
-  element: <Review />
-}, {
-  name: 'Help Center',
-  path: '/support/help-center',
-  element: <HelpCenter />
-}, {
-  name: 'Faqs',
-  path: '/support/faqs',
-  element: <Faqs />
-}, {
-  name: 'Privacy Policy',
-  path: '/support/privacy-policy',
-  element: <PrivacyPolicy />
-}];
-const baseUIRoutes = [{
-  name: 'Accordions',
-  path: '/base-ui/accordion',
-  element: <Accordions />
-}, {
-  name: 'Alerts',
-  path: '/base-ui/alerts',
-  element: <Alerts />
-}, {
-  name: 'Avatars',
-  path: '/base-ui/avatar',
-  element: <Avatars />
-}, {
-  name: 'Badges',
-  path: '/base-ui/badge',
-  element: <Badges />
-}, {
-  name: 'Breadcrumb',
-  path: '/base-ui/breadcrumb',
-  element: <Breadcrumb />
-}, {
-  name: 'Buttons',
-  path: '/base-ui/buttons',
-  element: <Buttons />
-}, {
-  name: 'Cards',
-  path: '/base-ui/cards',
-  element: <Cards />
-}, {
-  name: 'Carousel',
-  path: '/base-ui/carousel',
-  element: <Carousel />
-}, {
-  name: 'Collapse',
-  path: '/base-ui/collapse',
-  element: <Collapse />
-}, {
-  name: 'Dropdowns',
-  path: '/base-ui/dropdown',
-  element: <Dropdown />
-}, {
-  name: 'List Group',
-  path: '/base-ui/list-group',
-  element: <ListGroup />
-}, {
-  name: 'Modals',
-  path: '/base-ui/modals',
-  element: <Modals />
-}, {
-  name: 'Tabs',
-  path: '/base-ui/tabs',
-  element: <Tabs />
-}, {
-  name: 'Offcanvas',
-  path: '/base-ui/offcanvas',
-  element: <Offcanvas />
-}, {
-  name: 'Pagination',
-  path: '/base-ui/pagination',
-  element: <Pagination />
-}, {
-  name: 'Placeholders',
-  path: '/base-ui/placeholders',
-  element: <Placeholders />
-}, {
-  name: 'Popovers',
-  path: '/base-ui/popovers',
-  element: <Popovers />
-}, {
-  name: 'Progress',
-  path: '/base-ui/progress',
-  element: <Progress />
-}, {
-  name: 'Spinners',
-  path: '/base-ui/spinners',
-  element: <Spinners />
-}, {
-  name: 'Toasts',
-  path: '/base-ui/toasts',
-  element: <Toasts />
-}, {
-  name: 'Tooltips',
-  path: '/base-ui/tooltips',
-  element: <Tooltips />
-}];
-const advancedUIRoutes = [{
-  name: 'Ratings',
-  path: '/advanced-ul/rating',
-  element: <Ratings />
-}, {
-  name: 'Sweet Alert',
-  path: '/advanced-ul/sweet-alert',
-  element: <SweetAlerts />
-}, {
-  name: 'Swiper Slider',
-  path: '/advanced-ul/swiper-slider',
-  element: <Swiper />
-}, {
-  name: 'Scrollbar',
-  path: '/advanced-ul/scrollbar',
-  element: <Scrollbar />
-}, {
-  name: 'Toastify',
-  path: '/advanced-ul/toastify',
-  element: <Toastify />
-}];
-const chartsNMapsRoutes = [{
-  name: 'Area',
-  path: '/charts/area',
-  element: <Area />
-}, {
-  name: 'Bar',
-  path: '/charts/bar',
-  element: <Bar />
-}, {
-  name: 'Bubble',
-  path: '/charts/bubble',
-  element: <Bubble />
-}, {
-  name: 'Candle Stick',
-  path: '/charts/candlestick',
-  element: <Candlestick />
-}, {
-  name: 'Column',
-  path: '/charts/column',
-  element: <Column />
-}, {
-  name: 'Heatmap',
-  path: '/charts/heatmap',
-  element: <Heatmap />
-}, {
-  name: 'Line',
-  path: '/charts/line',
-  element: <Line />
-}, {
-  name: 'Mixed',
-  path: '/charts/mixed',
-  element: <Mixed />
-}, {
-  name: 'Timeline',
-  path: '/charts/timeline',
-  element: <Timeline />
-}, {
-  name: 'Boxplot',
-  path: '/charts/boxplot',
-  element: <Boxplot />
-}, {
-  name: 'Treemap',
-  path: '/charts/treemap',
-  element: <Treemap />
-}, {
-  name: 'Pie',
-  path: '/charts/pie',
-  element: <Pie />
-}, {
-  name: 'Radar',
-  path: '/charts/radar',
-  element: <Radar />
-}, {
-  name: 'Radial Bar',
-  path: '/charts/radialBar',
-  element: <RadialBar />
-}, {
-  name: 'Scatter',
-  path: '/charts/scatter',
-  element: <Scatter />
-}, {
-  name: 'Polar Area',
-  path: '/charts/polar',
-  element: <Polar />
-}, {
-  name: 'Google',
-  path: '/maps/google',
-  element: <GoogleMaps />
-}, {
-  name: 'Vector',
-  path: '/maps/vector',
-  element: <VectorMaps />
-}];
-const formsRoutes = [{
-  name: 'Basic Elements',
-  path: '/forms/basic',
-  element: <Basic />
-}, {
-  name: 'Checkbox & Radio',
-  path: '/forms/checkbox',
-  element: <Checkbox />
-}, {
-  name: 'Choice Select',
-  path: '/forms/select',
-  element: <Select />
-}, {
-  name: 'Clipboard',
-  path: '/forms/clipboard',
-  element: <Clipboard />
-}, {
-  name: 'Flat Picker',
-  path: '/forms/flat-picker',
-  element: <FlatPicker />
-}, {
-  name: 'Validation',
-  path: '/forms/validation',
-  element: <Validation />
-}, {
-  name: 'Wizard',
-  path: '/forms/wizard',
-  element: <Wizard />
-}, {
-  name: 'File Uploads',
-  path: '/forms/file-uploads',
-  element: <FileUploads />
-}, {
-  name: 'Editors',
-  path: '/forms/editors',
-  element: <Editors />
-}, {
-  name: 'Input Mask',
-  path: '/forms/input-mask',
-  element: <InputMask />
-}, {
-  name: 'Slider',
-  path: '/forms/range-slider',
-  element: <Slider />
-}];
-const tableRoutes = [{
-  name: 'Basic Tables',
-  path: '/tables/basic',
-  element: <BasicTable />
-}, {
-  name: 'Grid JS',
-  path: '/tables/gridjs',
-  element: <GridjsTable />
-}];
-const iconRoutes = [{
-  name: 'Boxicons',
-  path: '/icons/boxicons',
-  element: <BoxIcons />
-}, {
-  name: 'SolarIcon',
-  path: '/icons/solaricons',
-  element: <SolarIcons />
-}];
-const productRoutes = [{
-  name: 'product-list',
-  path: '/products/product-list',
-  element: <ProductList />
-}, {
-  name: 'product-grid',
-  path: '/products/product-grid',
-  element: <ProductGrid />
-}, {
-  name: 'product-details',
-  path: '/products/:productId',
-  element: <Products />
-}, {
-  name: 'product-edit',
-  path: '/products/product-edit',
-  element: <ProductEdit />
-}, {
-  name: 'product-add',
-  path: '/products/product-add',
-  element: <ProductAdd />
-}];
-const CategoryRoutes = [{
-  name: 'category-list',
-  path: '/category/category-list',
-  element: <CategoryList />
-}, {
-  name: 'category-edit',
-  path: '/category/category-edit',
-  element: <CategoryEdit />
-}, {
-  name: 'category-add',
-  path: '/category/category-add',
-  element: <CategoryAdd />
-}];
-const InventoryRoutes = [{
-  name: 'Warehouse',
-  path: '/inventory/warehouse',
-  element: <Warehouse />
-}, {
-  name: 'Received Orders',
-  path: '/inventory/received-orders',
-  element: <ReceivedOrders />
-}];
-const OrdersRoutes = [{
-  name: 'List',
-  path: '/orders/orders-list',
-  element: <OrdersList />
-}, {
-  name: 'Detail',
-  path: '/orders/order-detail',
-  element: <OrdersDetail />
-}, {
-  name: 'Cart',
-  path: '/orders/order-cart',
-  element: <OrdersCart />
-}, {
-  name: 'Checkout',
-  path: '/orders/order-checkout',
-  element: <OrdersCheckout />
-}];
-const PurchaseRoutes = [{
-  name: 'Purchase List',
-  path: '/purchases/purchase-list',
-  element: <PurchaseList />
-}, {
-  name: 'Purchase Order',
-  path: '/purchases/purchase-order',
-  element: <PurchaseOrder />
-}, {
-  name: 'Purchase Returns',
-  path: '/purchases/purchase-returns',
-  element: <PurchaseReturns />
-}];
-const AttributeRoutes = [{
-  name: 'Attributes List',
-  path: '/attributes/attributes-list',
-  element: <AttributeList />
-}, {
-  name: 'Attributes Edit',
-  path: '/attributes/attributes-edit',
-  element: <AttributeEdit />
-}, {
-  name: 'Attributes Add',
-  path: '/attributes/attributes-add',
-  element: <AttributeAdd />
-}];
-const InvoiceRoutes = [{
-  name: 'Invoice List',
-  path: '/invoice/invoice-list',
-  element: <InvoiceList />
-}, {
-  name: 'Invoice Details',
-  path: '/invoice/invoice-details',
-  element: <InvoiceDetails />
-}, {
-  name: 'Invoice Add',
-  path: '/invoice/invoice-add',
-  element: <InvoiceAdd />
-}];
-const RoleRoutes = [{
-  name: 'Role List',
-  path: '/role/role-list',
-  element: <RoleList />
-}, {
-  name: 'Role Edit',
-  path: '/role/role-edit',
-  element: <RoleEdit />
-}, {
-  name: 'Role Add',
-  path: '/role/role-add',
-  element: <RoleAdd />
-}];
-const CustomerRoutes = [{
-  name: 'Customer List',
-  path: '/customer/customer-list',
-  element: <CustomerList />
-}, {
-  name: 'Customer Detail',
-  path: '/customer/customer-detail',
-  element: <CustomerDetails />
-}];
-const SellerRoutes = [{
-  name: 'Seller List',
-  path: '/seller/seller-list',
-  element: <SellerList />
-}, {
-  name: 'Seller Details',
-  path: '/seller/seller-details',
-  element: <SellerDetails />
-}, {
-  name: 'Seller Edit',
-  path: '/seller/seller-edit',
-  element: <SellerEdit />
-}, {
-  name: 'Seller Add',
-  path: '/seller/seller-add',
-  element: <SellerAdd />
-}];
-const CouponRoutes = [{
-  name: 'Coupons List',
-  path: '/coupons/coupons-list',
-  element: <CouponsList />
-}, {
-  name: 'Coupons Add',
-  path: '/coupons/coupons-add',
-  element: <CouponsAdd />
-}];
-export const authRoutes = [{
-  name: 'Sign In',
-  path: '/auth/sign-in',
-  element: <SignIn />
-}, {
-  name: 'Sign Up',
-  path: '/auth/sign-up',
-  element: <SignUp />
-}, {
-  name: 'Reset Password',
-  path: '/auth/reset-pass',
-  element: <ResetPassword />
-}, {
-  name: 'Lock Screen',
-  path: '/auth/lock-screen',
-  element: <LockScreen />
-}, {
-  name: '404 Error',
-  path: '/pages-404',
-  element: <NotFound />
-},
-//   {
-//     path: '*',
-//     name: 'not-found',
-//     element: <NotFound />,
-//   },
-{
-  name: 'Maintenance',
-  path: '/maintenance',
-  element: <Maintenance />
-}, {
-  name: 'Coming Soon',
-  path: '/coming-soon',
-  element: <ComingSoon />
-}];
-export const appRoutes = [...generalRoutes, ...appsRoutes, ...customRoutes, ...baseUIRoutes, ...advancedUIRoutes, ...chartsNMapsRoutes, ...formsRoutes, ...tableRoutes, ...iconRoutes, ...productRoutes, ...CategoryRoutes, ...InventoryRoutes, ...OrdersRoutes, ...AttributeRoutes, ...PurchaseRoutes, ...InvoiceRoutes, ...RoleRoutes, ...CustomerRoutes, ...SellerRoutes, ...CouponRoutes];
+// Public routes: no auth, rendered in PublicLayout (no admin chrome or CSS).
+export const publicRoutes = [
+  {
+    path: '/',
+    name: 'Home',
+    element: <Home />,
+  },
+  {
+    path: '/about',
+    name: 'About',
+    element: <About />,
+  },
+  {
+    path: '/services',
+    name: 'Services',
+    element: <Services />,
+  },
+  {
+    path: '/services/:slug',
+    name: 'Service',
+    element: <Service />,
+  },
+  {
+    path: '/work',
+    name: 'Our work',
+    element: <Work />,
+  },
+  {
+    path: '/work/:slug',
+    name: 'Work item',
+    element: <WorkItem />,
+  },
+  {
+    path: '/how-it-works',
+    name: 'How it works',
+    element: <HowItWorks />,
+  },
+  {
+    path: '/company-orders',
+    name: 'Company orders',
+    element: <CompanyOrders />,
+  },
+  {
+    path: '/faqs',
+    name: 'Questions',
+    element: <Faqs />,
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    element: <Privacy />,
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    element: <Terms />,
+  },
+  {
+    path: '/shop',
+    name: 'Shop',
+    element: (
+      <ShopGate>
+        <Shop />
+      </ShopGate>
+    ),
+  },
+  {
+    path: '/shop/:slug',
+    name: 'Product',
+    element: (
+      <ShopGate>
+        <Product />
+      </ShopGate>
+    ),
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    element: (
+      <ShopGate>
+        <Cart />
+      </ShopGate>
+    ),
+  },
+  {
+    path: '/checkout',
+    name: 'Checkout',
+    element: (
+      <ShopGate>
+        <Checkout />
+      </ShopGate>
+    ),
+  },
+  {
+    path: '/gifting',
+    name: 'Gifting',
+    element: (
+      <ShopGate>
+        <Gifting />
+      </ShopGate>
+    ),
+  },
+  {
+    path: '/contact',
+    name: 'Contact',
+    element: <Contact />,
+  },
+  {
+    path: '/journal',
+    name: 'Journal',
+    element: <Blog />,
+  },
+  {
+    path: '/journal/:slug',
+    name: 'Journal Post',
+    element: <BlogPost />,
+  },
+  {
+    path: '/track',
+    name: 'Track order',
+    element: <Track />,
+  },
+  {
+    path: '/account',
+    name: 'Account',
+    element: <Account />,
+  },
+  {
+    path: '/account/jobs/:ref',
+    name: 'Portal job',
+    element: <PortalJob />,
+  },
+  {
+    path: '/access/:invite',
+    name: 'Access link',
+    element: <AccessInvite />,
+  },
+  {
+    path: '/book',
+    name: 'Book appointment',
+    element: <Book />,
+  },
+  {
+    // Any unknown URL: the public noindex not-found page instead of a blank screen.
+    path: '*',
+    name: 'Not found',
+    element: <PublicNotFound />,
+  },
+]
+// Old URLs keep working (bookmarks, links in messages). Rendered before the app
+// routes and outside the layout; the target applies sign-in and role checks.
+export const redirectRoutes = [
+  { path: '/dashboard', to: '/today' },
+  { path: '/tailoring', to: '/jobs' },
+  { path: '/tailoring/groups', to: '/jobs/groups' },
+  { path: '/tailoring/:id', to: '/jobs/:id' },
+  { path: '/crm', to: '/clients' },
+  { path: '/crm/:id', to: '/clients/:id' },
+  { path: '/apps/calendar', to: '/appointments' },
+  { path: '/website/journal', to: '/content' },
+].map((r) => ({ ...r, name: `Redirect ${r.path}`, element: <RedirectWithParams to={r.to} /> }))
+
+const generalRoutes = [
+  {
+    path: '/today',
+    name: 'Today',
+    element: <Today />,
+  },
+  {
+    path: '/jobs',
+    name: 'Jobs',
+    element: <Tailoring />,
+  },
+  {
+    path: '/jobs/groups',
+    name: 'Groups',
+    element: <TailoringGroups />,
+  },
+  {
+    path: '/jobs/:id',
+    name: 'Job',
+    element: <TailoringDetail />,
+  },
+  {
+    path: '/clients',
+    name: 'Clients',
+    element: <Crm />,
+  },
+  {
+    path: '/clients/companies',
+    name: 'Companies',
+    element: <Companies />,
+  },
+  {
+    path: '/clients/companies/:id',
+    name: 'Company',
+    element: <CompanyDetail />,
+  },
+  {
+    path: '/clients/:id',
+    name: 'Client',
+    element: <CrmDetail />,
+  },
+  {
+    path: '/clients/:id/measurements/new',
+    name: 'Add measurements',
+    element: <NewMeasurements />,
+  },
+  {
+    path: '/enquiries/:id',
+    name: 'Enquiry',
+    element: <EnquiryDetail />,
+  },
+  {
+    path: '/enquiries/:id/convert',
+    name: 'Convert enquiry',
+    element: <EnquiryConvert />,
+  },
+  {
+    path: '/payments',
+    name: 'Payments',
+    element: <Payments />,
+  },
+  {
+    path: '/appointments',
+    name: 'Appointments',
+    element: <Appointments />,
+  },
+  {
+    path: '/messages',
+    name: 'Messages',
+    element: <Messages />,
+  },
+  {
+    path: '/print/:doc/:id',
+    name: 'Print',
+    element: <PrintDoc />,
+  },
+  {
+    path: '/reports',
+    name: 'Reports',
+    element: <Dashboard />,
+  },
+  {
+    path: '/catalogue',
+    name: 'Catalogue',
+    element: <Catalogue />,
+  },
+  {
+    path: '/catalogue/:id',
+    name: 'Catalogue Detail',
+    element: <CatalogueDetail />,
+  },
+  {
+    path: '/stock',
+    name: 'Inventory',
+    element: <Stock />,
+  },
+  {
+    path: '/suppliers',
+    name: 'Suppliers',
+    element: <Suppliers />,
+  },
+  {
+    path: '/finance',
+    name: 'Finance',
+    element: <Finance />,
+  },
+  {
+    path: '/analytics',
+    name: 'Analytics',
+    element: <Analytics />,
+  },
+  {
+    path: '/marketing',
+    name: 'Marketing',
+    element: <Marketing />,
+  },
+  {
+    path: '/pos',
+    name: 'Market Sales',
+    element: <Pos />,
+  },
+  {
+    path: '/studio',
+    name: 'Brand Studio',
+    element: <Studio />,
+  },
+  {
+    path: '/content',
+    name: 'Content',
+    element: <Content />,
+  },
+  {
+    path: '/website',
+    name: 'Website',
+    element: <Website />,
+  },
+  {
+    path: '/website/profile',
+    name: 'Website profile',
+    element: <WebsiteProfile />,
+  },
+  {
+    path: '/website/media',
+    name: 'Website images',
+    element: <WebsiteMedia />,
+  },
+  {
+    // Home studio (D-031): the landing page section by section; before :section.
+    path: '/website/home',
+    name: 'Website home studio',
+    element: <WebsiteHome />,
+  },
+  {
+    path: '/website/:section',
+    name: 'Website section',
+    element: <WebsiteList />,
+  },
+  {
+    path: '/website/:section/:ref',
+    name: 'Website editor',
+    element: <WebsiteEdit />,
+  },
+  {
+    path: '/channels',
+    name: 'Store & Channels',
+    element: <Channels />,
+  },
+  {
+    path: '/team',
+    name: 'Team & Access',
+    element: <Team />,
+  },
+  {
+    path: '/inbox',
+    name: 'Inbox',
+    element: <Inbox />,
+  },
+  {
+    path: '/whatsapp',
+    name: 'WhatsApp',
+    element: <WhatsApp />,
+  },
+  {
+    path: '/coupons',
+    name: 'Coupons',
+    element: <Coupons />,
+  },
+  {
+    path: '/loyalty',
+    name: 'Loyalty',
+    element: <Loyalty />,
+  },
+  {
+    path: '/engage',
+    name: 'Re-engagement',
+    element: <Engage />,
+  },
+  {
+    path: '/reviews',
+    name: 'Reviews',
+    element: <Reviews />,
+  },
+  {
+    path: '/weather',
+    name: 'Weather & Ops',
+    element: <Weather />,
+  },
+  {
+    path: '/enquiries',
+    name: 'Enquiries',
+    element: <Enquiries />,
+  },
+  {
+    path: '/sales',
+    name: 'Orders',
+    element: <Sales />,
+  },
+  {
+    path: '/sales/:id',
+    name: 'Order Detail',
+    element: <SalesDetail />,
+  },
+]
+const customRoutes = [
+  {
+    name: 'Settings',
+    path: '/settings',
+    element: <Settings />,
+  },
+  {
+    name: 'Owner review',
+    path: '/review',
+    element: <Review />,
+  },
+  {
+    name: 'Profile',
+    path: '/profile',
+    element: <Profile />,
+  },
+  {
+    name: 'Permissions',
+    path: '/permissions',
+    element: <Permissions />,
+  },
+]
+export const authRoutes = [
+  {
+    name: 'Sign In',
+    path: '/auth/sign-in',
+    element: <SignIn />,
+  },
+  {
+    name: 'Reset Password',
+    path: '/auth/reset-pass',
+    element: <ResetPassword />,
+  },
+]
+export const appRoutes = [...generalRoutes, ...customRoutes]

@@ -21,9 +21,9 @@ $TYPES = ['percent', 'fixed', 'free_ship'];
 
 /* ---- VALIDATE (public — used by the storefront checkout) ----------------- */
 if ($action === 'validate' && method() === 'GET') {
-  $code = $_GET['code'] ?? '';
-  $subtotal = (float)($_GET['subtotal'] ?? 0);
-  $shipping = (float)($_GET['shipping'] ?? 0);
+  $code = in_str($_GET, 'code');
+  $subtotal = in_num($_GET, 'subtotal', 0);
+  $shipping = in_num($_GET, 'shipping', 0);
   json(coupon_eval($code, $subtotal, $shipping));
 }
 
@@ -47,18 +47,18 @@ if ($action === 'list' && method() === 'GET') {
 /* ---- CREATE / UPDATE ----------------------------------------------------- */
 if (($action === 'create' || $action === 'update') && method() === 'POST') {
   $b = body();
-  $code = strtoupper(trim($b['code'] ?? ''));
+  $code = strtoupper(trim(in_str($b, 'code')));
   if ($code === '') fail('Code is required');
   if (!preg_match('/^[A-Z0-9_-]{2,40}$/', $code)) fail('Code: letters, numbers, - and _ only');
   $type = in_array($b['type'] ?? '', $TYPES, true) ? $b['type'] : 'percent';
-  $value = (float)($b['value'] ?? 0);
+  $value = in_num($b, 'value', 0);
   if ($type === 'percent' && ($value <= 0 || $value > 100)) fail('Percent must be 1–100');
-  $minSpend = (float)($b['min_spend'] ?? 0);
-  $usageLimit = max(0, (int)($b['usage_limit'] ?? 0));
-  $startsAt = !empty($b['starts_at']) ? $b['starts_at'] : null;
-  $expiresAt = !empty($b['expires_at']) ? $b['expires_at'] : null;
+  $minSpend = in_num($b, 'min_spend', 0);
+  $usageLimit = max(0, in_int($b, 'usage_limit'));
+  $startsAt = !empty($b['starts_at']) ? in_str($b, 'starts_at') : null;
+  $expiresAt = !empty($b['expires_at']) ? in_str($b, 'expires_at') : null;
   $active = !empty($b['active']) ? 1 : 0;
-  $description = trim($b['description'] ?? '');
+  $description = trim(in_str($b, 'description'));
 
   if ($action === 'create') {
     $stmt = $conn->prepare('INSERT INTO coupons (code, type, value, min_spend, usage_limit, starts_at, expires_at, active, description) VALUES (?,?,?,?,?,?,?,?,?)');
@@ -68,7 +68,7 @@ if (($action === 'create' || $action === 'update') && method() === 'POST') {
     audit($user['id'], 'coupon_create', 'coupon', $conn->insert_id, ['code' => $code]);
     json(['ok' => true, 'id' => $conn->insert_id], 201);
   } else {
-    $id = (int)($_GET['id'] ?? 0);
+    $id = in_int($_GET, 'id');
     $stmt = $conn->prepare('UPDATE coupons SET code=?, type=?, value=?, min_spend=?, usage_limit=?, starts_at=?, expires_at=?, active=?, description=? WHERE id=?');
     $stmt->bind_param('ssddisssii', $code, $type, $value, $minSpend, $usageLimit, $startsAt, $expiresAt, $active, $description, $id);
     try { $stmt->execute(); }
@@ -80,7 +80,7 @@ if (($action === 'create' || $action === 'update') && method() === 'POST') {
 
 /* ---- TOGGLE -------------------------------------------------------------- */
 if ($action === 'toggle' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $b = body();
   $active = !empty($b['active']) ? 1 : 0;
   $stmt = $conn->prepare('UPDATE coupons SET active = ? WHERE id = ?');
@@ -92,7 +92,7 @@ if ($action === 'toggle' && method() === 'POST') {
 
 /* ---- DELETE -------------------------------------------------------------- */
 if ($action === 'delete' && method() === 'POST') {
-  $id = (int)($_GET['id'] ?? 0);
+  $id = in_int($_GET, 'id');
   $stmt = $conn->prepare('DELETE FROM coupons WHERE id = ?');
   $stmt->bind_param('i', $id);
   $stmt->execute();

@@ -10,51 +10,55 @@
  *                                                / Flutterwave) if configured,
  *                                                else {provider:'manual'}
  *   GET  /store.php?action=pay_verify&reference=… → confirm payment, mark paid
+ *   POST /store.php?action=track {code, phone} → public order status (the old GET
+ *                                                form is legacy, see TRACK below)
  *
- * Prices are authoritative HERE — never trusted from the browser. The catalogue
- * mirrors the storefront product list until the live products table is wired to
- * the public site. Orders land in the same `orders` table the admin queue reads,
+ * Prices are authoritative HERE, never trusted from the browser, and come only
+ * from published rows of the products table. Orders land in the same `orders` table the admin queue reads,
  * with channel='web'.
  */
 require __DIR__ . '/_lib.php';
+require __DIR__ . '/_cms.php';
 cors();
 
-/* Server-side catalogue: slug → [name, fabric, price NGN]. Single source of
- * truth for what a piece costs, so the total can't be tampered client-side. */
-$CATALOGUE = [
-  'everyday-shirt-ankara'  => ['Everyday Shirt',  'Ankara',          18500],
-  'signature-shirt-adire'  => ['Signature Shirt', 'Adire',           24000],
-  'wrap-dress-adire'       => ['Wrap Dress',      'Adire',           32000],
-  'two-piece-set-ankara'   => ['Two-Piece Set',   'Ankara',          45000],
-  'heritage-set-asooke'    => ['Heritage Set',    'Aso-Oke',         68000],
-  'heritage-accessory'     => ['Headwrap / Tie',  'Mixed',            6500],
-];
-
-$FREE_SHIP_OVER = 25000;          // free Lagos delivery threshold (NGN)
-$LAGOS_SHIP     = 2500;           // flat Lagos delivery under the threshold
+/* Prices come only from the published `products` table. There is no built-in
+ * fallback list and no free-delivery threshold: offers exist only when the owner
+ * sets them up (owner decision, 10 October 2026: nothing invented). The two flat
+ * delivery rates below are unchanged; the retail shop stays hidden from public
+ * navigation unless `shop_enabled` is on. */
+$LAGOS_SHIP     = 2500;           // flat Lagos delivery
 $NG_SHIP        = 4500;           // rest of Nigeria
 
 $action = $_GET['action'] ?? 'catalogue';
 
 /* ---- PUBLIC CONFIG ------------------------------------------------------- */
-/* Storefront-safe slice of platform settings — social links + store name —
+/* Storefront-safe slice of platform settings (social links, store name and
+ * whether the retail shop shows in public navigation),
  * so the public site (footer etc.) can show admin-set values without auth. */
 if ($action === 'config' && method() === 'GET') {
   $socials = [];
   $storeName = '';
-  $res = $conn->query("SELECT skey, svalue FROM settings WHERE skey IN ('socials','store_name')");
+  $shopEnabled = false;   // retail shop hidden from public navigation unless switched on
+  $res = $conn->query("SELECT skey, svalue FROM settings WHERE skey IN ('socials','store_name','shop_enabled')");
   while ($res && $row = $res->fetch_assoc()) {
-    if ($row['skey'] === 'socials') { $d = json_decode($row['svalue'], true); if (is_array($d)) $socials = $d; }
+    // Only links that pass the platform allowlist (https, the platform's own
+    // host, an account path) are returned; anything else is left out (A12).
+    if ($row['skey'] === 'socials') {
+      $d = json_decode($row['svalue'], true);
+      foreach (socials_public(is_array($d) ? $d : []) as $sp) $socials[$sp['platform']] = $sp['url'];
+      if (isset($socials['x'])) $socials['twitter'] = $socials['x'];   // older footer key
+    }
     if ($row['skey'] === 'store_name') $storeName = (string)$row['svalue'];
+    if ($row['skey'] === 'shop_enabled') $shopEnabled = (string)$row['svalue'] === '1';
   }
-  json(['socials' => $socials, 'store_name' => $storeName]);
+  json(['socials' => $socials, 'store_name' => $storeName, 'shop_enabled' => $shopEnabled]);
 }
 
 /* ---- BLOG (Journal) ------------------------------------------------------ */
 /* Public, published-only. ?slug= returns the full post (with body); otherwise a
  * list (no body) newest first. */
 if ($action === 'blog' && method() === 'GET') {
-  $slug = trim($_GET['slug'] ?? '');
+  $slug = trim(in_str($_GET, 'slug'));
   if ($slug !== '') {
     $stmt = $conn->prepare("SELECT slug, title, excerpt, body, category, tile, tags, author, published_at
                               FROM blog_posts WHERE slug = ? AND status = 'published' LIMIT 1");
@@ -62,11 +66,14 @@ if ($action === 'blog' && method() === 'GET') {
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     if (!$row) fail('Post not found', 404);
+    // Sanitise on the way out too, so posts saved before content.php cleaned
+    // bodies are still safe to render as HTML.
+    $row['body'] = sanitize_html($row['body'] ?? '');
     $row['cat'] = $row['category'];
     $row['date'] = $row['published_at'] ? date('F Y', strtotime($row['published_at'])) : '';
     json(['post' => $row]);
   }
-  $limit = min(50, max(1, (int)($_GET['limit'] ?? 24)));
+  $limit = min(50, max(1, in_int($_GET, 'limit', 24)));
   $out = [];
   $res = $conn->query("SELECT slug, title, excerpt, category, tile, published_at
                          FROM blog_posts WHERE status = 'published'
@@ -97,7 +104,7 @@ if ($action === 'testimonials' && method() === 'GET') {
 
 /* ---- CATALOGUE ----------------------------------------------------------- */
 /* Serves the live products table (published pieces), shaped for the storefront.
- * Falls back to the curated $CATALOGUE only if nothing is published yet. */
+ * Nothing published means an empty list; there is no fallback catalogue. */
 if ($action === 'catalogue' && method() === 'GET') {
   $out = [];
   $res = $conn->query(
@@ -124,44 +131,64 @@ if ($action === 'catalogue' && method() === 'GET') {
       'sizes' => $row['sizes'] ? explode(',', $row['sizes']) : [], 'stock' => (int)$row['stock'],
     ];
   }
-  // Nothing published — hand back the curated fallback so the shop is never bare.
-  if (!$out) {
-    foreach ($CATALOGUE as $slug => [$name, $fabric, $price]) {
-      $out[] = ['slug' => $slug, 'name' => $name, 'fabric' => $fabric, 'price_ngn' => $price, 'priceNgn' => $price];
-    }
-  }
-  json(['products' => $out, 'free_ship_over' => $FREE_SHIP_OVER]);
+  // free_ship_over stays in the reply as null for older clients; there is no offer.
+  json(['products' => $out, 'free_ship_over' => null]);
+}
+
+/** The retail shop is deferred: its public writes answer 403 until an admin
+ * switches shop_enabled on (Channels settings). */
+function require_shop_open() {
+  global $conn;
+  $r = $conn->query("SELECT svalue FROM settings WHERE skey = 'shop_enabled' LIMIT 1");
+  $row = $r ? $r->fetch_assoc() : null;
+  if ((string)($row['svalue'] ?? '') !== '1') fail('The shop is not open.', 403);
+}
+
+/** Anonymous writes: limit per IP per hour (audit_log rows, as booking.php does). */
+function public_write_guard($auditAction, $cfgName, $default) {
+  $ipKey = 'ip:' . client_ip();
+  throttle_enforce([[(int)cfg($cfgName, $default), $auditAction, $ipKey]], 3600);
+  audit(null, $auditAction, $ipKey);
+}
+
+/** Refuse over-long free text from public forms. $fields: [value, max chars]. */
+function public_lengths(array $fields) {
+  foreach ($fields as [$v, $max]) if (mb_strlen((string)$v) > $max) fail('Some details are too long. Please shorten them.');
 }
 
 /* ---- CHECKOUT ------------------------------------------------------------ */
 if ($action === 'checkout' && method() === 'POST') {
+  require_shop_open();
+  public_write_guard('store_checkout_ip', 'CHECKOUT_MAX_PER_IP', 10);
   $b = body();
-  $name = trim($b['customer'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
-  $address = trim($b['ship_address'] ?? '');
-  $city = trim($b['city'] ?? '');
+  $name = trim(in_str($b, 'customer'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
+  $address = trim(in_str($b, 'ship_address'));
+  $city = trim(in_str($b, 'city'));
   $delivery = in_array($b['delivery'] ?? '', ['lagos', 'nigeria', 'pickup'], true) ? $b['delivery'] : 'lagos';
   $payment = in_array($b['payment_method'] ?? '', ['card', 'transfer', 'cod'], true) ? $b['payment_method'] : 'transfer';
-  $notes = trim($b['notes'] ?? '');
-  $gift = trim($b['gift_message'] ?? '');
+  $notes = trim(in_str($b, 'notes'));
+  $gift = trim(in_str($b, 'gift_message'));
   $reqItems = is_array($b['items'] ?? null) ? $b['items'] : [];
 
   if ($name === '') fail('Please enter your name');
   if ($phone === '') fail('Please enter a phone number');
   if ($delivery !== 'pickup' && $address === '') fail('Please enter a delivery address');
   if (!$reqItems) fail('Your basket is empty');
+  public_lengths([[$name, 160], [$phone, 40], [$email, 190], [$address, 500], [$city, 120], [$notes, 2000], [$gift, 500]]);
+  if (count($reqItems) > 50) fail('Too many items in one order.');
 
   // Resolve every line against the LIVE products table (authoritative pricing +
-  // real variant stock). Unknown-in-DB slugs fall back to the curated list so
-  // legacy links keep working. Never trust the client's price.
+  // real variant stock). A slug that is not a published product is refused.
+  // Never trust the client's price.
   $items = [];
   $goods = 0;
   $prodStmt = $conn->prepare("SELECT id, name, fabric, base_price, one_of_a_kind, care FROM products WHERE slug = ? AND deleted_at IS NULL AND published = 1 LIMIT 1");
   foreach ($reqItems as $it) {
-    $slug = trim($it['slug'] ?? '');
-    $size = trim($it['size'] ?? 'One size') ?: 'One size';
-    $qty = max(1, min(20, (int)($it['qty'] ?? 1)));
+    $slug = trim(in_str($it, 'slug'));
+    $size = trim(in_str($it, 'size', 'One size')) ?: 'One size';
+    $qty = max(1, min(20, in_int($it, 'qty', 1)));
 
     $prodStmt->bind_param('s', $slug);
     $prodStmt->execute();
@@ -181,11 +208,6 @@ if ($action === 'checkout' && method() === 'POST') {
       $sku = $v ? $v['sku'] : $slug . '-' . strtolower($size);
       $items[] = ['label' => $label, 'sku' => $sku, 'qty' => $qty, 'unit_price' => $price, 'variant_id' => $v ? (int)$v['id'] : null];
       $goods += $qty * $price;
-    } elseif (isset($CATALOGUE[$slug])) {
-      [$pname, $fabric, $price] = $CATALOGUE[$slug];
-      $label = $pname . ' · ' . $fabric . ' · ' . $size;
-      $items[] = ['label' => $label, 'sku' => $slug . '-' . strtolower($size), 'qty' => $qty, 'unit_price' => $price, 'variant_id' => null];
-      $goods += $qty * $price;
     } else {
       fail('Unknown item: ' . $slug);
     }
@@ -193,7 +215,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Shipping.
   $ship = 0;
-  if ($delivery === 'lagos')   $ship = $goods >= $FREE_SHIP_OVER ? 0 : $LAGOS_SHIP;
+  if ($delivery === 'lagos')   $ship = $LAGOS_SHIP;
   if ($delivery === 'nigeria') $ship = $NG_SHIP;
 
   // Resolve the customer up front — link by phone, or create a CRM record for a
@@ -217,7 +239,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Coupon — evaluated server-side against OUR numbers (never trust a browser
   // discount). free_ship zeroes delivery; percent/fixed take ₦ off the goods.
-  $couponCode = strtoupper(trim($b['coupon'] ?? ''));
+  $couponCode = strtoupper(trim(in_str($b, 'coupon')));
   $coupon = null; $discount = 0;
   if ($couponCode !== '') {
     $ev = coupon_eval($couponCode, $goods, $ship);
@@ -245,7 +267,7 @@ if ($action === 'checkout' && method() === 'POST') {
   // Gift card — redeem against the running total (after coupon). Decremented
   // for real after the order is created.
   $giftRow = null; $giftApplied = 0;
-  $giftCode = strtoupper(trim($b['gift_card'] ?? ''));
+  $giftCode = strtoupper(trim(in_str($b, 'gift_card')));
   if ($giftCode !== '' && $total > 0) {
     $gs = $conn->prepare('SELECT id, code, balance FROM gift_cards WHERE UPPER(code) = ? AND active = 1 LIMIT 1');
     $gs->bind_param('s', $giftCode);
@@ -261,8 +283,16 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Store credit — redeem this customer's balance (a returning buyer's pot).
   $creditApplied = 0;
-  $wantCredit = isset($b['use_credit']) ? (float)$b['use_credit'] : 0;   // 0/absent = none; -1 = all
-  if ($customerId && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
+  $wantCredit = isset($b['use_credit']) ? in_num($b, 'use_credit') : 0;   // 0/absent = none; -1 = all
+  // Credit is spent only by its owner: a verified customer session for this same
+  // customer. Matching the phone typed at checkout is not proof of identity.
+  $creditOwner = null;
+  if ($customerId && ($wantCredit > 0 || $wantCredit == -1)) {
+    require_once __DIR__ . '/_portal.php';
+    $creditOwner = customer_session_optional();
+  }
+  if ($customerId && $creditOwner && (int)$creditOwner['id'] === (int)$customerId
+      && $total > 0 && ($wantCredit > 0 || $wantCredit == -1)) {
     $bal = credit_balance($customerId);
     $cap = $wantCredit == -1 ? $bal : min($wantCredit, $bal);
     $creditApplied = min($cap, $total);
@@ -275,7 +305,7 @@ if ($action === 'checkout' && method() === 'POST') {
 
   // Referral — only a brand-new customer can be referred, and never by themself.
   // Captured on the order now; the reward is paid to BOTH only when it's paid.
-  $referralCode = strtoupper(trim($b['referral_code'] ?? ''));
+  $referralCode = strtoupper(trim(in_str($b, 'referral_code')));
   $referrerId = null;
   if ($referralCode !== '' && $isNewCustomer) {
     $rid = referrer_by_code($referralCode);
@@ -285,18 +315,13 @@ if ($action === 'checkout' && method() === 'POST') {
     $referralCode = '';
   }
 
-  // Next ORD-#### code.
-  $res = $conn->query('SELECT MAX(id) AS m FROM orders');
-  $next = (int)($res->fetch_assoc()['m'] ?? 0) + 1;
-  $code = 'ORD-' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-
   // COD counts as a promise to pay; card/transfer start unpaid until confirmed.
   $paymentMethod = $payment;                 // 'card' | 'transfer' | 'cod'
   $paid = 0;
   $fullNotes = trim(($notes !== '' ? $notes : '') . ($gift !== '' ? "\nGift message: " . $gift : ''));
   $shipFull = trim($address . ($city !== '' ? ', ' . $city : ''));
-  $sourceVal = substr(trim($b['source'] ?? ''), 0, 60) ?: null;          // utm_source / referrer host
-  $utmVal = substr(trim($b['utm_campaign'] ?? ''), 0, 120) ?: null;
+  $sourceVal = substr(trim(in_str($b, 'source')), 0, 60) ?: null;          // utm_source / referrer host
+  $utmVal = substr(trim(in_str($b, 'utm_campaign')), 0, 120) ?: null;
 
   $stmt = $conn->prepare(
     'INSERT INTO orders (code, customer_id, customer_name, customer_phone, channel, source, utm_campaign,
@@ -306,14 +331,23 @@ if ($action === 'checkout' && method() === 'POST') {
   );
   $channel = 'web';
   $refCodeVal = $referralCode !== '' ? $referralCode : null;
-  $stmt->bind_param(
-    'sissssssddsssi',
-    $code, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
-    $paymentMethod, $total, $paid, $shipFull, $fullNotes,
-    $refCodeVal, $referrerId
-  );
-  $stmt->execute();
-  $orderId = $conn->insert_id;
+  // Next ORD-#### staff code (shared sequence with orders.php), retried on a
+  // duplicate; the customer gets a separate random public_ref to track with.
+  [$orderId, $code] = insert_with_code('orders', 'ORD', function ($code) use (
+    $conn, $stmt, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
+    $paymentMethod, $total, $paid, $shipFull, $fullNotes, $refCodeVal, $referrerId
+  ) {
+    $stmt->bind_param(
+      'sissssssddsssi',
+      $code, $customerId, $name, $phone, $channel, $sourceVal, $utmVal,
+      $paymentMethod, $total, $paid, $shipFull, $fullNotes,
+      $refCodeVal, $referrerId
+    );
+    $stmt->execute();
+    return $conn->insert_id;
+  });
+  $publicRef = assign_public_ref('orders', $orderId);
+  $trackRef = $publicRef ?? $code;
 
   // A completed order recovers any abandoned cart for this phone (best-effort).
   try {
@@ -385,13 +419,14 @@ if ($action === 'checkout' && method() === 'POST') {
     ? 'Pay on delivery.'
     : 'We will share payment details shortly.';
   $waMsg = "Hi {$name}, thank you for your order with Herit Clothing! 🌿\n"
-    . "Order {$code} · Total ₦" . number_format($total)
-    . ".\n{$payNote}\nTrack it anytime: https://heritclothing.com/track (code {$code}).";
+    . "Order reference {$trackRef} · Total ₦" . number_format($total)
+    . ".\n{$payNote}\nTrack it anytime: https://heritclothing.com/track (reference {$trackRef}).";
   wa_dispatch($phone, $waMsg, $customerId, 'order_confirmation');
 
   json([
     'ok' => true,
     'code' => $code,
+    'public_ref' => $publicRef,
     'order_id' => $orderId,
     'total' => $total,
     'goods' => $goods,
@@ -405,8 +440,8 @@ if ($action === 'checkout' && method() === 'POST') {
 /* ---- PAY INIT ------------------------------------------------------------ */
 if ($action === 'pay_init' && method() === 'POST') {
   $b = body();
-  $code = trim($b['code'] ?? '');
-  $email = trim($b['email'] ?? '');
+  $code = trim(in_str($b, 'code'));
+  $email = trim(in_str($b, 'email'));
   if ($code === '') fail('Order code is required');
 
   $stmt = $conn->prepare('SELECT id, total, paid, payment_method FROM orders WHERE code = ? AND deleted_at IS NULL LIMIT 1');
@@ -486,7 +521,7 @@ if ($action === 'pay_init' && method() === 'POST') {
 
 /* ---- PAY VERIFY ---------------------------------------------------------- */
 if ($action === 'pay_verify' && method() === 'GET') {
-  $reference = trim($_GET['reference'] ?? '');
+  $reference = trim(in_str($_GET, 'reference'));
   if ($reference === '') fail('reference is required');
   $code = explode('-', $reference)[0] . '-' . (explode('-', $reference)[1] ?? '');
 
@@ -575,15 +610,18 @@ if ($action === 'pay_verify' && method() === 'GET') {
 
 /* ---- WAITLIST JOIN (public "notify me") ---------------------------------- */
 if ($action === 'waitlist_join' && method() === 'POST') {
+  require_shop_open();
+  public_write_guard('store_waitlist_ip', 'WAITLIST_MAX_PER_IP', 10);
   $b = body();
-  $product = trim($b['product'] ?? '');
-  $slug = trim($b['slug'] ?? '');
-  $size = trim($b['size'] ?? '');
-  $cname = trim($b['name'] ?? '');
-  $phone = trim($b['phone'] ?? '');
-  $email = trim($b['email'] ?? '');
+  $product = trim(in_str($b, 'product'));
+  $slug = trim(in_str($b, 'slug'));
+  $size = trim(in_str($b, 'size'));
+  $cname = trim(in_str($b, 'name'));
+  $phone = trim(in_str($b, 'phone'));
+  $email = trim(in_str($b, 'email'));
   if ($product === '' && $slug === '') fail('Which piece?');
   if ($phone === '' && $email === '') fail('Leave a phone or email so we can reach you');
+  public_lengths([[$product, 190], [$slug, 190], [$size, 40], [$cname, 160], [$phone, 40], [$email, 190]]);
 
   $cid = customer_id_by_phone($phone);
   $cidVal = $cid ?: null;
@@ -597,13 +635,16 @@ if ($action === 'waitlist_join' && method() === 'POST') {
 /* Called from checkout once a contact phone is entered, before the order is
  * placed. Upserts one row per phone; a completed order flips recovered=1.    */
 if ($action === 'save_cart' && method() === 'POST') {
+  require_shop_open();
+  public_write_guard('store_save_cart_ip', 'SAVE_CART_MAX_PER_IP', 60);
   $b = body();
-  $phone = trim($b['phone'] ?? '');
+  $phone = trim(in_str($b, 'phone'));
   if ($phone === '') fail('phone is required');
-  $cname = trim($b['name'] ?? '');
-  $email = trim($b['email'] ?? '');
+  $cname = trim(in_str($b, 'name'));
+  $email = trim(in_str($b, 'email'));
   $items = isset($b['items']) ? json_encode($b['items']) : null;
-  $subtotal = (float)($b['subtotal'] ?? 0);
+  public_lengths([[$phone, 40], [$cname, 160], [$email, 190], [(string)$items, 20000]]);
+  $subtotal = in_num($b, 'subtotal', 0);
 
   $stmt = $conn->prepare(
     'INSERT INTO abandoned_carts (phone, customer_name, email, items, subtotal, recovered, nudged)
@@ -618,25 +659,39 @@ if ($action === 'save_cart' && method() === 'POST') {
 }
 
 /* ---- TRACK (public order status) ----------------------------------------- */
-/* A customer looks up their own order with code + phone. Phone must match (last
- * 9 digits, so +234/0 prefixes don't matter) so one can't browse others' orders. */
-if ($action === 'track' && method() === 'GET') {
-  $code = trim($_GET['code'] ?? '');
-  $phone = trim($_GET['phone'] ?? '');
-  if ($code === '' || $phone === '') fail('Order code and phone are required');
+/* A customer looks up their own order with its reference + phone. The reference
+ * is the random public_ref (or, while ALLOW_LEGACY_ORDER_CODE_LOOKUP is on, the
+ * old ORD- code). Phone must match (last 9 digits, so +234/0 prefixes don't
+ * matter) so one can't browse others' orders.
+ *
+ * K-14: the phone number must not travel in a query string, where it would reach
+ * server access logs. The site now sends POST /store.php?action=track with a
+ * JSON body {code, phone}. The old GET form is kept for one release so a cached
+ * older client keeps working; it is answered only while
+ * ALLOW_LEGACY_ORDER_CODE_LOOKUP is on and goes when that switch is turned off
+ * (D-021). Same throttle and the same generic failure either way. */
+if ($action === 'track' && in_array(method(), ['POST', 'GET'], true)) {
+  if (method() === 'GET' && !cfg('ALLOW_LEGACY_ORDER_CODE_LOOKUP', true)) fail('Use POST for order lookup', 405);
+  $in = method() === 'POST' ? body() : $_GET;
+  $code = trim(in_str($in, 'code'));
+  $phone = trim(in_str($in, 'phone'));
+  if ($code === '' || $phone === '') fail('Order reference and phone are required');
 
-  $stmt = $conn->prepare(
-    'SELECT id, code, customer_name, customer_phone, status, total, paid,
-            courier, tracking_ref, tracking_url, return_status, created_at
-       FROM orders WHERE code = ? AND deleted_at IS NULL LIMIT 1'
-  );
-  $stmt->bind_param('s', $code);
-  $stmt->execute();
-  $order = $stmt->get_result()->fetch_assoc();
+  // Failed lookups are counted per IP in audit_log so code + phone pairs cannot
+  // be guessed at speed. TRACK_MAX_PER_IP = 0 switches this off.
+  $trackIpKey = 'ip:' . client_ip();
+  throttle_enforce([[(int) cfg('TRACK_MAX_PER_IP', 20), 'track_fail_ip', $trackIpKey]],
+    (int) cfg('LOGIN_THROTTLE_WINDOW', 900));
+
+  $order = order_by_customer_ref($code,
+    'id, code, ' . (has_column('orders', 'public_ref') ? 'public_ref' : 'NULL AS public_ref') . ',
+     customer_name, customer_phone, status, total, paid,
+     courier, tracking_ref, tracking_url, return_status, created_at');
 
   $tail = fn($s) => substr(preg_replace('/\D/', '', (string)$s), -9);
   if (!$order || $tail($order['customer_phone']) === '' || $tail($order['customer_phone']) !== $tail($phone)) {
-    fail('No order found for that code and phone.', 404);
+    audit(null, 'track_fail_ip', $trackIpKey);
+    fail('No order found for that reference and phone.', 404);
   }
 
   $items = [];
@@ -648,6 +703,7 @@ if ($action === 'track' && method() === 'GET') {
 
   json([
     'code' => $order['code'],
+    'public_ref' => $order['public_ref'],
     'customer_name' => $order['customer_name'],
     'status' => $order['status'],
     'total' => (float)$order['total'],

@@ -1,0 +1,122 @@
+# UX Specification
+
+This file owns navigation, the screen-by-screen purpose and primary action, required states, and the form, data and modal patterns. Journeys behind each screen are in [USER-JOURNEYS.md](USER-JOURNEYS.md); visual tokens in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md); public page content in [CONTENT.md](CONTENT.md). The target below is approved direction (Plans 2026, owner approval 10 October 2026). What exists in code is under [As built (Phase 2)](#as-built-phase-2).
+
+## Daily navigation (app)
+
+Core navigation: Today, Enquiries, Appointments, Clients, Jobs, Payments, Website. Settings sits separately (D-009).
+
+| Screen or flow | Purpose | Primary action | Secondary action | Required states | Mobile decision | Desktop decision |
+|---|---|---|---|---|---|---|
+| Today | Appointments today, overdue jobs, next deliveries, unread enquiries and messages, outstanding balances | Add enquiry or job | Open the item due next | Loading, empty (one next step), error | Bottom navigation item | Sidebar item, default view |
+| Enquiries | New, awaiting reply, quote sent, accepted, closed | Reply or prepare quote | Convert to client and job | Loading, empty, error with Retry (A17) | Under More | Sidebar |
+| Appointments | Today and week list, availability and blocked time | Book appointment | Set availability | Loading, empty, conflict, error | Bottom navigation item | Sidebar |
+| Clients | Search by name, phone, client ID or company | Add client | Open measurements | Loading, empty, duplicate warning, error | Under More | Sidebar |
+| Jobs | Active jobs, due date, next action and progress | Add job | Move to next stage | Loading, empty, invalid transition, error | Bottom navigation item | Sidebar |
+| Payments | Due balances, received payments, receipts | Record payment | Print receipt | Loading, empty, duplicate refused, error | Under More | Sidebar |
+| Website | Services, portfolio, reviews, business details, optional Journal | Preview or publish | Unpublish | Draft, published, failed publish | Under More | Sidebar |
+| Settings | Business details, hours, availability defaults | Save | None | Saving, saved, failed | Under More | Separate from core items |
+
+Purpose and primary action for the seven core screens come from the approved plan. Secondary actions, the per-screen state lists and the Settings row are Proposed, derived from the journeys; the owner usability review of the built screens is still to run ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
+
+On a phone, show Today, Jobs, Appointments and More. The daily page answers "What do I need to do next?" without revenue charts or setup prompts. Desktop uses a predictable sidebar with a clear current location.
+
+### As built (Phase 2)
+
+Built on `feat/phase2-daily-records` (PR #9, open), 10 October 2026. Routes are registered in `src/routes/index.jsx`, the menu in `src/assets/data/menu-items.js`, the phone bar in `src/components/layout/BottomNav.jsx`, and access in `src/helpers/roles.js`.
+
+- **Sidebar (laptop, 992px and wider):** DAILY: Today `/today`, Enquiries `/enquiries`, Appointments `/appointments`, Clients `/clients`, Jobs `/jobs`, Payments `/payments`, Website `/website` (owner roles and editor; since `feat/phase4-website`, before that `/content`). SETTINGS: Settings `/settings`. A collapsed **More tools** group holds Reports `/reports` (the old dashboard), Finance, Catalogue, Orders, Market Sales, Inventory, Suppliers, Marketing, Brand Studio, Analytics, Re-engagement, Loyalty and Gifts, Coupons, Reviews, Journal and testimonials (`/content`), Inbox, WhatsApp, Weather and Ops, Team and Access, Permissions, Store and Channels, and Profile. Nothing was removed.
+- **Phone (below 992px):** bottom bar with Today, Jobs, Appointments and More. More opens a bottom sheet with Enquiries, Clients, Payments, Website, Settings, More tools (opens the sidebar) and Sign out. Items follow the role rules. The sidebar closes after navigating and no longer opens by itself.
+- **Landing after sign-in:** owner roles go to Today; tailors to Jobs; employees to Enquiries; editors to Catalogue; sellers to WhatsApp. Sign-in returns to the deep link that was requested.
+- **Old URLs redirect** with their parameters and query: `/dashboard` to `/today`, `/tailoring` to `/jobs`, `/tailoring/groups` to `/jobs/groups`, `/tailoring/:id` to `/jobs/:id`, `/crm` to `/clients`, `/crm/:id` to `/clients/:id`.
+- **Jobs views (D-023, 14 October 2026):** `/jobs` is a list by default; `?view=board` shows the same filtered jobs as a board with one column per stage. Filters stay in the URL with the view. Payments opens with three summary tiles above its tabs, and Today's heading greets the signed-in person by Lagos time of day. On `/jobs/:id` the stage bar shows above the tabs on every tab, and Overview adds a Money card for owner roles (first on phones). `/payments?tab=recent|verify` takes `&method=` to filter by payment method, and `/website` opens with a publish bar.
+- **Detail pages:** `/enquiries/:id`, `/enquiries/:id/convert` (three-step wizard), `/clients/:id` (Jobs, Measurements, Payments for owners, Details; Messages disabled until Phase 3), `/clients/:id/measurements/new`, `/jobs/:id` (Overview, Measurements, Quote and Payments for owners, Handover, Timeline), `/print/:doc/:id` for quote, invoice, receipt and measurement sheet.
+- **Appointments** was a placeholder in Phase 2; Phase 3 replaces it (below).
+- **Role parity (K-01):** each section opens only for roles that every endpoint the page needs accepts (`src/helpers/roles.js`). Tailors never see money tabs or amounts.
+- **Patterns used:** one amber primary action per screen with ink text; 16px inputs and 44px targets; persistent labels with help text; inline errors plus a summary; saving, saved and failed lines; typed values kept on failure; status chips as text, icon and colour; tabular figures for money; dates in Lagos time; modals only for short actions (add enquiry, add client, add job, record payment, approve or reject measurements, reverse an entry); measurement entry, conversion and settings are full pages.
+
+### As built (Phase 3)
+
+Built on `feat/phase3-appointments-portal`, 11 October 2026. Browser journeys at 390px and 1280px: [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#phase-3-journeys-in-the-browser-11-october-2026).
+
+- **Navigation:** Messages `/messages` joins the DAILY sidebar group after Appointments and the phone More sheet after Enquiries (owner roles). The bell counts new enquiries plus unread client messages and links to Messages.
+- **Appointments `/appointments`:** primary action Book appointment. Tabs: Schedule (a seven-day week strip with counts, Day or Week list, previous, today and next week, a switch to show cancelled and expired), Requests (owner; confirm in one tap or decline with a reason; the tab shows the count) and Blocked time (whole days or times with a reason; existing bookings inside a block are reported, not moved). Each appointment opens a short dialog with details, history (from and to status or time, reason, who) and the actions its status allows: confirm, decline, mark completed, no-show, cancel with a reason, and move with a reason. Booking and moving offer free times from the slot list, a typed time, or a whole day; a typed time that clashes shows what clashes and asks for a reason before "Book anyway" or "Move anyway". `?id=` opens one appointment; `?tab=` and `?date=` keep the view. Tailors see the schedule only. `/apps/calendar` redirects here.
+- **Settings:** an Availability section (`/settings#availability`): working windows per weekday, where breaks are the gaps between windows; lengths per type; gap between appointments, minimum notice, horizon, request hold and start-time step; which types clients can request; and the online request switch with a plain explanation that every request waits for the owner. Server errors (400) show per field and in a summary. A Client portal section holds session length, quote acceptance and measurement visibility switches, and the two feedback consent wordings.
+- **Messages `/messages`:** tabs Conversations (jobs with messages, unread first, with counts), Change requests (open ones, each decided in place) and Feedback (rating, comment, the three consents, follow-up, and Add to testimonials only when publication consent, a rating and a comment exist).
+- **Job detail:** a Messages tab for owner roles, after Overview: open change requests first, then the conversation. Internal notes have a grey dashed style and the label "Internal note, client cannot see this". Compose chooses Client (reply, by portal, WhatsApp, email, or a record of a phone call or visit) or Internal note. Opening the tab marks client messages read. Deciding a change request takes a reply, an optional price effect and new promised date; the server's 422 after cutting is shown in place.
+- **Client detail:** Details shows Client portal access (Send access link, Sign out everywhere). The disabled Messages tab is gone; messages live on each job.
+- **Access link dialog** (from a client or a Today row): Create link, then Send by WhatsApp, the message text to copy, and Copy link only. Nothing is sent automatically.
+- **Today:** Appointments today lists real appointments (time, type, client); new blocks for appointment requests, unread messages, change requests, clients waiting for an access link (the row opens the access link dialog) and feedback to follow up. Each block shows five rows; when more exist it ends with "And N more. See all M" linking to the full list page (plain "And N more" where the block has no list page). N is worked out in the page as M minus the rows on screen, so it includes rows the server sent but the block does not show; for unread messages, whose M counts messages while rows are jobs, N is the jobs not on screen (items plus the server's `more`, minus five); Enquiries to answer lists a due or overdue follow-up first (K-07).
+- **Public `/book`:** shown in public navigation as Book appointment only while online requests are switched on and ready; otherwise the page says "Online booking is not open yet" with a link to Contact. Steps: type (skipped when only consultations are offered), time (free times grouped by day, Lagos time stated), details (name, phone or email, note, hidden honeypot), then "Request sent, not yet confirmed".
+- **Public `/track` and `/account`:** a two-step access form (reference plus registered phone or email, then "Check your email" and a six-digit code field with a numeric keyboard and one-time-code autofill). Every reply is generic. `/track` keeps the older shop-order lookup under "Tracking a shop order?". `/account` shows the client's jobs (stage, promised date, paid and left to pay) and shop orders, sign out and sign out on all devices; the shop extras (reorder, returns, wishlist, birthday, referral) appear only while the shop is on. An invite link (`/account?invite=` or `/access/:invite`) is exchanged at once and taken out of the address bar.
+- **Public `/account/jobs/:ref`:** progress and timeline, messages (send), appointments (ask for one, or ask to move one, from free times), ask for a change (garment, delivery address, other; the form says changes after cutting may change price or date), payments and receipts, the quote (accept only when the setting allows it, with a confirm box), measurements (own sets only when the setting allows; new measurements are always "for review") and feedback after handover (rating, comment, and separate choices for contact, publishing and photos, each with the owner's wording). Another client's reference, or a missing one, shows "We could not find that order". An ended session returns to the access form with a plain message.
+
+### As built (Phase 5)
+
+Clients has a Companies button (owner roles) leading to `/clients/companies`. A company job shows a "Company · name" chip in its header and a Company chip in the Jobs list; its Items tab lists each line with wearer, stage and measurement chips, a ready count and owner edits (an edit after work starts asks for the price or date effect); Sample lists versions and records a decision with the channel; Company sets the PO, invoice contact and measuring method and previews the bill-to; Handover takes a quantity per item and shows "2 of 5 handed over". Aso-ebi groups are labelled as separate payers with no automatic discount, pointing to Companies for one payer.
+
+### As built (Phase 7)
+
+Branch `feat/phase7-review`, 19 October 2026. **Owner review `/review`** (super_admin only; linked in the sidebar under SETTINGS after Settings; `roles.js` section `review`). A heading, the Lagos dates covered and a two-button switch (`.hd-seg`, Last 30 days or Last 90 days). Cards: Enquiry conversion (enquiries, became a job, rate, median days), Overdue jobs now (late count chip and the oldest 20 with links to each job, then "See all overdue jobs"), Messages sent and failed (WhatsApp, job reminders, emails, client portal; "Not set up" where the table is missing), Refused attempts (only actions with a count) and Section use (visits per section with a per-role line, then the sections not opened in the window). Each card ends with a short note on what the numbers mean and what they do not prove. States: spinner while loading, `LoadError` with Retry (offline wording when offline), a plain sentence for each empty card. Every admin page now counts a visit to its section once a day in the background ([DATA-PRIVACY.md](DATA-PRIVACY.md#cookies-and-browser-storage)); nothing on screen changes. Settings > Data retention gains "Section usage counts (no names)". Browser check on local staging at 1280px and 390px in light and dark: no sideways scroll at 390px.
+
+## Public navigation
+
+Services, Our work, How it works, About, Contact, with a Book appointment button and a quieter Track your job link. The mobile menu shows both actions; navigation collapses to a menu below 1024px (six links do not fit at 768px). The header is always opaque. Page-by-page content: [CONTENT.md](CONTENT.md#site-architecture).
+
+As built (`feat/phase4-website`, 11 October 2026): the header shows Services, Companies, Our work, How it works and About, each only while that page or list has published content (`site.php` config `nav` flags), Shop while the shop is on, and Contact always; then Track your job and the primary button: Book an appointment while online requests are open, otherwise Request an appointment (to `/contact?type=fitting`). The bag appears only while the shop is on. Staff sign in moved to the footer. Footer columns show only filled-in business details, the explore links (the same flags plus Questions and Journal) and, once published, Privacy and Terms.
+
+Public pages on the CMS (as built): `/` Home (sections hidden while empty; hero and final action always), `/services` (intro page, service cards; with no services only the intro and the actions), `/services/:slug` (summary, body, what's included, pricing note, process link, related work, "Ask about this service" to `/contact?service=`), `/work` (cards; service filter chips as `aria-pressed` buttons when two or more services have work), `/work/:slug` (first image eager, facts list, gallery figures, related service), `/how-it-works` and `/about` (CMS pages), `/company-orders` (CMS page above the brief form; the form works while the page is unpublished), `/contact` (CMS page when published, channels from the profile, the enquiry form always; `?type=fitting|company|general` preselects the subject and `?service=<slug>` names the service), `/faqs` (details and summary grouped by category, `FAQPage` JSON-LD), `/privacy` and `/terms` (title, effective date in `<time>`, body), `/journal` and `/journal/:slug` (only while `journal_enabled` is on and posts exist). Unpublished or unknown items show a not-found page with noindex; `?preview=1` with a staff session shows drafts under a "Preview, not published" bar.
+
+As built (`feat/redesign-dark-luxury`, audit fixes, 17 October 2026; routes in [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)):
+
+- Any unknown URL shows the public "Page not found" page with noindex; `/pages-404`, `/auth/sign-up` and `/auth/lock-screen` are gone and land there too.
+- `/shop`, `/shop/:slug`, `/cart`, `/checkout` and `/gifting` show the not-found page to visitors while the shop is off; signed-in staff still see them.
+- Track, Account, the portal job page, Invite, Cart and Checkout carry noindex. The Invite heading is an `h1`.
+- Contact, Book and the company brief form show a short privacy line under the form, linking to `/privacy` only while a privacy policy is published (`nav.privacy`).
+- Home hero: only the first slide's heading is an `h1`; a 48px pause and play button stops rotation, and the slide counter is announced only while paused. Testimonials have the same pause button, and choosing a review stops rotation.
+- The page scrolls anchors clear of the sticky header (`scroll-padding-top`).
+- Sign-in: the email field is `type=email` with `autocomplete=username`, the password field `autocomplete=current-password`; the unused "Remember me" box is removed; show password is a real button with `aria-label` and `aria-pressed`. `/auth/reset-pass` (K-04, `feat/staff-password-reset`) has two steps: without a token it asks for the sign-in email and always shows the same confirmation; with `?token=` from the emailed link it asks for the new password twice and then links to sign-in. Under the request form a note says staff without email access can ask the owner to reset from Team. The logo links to sign-in.
+
+Landing and staff edit controls (19 October 2026, `feat/real-content`):
+
+- Home runs, each section hidden while empty: hero slides; a woven print divider; the promise band (home page body); the fabric story (the `fabrics` page, one print card per "## Fabric" heading in its body); services (heading from the services introduction page); our work; how it works (the steps are the "## Heading" sections of the How it works page, the fixed four otherwise); company orders; about with the mission as a pull quote; reviews; questions; journal (three posts on their prints); the closing action (the contact page's headline and intro).
+- About and other CMS pages lay their body out by its headings: text before the first "## Heading" in the promise band, sections with "### items" as card grids with print tops, other sections side by side (mission and vision). How it works puts its sections on the process rail.
+- Edit control (`ui/EditLink.jsx`): a small amber "Edit" pill at the top right of a section, only while a signed-in staff role that may open the target admin page is on the device (the profile cookie and `canAccessPath()` in `roles.js`). Visitors and crawlers get no markup; the link is `rel="nofollow"` and named "Edit <section>" for screen readers; it is a normal link, so keyboard reachable. Targets: hero slides `/website/slides`; home text `/website/pages/home`; fabric story `/website/pages/fabrics`; services `/website/services`; a service `/website/services/<slug>` (the editor finds the item by its web address); how it works, company, about, contact and services introduction `/website/pages/<key>`; questions `/website/faqs`; our work `/website/work`; journal and posts `/content`; footer and contact details `/website/profile`. The server still checks every save.
+
+Home "the cutting table" (19 October 2026, D-031, `feat/real-content`). Sections in order, each hidden while its content is missing, defined once in `src/app/(public)/site/homeMap.js`:
+
+1. Hero slides (Website > Hero slides, else the home page and services with a photograph).
+2. Two ways to order: the home page body as the lead, the made-to-measure service card and the company orders page card.
+3. The cloth: the fabric story page, one panel per "## Fabric" heading. From 1024px it pins and runs sideways as you scroll; narrower or under reduced motion the panels stack.
+4. Services (unchanged index).
+5. The measurement appointment: a docket with example values, a cm and inch switch, and rows that light their line on the kaftan outline on hover and focus. Fixed copy, not edited in the CMS.
+6. Our work, 7. How it works on a stitch line (the page's "## Step" headings, else the standard four), 8. Our mission (the about page's "## Our mission" section), 9. In stock now (shop only), 10. Reviews, 11. Questions, 12. Journal.
+13. Enquire: the contact page's headline and intro, the business details that are set (address, email, phone, WhatsApp, Instagram, hours) with copy buttons, and the enquiry form.
+
+CMS Workroom (20 October 2026, D-032): the sidebar is ink with a tape-measure edge and line icons. Ctrl or Cmd+K (or the topbar button) opens a jump-to list of every screen the role may open, the Website screens and each Home section; arrows move, Enter opens, Escape closes. `/website/home` shows the Home sections as a map (live, draft or hidden, with the reason), the chosen section's fields (saved as a page draft a moment after typing stops), a preview in the site's look at desktop or phone width, and a bar that names and publishes every unpublished draft; anything refused is listed with a link to fix it. The Website hub's section list opens the studio. Business details warns when a phone or WhatsApp number looks made up and previews the footer.
+
+Today (D-031): blocks with work keep their own cards at the top; blocks with nothing waiting are listed together in one "All clear" card, each with its empty-state line.
+
+The Website hub shows the same list with each section's state ("On the page" or "Hidden" and what brings it back) and a link to its editor.
+
+## Required states
+
+Every screen and journey defines: loading; empty (one clear next step); success; validation error (inline plus summary, typed values kept); service error (plain message, Retry, technical detail in logs or console only); permission denied (plain message, no data leak); offline (writes blocked, see [ARCHITECTURE.md](ARCHITECTURE.md#offline-behaviour)); session expired (sign in again without losing typed values where possible).
+
+Key actions show saving and saved immediately; a failed form keeps what was typed; empty screens show one next step.
+
+## Forms
+
+Persistent labels; help or example text below the field; required fields marked; grouped sections; inline errors plus an error summary. Visible saving, saved and failed states. No placeholder-only fields. A failed submit keeps everything the person typed. Measurement inputs use a numeric keyboard, accept decimals and keep the unit visible. No editable spreadsheet for everyday measurement capture.
+
+## Status, data and modals
+
+- Status labels: pending, confirmed, due, overdue, ready, each as text plus icon plus colour ([DESIGN-SYSTEM.md](DESIGN-SYSTEM.md#status-colours-proposed)).
+- Data: short readable rows or cards; clear amounts, units and dates; tabular figures; secondary data collapsed on phones.
+- Modals: short actions only. Large client or job edits use full pages. Focus handling: [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
+## Interface writing
+
+Sentence case, British and Nigerian spelling, Naira as `₦18,500`, and the other copy rules in [CONTENT.md](CONTENT.md#copy-rules) apply inside the app as well.
+
+Test comprehension, navigation, form recovery, session expiry and permission denial ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)). Remove decorative complexity that competes with the user's next step.

@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardBody, Button, Spinner, Alert, Badge, Modal, Form, Row, Col, Table } from 'react-bootstrap';
+import { Card, CardBody, Button, Spinner, Badge, Modal, Form, Row, Col, Table } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import PageTitle from '@/components/PageTitle';
 import heritApi from '@/helpers/heritApi';
 import { useNotificationContext } from '@/context/useNotificationContext';
+import DuplicateCandidates from '@/components/herit/DuplicateCandidates';
+import LoadError from '@/components/herit/LoadError';
+import PageHeader from '@/components/herit/PageHeader';
+import { StageChip } from '@/components/herit/StatusChip';
 
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 const GARMENTS = ['agbada', 'kaftan', 'senator', 'suit', 'shirt', 'trouser', 'other'];
@@ -14,9 +18,10 @@ const NewGroupModal = ({ show, onHide, onCreated }) => {
   const [g, setG] = useState({ organiser: '', phone: '', event: '', due_date: '', discount_pct: '', notes: '' });
   const [members, setMembers] = useState([emptyMember(), emptyMember()]);
   const [saving, setSaving] = useState(false);
+  const [dupe, setDupe] = useState(null); // {index, candidates} from a 409
   const { showNotification } = useNotificationContext();
 
-  useEffect(() => { if (show) { setG({ organiser: '', phone: '', event: '', due_date: '', discount_pct: '', notes: '' }); setMembers([emptyMember(), emptyMember()]); } }, [show]);
+  useEffect(() => { if (show) { setDupe(null); setG({ organiser: '', phone: '', event: '', due_date: '', discount_pct: '', notes: '' }); setMembers([emptyMember(), emptyMember()]); } }, [show]);
 
   const setGF = (k) => (e) => setG((o) => ({ ...o, [k]: e.target.value }));
   const setM = (i, k) => (e) => setMembers((arr) => arr.map((m, j) => (j === i ? { ...m, [k]: e.target.value } : m)));
@@ -28,31 +33,50 @@ const NewGroupModal = ({ show, onHide, onCreated }) => {
   const disc = (Number(g.discount_pct) || 0) / 100;
   const net = gross * (1 - disc);
 
-  const submit = async () => {
+  const submit = async (list = members) => {
+    const rows = list.filter((m) => m.name.trim());
     if (!g.organiser.trim()) { showNotification({ message: 'Organiser name required', variant: 'danger' }); return; }
-    if (filled.length === 0) { showNotification({ message: 'Add at least one member', variant: 'danger' }); return; }
+    if (rows.length === 0) { showNotification({ message: 'Add at least one member', variant: 'danger' }); return; }
     setSaving(true);
     try {
       const res = await heritApi.tailoring.groupCreate({
         ...g, discount_pct: Number(g.discount_pct) || 0,
-        members: filled.map((m) => ({ ...m, price: Number(m.price) || 0 })),
+        members: rows.map((m) => ({ ...m, price: Number(m.price) || 0 })),
       });
       showNotification({ message: `Created ${res.code} with ${res.members} pieces`, variant: 'success' });
       onCreated(); onHide();
-    } catch (e) { showNotification({ message: e.message || 'Could not create group', variant: 'danger' }); }
-    finally { setSaving(false); }
+    } catch (e) {
+      // A member matching an existing client: the owner picks one or confirms new (BR-03).
+      if (e.status === 409 && e.data?.candidates) setDupe({ index: e.data.member_index, candidates: e.data.candidates, message: e.message });
+      else showNotification({ message: e.message || 'Could not create group', variant: 'danger' });
+    } finally { setSaving(false); }
+  };
+  // member_index counts filled rows only; map it back to the full list.
+  const resolveDupe = (patch) => {
+    const filledIdx = members.map((m, i) => (m.name.trim() ? i : -1)).filter((i) => i >= 0);
+    const target = filledIdx[dupe.index];
+    const next = members.map((m, i) => (i === target ? { ...m, ...patch } : m));
+    setMembers(next); setDupe(null); submit(next);
   };
 
   return (
     <Modal show={show} onHide={onHide} size="xl" centered>
       <Modal.Header closeButton><Modal.Title>New aso-ebi group</Modal.Title></Modal.Header>
       <Modal.Body>
+        {dupe && (
+          <>
+            <p className="fw-semibold mb-1">{dupe.message}</p>
+            <DuplicateCandidates candidates={dupe.candidates} busy={saving}
+              onPick={(c) => resolveDupe({ customer_id: c.id, confirm_new: false })}
+              onConfirmNew={() => resolveDupe({ confirm_new: true, customer_id: undefined })} />
+          </>
+        )}
         <Row className="g-2 mb-3">
           <Col md={4}><Form.Label className="small mb-1">Organiser *</Form.Label><Form.Control value={g.organiser} onChange={setGF('organiser')} /></Col>
           <Col md={3}><Form.Label className="small mb-1">Phone</Form.Label><Form.Control value={g.phone} onChange={setGF('phone')} /></Col>
           <Col md={5}><Form.Label className="small mb-1">Event</Form.Label><Form.Control value={g.event} onChange={setGF('event')} placeholder="Wedding, burial, birthday…" /></Col>
           <Col md={3}><Form.Label className="small mb-1">Due date</Form.Label><Form.Control type="date" value={g.due_date} onChange={setGF('due_date')} /></Col>
-          <Col md={3}><Form.Label className="small mb-1">Group discount (%)</Form.Label><Form.Control type="number" min="0" max="100" value={g.discount_pct} onChange={setGF('discount_pct')} /></Col>
+          <Col md={3}><Form.Label className="small mb-1">Group discount (%), optional</Form.Label><Form.Control type="number" min="0" max="100" value={g.discount_pct} onChange={setGF('discount_pct')} /></Col>
           <Col md={6}><Form.Label className="small mb-1">Notes</Form.Label><Form.Control value={g.notes} onChange={setGF('notes')} /></Col>
         </Row>
 
@@ -82,7 +106,7 @@ const NewGroupModal = ({ show, onHide, onCreated }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="light" onClick={onHide} disabled={saving}>Cancel</Button>
-        <Button variant="primary" onClick={submit} disabled={saving}>{saving ? <Spinner size="sm" /> : 'Create group'}</Button>
+        <Button variant="primary" onClick={() => submit()} disabled={saving}>{saving ? <Spinner size="sm" /> : 'Create group'}</Button>
       </Modal.Footer>
     </Modal>
   );
@@ -96,7 +120,7 @@ const GroupCard = ({ g }) => {
     if (!detail) { try { setDetail(await heritApi.tailoring.groupGet(g.id)); } catch { /* ignore */ } }
   };
   return (
-    <Card className="mb-2">
+    <Card className="hd-card mb-2">
       <CardBody>
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2" role="button" onClick={toggle}>
           <div>
@@ -112,10 +136,10 @@ const GroupCard = ({ g }) => {
             <tbody>
               {(detail.members || []).map((m) => (
                 <tr key={m.id}>
-                  <td><Link to={`/tailoring/${m.id}`}>{m.code}</Link></td>
+                  <td><Link to={`/jobs/${m.id}`}>{m.code}</Link></td>
                   <td>{m.customer_name}</td>
                   <td className="text-capitalize">{m.garment_type}</td>
-                  <td><Badge bg={m.stage === 'done' ? 'success' : 'warning'} className="bg-opacity-75 text-capitalize">{m.stage}</Badge></td>
+                  <td>{m.job_stage ? <StageChip stage={m.job_stage} /> : <Badge bg="light" text="dark" className="text-capitalize">{m.stage}</Badge>}</td>
                   <td className="text-end">{naira(m.price)}</td>
                 </tr>
               ))}
@@ -131,31 +155,30 @@ const GroupsPage = () => {
   const [rows, setRows] = useState([]);
   const [state, setState] = useState('loading');
   const [show, setShow] = useState(false);
+  const [error, setError] = useState(null);
   const load = useCallback(async () => {
-    try { setRows(await heritApi.tailoring.groupList()); setState('ready'); } catch { setState('offline'); }
+    try { setRows(await heritApi.tailoring.groupList()); setState('ready'); } catch (e) { setError(e); setState('offline'); }
   }, []);
   useEffect(() => { load(); }, [load]);
 
   return (
-    <>
+    <div className="hd">
       <PageTitle title="Aso-ebi groups" />
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-          <Link to="/tailoring" className="btn btn-sm btn-light mb-1"><IconifyIcon icon="solar:arrow-left-linear" /> Board</Link>
-          <h4 className="mb-1">Aso-ebi &amp; group orders</h4>
-          <p className="text-muted mb-0">One organiser, many matching pieces, group pricing.</p>
-        </div>
-        <Button variant="primary" onClick={() => setShow(true)}><IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" /> New group</Button>
-      </div>
+      <PageHeader
+        back={{ to: '/jobs', label: 'Jobs' }}
+        title="Aso-ebi and group orders"
+        subtitle={<>Coordinated pieces where each person pays for their own. No automatic discount. For one company paying for many pieces, use <Link to="/clients/companies">Companies</Link>.</>}
+        actions={<Button variant="primary" onClick={() => setShow(true)}><IconifyIcon icon="solar:users-group-rounded-bold" className="me-1" aria-hidden="true" /> New group</Button>}
+      />
 
       {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
-      {state === 'offline' && <Alert variant="warning"><strong>Offline.</strong> Upload <code>tailoring.php</code> + import <code>schema_phase13.sql</code>.</Alert>}
+      {state === 'offline' && <LoadError what="groups" error={error} onRetry={() => { setState('loading'); load(); }} />}
       {state === 'ready' && (rows.length === 0
-        ? <p className="text-muted">No groups yet. Create one for the next wedding or owambe.</p>
+        ? <Card className="hd-card"><CardBody className="text-muted">No groups yet. Create one for the next wedding or owambe.</CardBody></Card>
         : rows.map((g) => <GroupCard key={g.id} g={g} />))}
 
       <NewGroupModal show={show} onHide={() => setShow(false)} onCreated={load} />
-    </>
+    </div>
   );
 };
 

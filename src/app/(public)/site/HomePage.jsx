@@ -1,233 +1,253 @@
-import { Link } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import SiteLayout from './SiteLayout';
-import { useCatalogue, formatNgn } from './products';
-import { useBlog, useTestimonials } from './content';
-import {
-  HeroSlider, CounterBand, Lookbook, ServicesCarousel,
-  TeamCarousel, Testimonials, BrandStrip, JournalCarousel,
-} from './sections';
+import { useState } from 'react'
+import SiteLayout from './SiteLayout'
+import { useCatalogue, formatNgn } from './products'
+import { useBlog, useTestimonials } from './content'
+import { useShopEnabled } from './storeConfig'
+import { useBusiness } from './business'
+import { useSiteConfig, useSiteResource, toImage, clip } from './siteData'
+import useActions from './ui/useActions'
+import Hero from './ui/Hero'
+import { Section, SectionHead } from './ui/Section'
+import { WorkCard } from './ui/Card'
+import Icon from './ui/Icon'
+import { MoreLink, Rich } from './cmsBlocks'
+import { Lookbook, Testimonials, JournalGrid, ServiceIndex } from './sections'
+import { OrderPaths, ClothRun, MeasureDocket, StitchProcess, MissionBand, EnquiryBand } from './landing'
+import { printAt, printVariant } from './ui/printPatterns'
+import { EDIT, loadHome, homeStates, stepsOf, clothsOf, missionOf, madeToMeasureOf } from './homeMap'
+import './landing.css'
 
-const heroSlides = [
-  {
-    eyebrow: "The Founders' Drop is live",
-    title: 'Your culture,',
-    em: 'cut for now.',
-    sub: 'Bold Ankara. Hand-dyed Adire. Woven Aso-Oke. Reworked into pieces you’ll actually live in — made by hand in Ajuwon Market, Lagos, and shipped worldwide.',
-    primaryTo: '/shop', primaryLabel: 'Shop the collection', primaryIcon: 'solar:bag-4-bold',
-    secondaryTo: '/about', secondaryLabel: 'Our story', secondaryIcon: 'solar:play-circle-bold',
-    fabrics: [
-      { name: 'Aso-Oke', sub: 'Woven, ceremonial', tag: 'Premium', tile: 'hc-tile-asooke' },
-      { name: 'Ankara', sub: 'Bold wax prints', tag: 'Bestseller', tile: 'hc-tile-ankara', price: 'from ₦18,500' },
-      { name: 'Adire', sub: 'Hand-dyed indigo', tag: 'Signature', tile: 'hc-tile-adire' },
-    ],
-  },
-  {
-    eyebrow: 'Heritage, tailored for now',
-    title: 'The story is',
-    em: 'in the cloth.',
-    sub: 'Every print has a past. We name each fabric and where it comes from, then tailor it for a modern, everyday fit — so you wear your heritage forward with pride.',
-    primaryTo: '/shop', primaryLabel: 'Shop by fabric', primaryIcon: 'solar:scissors-square-bold',
-    secondaryTo: '/gifting', secondaryLabel: 'Explore gifting', secondaryIcon: 'solar:gift-bold',
-    fabrics: [
-      { name: 'Adire', sub: 'Hand-dyed indigo', tag: 'Signature', tile: 'hc-tile-adire' },
-      { name: 'Aso-Oke', sub: 'Woven strip cloth', tag: 'Premium', tile: 'hc-tile-asooke' },
-      { name: 'Mixed', sub: 'Headwraps & trims', tag: 'Accessory', tile: 'hc-tile-mixed' },
-    ],
-  },
-  {
-    eyebrow: 'Lagos to the world',
-    title: 'Made in Lagos,',
-    em: 'worn everywhere.',
-    sub: 'Proudly made in our corner of Lagos. We deliver across the city, throughout Nigeria and worldwide — tracked, in branded packaging, with roots intact.',
-    primaryTo: '/shop', primaryLabel: 'Start shopping', primaryIcon: 'solar:bag-4-bold',
-    secondaryTo: '/contact', secondaryLabel: 'Talk to us', secondaryIcon: 'solar:letter-bold',
-    fabrics: [
-      { name: 'Ankara', sub: 'Bold wax prints', tag: 'Bestseller', tile: 'hc-tile-ankara', price: 'from ₦18,500' },
-      { name: 'Aso-Oke', sub: 'Woven, ceremonial', tag: 'Premium', tile: 'hc-tile-asooke' },
-      { name: 'Mixed', sub: 'Headwraps & ties', tag: 'Accessory', tile: 'hc-tile-mixed' },
-    ],
-  },
-];
-
-const promises = [
-  { icon: 'solar:book-bookmark-bold', badge: 'Heritage with a story', title: 'Every print has a past', desc: 'Ankara, Adire and Aso-Oke each carry meaning. We honour the origin of every fabric at the source — and tell you what it is, so you wear it forward with pride.' },
-  { icon: 'solar:scissors-square-bold', badge: 'Craft you can feel', title: 'Hand-chosen, made to last', desc: 'Honest tailoring and considered finishing. Fabrics chosen by hand, hand-cut, lined and finished to be lived in — not saved for one occasion a year.', feature: true },
-  { icon: 'solar:global-bold', badge: 'Lagos to the world', title: 'Shipped near & far', desc: 'Proudly made in our corner of Lagos. We deliver across the city, throughout Nigeria and worldwide — tracked, with branded packaging and roots intact.' },
-];
-
-const services = [
-  { icon: 'solar:hanger-2-bold', title: 'Ready-to-wear', desc: 'Contemporary pieces in heritage cloth — cut for modern life and ready to ship today.', to: '/shop', cta: 'Shop ready-to-wear' },
-  { icon: 'solar:ruler-pen-bold', title: 'Made-to-measure', desc: 'Your fabric, your measurements. Bespoke tailoring for occasions that deserve it.', to: '/contact', cta: 'Request a fitting' },
-  { icon: 'solar:users-group-rounded-bold', title: 'Aso-ebi & groups', desc: 'Matching pieces for weddings and celebrations, with tiered pricing on six or more.', to: '/contact', cta: 'Get a group quote' },
-  { icon: 'solar:gift-bold', title: 'Gifting', desc: 'Meaningful pieces with presentation that matches the meaning — gift notes included.', to: '/gifting', cta: 'Explore gifting' },
-];
-
-const stats = [
-  { value: 1200, suffix: '+', label: 'Pieces delivered' },
-  { value: 18, suffix: '', label: 'Countries shipped to' },
-  { value: 3, suffix: '', label: 'Heritage fabrics, sourced at origin' },
-  { value: 98, suffix: '%', label: 'Would order again' },
-];
-
-const team = [
-  { name: 'Amara Okafor', role: 'Founder & Creative Director', tile: 'hc-tile-adire' },
-  { name: 'Tunde Bello', role: 'Head of Tailoring', tile: 'hc-tile-asooke' },
-  { name: 'Zainab Yusuf', role: 'Fabric Sourcing', tile: 'hc-tile-ankara' },
-  { name: 'Chidi Eze', role: 'Customer Care', tile: 'hc-tile-mixed' },
-];
-
+/**
+ * Home, "the cutting table" (D-031): a landing built only from published CMS
+ * content. The sections, their order, their source and when each one shows
+ * are defined once in homeMap.js (HOME_SECTIONS), which the Website hub also
+ * lists for the owner. Order: hero slides, two ways to order (home page,
+ * made-to-measure service, company page), the cloth (fabric story page),
+ * services, the measurement docket, our work, how it works, our mission
+ * (about page), the shop, reviews, questions, journal and enquire (contact
+ * page, business details and the enquiry form). Signed-in staff see an Edit
+ * control on each section that opens its editor.
+ */
 const HomePage = () => {
-  const { products } = useCatalogue();
-  const quotes = useTestimonials();      // live curated testimonials (fallback baked in)
-  const journal = useBlog(6);            // live published journal posts (fallback baked in)
-  // Lead with premium pieces, then the rest — real published catalogue.
-  const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 8);
+  const cfg = useSiteConfig()
+  const business = useBusiness()
+  const { primary, secondary } = useActions()
+  const res = useSiteResource(
+    () => loadHome(false),
+    () => loadHome(true),
+  )
+  const shopOn = useShopEnabled()
+  const { products } = useCatalogue()
+  const quotes = useTestimonials()
+  const journal = useBlog(3)
+  const [workFilter, setWorkFilter] = useState('')
+
+  const d = res.data || {}
+  const page = d.page
+  const services = d.services || []
+  const work = d.work || []
+  const faqs = d.faqs || []
+  const show = homeStates(d, { quotes, journal, shopOn, products })
+  const on = (k) => !!res.data && show[k]?.shown
+  const proof = [business.area, business.hours].filter(Boolean).join(' · ')
+  const featured = [...products].sort((a, b) => (b.premium ? 1 : 0) - (a.premium ? 1 : 0)).slice(0, 4)
+  const book = { to: primary.to, label: primary.label }
+  const companyTo = cfg?.nav?.company ? '/company-orders' : '/contact?type=company'
+
+  // Hero slides come from published content only (D-023). Owner-made slides
+  // (Website > Hero slides) win; without any, the home page and up to four
+  // services with a photograph make the slides. Each slide carries a print for
+  // the moment before its photograph loads or when it has none.
+  const ownSlides = (d.slides || []).map((s, i) => ({
+    label: s.label || s.headline,
+    eyebrow: s.eyebrow || undefined,
+    title: s.headline,
+    lead: s.lead || undefined,
+    image: toImage(s.hero),
+    print: printAt(i),
+    primary: s.cta_path ? { to: s.cta_path, label: s.cta_label || 'Find out more' } : book,
+    secondary,
+  }))
+  const autoSlides = [
+    {
+      label: 'Made to measure',
+      eyebrow: business.area ? `Made to measure in ${business.area}` : 'Made to measure',
+      title: page?.headline || business.name,
+      lead: page?.intro,
+      image: toImage(page?.hero),
+      primary: book,
+      secondary,
+    },
+    ...services
+      .filter((s) => s.hero?.url)
+      .slice(0, 4)
+      .map((s, i) => ({
+        label: s.title,
+        eyebrow: 'What we make',
+        title: s.title,
+        lead: s.summary,
+        image: toImage(s.hero),
+        print: printAt(i + 1),
+        primary: { to: `/services/${s.slug}`, label: 'View service' },
+        secondary: { to: book.to, label: primary.short || primary.label },
+      })),
+  ]
+  const slides = ownSlides.length ? ownSlides : autoSlides
+
+  const mtmService = madeToMeasureOf(services)
+  const mtm = mtmService && {
+    title: mtmService.title,
+    summary: mtmService.summary,
+    image: toImage(mtmService.hero),
+    to: `/services/${mtmService.slug}`,
+  }
+  const firstCover = work.find((w) => w.cover?.url)?.cover
+  const company = d.company && {
+    headline: d.company.headline,
+    intro: d.company.intro,
+    image: toImage(d.company.hero) || toImage(firstCover),
+  }
+  const fabrics = d.fabrics && { ...d.fabrics, image: toImage(d.fabrics.hero) }
+
+  // Work filter chips: only services that have published work.
+  const workServices = services.filter((s) => work.some((w) => w.service_slug === s.slug))
+  const shownWork = workFilter ? work.filter((w) => w.service_slug === workFilter) : work
 
   return (
-    <SiteLayout title="Wear your heritage">
-    {/* announcement marquee — two identical tracks for a seamless loop */}
-    <div className="hc-marquee">
-      {[0, 1].map((k) => (
-        <div className="hc-marquee-track" key={k} aria-hidden={k === 1}>
-          <span>★ The Founders&apos; Drop is live</span>
-          <span>★ Free Lagos delivery over ₦25,000</span>
-          <span>★ Ships worldwide, tracked</span>
-          <span>★ 10% off your first piece — code HERIT10</span>
-          <span>★ #WearYourHeritage</span>
-        </div>
-      ))}
-    </div>
+    <SiteLayout
+      seo={{
+        home: true,
+        description: page?.seo_description || clip(page?.intro),
+        image: page?.hero?.url,
+        jsonld: cfg?.jsonld || undefined,
+      }}>
+      <Hero slides={slides} note={proof || undefined} edit={EDIT.slides} />
 
-    {/* hero — multi-slide heritage canvas */}
-    <HeroSlider slides={heroSlides} />
+      {on('paths') && <OrderPaths lead={page?.body} mtm={mtm} company={company} companyTo={companyTo} edit={EDIT.home} />}
 
-    {/* promise strip — 3-up value props */}
-    <section className="hc-section">
-      <div className="hc-container">
-        <div className="hc-head hc-head--center">
-          <div className="hc-kicker">Why Herit</div>
-          <h2 className="hc-h2">Heritage, tailored for now.</h2>
-          <p className="hc-lead" style={{ margin: '1rem auto 0' }}>
-            Three things shape everything we make. Roots you can name, craft you can feel,
-            and a reach from Lagos to the world.
-          </p>
-        </div>
-        <div className="hc-grid hc-grid--3">
-          {promises.map((v) => (
-            <div key={v.title} className={`hc-card ${v.feature ? 'hc-card--feature' : ''}`}>
-              <span className="hc-card-ico"><IconifyIcon icon={v.icon} /></span>
-              <span className="hc-card-badge">{v.badge}</span>
-              <h3>{v.title}</h3>
-              <p className="hc-card-desc">{v.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+      {on('cloth') && <ClothRun page={fabrics} cloths={clothsOf(d.fabrics)} edit={EDIT.fabrics} />}
 
-    {/* about split — visual + experience badge + checklist (oxybuild about-one) */}
-    <section className="hc-section hc-section--paper">
-      <div className="hc-container">
-        <div className="hc-about-split">
-          <div className="hc-about-visual">
-            <div className="hc-about-figure hc-tile hc-tile-adire" />
-            <div className="hc-about-exp">
-              <strong>2024</strong>
-              <span>Founded in Ajuwon Market, Lagos</span>
+      {on('services') && (
+        <Section labelledBy="home-services" className="hc-land" edit={EDIT.services}>
+          <SectionHead
+            id="home-services"
+            eyebrow="Services"
+            title={d.servicesIntro?.headline || 'Services, cut to measure'}
+            lead={
+              d.servicesIntro?.intro ||
+              'Every piece is made for you. Prices depend on the cloth and the finish, so you get a written quote before any work starts.'
+            }>
+            <MoreLink to="/services">All services</MoreLink>
+          </SectionHead>
+          <ServiceIndex
+            services={services.map((s, i) => ({
+              to: `/services/${s.slug}`,
+              title: s.title,
+              summary: s.summary,
+              meta: s.price_note || undefined,
+              image: toImage(s.hero),
+              print: printVariant(s.title, printAt(i)),
+            }))}
+          />
+        </Section>
+      )}
+
+      {on('docket') && <MeasureDocket bookTo={book.to} bookLabel={book.label} />}
+
+      {on('work') && (
+        <Section tone="alt" labelledBy="home-work" className="hc-land" edit={EDIT.work}>
+          <SectionHead
+            id="home-work"
+            eyebrow="Selected work"
+            title="Recent pieces from the workroom"
+            lead="Open a piece to see the garment, the cloth and the photographs.">
+            {workServices.length > 1 && (
+              <div className="hc-chip-group" role="group" aria-label="Filter work by service">
+                <button type="button" className="hc-chip" aria-pressed={workFilter === ''} onClick={() => setWorkFilter('')}>
+                  All
+                </button>
+                {workServices.map((s) => (
+                  <button key={s.slug} type="button" className="hc-chip" aria-pressed={workFilter === s.slug} onClick={() => setWorkFilter(s.slug)}>
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+            )}
+          </SectionHead>
+          <div className="hc-grid hc-grid--3" aria-live="polite">
+            {shownWork.map((w) => (
+              <WorkCard
+                key={w.slug}
+                image={toImage(w.cover)}
+                title={w.title}
+                meta={[w.garment, w.fabric].filter(Boolean).join(' · ')}
+                to={`/work/${w.slug}`}
+              />
+            ))}
+          </div>
+          <div className="hc-section-foot">
+            <p>Each piece here was cut to one person&apos;s measurements.</p>
+            <MoreLink to="/work">See all work</MoreLink>
+          </div>
+        </Section>
+      )}
+
+      {on('process') && (
+        <StitchProcess
+          title={d.how?.headline || undefined}
+          lead={d.how?.intro || undefined}
+          steps={stepsOf(d.how)}
+          moreTo={d.how ? '/how-it-works' : undefined}
+          edit={EDIT.how}
+        />
+      )}
+
+      {on('mission') && <MissionBand about={d.about} mission={missionOf(d.about)} image={toImage(d.about?.hero)} edit={EDIT.about} />}
+
+      {on('shop') && <Lookbook eyebrow="Ready to wear" title="In stock now." products={featured} formatNgn={formatNgn} />}
+
+      {on('reviews') && <Testimonials eyebrow="What clients say" quotes={quotes} />}
+
+      {on('faqs') && (
+        <Section tone="paper" labelledBy="home-faqs" className="hc-land" edit={EDIT.faqs}>
+          <div className="hc-split hc-split--faq">
+            <SectionHead
+              id="home-faqs"
+              eyebrow="Before you ask"
+              title="Questions people ask first"
+              lead="Anything else, send a message and we will get back to you."
+              split={false}>
+              {cfg?.nav?.faqs && <MoreLink to="/faqs">All questions</MoreLink>}
+            </SectionHead>
+            <div className="hc-faq-list">
+              {faqs.map((f, i) => (
+                <details key={f.id} className="hc-faq" open={i === 0}>
+                  <summary>
+                    {f.question} <Icon name="chevron-down" />
+                  </summary>
+                  <div className="hc-faq-a">
+                    <Rich html={f.answer} />
+                  </div>
+                </details>
+              ))}
             </div>
           </div>
-          <div>
-            <div className="hc-kicker">Our story</div>
-            <h2 className="hc-h2 hc-mt-2">Rooted in Lagos. Made for everywhere.</h2>
-            <p className="hc-lead hc-mt-3">
-              Herit Clothing started with a simple frustration: the fabrics we grew up with were
-              saved for special occasions, or treated abroad as costume rather than culture. We
-              believe they deserve a place in everyday life — cut for the way people actually dress.
-            </p>
-            <ul className="hc-check">
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Heritage fabrics named and sourced at origin</li>
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Hand-cut, lined and finished to last</li>
-              <li><IconifyIcon icon="solar:check-circle-bold" /> Each piece ships with the story of its fabric</li>
-            </ul>
-            <Link to="/about" className="hc-btn hc-btn--primary hc-mt-4">
-              Read our story <IconifyIcon icon="solar:arrow-right-linear" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
+        </Section>
+      )}
 
-    {/* lookbook — live catalogue: real pieces, real prices, real product links */}
-    <Lookbook
-      kicker="The collection"
-      title="Fresh off the cutting table."
-      products={featured}
-      formatNgn={formatNgn}
-    />
+      {on('journal') && (
+        <JournalGrid
+          eyebrow="Journal"
+          title="Notes on cloth and craft"
+          posts={journal}
+          moreTo={cfg?.nav?.journal ? '/journal' : undefined}
+          edit={EDIT.journal}
+        />
+      )}
 
-    {/* stockist / press strip */}
-    <BrandStrip
-      label="Worn and stocked from Lagos to London"
-      brands={['VOGUE NG', 'BellaNaija', 'GUARDIAN Life', 'ThisDay Style', 'OkayAfrica']}
-    />
-
-    {/* services carousel */}
-    <ServicesCarousel
-      kicker="What we offer"
-      title="More than ready-to-wear."
-      lead="From the rail to a full bespoke fitting — heritage cloth, however you want to wear it."
-      items={services}
-    />
-
-    {/* animated stat counter */}
-    <CounterBand stats={stats} />
-
-    {/* team carousel */}
-    <TeamCarousel
-      kicker="The makers"
-      title="The hands behind every piece."
-      lead="A small Lagos team that sources, cuts and finishes everything we sell."
-      members={team}
-    />
-
-    {/* testimonials */}
-    <Testimonials
-      kicker="Loved across Lagos & beyond"
-      title="Worn with pride, worldwide."
-      lead="Real words from customers in Lagos, London, Toronto and beyond — wearing heritage every day."
-      ctaTo="/shop"
-      ctaLabel="Shop the collection"
-      quotes={quotes}
-    />
-
-    {/* journal */}
-    <JournalCarousel
-      kicker="The journal"
-      title="Stories from the cutting table."
-      lead="Heritage, craft and what goes on behind the seams."
-      posts={journal}
-    />
-
-    {/* email capture / CTA */}
-    <section className="hc-section hc-section--crimson">
-      <div className="hc-container hc-cta-band">
-        <div className="hc-kicker">Join the family</div>
-        <h2 className="hc-h2 hc-mt-2">Be first to new drops — and get 10% off.</h2>
-        <p>Our pieces are made in limited runs. Join the family to hear first when the cutting
-          table fills up, and get 10% off your first piece with code HERIT10.</p>
-        <div className="hc-cta-actions">
-          <Link to="/shop" className="hc-btn hc-btn--light">
-            <IconifyIcon icon="solar:bag-4-bold" /> Shop the collection
-          </Link>
-          <Link to="/contact" className="hc-btn hc-btn--onfill">
-            <IconifyIcon icon="solar:letter-linear" /> Talk to us
-          </Link>
-        </div>
-      </div>
-    </section>
+      {on('enquire') && <EnquiryBand contact={d.contact} business={business} shopOn={shopOn} edit={EDIT.contact} />}
     </SiteLayout>
-  );
-};
+  )
+}
 
-export default HomePage;
+export default HomePage

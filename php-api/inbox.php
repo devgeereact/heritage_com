@@ -3,7 +3,8 @@
  * HeritOS — in-app inbox (incoming mail over IMAP).
  *
  *   GET  /inbox.php?action=list&limit=30&folder=INBOX  → recent messages
- *   GET  /inbox.php?action=get&uid=N                    → one message, full body
+ *   GET  /inbox.php?action=get&uid=N                    → one message, full body (read-only:
+ *        fetched with FT_PEEK, so it does not set \Seen; K-28)
  *   POST /inbox.php?action=seen&uid=N  { seen: true }   → flag/unflag read
  *
  * Reads IMAP_* from config.php via cfg(). Requires the PHP imap extension.
@@ -25,7 +26,7 @@ $host = cfg('IMAP_HOST');
 $port = (int) cfg('IMAP_PORT', 993);
 $user = cfg('IMAP_USER');
 $pass = cfg('IMAP_PASS');
-$folder = preg_replace('/[^A-Za-z0-9_\/\. -]/', '', $_GET['folder'] ?? 'INBOX') ?: 'INBOX';
+$folder = preg_replace('/[^A-Za-z0-9_\/\. -]/', '', in_str($_GET, 'folder', 'INBOX')) ?: 'INBOX';
 
 $ref = '{' . $host . ':' . $port . '/imap/ssl/novalidate-cert}';
 $mbox = @imap_open($ref . $folder, $user, $pass, 0, 1);
@@ -35,7 +36,7 @@ $action = $_GET['action'] ?? 'list';
 
 try {
   if ($action === 'list' && method() === 'GET') {
-    $limit = max(1, min(100, (int) ($_GET['limit'] ?? 30)));
+    $limit = max(1, min(100, in_int($_GET, 'limit', 30)));
     $total = imap_num_msg($mbox);
     $rows = [];
     // Newest first: walk down from the highest sequence number.
@@ -58,7 +59,7 @@ try {
   }
 
   if ($action === 'get' && method() === 'GET') {
-    $uid = (int) ($_GET['uid'] ?? 0);
+    $uid = in_int($_GET, 'uid');
     if (!$uid) fail('uid required');
     $hdr = imap_rfc822_parse_headers(imap_fetchheader($mbox, $uid, FT_UID));
     $structure = imap_fetchstructure($mbox, $uid, FT_UID);
@@ -76,16 +77,16 @@ try {
       'html'       => $html,
       'text'       => $text,
     ];
-    // Opening a message marks it read.
-    imap_setflag_full($mbox, (string) $uid, '\\Seen', ST_UID);
+    // GET is read-only (K-28): the body is fetched with FT_PEEK, so \Seen is not
+    // set; the app marks the message read with POST ?action=seen.
     imap_close($mbox);
     json($msg);
   }
 
   if ($action === 'seen' && method() === 'POST') {
-    $uid = (int) ($_GET['uid'] ?? 0);
+    $uid = in_int($_GET, 'uid');
     if (!$uid) fail('uid required');
-    $seen = body()['seen'] ?? true;
+    $seen = in_scalar(body(), 'seen', true);
     if ($seen) imap_setflag_full($mbox, (string) $uid, '\\Seen', ST_UID);
     else       imap_clearflag_full($mbox, (string) $uid, '\\Seen', ST_UID);
     imap_close($mbox);
@@ -142,7 +143,7 @@ function extract_body($mbox, $uid, $structure) {
       return;
     }
     $subtype = strtoupper($struct->subtype ?? '');
-    $body = imap_fetchbody($mbox, $uid, $partNo === '' ? '1' : $partNo, FT_UID);
+    $body = imap_fetchbody($mbox, $uid, $partNo === '' ? '1' : $partNo, FT_UID | FT_PEEK);
     $body = decode_part($body, $struct->encoding ?? 0);
     // Charset → UTF-8.
     $charset = 'UTF-8';
@@ -159,7 +160,7 @@ function extract_body($mbox, $uid, $structure) {
 
   if (empty($structure->parts)) {
     // Single-part message.
-    $body = imap_body($mbox, $uid, FT_UID);
+    $body = imap_body($mbox, $uid, FT_UID | FT_PEEK);
     $body = decode_part($body, $structure->encoding ?? 0);
     if (strtoupper($structure->subtype ?? '') === 'HTML') $html = $body; else $text = $body;
   } else {

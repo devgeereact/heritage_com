@@ -1,12 +1,12 @@
-import logoDark from '@/assets/images/logo-dark.svg';
-import logoLight from '@/assets/images/logo-light.svg';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import { Card, Col, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import LoginFrom from './LoginFrom';
-import PinLogin from './PinLogin';
-import BrandSidePanel from '../../components/BrandSidePanel';
-import AuthHeading from '../../components/AuthHeading';
+import logoDark from '@/assets/images/logo-dark.svg'
+import logoLight from '@/assets/images/logo-light.svg'
+import IconifyIcon from '@/components/wrappers/IconifyIcon'
+import { Card, Col, Row } from 'react-bootstrap'
+import { Link } from 'react-router-dom'
+import LoginFrom from './LoginFrom'
+import PinLogin from './PinLogin'
+import BrandSidePanel from '../../components/BrandSidePanel'
+import AuthHeading from '../../components/AuthHeading'
 
 const SignIn = () => {
   return (
@@ -18,17 +18,17 @@ const SignIn = () => {
               <Col lg={6} className="py-lg-5">
                 <div className="d-flex flex-column h-100 justify-content-center">
                   <div className="auth-logo mb-4">
-                    <Link to="/dashboard" className="logo-dark">
-                      <img src={logoDark} height={24} alt="logo dark" />
+                    <Link to="/auth/sign-in" className="logo-dark">
+                      <img src={logoDark} height={24} alt="HeritOS" />
                     </Link>
-                    <Link to="/dashboard" className="logo-light">
-                      <img src={logoLight} height={24} alt="logo light" />
+                    <Link to="/auth/sign-in" className="logo-light">
+                      <img src={logoLight} height={24} alt="HeritOS" />
                     </Link>
                   </div>
                   <AuthHeading
                     kicker="HeritOS · sign in"
                     title="Welcome back."
-                    sub="The operating system behind Herit Clothing — tailoring, catalogue, orders, stock and money, in one place."
+                    sub="Sign in to run Herit Clothing: jobs, clients, appointments, payments and the website."
                   />
                   <div className="mb-3">
                     <LoginFrom />
@@ -52,7 +52,7 @@ const SignIn = () => {
         </Row>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn

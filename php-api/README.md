@@ -1,9 +1,12 @@
 # HeritOS server files (`php-api/`)
 
-These PHP files and the SQL schema are **source-controlled here** but are **not
-auto-deployed**. The GitHub Actions workflow only uploads `dist/` (the React
-build). You place these on the server **by hand, once**, in the cPanel document
-root, exactly as the project's `CLAUDE.md` describes.
+These PHP files and the SQL schema are **source-controlled here**. Deployment is
+split: `.github/workflows/deploy.yml` uploads the files it lists with every push
+to `main`: nine on `main` (`_lib`, `api`, `auth`, `ai`, `products`, `customers`,
+`stats`, `tailoring`, `contact`), plus seven on the Phase 2 branch (`_domain`,
+`_jobs`, `today`, `enquiries`, `measurements`, `quotes`, `ledger`). Every other endpoint, `config.php`, `.htaccess` and the
+SQL imports are placed by hand in the cPanel document root. The full procedure
+and upload order are in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md).
 
 ## One-time server setup
 
@@ -15,7 +18,7 @@ root, exactly as the project's `CLAUDE.md` describes.
    and seeds the super-admin.
 3. **Create `config.php`** in the document root: copy `config.sample.php` to
    `config.php`, fill in the real DB credentials, `TOKEN_SECRET`, and (when
-   ready) `OPENROUTER_KEY`. **Never commit `config.php`** — it is gitignored.
+   ready) `OPENROUTER_KEY`. **Never commit `config.php`**; it is gitignored.
 4. **Upload** `_lib.php`, `api.php`, `auth.php`, `ai.php`, `.htaccess`, and your
    `config.php` to the document root via cPanel File Manager / FTP.
 
@@ -24,7 +27,8 @@ root, exactly as the project's `CLAUDE.md` describes.
 - Visit `https://heritclothing.com/api.php` → should return a JSON array
   (the two seeded items, or `[]` once cleared).
 - The React app calls these through `API_BASE` (see `src/context/constants.js`):
-  dev → `https://heritclothing.com`, production → relative (same origin).
+  dev → `VITE_API_BASE`, defaulting to the local staging API on
+  `http://127.0.0.1:8088` (`npm run staging:serve`); production → relative (same origin).
 
 ## Seed login
 
@@ -33,7 +37,7 @@ password as soon as the import finishes. Generate a hash on any machine with PHP
 (replace the placeholder; do not commit or share the real password):
 
 ```bash
-php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_DEFAULT), PHP_EOL;'
+php -r 'echo password_hash("CHOOSE-A-STRONG-PASSWORD", PASSWORD_BCRYPT, ["cost" => 12]), PHP_EOL;'
 ```
 
 then run in phpMyAdmin:
@@ -51,12 +55,14 @@ UPDATE users SET password_hash = '<paste the hash>' WHERE email = 'dev@heritclot
 | `api.php` | Smoke-test/default endpoint: `items` list (public) and insert (staff session). |
 | `auth.php` | Login / logout / me: issues and validates session tokens; throttles failed email and PIN logins. |
 | `ai.php` | OpenRouter proxy. Key stays server-side; staff-only. |
-| `tailoring.php` | Tailoring & Production — orders, stages, measurements (staff). |
-| `products.php` | Products & Variants — catalogue, size×colour matrix, stock (staff). |
+| `tailoring.php` | Tailoring & Production: orders, stages, measurements (staff). |
+| `products.php` | Products & Variants: catalogue, size×colour matrix, stock (staff). |
 | `contact.php` | Public enquiry submit + staff inbox (list/status). |
 | `schema.sql` | All tables + seeds (foundation, tailoring, catalogue, enquiries). |
-| `.htaccess` | SPA routing (`RewriteBase /`). |
+| `.htaccess` | SPA routing (`RewriteBase /`); refuses direct requests to `_*.php` and `config*.php`. |
 | `tests/run.php` | CLI tests for the pure helpers in `_lib.php`: `php php-api/tests/run.php`. Not deployed. |
 
-When deploying, upload **all** the `.php` files above to the document root, and
-re-import `schema.sql` (or just the new sections) so the new tables exist.
+When a change touches an endpoint that `deploy.yml` does not copy, upload that
+file by hand in the order the pull request gives, and import any new schema files
+so new tables exist. List every manual upload in the pull request and in the
+owner-actions table of `docs/DEPLOYMENT.md`.

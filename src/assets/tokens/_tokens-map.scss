@@ -1,0 +1,216 @@
+// HeritOS design tokens: the only file allowed to hold colour values.
+// tokens.scss emits these as --hc-* custom properties; the Larkon SCSS
+// variables (scss/config/_variables.scss) read the same maps, so a colour
+// change happens once (A23). Contract and measured contrast: docs/DESIGN-SYSTEM.md.
+
+// Warm paper direction (D-030, after the Oura DESIGN.md the owner chose on
+// 19 October 2026; supersedes the dark-first site of D-023): warm cream
+// paper is the resting surface, near-black ink is kept for a few bands
+// (footer, company band, photographs), and the logo gold #FFB800 is the one
+// accent, always with ink text on it. Every map holds the same keys so
+// components never branch.
+
+// Admin light theme and printed documents: warm paper page, white cards.
+$hc-light: (
+  'surface':        #FFFFFF,
+  'surface-alt':    #F7F1E8,
+  'surface-raised': #FBF8F3,
+  'text':           #1C1B1A,
+  'text-body':      #3D3A35,
+  'text-muted':     #66625B,
+  'divider':        #E4DCCD,
+  'control-border': #827C71,
+  'accent':         #FFB800,
+  'accent-hover':   #E6A600,
+  'on-accent':      #1C1B1A,
+  'accent-text':    #6E5000,
+  'accent-tint':    #FFF1CC,
+  'focus':          #1C1B1A,
+  'success':        #15803D,
+  'success-tint':   #F0FDF4,
+  'warning':        #6E5000,
+  'warning-tint':   #FFF7E0,
+  'danger':         #991B1B,
+  'danger-tint':    #FEF2F2,
+  'pending':        #66625B,
+  'pending-tint':   #F7F1E8,
+);
+
+// Admin dark theme: ink surfaces, cream text.
+$hc-dark: (
+  'surface':        #171512,
+  'surface-alt':    #0E0D0B,
+  'surface-raised': #1F1C18,
+  'text':           #F5EFE4,
+  'text-body':      #D9D2C5,
+  'text-muted':     #A79F92,
+  'divider':        #2E2A24,
+  'control-border': #6F685D,
+  'accent-text':    #FFB800,
+  'accent-tint':    #2B2410,
+  'focus':          #F5EFE4,
+  'success':        #4ADE80,
+  'success-tint':   #14261A,
+  'warning':        #FFC933,
+  'warning-tint':   #2B2410,
+  'danger':         #FCA5A5,
+  'danger-tint':    #2C1717,
+  'pending':        #A79F92,
+  'pending-tint':   #1F1C18,
+);
+
+// Public site (.hc): warm paper first (Oura canvas #F7F1E8).
+$hc-site: (
+  'surface':        #F7F1E8,
+  'surface-alt':    #EFE7DA,
+  'surface-raised': #FFFFFF,
+  'text':           #1C1B1A,
+  'text-body':      #3D3A35,
+  'text-muted':     #66625B,
+  'divider':        #DED6C8,
+  'control-border': #827C71,
+  'accent':         #FFB800,
+  'accent-hover':   #E6A600,
+  'on-accent':      #1C1B1A,
+  'accent-text':    #6E5000,
+  'accent-tint':    #FFF1CC,
+  'focus':          #1C1B1A,
+  'success':        #166534,
+  'success-tint':   #F0FDF4,
+  'warning':        #6E5000,
+  'warning-tint':   #FFF7E0,
+  'danger':         #991B1B,
+  'danger-tint':    #FEF2F2,
+  'pending':        #66625B,
+  'pending-tint':   #EFE7DA,
+);
+
+// Paper bands (.hc-paper, <Section tone="paper">): the same paper, so long
+// reading text sits on the resting surface. Kept as its own map so a band
+// can change without touching the site.
+$hc-paper: $hc-site;
+
+// Ink bands inside the site (.hc-ink, <Section tone="ink">), the footer and
+// the sign-in side panel: near-black with cream text and the logo gold.
+$hc-ink: (
+  'surface':        #0E0D0B,
+  'surface-alt':    #171512,
+  'surface-raised': #1F1C18,
+  'text':           #F5EFE4,
+  'text-body':      #D9D2C5,
+  'text-muted':     #A79F92,
+  'divider':        #2E2A24,
+  'control-border': #6F685D,
+  'accent':         #FFB800,
+  'accent-hover':   #FFC933,
+  'on-accent':      #0E0D0B,
+  'accent-text':    #FFB800,
+  'accent-tint':    #2B2410,
+  'focus':          #F5EFE4,
+  'success':        #4ADE80,
+  'success-tint':   #14261A,
+  'warning':        #FFC933,
+  'warning-tint':   #2B2410,
+  'danger':         #FCA5A5,
+  'danger-tint':    #2C1717,
+  'pending':        #A79F92,
+  'pending-tint':   #1F1C18,
+);
+
+// Text and scrims over photographs: the same in every theme.
+$hc-media: (
+  'on-image':       #F5EFE4,
+  'on-image-muted': rgba(245, 239, 228, 0.86),
+  'on-image-line':  rgba(245, 239, 228, 0.32),
+  'scrim-strong':   rgba(14, 13, 11, 0.9),
+  'scrim-mid':      rgba(14, 13, 11, 0.55),
+  'scrim-clear':    rgba(14, 13, 11, 0),
+  'scrim-glass':    rgba(14, 13, 11, 0.35),
+);
+
+// African print illustrations (PrintArt, 19 October 2026). Cloth colours for
+// the Adire, Ankara, Aso-Oke and woven-check patterns drawn in
+// src/app/(public)/site/ui/printPatterns.js, and read by
+// scripts/content/render-prints.mjs for the media library images. They are
+// illustration colours, never text or control colours; amber stays the one
+// interface accent (the logo gold). Same in every theme.
+$hc-print: (
+  'print-indigo':  #1B1F2E,  // Adire ground: indigo so deep it reads as ink
+  'print-cream':   #E7D6B0,  // resist lines and rings
+  'print-sand':    #CDB98A,
+  'print-amber':   #FFB800,  // the logo gold inside the prints
+  'print-red':     #8F2723,  // Ankara ground
+  'print-rust':    #B45309,
+  'print-ochre':   #9A4D12,  // Aso-Oke strips
+  'print-umber':   #8A3D0E,
+  'print-gold':    #FEF3C7,  // lurex thread
+  'print-brown':   #6D3410,  // woven check ground
+  'print-crimson': #9B2C2C,
+  'print-shade':   #0E0D0B,  // weft shadow and fold shading
+);
+
+// Shadow colour for overlays (dropdowns and dialogs only).
+$hc-overlay-shadow: rgba(14, 13, 11, 0.18);
+
+// Everything that is not colour.
+$hc-scale: (
+  'font-sans':  ('"Hanken Grotesk"', system-ui, -apple-system, '"Segoe UI"', Roboto, sans-serif),
+  'font-serif': ('"Newsreader"', Georgia, '"Times New Roman"', serif),
+  'font-mono':  (ui-monospace, SFMono-Regular, Menlo, Consolas, monospace),
+
+  'text-xs':   0.8125rem,
+  'text-sm':   0.875rem,
+  'text-base': 1rem,
+  'text-md':   1.125rem,
+  'text-lg':   1.25rem,
+  'text-xl':   1.5rem,
+  'text-2xl':  1.75rem,
+  'text-3xl':  2rem,
+  'text-4xl':  2.5rem,
+  'text-5xl':  3.5rem,
+  'text-hero': clamp(2.75rem, 1.4rem + 5.2vw, 6rem),
+
+  'lh-body':    1.65,
+  'lh-heading': 1.1,
+  'lh-hero':    0.98,
+
+  'w-regular':  400,
+  'w-medium':   500,
+  'w-semibold': 600,
+
+  'space-1': 4px,
+  'space-2': 8px,
+  'space-3': 12px,
+  'space-4': 16px,
+  'space-5': 24px,
+  'space-6': 32px,
+  'space-7': 48px,
+  'space-8': 64px,
+  'space-9': 96px,
+  'space-10': 128px,
+  'section-y': clamp(56px, 7vw, 112px),
+
+  'container': 1240px,
+  'measure':   65ch,
+  'gutter':    clamp(16px, 4vw, 48px),
+  'header-h':  76px,
+
+  // D-030: square-shouldered, never pill-shaped. Buttons and inputs 12px (owner,
+  // 19 October 2026), cards and framed images 8px, chips and tags 6px,
+  // full-bleed photographs 0.
+  'radius-control': 12px,
+  'radius-card':    8px,
+  'radius-chip':    6px,
+
+  'touch':     44px,
+  'control-h': 48px,
+
+  'dur-press':   180ms,
+  'dur-ui':      200ms,
+  'dur-color':   330ms,
+  'dur-reveal':  360ms,
+  'dur-hero':    700ms,
+  'ease':         cubic-bezier(0.2, 0, 0, 1),
+  'ease-emph':    cubic-bezier(0.16, 1, 0.3, 1),
+  'ease-curtain': cubic-bezier(0.65, 0, 0.35, 1),
+);

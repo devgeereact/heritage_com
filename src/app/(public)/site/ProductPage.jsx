@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import { useCatalogue, formatNgn } from './products';
 import { useCart } from './cart';
@@ -76,12 +76,6 @@ const ProductPage = () => {
 
   return (
     <SiteLayout title={`${product.name} — ${product.fabric}`}>
-      <div className="hc-marquee">
-        <span>★ Free Lagos delivery over ₦25,000</span>
-        <span>★ Ships worldwide, tracked</span>
-        <span>★ 14-day returns</span>
-      </div>
-
       <section className="hc-section">
         <div className="hc-container">
           <div className="hc-crumb hc-mt-1" style={{ marginBottom: '1.5rem' }}>
@@ -110,9 +104,6 @@ const ProductPage = () => {
               <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '1.4rem', color: 'var(--primary)', marginTop: '0.75rem' }}>
                 {formatNgn(product.priceNgn)} <span style={{ color: 'var(--muted-foreground)', fontWeight: 400, fontSize: '0.95rem' }}>· approx ${product.priceUsd}</span>
               </div>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--muted-foreground)', marginTop: '0.3rem' }}>
-                Free Lagos delivery over ₦25,000
-              </p>
 
               <p className="hc-lead hc-mt-3">{product.short}</p>
 
@@ -151,25 +142,18 @@ const ProductPage = () => {
 
               {notifyOpen && !notifyDone && (
                 <div className="hc-flex hc-wrap" style={{ gap: '0.5rem', marginTop: '0.4rem', maxWidth: 420 }}>
-                  <input placeholder="Your name" value={notify.name} onChange={(e) => setNotify((n) => ({ ...n, name: e.target.value }))}
+                  <input aria-label="Your name" autoComplete="name" placeholder="Your name" value={notify.name} onChange={(e) => setNotify((n) => ({ ...n, name: e.target.value }))}
                     style={{ flex: '1 1 140px', padding: '0.55rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
-                  <input placeholder="Phone / WhatsApp" value={notify.phone} onChange={(e) => setNotify((n) => ({ ...n, phone: e.target.value }))}
+                  <input aria-label="Phone or WhatsApp" type="tel" autoComplete="tel" placeholder="Phone / WhatsApp" value={notify.phone} onChange={(e) => setNotify((n) => ({ ...n, phone: e.target.value }))}
                     style={{ flex: '1 1 140px', padding: '0.55rem 0.7rem', border: '1.5px solid var(--border)', borderRadius: 8, background: 'var(--background)', color: 'var(--foreground)', font: 'inherit' }} />
                   <button onClick={joinWaitlist} className="hc-btn hc-btn--primary" style={{ cursor: 'pointer', border: 'none' }} disabled={!notify.phone.trim()}>Notify me</button>
                 </div>
               )}
               {notifyDone && (
-                <p style={{ fontSize: '0.8rem', color: '#16794a', marginTop: '0.4rem' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--hc-success)', marginTop: '0.4rem' }}>
                   <IconifyIcon icon="solar:check-circle-bold" /> You&apos;re on the list — we&apos;ll message you when it&apos;s back.
                 </p>
               )}
-
-              {/* reassurance */}
-              <ul className="hc-check hc-mt-4">
-                <li><IconifyIcon icon="solar:check-circle-bold" /> Made in Lagos</li>
-                <li><IconifyIcon icon="solar:check-circle-bold" /> Ships worldwide, tracked</li>
-                <li><IconifyIcon icon="solar:check-circle-bold" /> 14-day returns on unworn items</li>
-              </ul>
 
               {/* the story — expandable */}
               <div className="hc-quote hc-mt-4" style={{ padding: '1.5rem' }}>

@@ -24,7 +24,7 @@ const SOCIALS = [
 ];
 
 const ChannelsPage = () => {
-  const [s, setS] = useState({ store_name: '', currency: 'NGN', free_ship_threshold: '', vat_rate: '', channels: {}, socials: {} });
+  const [s, setS] = useState({ store_name: '', currency: 'NGN', free_ship_threshold: '', vat_rate: '', channels: {}, socials: {}, shop_enabled: '0' });
   const [state, setState] = useState('loading');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -33,7 +33,7 @@ const ChannelsPage = () => {
   const load = useCallback(async () => {
     try {
       const r = await heritApi.settings.get();
-      setS({ store_name: r.store_name || '', currency: r.currency || 'NGN', free_ship_threshold: r.free_ship_threshold || '', vat_rate: r.vat_rate || '', channels: r.channels || {}, socials: r.socials || {} });
+      setS({ store_name: r.store_name || '', currency: r.currency || 'NGN', free_ship_threshold: r.free_ship_threshold || '', vat_rate: r.vat_rate || '', channels: r.channels || {}, socials: r.socials || {}, shop_enabled: r.shop_enabled === '1' ? '1' : '0' });
       setState('ready');
     } catch { setState('offline'); }
   }, []);
@@ -82,6 +82,12 @@ const ChannelsPage = () => {
                 <Col xs={6}><Form.Group className="mb-3"><Form.Label>Free ship over</Form.Label><Form.Control type="number" value={s.free_ship_threshold} onChange={(e) => setS((o) => ({ ...o, free_ship_threshold: e.target.value }))} /></Form.Group></Col>
                 <Col xs={6}><Form.Group className="mb-3"><Form.Label>VAT rate (%)</Form.Label><Form.Control type="number" step="0.1" min="0" placeholder="0 = off" value={s.vat_rate} onChange={(e) => setS((o) => ({ ...o, vat_rate: e.target.value }))} /></Form.Group></Col>
               </Row>
+              <Form.Check
+                type="switch" id="shop-enabled" className="mb-3"
+                label="Show the online shop in website navigation"
+                checked={s.shop_enabled === '1'}
+                onChange={(e) => setS((o) => ({ ...o, shop_enabled: e.target.checked ? '1' : '0' }))}
+              />
               {err && <Alert variant="danger" className="py-2">{err}</Alert>}
               <Button variant="primary" className="w-100" onClick={save} disabled={busy}>
                 {busy ? <Spinner size="sm" /> : saved ? <><IconifyIcon icon="solar:check-circle-bold" className="me-1" /> Saved</> : 'Save settings'}

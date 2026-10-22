@@ -20,10 +20,16 @@ $user = require_auth();                 // staff only — image generation costs
 if (method() !== 'POST') fail('Method not allowed', 405);
 
 $b = body();
-$prompt = trim($b['prompt'] ?? '');
-$size = preg_match('/^\d{3,4}x\d{3,4}$/', $b['size'] ?? '') ? $b['size'] : '1024x1024';
-$task = trim($b['task'] ?? 'image');
+$prompt = trim(in_str($b, 'prompt'));
+$size = preg_match('/^\d{3,4}x\d{3,4}$/', in_str($b, 'size')) ? $b['size'] : '1024x1024';
+$task = trim(in_str($b, 'task', 'image'));
 if ($prompt === '') fail('prompt is required');
+if (mb_strlen($prompt) > 4000) fail('That request is too long');
+
+// Daily cap per staff member: image generation costs money.
+$capKey = 'user:' . (int)$user['id'];
+throttle_enforce([[(int)cfg('AI_IMAGE_MAX_PER_USER_DAY', 50), 'ai_image_cap', $capKey]], 86400);
+audit($user['id'], 'ai_image_cap', $capKey);
 
 $provider = cfg('IMAGE_PROVIDER');      // '' | 'openrouter' | 'openai' | 'stability'
 $openai = cfg('OPENAI_IMAGE_KEY');

@@ -1,5 +1,5 @@
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Suspense } from 'react';
+import CommandPalette from './components/CommandPalette';
 import LeftSideBarToggle from './components/LeftSideBarToggle';
 import Notifications from './components/Notifications';
 import ProfileDropdown from './components/ProfileDropdown';
@@ -21,12 +21,7 @@ const page = () => {
             </Suspense>
 
             <ProfileDropdown />
-            <form className="app-search d-none d-md-block ms-2">
-              <div className="position-relative">
-                <input type="search" className="form-control" placeholder="Search..." autoComplete="off" />
-                <IconifyIcon icon="solar:magnifer-linear" className="search-widget-icon" />
-              </div>
-            </form>
+            <CommandPalette />
           </div>
         </div>
       </div>

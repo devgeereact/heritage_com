@@ -40,7 +40,10 @@ const InboxPage = () => {
     try {
       const msg = await heritApi.inbox.get(uid);
       setActive(msg);
-      setMessages((ms) => ms.map((m) => (m.uid === uid ? { ...m, seen: true } : m)));
+      // Reading is a GET and changes nothing; marking read is its own POST (K-28).
+      heritApi.inbox.setSeen(uid, true)
+        .then(() => setMessages((ms) => ms.map((m) => (m.uid === uid ? { ...m, seen: true } : m))))
+        .catch(() => {});
     } catch (e) { setActive({ error: e.message || 'Could not open message.' }); }
     finally { setLoadingMsg(false); }
   };

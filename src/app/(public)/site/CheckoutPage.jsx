@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import { formatNgn } from './products';
 import { useCart } from './cart';
 import heritApi from '@/helpers/heritApi';
+import { readAttribution } from './attribution';
 
 const DELIVERY = [
   { key: 'lagos', label: 'Lagos delivery', note: 'Free over ₦25,000, else ₦2,500' },
   { key: 'nigeria', label: 'Rest of Nigeria', note: '₦4,500, tracked courier' },
-  { key: 'pickup', label: 'Pickup — Ajuwon Market', note: 'Collect from the studio, free' },
+  { key: 'pickup', label: 'Pickup', note: 'Collect from the studio, free' },
 ];
 const PAYMENT = [
   { key: 'card', label: 'Pay by card', icon: 'solar:card-bold', note: 'Secure card payment' },
@@ -49,7 +50,7 @@ const CheckoutPage = () => {
 
   // Prefill a referral code captured from a share link (?ref=) by SiteLayout.
   useEffect(() => {
-    try { const r = localStorage.getItem('herit_ref'); if (r) setReferral(r); } catch { /* ignore */ }
+    const r = readAttribution('herit_ref'); if (r) setReferral(r);
   }, []);
 
   // Abandoned-cart capture: once a usable phone is entered, save the basket so
@@ -78,16 +79,15 @@ const CheckoutPage = () => {
   const creditApplied = useCredit ? Math.min(creditBalance, afterGift) : 0;
   const total = Math.max(0, afterGift - creditApplied);
 
-  // Look up store credit for the entered phone (privacy: returns a number only).
+  // Store credit belongs to the signed-in customer only (verified portal session);
+  // a typed phone number never reveals or spends anyone's balance.
   useEffect(() => {
-    const digits = (form.phone || '').replace(/\D/g, '');
-    if (digits.length < 10) { setCreditBalance(0); setUseCredit(false); return; }
     let live = true;
-    heritApi.store.creditBalance(form.phone)
+    heritApi.store.creditBalance()
       .then((r) => { if (live) setCreditBalance(Number(r.balance || 0)); })
       .catch(() => { if (live) setCreditBalance(0); });
     return () => { live = false; };
-  }, [form.phone]);
+  }, []);
 
   const applyGift = async () => {
     const code = gift.trim();
@@ -120,7 +120,7 @@ const CheckoutPage = () => {
     let live = true;
     heritApi.store.payVerify(verifyRef)
       .then((r) => { if (live) { setDone({ code: r.code, status: r.status, paid: r.ok }); clear(); } })
-      .catch(() => { if (live) setError('We could not confirm that payment. If you were charged, contact us with your order code.'); })
+      .catch(() => { if (live) setError('We could not confirm that payment. If you were charged, contact us with your order reference.'); })
       .finally(() => { if (live) setVerifying(false); });
     return () => { live = false; };
   }, [verifyRef]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -138,8 +138,8 @@ const CheckoutPage = () => {
         gift_card: giftCard ? giftCard.code : '',
         use_credit: useCredit ? -1 : 0,
         referral_code: referral.trim(),
-        source: (() => { try { return localStorage.getItem('herit_src') || ''; } catch { return ''; } })(),
-        utm_campaign: (() => { try { return localStorage.getItem('herit_camp') || ''; } catch { return ''; } })(),
+        source: readAttribution('herit_src'),
+        utm_campaign: readAttribution('herit_camp'),
         items: items.map((l) => ({ slug: l.slug, size: l.size, qty: l.qty })),
       });
       // Card → try the gateway. If configured, hand off to its hosted page.
@@ -151,11 +151,11 @@ const CheckoutPage = () => {
           return;
         }
         // No gateway live yet — fall back to transfer instructions, order still placed.
-        setDone({ code: res.code, total: res.total, payment_method: 'transfer', fallback: true });
+        setDone({ code: res.code, ref: res.public_ref, total: res.total, payment_method: 'transfer', fallback: true });
         clear();
         return;
       }
-      setDone({ code: res.code, total: res.total, payment_method: payment });
+      setDone({ code: res.code, ref: res.public_ref, total: res.total, payment_method: payment });
       clear();
     } catch (e) {
       const msg = /failed to fetch|networkerror/i.test(e.message || '')
@@ -170,7 +170,7 @@ const CheckoutPage = () => {
   // ---- Confirmation / verify states ----
   if (verifying) {
     return (
-      <SiteLayout title="Confirming payment">
+      <SiteLayout title="Confirming payment" noindex>
         <section className="hc-section hc-text-center"><div className="hc-container">
           <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:refresh-bold" /></span>
           <h1 className="hc-h2">Confirming your payment…</h1>
@@ -183,15 +183,18 @@ const CheckoutPage = () => {
   if (done) {
     const paidNow = done.status === 'paid';
     return (
-      <SiteLayout title="Order received">
+      <SiteLayout title="Order received" noindex>
         <section className="hc-section"><div className="hc-container" style={{ maxWidth: '40rem' }}>
           <div className="hc-card hc-text-center" style={{ padding: '3rem 2rem' }}>
-            <span className="hc-card-ico" style={{ margin: '0 auto 1rem', background: 'var(--primary)', color: '#fff' }}>
+            <span className="hc-card-ico" style={{ margin: '0 auto 1rem', background: 'var(--hc-accent)', color: 'var(--hc-on-accent)' }}>
               <IconifyIcon icon="solar:check-circle-bold" />
             </span>
             <h1 className="hc-h2">Thank you{form.customer ? `, ${form.customer.split(' ')[0]}` : ''}.</h1>
             <p className="hc-lead" style={{ margin: '0.75rem auto 0' }}>
-              Your order <strong style={{ color: 'var(--primary)' }}>{done.code}</strong> is in.
+              Your order is in. Order reference <strong style={{ color: 'var(--primary)' }}>{done.ref || done.code}</strong>
+            </p>
+            <p style={{ color: 'var(--muted-foreground)', margin: '0.5rem auto 0' }}>
+              Keep this reference: you need it with your phone number to track your order.
             </p>
 
             <div className="hc-quote" style={{ textAlign: 'left', marginTop: '1.5rem', padding: '1.25rem' }}>
@@ -203,7 +206,7 @@ const CheckoutPage = () => {
                 <>
                   <p style={{ margin: 0 }}>{done.fallback ? 'Card payments are being set up — ' : ''}Pay <strong>{formatNgn(done.total)}</strong> by bank transfer to confirm:</p>
                   <p style={{ margin: '0.75rem 0 0', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', lineHeight: 1.7 }}>
-                    Herit Clothing<br />Send proof to <strong>hello@heritclothing.com</strong> or WhatsApp, quoting <strong>{done.code}</strong>. We&apos;ll share account details on contact.
+                    Herit Clothing<br />Send proof to <strong>hello@heritclothing.com</strong> or WhatsApp, quoting <strong>{done.ref || done.code}</strong>. We&apos;ll share account details on contact.
                   </p>
                 </>
               )}
@@ -221,7 +224,7 @@ const CheckoutPage = () => {
   // ---- Empty bag guard ----
   if (items.length === 0) {
     return (
-      <SiteLayout title="Checkout">
+      <SiteLayout title="Checkout" noindex>
         <section className="hc-section hc-text-center"><div className="hc-container">
           <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:bag-4-bold" /></span>
           <h1 className="hc-h2">Your bag is empty</h1>
@@ -234,7 +237,7 @@ const CheckoutPage = () => {
 
   // ---- Checkout form ----
   return (
-    <SiteLayout title="Checkout">
+    <SiteLayout title="Checkout" noindex>
       <section className="hc-pagehead"><div className="hc-container">
         <div className="hc-crumb"><Link to="/cart">Bag</Link> / <span>Checkout</span></div>
         <h1 className="hc-h1">Checkout.</h1>
@@ -308,14 +311,14 @@ const CheckoutPage = () => {
             {!applied ? (
               <div style={{ marginBottom: '0.8rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Promo code" value={coupon}
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Promo code" placeholder="Promo code" value={coupon}
                     onChange={(e) => setCoupon(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyCoupon} disabled={couponBusy || !coupon.trim()} style={{ whiteSpace: 'nowrap' }}>
                     {couponBusy ? '…' : 'Apply'}
                   </button>
                 </div>
-                {couponErr && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{couponErr}</p>}
+                {couponErr && <p style={{ color: 'var(--hc-danger)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{couponErr}</p>}
               </div>
             ) : (
               <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', padding: '0.5rem 0.7rem', background: 'var(--secondary)', borderRadius: 8 }}>
@@ -328,12 +331,12 @@ const CheckoutPage = () => {
             {!giftCard ? (
               <div style={{ marginBottom: '0.8rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Gift card code" value={gift}
+                  <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Gift card code" placeholder="Gift card code" value={gift}
                     onChange={(e) => setGift(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyGift(); } }} />
                   <button type="button" className="hc-btn hc-btn--ghost" onClick={applyGift} disabled={!gift.trim()} style={{ whiteSpace: 'nowrap' }}>Apply</button>
                 </div>
-                {giftErr && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{giftErr}</p>}
+                {giftErr && <p style={{ color: 'var(--hc-danger)', fontSize: '0.8rem', margin: '0.4rem 0 0' }}>{giftErr}</p>}
               </div>
             ) : (
               <div className="hc-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', padding: '0.5rem 0.7rem', background: 'var(--secondary)', borderRadius: 8 }}>
@@ -352,18 +355,18 @@ const CheckoutPage = () => {
 
             {/* Referral — first-time buyers only; both you and your friend earn credit */}
             <div style={{ marginBottom: '0.8rem' }}>
-              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
+              <input style={{ ...field, marginTop: 0, textTransform: 'uppercase' }} aria-label="Referral code (optional)" placeholder="Referral code (optional)" value={referral} onChange={(e) => setReferral(e.target.value)} />
               {referral.trim() && <p style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', margin: '0.3rem 0 0' }}>New here? You and your friend each earn store credit once this order is paid.</p>}
             </div>
 
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Subtotal</span><span>{formatNgn(subtotal)}</span></div>
-            {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}
+            {discount > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: 'var(--hc-success)' }}><span>Discount ({applied.code})</span><span>−{formatNgn(discount)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem' }}><span style={{ color: 'var(--muted-foreground)' }}>Delivery</span><span>{shipping === 0 ? 'Free' : formatNgn(shipping)}</span></div>
-            {giftApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Gift card</span><span>−{formatNgn(giftApplied)}</span></div>}
-            {creditApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: '#16794a' }}><span>Store credit</span><span>−{formatNgn(creditApplied)}</span></div>}
+            {giftApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: 'var(--hc-success)' }}><span>Gift card</span><span>−{formatNgn(giftApplied)}</span></div>}
+            {creditApplied > 0 && <div className="hc-flex" style={{ justifyContent: 'space-between', fontSize: '0.9rem', marginTop: '0.4rem', color: 'var(--hc-success)' }}><span>Store credit</span><span>−{formatNgn(creditApplied)}</span></div>}
             <div className="hc-flex" style={{ justifyContent: 'space-between', marginTop: '0.8rem', fontWeight: 700, fontSize: '1.1rem' }}><span>Total</span><span style={{ color: 'var(--primary)' }}>{formatNgn(total)}</span></div>
 
-            {error && <p style={{ color: 'var(--destructive, #dc2626)', fontSize: '0.85rem', marginTop: '1rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--hc-danger)', fontSize: '0.85rem', marginTop: '1rem' }}>{error}</p>}
 
             <button onClick={placeOrder} disabled={busy} className="hc-btn hc-btn--primary hc-mt-3" style={{ width: '100%', justifyContent: 'center', cursor: busy ? 'wait' : 'pointer', border: 'none', opacity: busy ? 0.7 : 1 }}>
               <IconifyIcon icon={busy ? 'solar:refresh-bold' : 'solar:lock-keyhole-minimalistic-bold'} />

@@ -1,0 +1,211 @@
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useLenis } from 'lenis/react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useCart } from './cart'
+import { useShopEnabled } from './storeConfig'
+import { useSiteNav } from './siteData'
+import useActions from './ui/useActions'
+import Button from './ui/Button'
+import Icon from './ui/Icon'
+import logoLight from '@/assets/images/logo-light.svg'
+import logoDark from '@/assets/images/logo-dark.svg'
+
+gsap.registerPlugin(ScrollTrigger)
+
+// Each link shows only while its page has published content (site.php config
+// `nav` flags); the shop links only while the retail shop is switched on.
+const NAV = [
+  { to: '/services', label: 'Services', flag: 'services' },
+  { to: '/company-orders', label: 'Companies', flag: 'company' },
+  { to: '/work', label: 'Our work', flag: 'work' },
+  { to: '/how-it-works', label: 'How it works', flag: 'how_it_works' },
+  { to: '/about', label: 'About', flag: 'about' },
+  { to: '/shop', label: 'Shop', shop: true },
+  { to: '/contact', label: 'Contact' },
+]
+
+// Numbers on the header tape: one every 10cm (100px), wide enough for any screen.
+const TAPE_CM = Array.from({ length: 40 }, (_, i) => (i + 1) * 10)
+
+const isCurrent = (pathname, to) => (to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`))
+
+/**
+ * Ink header (76px). On the home page it floats transparent over the
+ * full-screen hero and turns solid with a blur once the page scrolls; on
+ * every other page it is sticky and solid. Below 1024px the links move into
+ * a sheet with a focus trap, Escape to close, body scroll lock, and Book and
+ * Track pinned at the bottom.
+ */
+const SiteHeader = () => {
+  const { pathname } = useLocation()
+  const shopOn = useShopEnabled()
+  const nav = useSiteNav()
+  const { primary: action } = useActions()
+  const { count } = useCart()
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const toggleRef = useRef(null)
+  const sheetRef = useRef(null)
+  const tapeRef = useRef(null)
+  // Smooth scrolling (D-027) is null under reduced motion.
+  const lenis = useLenis()
+
+  const links = NAV.filter((n) => (n.shop ? shopOn : !n.flag || nav[n.flag] === true))
+  const primary = { to: action.to, label: action.short }
+
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Tape measure under the header: its gold fill follows how far down the page
+  // you are (D-031). Decorative; it follows the scroll and never moves on its own.
+  useEffect(() => {
+    const fill = tapeRef.current
+    if (!fill) return undefined
+    const st = ScrollTrigger.create({
+      start: 0,
+      end: 'max',
+      onUpdate: (s) => {
+        fill.style.transform = `scaleX(${s.progress.toFixed(4)})`
+      },
+    })
+    return () => st.kill()
+  }, [pathname])
+
+  // Sheet: lock page scroll, trap focus, close on Escape, return focus.
+  useEffect(() => {
+    if (!open) return undefined
+    const toggle = toggleRef.current
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    lenis?.stop()
+    const focusables = () => [toggle, ...(sheetRef.current?.querySelectorAll('a[href], button:not([disabled])') || [])].filter(Boolean)
+    focusables()[1]?.focus()
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        toggle?.focus()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const list = focusables()
+      const first = list[0]
+      const last = list[list.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      lenis?.start()
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open, lenis])
+
+  return (
+    <header className={['hc-header', pathname === '/' && 'hc-header--overlay', (scrolled || open) && 'is-scrolled'].filter(Boolean).join(' ')}>
+      <div className="hc-container hc-header-inner">
+        <Link to="/" className="hc-brand" aria-label="Herit Clothing, home">
+          {/* Light logo over the home photograph, dark logo on paper (D-030). */}
+          <img className="hc-brand-light" src={logoLight} alt="" width="52" height="36" />
+          <img className="hc-brand-dark" src={logoDark} alt="" width="52" height="36" />
+        </Link>
+
+        <nav className="hc-nav" aria-label="Main">
+          <ul>
+            {links.map((n) => (
+              <li key={n.to}>
+                <Link to={n.to} className="hc-nav-link" aria-current={isCurrent(pathname, n.to) ? 'page' : undefined}>
+                  {n.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="hc-header-end">
+          <Link to="/track" className="hc-nav-link hc-header-quiet" aria-current={isCurrent(pathname, '/track') ? 'page' : undefined}>
+            Track your job
+          </Link>
+          {shopOn && (
+            <Link to="/cart" className="hc-header-bag" aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
+              <Icon name="bag" />
+              {count > 0 && (
+                <span className="hc-header-bag-count" aria-hidden="true">
+                  {count}
+                </span>
+              )}
+            </Link>
+          )}
+          <Button to={primary.to} className="hc-header-cta">
+            {primary.label}
+          </Button>
+          <button
+            ref={toggleRef}
+            type="button"
+            className="hc-menu-toggle"
+            aria-expanded={open}
+            aria-controls="hc-mobile-nav"
+            onClick={() => setOpen((v) => !v)}>
+            <Icon name={open ? 'close' : 'menu'} size="1.4em" />
+            <span>{open ? 'Close' : 'Menu'}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="hc-tape" aria-hidden="true">
+        {TAPE_CM.map((cm) => (
+          <span key={cm} className="hc-tape-cm" style={{ left: `${cm * 10}px` }}>
+            {cm}
+          </span>
+        ))}
+        <span className="hc-tape-fill" ref={tapeRef} />
+      </div>
+
+      {open && (
+        <div id="hc-mobile-nav" ref={sheetRef} className="hc-sheet">
+          <nav aria-label="Main">
+            <ul>
+              <li>
+                <Link to="/" aria-current={pathname === '/' ? 'page' : undefined}>
+                  Home <Icon name="chevron-right" />
+                </Link>
+              </li>
+              {links.map((n) => (
+                <li key={n.to}>
+                  <Link to={n.to} aria-current={isCurrent(pathname, n.to) ? 'page' : undefined}>
+                    {n.label} <Icon name="chevron-right" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="hc-sheet-actions">
+            <Button to={primary.to} block>
+              {primary.label}
+            </Button>
+            <Button to="/track" variant="secondary" block>
+              Track your job
+            </Button>
+          </div>
+        </div>
+      )}
+    </header>
+  )
+}
+
+export default SiteHeader

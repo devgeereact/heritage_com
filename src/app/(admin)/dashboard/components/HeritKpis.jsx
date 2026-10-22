@@ -31,7 +31,7 @@ const HeritKpis = ({ stats }) => {
     <Row className="g-3">
       <Kpi icon="solar:scissors-square-bold-duotone" tone="primary"
         label="Active tailoring jobs" value={t.active}
-        sub={t.overdue ? `${t.overdue} overdue` : `${t.due_week} due this week`} to="/tailoring" />
+        sub={t.overdue ? `${t.overdue} overdue` : `${t.due_week} due this week`} to="/jobs" />
       <Kpi icon="solar:t-shirt-2-bold-duotone" tone="success"
         label="Products live" value={c.active}
         sub={`${c.stock_units} units in stock`} to="/catalogue" />

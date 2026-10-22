@@ -1,11 +1,11 @@
 project:
   name: "heritage_com"
   type: "application"
-  lifecycle: "maintenance"
+  lifecycle: "recovery"
   risk: "production"
 
 gee_os:
-  minimum_version: "0.9.0"
+  minimum_version: "0.10.1"
   primary_mode: "EXISTING-APPLICATION"
   workflows:
     - "CHANGE-SAFETY"
@@ -16,18 +16,39 @@ gee_os:
     - "RELEASE-GATE"
 
 sources_of_truth:
-  project_memory: "CLAUDE.md, pending modularisation"
-  product_overview: "README.md"
+  project_memory: "CLAUDE.md (short entry point)"
+  documentation_profile: "GEE OS Standard application: flat docs/*.md plus root qa/ (D-020); index docs/README.md"
+  product_and_context: "docs/PRODUCT-SPEC.md (README.md is the front page)"
+  business_rules_and_journeys: "docs/BUSINESS-RULES.md, docs/USER-JOURNEYS.md"
+  content_and_social: "docs/CONTENT.md, docs/SOCIAL.md"
   implementation: "source tree and package.json"
-  detailed_documentation: "docs/"
+  architecture: "docs/ARCHITECTURE.md (integrations, PWA, offline and updates included)"
+  data_and_api: "docs/DATA-MODEL.md, docs/API-SPEC.md"
+  design: "docs/DESIGN-SYSTEM.md, docs/UX-SPEC.md, docs/ACCESSIBILITY.md"
+  security: "docs/SECURITY.md (auth and permissions), docs/DATA-PRIVACY.md"
+  testing: "docs/TEST-STRATEGY.md"
+  operations: "docs/DEPLOYMENT.md (backup and monitoring), docs/LOCAL-STAGING.md, docs/NOTIFICATIONS-SPEC.md"
+  decisions: "docs/DECISIONS.md"
+  roadmap_and_status: "docs/ROADMAP.md"
+  release_decision: "qa/LAUNCH-CHECKLIST.md"
+  plan_of_record: "docs/Plans 2026/ (approved 10 October 2026, read-only until the project ends; docs/ROADMAP.md and docs/DECISIONS.md win where they differ)"
+  evidence: "qa/"
+  known_issues: "KNOWN-ISSUES.md"
+  changelog: "CHANGELOG.md"
+  docs_sync_rule: ".claude/rules/docs-sync.md (checked by node scripts/check-docs.mjs in CI)"
   current_task: ".agent/CURRENT-TASK.md"
   integration_authority: ".agent/MCP-PROFILE.yml"
 
 exclusions:
-  - "feature work during the instruction-layer migration"
-  - "deletion or renaming during the first adoption wave"
-  - "remote fetch, pull, push, merge or rebase"
+  - "push, merge or rebase of main (pushing main deploys)"
   - "deployment, production mutation or external messages"
   - "secret copying or credential discovery"
+  - "schema migrations without an approved task contract"
+
+machines:
+  primary: mac-primary        # owns env files and secrets
+  secondary: ubuntu-build     # builds and tests published branches
+  code_transport: github      # small focused commits, pushed per verified batch
+  env_files: primary-only     # never committed, never copied between computers
 
 mcp_profile: ".agent/MCP-PROFILE.yml"

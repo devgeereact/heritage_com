@@ -10,7 +10,7 @@ import HoverMenuToggle from './components/HoverMenuToggle';
 const VerticalNavigationBarPage = () => {
   const { user } = useAuthContext();
   const menuItems = filterMenuByRole(getMenuItems(), user?.role);
-  return <div className="main-nav">
+  return <div className="main-nav hc-ink">
       <LogoBox />
       <HoverMenuToggle />
       <SimplebarReactClient className="scrollbar" data-simplebar>

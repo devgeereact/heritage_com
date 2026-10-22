@@ -1,137 +1,82 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardBody, Table, Button, Spinner, Alert, Badge } from 'react-bootstrap';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import { Button, Card, Form, Spinner } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import heritApi from '@/helpers/heritApi';
-import AiPanel from '@/components/AiPanel';
+import { useAuthContext } from '@/context/useAuthContext';
+import { initials, naira } from '@/helpers/format';
+import LoadError from '@/components/herit/LoadError';
+import PageHeader from '@/components/herit/PageHeader';
+import StatusChip from '@/components/herit/StatusChip';
 import NewCustomerModal from './components/NewCustomerModal';
 
-const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
+const OWNER = ['super_admin', 'admin', 'manager'];
 
-const CRM_AI = {
-  title: 'AI customer intelligence',
-  subtitle: 'Lifetime value, churn risk, segments and styling angles from your customer base.',
-  task: 'crm_ai',
-  cta: 'Analyse customers',
-  sections: [
-    { key: 'LTV', icon: 'solar:crown-bold-duotone', tone: 'primary', title: 'Lifetime value — who to look after' },
-    { key: 'CHURN', icon: 'solar:user-cross-bold-duotone', tone: 'danger', title: 'Churn risk — going quiet' },
-    { key: 'SEGMENT', icon: 'solar:users-group-two-rounded-bold-duotone', tone: 'info', title: 'Segments to target' },
-    { key: 'STYLING', icon: 'solar:hanger-2-bold-duotone', tone: 'success', title: 'Styling & outreach angle' },
-  ],
-  load: () => heritApi.customers.list(),
-  buildPrompt: (list) => {
-    const rows = (Array.isArray(list) ? list : []).slice(0, 40)
-      .map((c) => `${c.name}: ${c.order_count || 0} orders, ${c.active_orders || 0} active, ₦${Math.round(c.ordered_value || 0).toLocaleString()} spent`).join('; ');
-    return `Herit Clothing customers (Lagos heritage-fashion brand, bespoke + ready-to-wear). ${Array.isArray(list) ? list.length : 0} customers. Data: ${rows || 'none'}.
-
-Act as the CRM analyst. Name real customers from the data. Return EXACTLY these four sections, each starting with the tag on its own line then 1–2 sentences:
-[LTV] the most valuable customers worth protecting, by spend/orders
-[CHURN] customers who look like they are going quiet and should be re-engaged
-[SEGMENT] a useful segment to target next (e.g. repeat owambe buyers) and why
-[STYLING] a concrete outreach or styling idea to drive the next order`;
-  },
-};
-
-const CrmPage = () => {
+/** Clients: one record per person or company. Search by name, phone, client ID, company or email. */
+const ClientsPage = () => {
+  const { user } = useAuthContext();
+  const isOwner = OWNER.includes(user?.role);
+  const [q, setQ] = useState('');
   const [rows, setRows] = useState([]);
-  const [state, setState] = useState('loading'); // loading | ready | offline
+  const [state, setState] = useState('loading');
+  const [error, setError] = useState(null);
   const [showNew, setShowNew] = useState(false);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     try {
-      const list = await heritApi.customers.list();
+      const list = await heritApi.customers.list(q.trim());
       setRows(Array.isArray(list) ? list : []);
       setState('ready');
-    } catch {
-      setState('offline');
+    } catch (e) {
+      setError(e); setState('error');
     }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  }, [q]);
+  useEffect(() => { const t = setTimeout(load, q ? 250 : 0); return () => clearTimeout(t); }, [load, q]);
 
   return (
-    <>
-      <PageTitle title="Customers" />
+    <div className="hd">
+      <PageTitle title="Clients" />
+      <PageHeader
+        title="Clients"
+        subtitle={state === 'ready' ? `${rows.length} client${rows.length === 1 ? '' : 's'}${q ? ' found' : ''}` : 'People and companies you make for'}
+        actions={<>
+          {['super_admin', 'admin', 'manager'].includes(user?.role) && <Link className="btn btn-outline-secondary" to="/clients/companies"><IconifyIcon icon="solar:buildings-2-bold" className="me-1" aria-hidden="true" />Companies</Link>}
+          <Button variant="primary" onClick={() => setShowNew(true)}><IconifyIcon icon="solar:user-plus-bold" className="me-1" aria-hidden="true" />Add client</Button>
+        </>}
+      />
+      <Form.Group controlId="client-search" className="mb-3" style={{ maxWidth: 480 }}>
+        <Form.Label>Search</Form.Label>
+        <Form.Control type="search" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+        <Form.Text>Name, phone, client ID (CL-…), company or email.</Form.Text>
+      </Form.Group>
 
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-          <h4 className="mb-1">Customers</h4>
-          <p className="text-muted mb-0">
-            {state === 'ready' ? `${rows.length} customer${rows.length === 1 ? '' : 's'}` : 'Profiles, measurements and order history'}
-          </p>
-        </div>
-        <Button variant="primary" onClick={() => setShowNew(true)}>
-          <IconifyIcon icon="solar:add-circle-bold" className="me-1" /> New customer
-        </Button>
-      </div>
-
-      {state === 'loading' && <div className="text-center py-5"><Spinner /></div>}
-
-      {state === 'offline' && (
-        <Alert variant="warning">
-          <strong>Customers offline.</strong> Upload <code>php-api/customers.php</code> + <code>config.php</code>
-          and import the <code>customers</code> table from <code>schema.sql</code>, then refresh.
-        </Alert>
-      )}
-
-      {state === 'ready' && rows.length > 0 && <AiPanel {...CRM_AI} />}
-
+      {state === 'loading' && <div className="text-center py-5"><Spinner role="status" /></div>}
+      {state === 'error' && <LoadError what="clients" error={error} onRetry={load} />}
       {state === 'ready' && (
-        <Card>
-          <CardBody className="p-0">
-            <Table responsive hover className="mb-0 align-middle">
-              <thead className="table-light">
-                <tr>
-                  <th>Name</th><th>Contact</th>
-                  <th className="text-center">Orders</th><th className="text-center">Active</th>
-                  <th className="text-end">Lifetime value</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 && (
-                  <tr><td colSpan={6} className="text-center text-muted py-4">No customers yet. Add your first one.</td></tr>
-                )}
-                {rows.map((c) => (
-                  <tr key={c.id}>
-                    <td>
-                      <Link to={`/crm/${c.id}`} className="fw-semibold text-decoration-none">{c.name}</Link>
-                      {(c.tags || c.segment) && (
-                        <div className="mt-1 d-flex flex-wrap gap-1">
-                          {c.segment && <Badge bg="primary" className="bg-opacity-75 fw-normal">{c.segment}</Badge>}
-                          {String(c.tags || '').split(',').map((t) => t.trim()).filter(Boolean).map((t) => (
-                            <Badge key={t} bg="light" text="dark" className="border fw-normal">{t}</Badge>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="small">
-                      {c.phone && <div><IconifyIcon icon="solar:phone-bold" /> {c.phone}</div>}
-                      {c.email && <div><IconifyIcon icon="solar:letter-bold" /> {c.email}</div>}
-                      {!c.phone && !c.email && '—'}
-                    </td>
-                    <td className="text-center">{c.order_count}</td>
-                    <td className="text-center">
-                      {Number(c.active_orders) > 0
-                        ? <Badge bg="warning">{c.active_orders}</Badge>
-                        : <span className="text-muted">0</span>}
-                    </td>
-                    <td className="text-end">{naira(c.ordered_value)}</td>
-                    <td className="text-end">
-                      <Link to={`/crm/${c.id}`} className="btn btn-sm btn-light">Open</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </CardBody>
+        <Card className="hd-card">
+          {rows.length === 0 ? (
+            <Card.Body className="text-muted">
+              {q ? `No client matches “${q}”. Check the spelling or add a new client.` : 'No clients yet. Add your first client.'}
+            </Card.Body>
+          ) : rows.map((c) => (
+            <Link key={c.id} to={`/clients/${c.id}`} className="hd-row">
+              <span className="hd-avatar" aria-hidden="true">{initials(c.name)}</span>
+              <span className="hd-row-main">
+                <span className="hd-row-title d-block text-truncate">{c.name}{c.company_name ? ` · ${c.company_name}` : ''}</span>
+                <span className="hd-row-sub d-block text-truncate">{[c.client_ref, c.phone, c.email].filter(Boolean).join(' · ')}</span>
+              </span>
+              {c.active_jobs > 0 && <StatusChip tone="warn" icon="solar:scissors-bold">{c.active_jobs} active</StatusChip>}
+              {isOwner && Number(c.balance_due) > 0 && <span className="money small">{naira(c.balance_due)} due</span>}
+              <IconifyIcon icon="solar:alt-arrow-right-linear" aria-hidden="true" className="text-muted" />
+            </Link>
+          ))}
         </Card>
       )}
-
-      <NewCustomerModal show={showNew} onHide={() => setShowNew(false)} onCreated={load} />
-    </>
+      <NewCustomerModal show={showNew} onHide={() => setShowNew(false)} onCreated={(cid) => navigate(`/clients/${cid}`)} />
+    </div>
   );
 };
 
-export default CrmPage;
+export default ClientsPage;

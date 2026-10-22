@@ -31,6 +31,12 @@ define('DB_PASS', 'CHANGE_ME');                        // the DB user's password
 // ---- Auth --------------------------------------------------------------------
 define('TOKEN_SECRET',   'CHANGE_ME_long_random_string'); // reserved for signed tokens
 define('TOKEN_TTL_DAYS', 14);                             // session lifetime in days
+// Staff session cookie (A15). true: sign-in puts the staff token in an HttpOnly
+// cookie (__Host-herit_staff) that page scripts cannot read, and every write must send
+// the X-Herit-CSRF header. false or unset: the token is returned in the JSON
+// body and kept by the app, as before. Switching it back off is the rollback;
+// staff signed in under the cookie then sign out and in again. See DEPLOYMENT.md.
+define('STAFF_COOKIE_AUTH', false);
 // Login throttling (auth.php). Failed attempts are counted in audit_log over a
 // sliding window and answered with HTTP 429 once a limit is reached; 0 switches
 // a limit off. The values below are the built-in defaults, so these lines are optional.
@@ -39,6 +45,11 @@ define('LOGIN_MAX_PER_IP',      10);    // email-login failures per IP
 define('LOGIN_MAX_PER_ACCOUNT', 5);     // email-login failures per email address
 define('PIN_MAX_PER_IP',        5);     // PIN failures per IP (the stall device)
 define('PIN_MAX_GLOBAL',        20);    // PIN failures from every source combined
+// Customer portal login (account.php) and public order tracking (store.php)
+// use the same window and audit_log counting. Also optional; these are the defaults.
+define('CUSTOMER_LOGIN_MAX_PER_IP',    10);  // customer sign-in failures per IP
+define('CUSTOMER_LOGIN_MAX_PER_PHONE', 5);   // customer sign-in failures per phone number
+define('TRACK_MAX_PER_IP',             20);  // failed order-tracking lookups per IP
 
 // ---- OpenRouter (server-side AI only — key never reaches the browser) --------
 define('OPENROUTER_KEY', '');                          // sk-or-v1-...  (set on server)
@@ -120,6 +131,7 @@ $IMAP_PASS = 'CHANGE_ME';
 define('WHATSAPP_TOKEN',        '');       // permanent access token (server only)
 define('WHATSAPP_PHONE_ID',     '');       // phone number ID from the Meta dashboard
 define('WHATSAPP_VERIFY_TOKEN', '');       // any random string; must match the webhook config
+define('WA_APP_SECRET',         '');       // Meta App secret: when set, webhook POSTs must carry a valid X-Hub-Signature-256 (server only)
 
 // ---- Loyalty / store credit -------------------------------------------------
 // Read by store.php pay_verify. Fraction of the goods value awarded back as
@@ -133,9 +145,15 @@ define('LOYALTY_RATE', 0);
 define('REFERRAL_REWARD', 0);
 
 // ---- CORS --------------------------------------------------------------------
-// Production is same-origin. In dev, _lib.php reflects ANY localhost port, so
-// this is only a fallback — no need to chase Vite's auto-port here.
+// Production is same-origin, so CORS_ORIGIN is the only cross-origin caller
+// allowed by default.
 define('CORS_ORIGIN', 'https://heritclothing.com');
+// Local `npm run dev` (http://localhost:<any port>) calls this LIVE API, because
+// there is no staging API yet. Set this to true on the server only while you
+// need local development, then set it back to false (or delete the line).
+// While it is true, any page running on a visitor's own machine can call the API
+// cross-origin, so do not leave it on. Unset or false = localhost is refused.
+define('ALLOW_LOCALHOST_CORS', false);
 
 // ---- Connect -----------------------------------------------------------------
 // PHP 8.1+ makes mysqli THROW on a failed connection by default, which becomes

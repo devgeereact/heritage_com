@@ -6,11 +6,15 @@
 // Prefix for :root CSS variables
 $prefix:                        'bs-';
 
+// HeritOS tokens: the single source of colour values (A23). Values below map
+// onto $hc-light; see src/assets/tokens/_tokens-map.scss and docs/DESIGN-SYSTEM.md.
+@import "../../tokens/tokens-map";
 
-// Font Family — Herit premium brand: Inter (UI/body), Source Serif 4 (serif display)
-$font-family-primary:                             "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-secondary:                           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-serif:                               "Source Serif 4", Georgia, serif;
+
+// Font family (D-030): Hanken Grotesk (UI and body), Newsreader (serif display)
+$font-family-primary:                             "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-secondary:                           "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-serif:                               "Newsreader", Georgia, serif;
 
 
 //
@@ -20,44 +24,44 @@ $font-family-serif:                               "Source Serif 4", Georgia, ser
 // scss-docs-start gray-color-variables
 // Warm neutral scale — premium heritage foundation (bone surface, warm ink)
 $white:    #ffffff;
-$gray-100: #FFFBEB;  // warm off-white — primary surface
-$gray-200: #E9E5DC;
-$gray-300: #e8e3db;  // warm hairline border
-$gray-400: #c4bcb0;
-$gray-500: #8a8178;
-$gray-600: #6b655e;  // muted text
-$gray-700: #443f3a;
-$gray-800: #2a2622;
-$gray-900: #1a1714;  // warm near-black ink
+$gray-100: map-get($hc-light, 'surface-alt');  // #F4F4F4 light ash
+$gray-200: #E8E8E9;
+$gray-300: map-get($hc-light, 'divider');      // pale silver divider
+$gray-400: #B4B5B7;
+$gray-500: map-get($hc-light, 'control-border'); // silver fog, non-text only
+$gray-600: map-get($hc-light, 'text-muted');  // pewter, muted text
+$gray-700: map-get($hc-light, 'text-body');   // graphite, body text
+$gray-800: #24272D;
+$gray-900: map-get($hc-light, 'text');        // carbon ink
 $black:    #000000;
 // scss-docs-end gray-color-variables
 
 
 // scss-docs-start color-variables
 $blue:    #1c84ee;
-$amber:  #262626;  // Herit Clothing brand primary — espresso
+$amber:  map-get($hc-light, 'accent');  // Herit amber, the one accent
 $purple:  #7f56da;
 $pink:    #ff86c8;
-$red:     #ef4444;  // brand template destructive
+$red:     map-get($hc-light, 'danger');
 $orange:  #f59e0b;  // amber (utility "orange" only)
-$maroon:  #262626;  // legacy alias → now primary amber
+$maroon:  map-get($hc-light, 'text');  // legacy alias
 $gold:    #F59E0B;  // premium micro-accent (tags, active states)
 $yellow:  #F59E0B;
-$green:   #22c55e;
+$green:   map-get($hc-light, 'success');
 $teal:    #040505;
 $cyan:    #4ecac2;
 // scss-docs-end color-variables
 
 // scss-docs-start theme-color-variables
-$primary:       $amber;
-$secondary:     $gray-600;
+$primary:       map-get($hc-light, 'accent');   // amber fill, always with ink text
+$secondary:     map-get($hc-light, 'text');
 $blue:          $blue;
 $amber:        $amber;
 $purple:        $purple;
 $pink:          $pink;
 $danger:        $red;
 $orange:        $orange;
-$warning:       $yellow;
+$warning:       map-get($hc-light, 'warning');
 $success:       $green;
 $info:          $cyan;
 $light:         $gray-200;
@@ -115,10 +119,10 @@ $colors: (
 
 // The contrast ratio to reach against white, to determine if color changes from "light" to "dark". Acceptable values for WCAG 2.0 are 3, 4.5 and 7.
 // See https://www.w3.org/TR/WCAG20/#visual-audio-contrast-contrast
-$min-contrast-ratio:   1.5;
+$min-contrast-ratio:   4.5;
 
 // Customize the light and dark text colors for use in our color contrast function.
-$color-contrast-dark:      $gray-900;
+$color-contrast-dark:      map-get($hc-light, 'on-accent');
 $color-contrast-light:     $white;
 
 // fusv-disable
@@ -452,7 +456,7 @@ $position-values: (
 //
 
 $body-bg:                   #ffffff;
-$body-color:                #1a1a1a;
+$body-color:                map-get($hc-light, 'text-body');
 $body-text-align:           null;
 
 // Dark Mode
@@ -471,10 +475,10 @@ $body-emphasis-color:       rgba($body-color, .75);
 //
 // Style anchor elements.
 
-$link-color:                              $gray-500;
-$link-decoration:                         none;
+$link-color:                              map-get($hc-light, 'accent-text');
+$link-decoration:                         underline;
 $link-shade-percentage:                   15%;
-$link-hover-color:                        shade-color($primary, $link-shade-percentage);
+$link-hover-color:                        map-get($hc-light, 'text');
 $link-hover-decoration:                   none;
 
 $stretched-link-pseudo-element:           after;
@@ -563,13 +567,13 @@ $border-widths: (
 );
 
 $border-style:                solid;
-$border-color:                #e7e0d9;
+$border-color:                map-get($hc-light, 'divider');
 $border-color-translucent:    rgba($black, .175);
 // scss-docs-end border-variables
 
 // scss-docs-start border-radius-variables
 // Base radius from brand template: 0.375rem.
-$border-radius:               .375rem;
+$border-radius:               4px;
 $border-radius-sm:            .25rem;
 $border-radius-lg:            .5rem;
 $border-radius-xl:             .75rem;
@@ -587,13 +591,13 @@ $box-shadow-lg:                             0 5px 10px rgba(30, 32, 37, 0.12);
 $box-shadow-inset:                          inset 0 1px 2px rgba($black, .075);
 // scss-docs-end box-shadow-variables
 
-$component-active-color:      $white;
+$component-active-color:      map-get($hc-light, 'on-accent');
 $component-active-bg:         $primary;
 
 // scss-docs-start focus-ring-variables
 $focus-ring-width:      .15rem;
-$focus-ring-opacity:    .25;
-$focus-ring-color:      rgba($primary, $focus-ring-opacity);
+$focus-ring-opacity:    .9;
+$focus-ring-color:      rgba(map-get($hc-light, 'focus'), $focus-ring-opacity);
 $focus-ring-blur:       0;
 $focus-ring-box-shadow: 0 0 $focus-ring-blur $focus-ring-width $focus-ring-color;
 // scss-docs-end focus-ring-variables
@@ -629,7 +633,7 @@ $aspect-ratios: (
 // scss-docs-start font-variables 
 // stylelint-disable value-keyword-case
 $font-family-sans-serif:      $font-family-primary;
-$font-family-monospace:       "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+$font-family-monospace:       ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 // stylelint-enable value-keyword-case
 $font-family-base:            var(--#{$prefix}font-sans-serif);
 $font-family-code:            var(--#{$prefix}font-monospace);
@@ -1373,7 +1377,7 @@ $card-subtitle-color:               null;
 $card-border-width:                 0;
 $card-border-radius:                $border-radius;
 $card-border-color:                 var(--#{$prefix}border-color);
-$card-border-radius:                var(--#{$prefix}border-radius);
+$card-border-radius:                12px;
 $card-box-shadow:                   var(--#{$prefix}box-shadow);
 $card-inner-border-radius:          subtract($card-border-radius, $card-border-width);
 $card-cap-padding-y:                $card-spacer-y * .75;

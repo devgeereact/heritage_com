@@ -16,9 +16,28 @@ export default defineConfig({
   server: {
     port: 5112,
     strictPort: true,
+    // Same-origin route to the local staging API, for trying staff cookie auth
+    // (STAFF_COOKIE_AUTH, A15): set VITE_API_BASE=/api-staging in .env.local.
+    // Unused unless you do; see docs/LOCAL-STAGING.md.
+    proxy: {
+      '/api-staging': {
+        target: process.env.HERITOS_STAGING_API || 'http://127.0.0.1:8088',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-staging/, ''),
+      },
+    },
   },
   preview: {
     port: 5112,
     strictPort: true,
-  }
+  },
+  // Vitest (npm test). Tests live in src/__tests__ and are never imported by the
+  // app, so they stay out of the production bundle. Test files import describe,
+  // it, expect and vi from 'vitest' rather than relying on globals.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/__tests__/setup.js'],
+    include: ['src/__tests__/**/*.test.{js,jsx}'],
+    css: false,
+  },
 });

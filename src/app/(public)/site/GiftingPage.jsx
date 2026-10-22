@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import IconifyIcon from './ui/Icon';
 import SiteLayout from './SiteLayout';
 import SiteContactForm from './SiteContactForm';
 
 const features = [
   { icon: 'solar:notes-bold', t: 'Handwritten note', d: 'Add a personal message at checkout — we write it by hand and tuck it in with the piece.' },
-  { icon: 'solar:gift-bold', t: 'Branded wrap', d: 'Considered, branded packaging that matches the meaning of the gift inside.' },
+  { icon: 'solar:gift-bold', t: 'Branded wrap', d: 'Wrapped for giving, with a card about the cloth.' },
   { icon: 'solar:card-bold', t: 'Herit gift card', d: 'Not sure on size? Send a gift card and let them choose the piece that&apos;s theirs.' },
 ];
 
@@ -47,7 +47,7 @@ const GiftingPage = () => (
         <div className="hc-grid hc-grid--2" style={{ gap: '3rem', alignItems: 'center' }}>
           <div>
             <div className="hc-kicker">How gifting works</div>
-            <h2 className="hc-h2 hc-mt-2" style={{ color: '#fff' }}>Three steps to a meaningful gift.</h2>
+            <h2 className="hc-h2 hc-mt-2" style={{ color: 'var(--hc-text)' }}>Three steps to a meaningful gift.</h2>
             <p className="hc-lead hc-mt-3">
               Whether it&apos;s for a birthday, a wedding, an aso-ebi set or a piece of home for
               someone in the diaspora — we make it easy to give something that lasts.
@@ -58,11 +58,11 @@ const GiftingPage = () => (
           </div>
           <div>
             {steps.map((s) => (
-              <div key={s.n} className="hc-step" style={{ borderColor: '#3a3a3a' }}>
+              <div key={s.n} className="hc-step" style={{ borderColor: 'var(--hc-divider)' }}>
                 <div className="hc-step-n">{s.n}</div>
                 <div>
-                  <h4 style={{ color: '#fff' }}>{s.t}</h4>
-                  <p style={{ color: '#c4c4c4' }}>{s.d}</p>
+                  <h4 style={{ color: 'var(--hc-text)' }}>{s.t}</h4>
+                  <p style={{ color: 'var(--hc-text-body)' }}>{s.d}</p>
                 </div>
               </div>
             ))}

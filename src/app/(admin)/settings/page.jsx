@@ -1,24 +1,23 @@
-import { Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import PageTitle from '@/components/PageTitle';
-import CustomersSettings from './components/CustomersSettings';
-import GeneralSettings from './components/GeneralSettings';
-import LocalizationSettings from './components/LocalizationSettings';
-import SettingsBoxs from './components/SettingsBoxs';
-import StoreSettings from './components/StoreSettings';
+import PageHeader from '@/components/herit/PageHeader';
+import BusinessSettings from './components/BusinessSettings';
+import MeasurementTemplates from './components/MeasurementTemplates';
+import AvailabilitySettings from './components/AvailabilitySettings';
+import PortalSettings from './components/PortalSettings';
+import RetentionSettings from './components/RetentionSettings';
 
-const SettingsPage = () => {
-  return <>
-      <PageTitle title="Settings" />
-      <GeneralSettings />
-      <StoreSettings />
-      <LocalizationSettings />
-      <SettingsBoxs />
-      <CustomersSettings />
-      <div className="text-end d-flex gap-2 justify-content-end">
-        <Button as={Link} to="" variant="light">Cancel</Button>
-        <Button as={Link} to="" variant="primary">Save change</Button>
-      </div>
-    </>;
-};
+/** Settings (owner): business details, quote defaults, payment and measurement rules, templates, availability, the client portal and data retention. */
+const SettingsPage = () => (
+  <div className="hd" style={{ maxWidth: 900 }}>
+    <PageTitle title="Settings" />
+    <PageHeader title="Settings" subtitle={<>Shop channels and social links are in <Link to="/channels">Store and channels</Link>.</>} />
+    <BusinessSettings />
+    <MeasurementTemplates />
+    <AvailabilitySettings />
+    <PortalSettings />
+    <RetentionSettings />
+  </div>
+);
+
 export default SettingsPage;

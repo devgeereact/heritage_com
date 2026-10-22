@@ -19,7 +19,7 @@ const WorkshopSnapshot = ({ byStage = {} }) => {
         <CardBody>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h5 className="card-title mb-0">Workshop by stage</h5>
-            <Link to="/tailoring" className="small">Open board</Link>
+            <Link to="/jobs" className="small">Open jobs</Link>
           </div>
           {STAGES.map((s) => {
             const n = byStage[s.key] || 0;

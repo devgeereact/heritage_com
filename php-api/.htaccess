@@ -1,8 +1,81 @@
 # HeritOS — SPA routing for the React build on cPanel (Apache).
 # Place this in the document root alongside index.html and the PHP files.
 
+# Shared PHP includes (_lib.php, _domain.php, _jobs.php ...) and config files
+# are loaded by the endpoints, never requested directly.
+<FilesMatch "^(_.*|config.*)\.php$">
+  Require all denied
+</FilesMatch>
+
+# Command-line tools (retention.php, release_check.php answer 404 themselves)
+# and release files that must never be downloaded: the release manifest lists
+# every file name, and a database dump or uploads archive left here by mistake
+# would expose client records. Keep backups outside the document root.
+<FilesMatch "^(retention|release_check)\.php$|^release-manifest\.json$|\.(sql|sql\.gz|tar\.gz|tgz)$">
+  Require all denied
+</FilesMatch>
+
+# API answers are never search results; the sitemap is the one exception.
+<IfModule mod_headers.c>
+  <FilesMatch "\.php$">
+    Header set X-Robots-Tag "noindex"
+  </FilesMatch>
+  <Files "sitemap.php">
+    Header unset X-Robots-Tag
+  </Files>
+  # spa.php serves public pages when link previews are switched on (K-06).
+  <Files "spa.php">
+    Header unset X-Robots-Tag
+  </Files>
+</IfModule>
+
+# Security headers on every answer (pages, assets and PHP JSON).
+# CSP (K-23): scripts only from this site (the boot script is public/boot.js,
+# never inline); inline styles allowed (React style attributes); images from
+# any https host; the admin icon library calls the Iconify API. Tested with
+# zero violations on 13 public and staff pages, 17 October 2026. Add a host
+# here before adding any new external script, font or API call.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  # HSTS only on HTTPS answers; one year, no preload, no subdomains.
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+# Caching: Vite's hashed build files never change, so cache them for a year;
+# the page shell and the service worker must always be revalidated after a deploy.
+<IfModule mod_headers.c>
+  <FilesMatch "-[A-Za-z0-9_-]{8}\.(js|css|woff2?|png|jpe?g|webp|avif|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # Self-hosted fonts (public/fonts): names carry no hash, so a month.
+  <FilesMatch "\.woff2$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "^(index\.html|sw\.js|boot\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# Compress text answers.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript text/javascript application/json application/xml application/manifest+json image/svg+xml
+</IfModule>
+
 RewriteEngine On
 RewriteBase /
+
+# Always HTTPS (Cloudflare is grey cloud, so the origin sees the real scheme;
+# X-Forwarded-Proto covers a proxy in front). Local staging does not use this file.
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# The XML sitemap is built from published website content (Phase 4).
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
 # Let real files and the PHP API resolve directly.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -13,4 +86,8 @@ RewriteRule ^ - [L]
 RewriteRule \.php$ - [L]
 
 # Everything else → index.html so React Router handles the route.
+# Link previews (K-06): to fill each page's title, description and photograph
+# for WhatsApp and Facebook, set SPA_HEAD_INJECTION to true in config.php, then
+# swap the next two lines (comment the index.html rule, uncomment spa.php).
 RewriteRule ^ index.html [L]
+# RewriteRule ^ spa.php [L]

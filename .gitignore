@@ -31,3 +31,25 @@ config.php
 .env
 .env.*
 !.env.example
+
+# Local staging (scripts/staging): database config and logs, never committed
+php-api/config.local.php
+scripts/staging/.logs/
+
+# Website images uploaded through cms.php (Phase 4). They live only on the server
+# (<doc root>/uploads/site) or in local staging; never committed. The folder's
+# .htaccess (public/uploads/.htaccess) is committed and shipped with the build.
+scripts/staging/.uploads/
+php-api/uploads/
+public/uploads/site/
+
+# Playwright MCP snapshots and logs (local only)
+.playwright-mcp/
+
+# Release manifest (scripts/release/manifest.mjs): generated per release, never committed or published
+release-manifest.json
+
+# Rendered print images for the content loader (scripts/content/render-prints.mjs)
+scripts/content/.out/
+scripts/content/.state/
+scripts/content/.stock/

@@ -2,20 +2,25 @@
 /**
  * HeritOS — Customer self-service portal (public, customer-authenticated).
  *
- * Login is knowledge-based: phone + any of the customer's real order codes →
- * a random expiring token. No password, no SMS/OTP infra. (Upgrade path: send a
- * one-time code over WhatsApp via wa_dispatch and verify that instead.)
+ * Sign-in: the verified route is access.php (reference + registered contact,
+ * then a single-use code or an owner invite). The older knowledge-based login
+ * below (phone + order reference) is LEGACY: it answers only while
+ * ALLOW_LEGACY_ORDER_CODE_LOOKUP is on (default on until the owner switches it
+ * off) and now issues the same hashed, expiring session as access.php.
  *
- *   POST /account.php?action=login {phone, order_code}     → {token, name}
+ *   POST /account.php?action=login {phone, order_code}     → {token, name}   (legacy flag only)
  *   GET  /account.php?action=me            (Bearer)        → profile + credit
  *   GET  /account.php?action=orders        (Bearer)        → their orders
  *   GET  /account.php?action=order&code=…  (Bearer)        → one order + items
  *   POST /account.php?action=reorder&code=…(Bearer)        → items to re-add
- *   POST /account.php?action=measurements  (Bearer) {measurements}
+ *   POST /account.php?action=measurements  (Bearer) {measurements, unit?} → a PENDING
+ *        measurement set the owner reviews (BR-07, A10); legacy flag only. The portal's
+ *        propose_measurements (portal.php) is the route for new clients
  *   POST /account.php?action=return        (Bearer) {order_code, reason}
  *   GET  /account.php?action=referral      (Bearer)        → code + share link
  */
 require __DIR__ . '/_lib.php';
+require __DIR__ . '/_portal.php';
 cors();
 
 $action = $_GET['action'] ?? 'me';
@@ -23,45 +28,50 @@ $action = $_GET['action'] ?? 'me';
 /** Last 9 digits of a phone, for forgiving matches across +234 / 0 prefixes. */
 function tail9($p) { return substr(preg_replace('/\D/', '', (string)$p), -9); }
 
-/** Require a valid customer token; returns the customer row. */
-function require_customer() {
-  global $conn;
-  $tok = bearer();
-  if (!$tok) fail('Please sign in', 401);
-  $stmt = $conn->prepare(
-    'SELECT c.* FROM customer_tokens t JOIN customers c ON c.id = t.customer_id
-      WHERE t.token = ? AND t.expires_at > NOW() AND c.deleted_at IS NULL'
-  );
-  $stmt->bind_param('s', $tok);
-  $stmt->execute();
-  $c = $stmt->get_result()->fetch_assoc();
-  if (!$c) fail('Your session has expired — please sign in again', 401);
-  return $c;
-}
+/** Require a valid customer session (hashed session, or a legacy token while the flag is on). */
+function require_customer() { return require_customer_session(); }
 
 /* ---- LOGIN --------------------------------------------------------------- */
 if ($action === 'login' && method() === 'POST') {
+  if (!legacy_portal_login_enabled()) fail('Unknown action', 404);
   $b = body();
-  $phone = trim($b['phone'] ?? '');
-  $orderCode = strtoupper(trim($b['order_code'] ?? ''));
-  if ($phone === '' || $orderCode === '') fail('Enter your phone and an order code');
+  $phone = trim(in_str($b, 'phone'));
+  $orderCode = strtoupper(trim(in_str($b, 'order_code')));
+  if ($phone === '' || $orderCode === '') fail('Enter your phone and an order reference');
 
-  // The order must exist, match the phone, and resolve to a customer.
-  $stmt = $conn->prepare('SELECT id, customer_id, customer_phone FROM orders WHERE UPPER(code) = ? AND deleted_at IS NULL LIMIT 1');
-  $stmt->bind_param('s', $orderCode);
-  $stmt->execute();
-  $o = $stmt->get_result()->fetch_assoc();
-  if (!$o || tail9($o['customer_phone']) === '' || tail9($o['customer_phone']) !== tail9($phone)) {
-    fail('We could not match that order code and phone', 404);
-  }
+  // Same audit_log throttle as staff login (auth.php): failures counted per IP
+  // and per phone (hashed, so attempted numbers are not stored). 0 disables one.
+  $ipKey = 'ip:' . client_ip();
+  $phoneKey = 'phone:' . substr(hash('sha256', tail9($phone)), 0, 32);
+  throttle_enforce([
+    [(int) cfg('CUSTOMER_LOGIN_MAX_PER_IP', 10), 'cust_login_fail_ip', $ipKey],
+    [(int) cfg('CUSTOMER_LOGIN_MAX_PER_PHONE', 5), 'cust_login_fail_phone', $phoneKey],
+  ], (int) cfg('LOGIN_THROTTLE_WINDOW', 900));
+
+  // One message and status for every failure, so the reply never reveals
+  // whether a phone has an account or an order code exists.
+  $loginFail = function () use ($ipKey, $phoneKey) {
+    audit(null, 'cust_login_fail_ip', $ipKey);
+    audit(null, 'cust_login_fail_phone', $phoneKey);
+    fail('We could not sign you in with that order code and phone', 404);
+  };
+
+  // The order must exist, match the phone, and resolve to a customer. The
+  // reference is the random public_ref; the old ORD- code is accepted only while
+  // ALLOW_LEGACY_ORDER_CODE_LOOKUP is on (default on during the transition).
+  $o = order_by_customer_ref($orderCode, 'id, customer_id, customer_phone');
+  if (!$o || tail9($o['customer_phone']) === '' || tail9($o['customer_phone']) !== tail9($phone)) $loginFail();
 
   $customerId = (int)($o['customer_id'] ?: customer_id_by_phone($phone));
-  if (!$customerId) fail('No account found for that phone', 404);
+  if (!$customerId) $loginFail();
 
-  $token = bin2hex(random_bytes(24));           // 48 chars
-  $stmt = $conn->prepare('INSERT INTO customer_tokens (token, customer_id, expires_at) VALUES (?,?, DATE_ADD(NOW(), INTERVAL 30 DAY))');
-  $stmt->bind_param('si', $token, $customerId);
-  $stmt->execute();
+  if (has_table('customer_sessions')) {
+    $token = customer_session_issue($customerId, 'legacy');   // hashed, expires after customer_session_days
+  } else {
+    // schema_phase24.sql not imported yet: the old raw token, as before.
+    $token = bin2hex(random_bytes(24));
+    db_exec('INSERT INTO customer_tokens (token, customer_id, expires_at) VALUES (?,?, DATE_ADD(NOW(), INTERVAL 30 DAY))', 'si', $token, $customerId);
+  }
 
   $name = $conn->query('SELECT name FROM customers WHERE id = ' . $customerId)->fetch_assoc()['name'] ?? '';
   json(['token' => $token, 'name' => $name]);
@@ -81,6 +91,7 @@ if ($action === 'me' && method() === 'GET') {
     'email' => $me['email'],
     'credit' => credit_balance($cid),
     'measurements' => $measurements,
+    'measurements_pending' => (bool)db_row("SELECT id FROM measurement_sets WHERE customer_id = ? AND source = 'customer' AND status = 'pending' LIMIT 1", 'i', $cid),
     'birthday' => $me['birthday'] ?? null,
     'referral_code' => $me['referral_code'] ?? null,
   ]);
@@ -90,7 +101,7 @@ if ($action === 'me' && method() === 'GET') {
 if ($action === 'orders' && method() === 'GET') {
   $rows = [];
   $stmt = $conn->prepare(
-    "SELECT o.code, o.status, o.total, o.paid, o.created_at, o.return_status,
+    "SELECT o.code, " . (has_column('orders', 'public_ref') ? 'o.public_ref' : 'NULL AS public_ref') . ", o.status, o.total, o.paid, o.created_at, o.return_status,
             o.courier, o.tracking_url, COUNT(i.id) AS item_count
        FROM orders o LEFT JOIN order_items i ON i.order_id = o.id
       WHERE o.customer_id = ? AND o.deleted_at IS NULL
@@ -105,7 +116,7 @@ if ($action === 'orders' && method() === 'GET') {
 
 /* ---- ORDER DETAIL -------------------------------------------------------- */
 if ($action === 'order' && method() === 'GET') {
-  $code = strtoupper(trim($_GET['code'] ?? ''));
+  $code = strtoupper(trim(in_str($_GET, 'code')));
   $stmt = $conn->prepare('SELECT * FROM orders WHERE UPPER(code) = ? AND customer_id = ? AND deleted_at IS NULL LIMIT 1');
   $stmt->bind_param('si', $code, $cid);
   $stmt->execute();
@@ -125,7 +136,7 @@ if ($action === 'order' && method() === 'GET') {
 /* ---- REORDER ------------------------------------------------------------- */
 /* Returns the buyable lines so the storefront can refill the basket. */
 if ($action === 'reorder' && method() === 'POST') {
-  $code = strtoupper(trim($_GET['code'] ?? ''));
+  $code = strtoupper(trim(in_str($_GET, 'code')));
   $stmt = $conn->prepare('SELECT id FROM orders WHERE UPPER(code) = ? AND customer_id = ? AND deleted_at IS NULL LIMIT 1');
   $stmt->bind_param('si', $code, $cid);
   $stmt->execute();
@@ -149,19 +160,26 @@ if ($action === 'reorder' && method() === 'POST') {
 
 /* ---- MEASUREMENTS -------------------------------------------------------- */
 if ($action === 'measurements' && method() === 'POST') {
+  // Legacy route only; new clients propose through portal.php. Either way the
+  // result is a pending proposal, never a direct overwrite (A10).
+  if (!legacy_portal_login_enabled()) fail('Unknown action', 404);
+  // A customer's measurements are a proposal: they wait for the owner's approval
+  // and never overwrite the approved profile or any job snapshot (BR-07, A10).
+  // The account form is labelled inches, so that is the default unit.
   $b = body();
-  $measurements = isset($b['measurements']) ? json_encode($b['measurements']) : null;
-  $stmt = $conn->prepare('UPDATE customers SET measurements = ? WHERE id = ?');
-  $stmt->bind_param('si', $measurements, $cid);
-  $stmt->execute();
-  json(['ok' => true]);
+  $vals = is_array($b['measurements'] ?? null) ? $b['measurements'] : [];
+  $unit = in_array($b['unit'] ?? '', ['cm', 'in'], true) ? $b['unit'] : 'in';
+  $r = legacy_measure_to_set($cid, $vals, $unit, 'customer', false, null);
+  if ($r['errors']) json(['error' => 'Some measurements need fixing', 'errors' => $r['errors']], 400);
+  if (!$r['set']) fail('Enter at least one measurement');
+  json(['ok' => true, 'pending' => true, 'message' => 'Thank you. We will check these before using them.']);
 }
 
 /* ---- RETURN REQUEST ------------------------------------------------------ */
 if ($action === 'return' && method() === 'POST') {
   $b = body();
-  $code = strtoupper(trim($b['order_code'] ?? ''));
-  $reason = trim($b['reason'] ?? '');
+  $code = strtoupper(trim(in_str($b, 'order_code')));
+  $reason = trim(in_str($b, 'reason'));
   if ($code === '') fail('Which order?');
 
   $stmt = $conn->prepare("SELECT id, status, return_status, created_at FROM orders WHERE UPPER(code) = ? AND customer_id = ? AND deleted_at IS NULL LIMIT 1");
@@ -182,7 +200,7 @@ if ($action === 'return' && method() === 'POST') {
 /* ---- SET BIRTHDAY (own, for gifting prompts) ----------------------------- */
 if ($action === 'set_birthday' && method() === 'POST') {
   $b = body();
-  $bd = !empty($b['birthday']) ? $b['birthday'] : null;
+  $bd = !empty($b['birthday']) ? in_str($b, 'birthday') : null;
   $stmt = $conn->prepare('UPDATE customers SET birthday = ? WHERE id = ?');
   $stmt->bind_param('si', $bd, $cid);
   $stmt->execute();
@@ -192,10 +210,10 @@ if ($action === 'set_birthday' && method() === 'POST') {
 /* ---- NPS (satisfaction survey) ------------------------------------------- */
 if ($action === 'nps_submit' && method() === 'POST') {
   $b = body();
-  $score = max(0, min(10, (int)($b['score'] ?? -1)));
+  $score = max(0, min(10, in_int($b, 'score', -1)));
   if (!isset($b['score'])) fail('A score is required');
-  $comment = substr(trim($b['comment'] ?? ''), 0, 500);
-  $orderCode = trim($b['order_code'] ?? '') ?: null;
+  $comment = substr(trim(in_str($b, 'comment')), 0, 500);
+  $orderCode = trim(in_str($b, 'order_code')) ?: null;
   $stmt = $conn->prepare('INSERT INTO nps_responses (customer_id, order_code, score, comment) VALUES (?,?,?,?)');
   $stmt->bind_param('isis', $cid, $orderCode, $score, $comment);
   $stmt->execute();
@@ -215,8 +233,8 @@ if ($action === 'wishlist' && method() === 'GET') {
 
 if ($action === 'wishlist_toggle' && method() === 'POST') {
   $b = body();
-  $slug = trim($b['slug'] ?? '');
-  $name = trim($b['name'] ?? '');
+  $slug = trim(in_str($b, 'slug'));
+  $name = trim(in_str($b, 'name'));
   if ($slug === '') fail('Which piece?');
 
   // Toggle: remove if present, else add.

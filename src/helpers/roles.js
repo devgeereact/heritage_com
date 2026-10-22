@@ -6,47 +6,57 @@
 
 const ALL = ['super_admin', 'admin', 'manager', 'tailor', 'editor', 'seller', 'employee'];
 const ADMIN = ['super_admin', 'admin'];
-const MANAGE = ['super_admin', 'admin', 'manager'];
+const MANAGE = ['super_admin', 'admin', 'manager'];            // ROLES_OWNER in php-api/_domain.php
+const WORKSHOP = [...MANAGE, 'tailor'];                        // ROLES_WORKSHOP
+const CLIENTS = [...MANAGE, 'tailor', 'employee'];             // ROLES_CLIENTS
+const ENQUIRY = [...MANAGE, 'employee'];                       // ROLES_ENQUIRY
+const OWNER_ONLY = ['super_admin'];                            // review.php, retention periods
 
 // Section key (top-level menu key / first URL segment) → roles allowed.
-// Anything not listed defaults to ADMIN only, which declutters the kit's demo
-// sections for non-admin staff.
+// K-01 (fixed in Phase 2): each list matches the server's require_auth() gate
+// for the endpoints that page needs. Where a page needs several endpoints, the
+// list is the roles every one of them allows, so a page never opens for a role
+// the server would refuse. Anything not listed defaults to ADMIN only.
 const SECTIONS = {
-  dashboard: ALL,
-  tailoring: ['super_admin', 'admin', 'manager', 'tailor'],
-  catalogue: ['super_admin', 'admin', 'manager', 'editor', 'employee', 'seller'],
-  stock: ['super_admin', 'admin', 'manager', 'employee'],
-  suppliers: ['super_admin', 'admin', 'manager'],
-  finance: ['super_admin', 'admin', 'manager'],
-  analytics: ['super_admin', 'admin', 'manager'],
-  marketing: ['super_admin', 'admin', 'manager', 'editor'],
-  pos: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
-  studio: ['super_admin', 'admin', 'manager', 'editor'],
-  content: ['super_admin', 'admin', 'manager', 'editor'],
-  channels: ['super_admin', 'admin', 'manager'],
-  weather: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
-  enquiries: ['super_admin', 'admin', 'manager', 'employee'],
-  inbox: ['super_admin', 'admin', 'manager', 'editor', 'employee'],
-  whatsapp: ['super_admin', 'admin', 'manager', 'seller', 'editor', 'employee'],
-  loyalty: ['super_admin', 'admin', 'manager'],
-  engage: ['super_admin', 'admin', 'manager', 'editor'],
-  reviews: ['super_admin', 'admin', 'manager', 'editor'],
-  crm: ['super_admin', 'admin', 'manager', 'tailor', 'employee'],
-  sales: ['super_admin', 'admin', 'manager', 'seller', 'employee'],
-  profile: ALL,
+  // Daily records (Phase 2)
+  today: MANAGE,                                               // today.php
+  enquiries: ENQUIRY,                                          // enquiries.php (convert is owner-only inside)
+  appointments: WORKSHOP,                                      // appointments.php (reads workshop; writes and requests owner)
+  messages: MANAGE,                                            // messages.php (owner)
+  clients: CLIENTS,                                            // customers.php (measurements tab: workshop roles)
+  jobs: WORKSHOP,                                              // tailoring.php, measurements.php
+  payments: MANAGE,                                            // ledger.php
+  print: MANAGE,                                               // tailoring.php?action=document, measurements.php
+  settings: MANAGE,                                            // settings.php, measurements.php template_save
+  reports: MANAGE,                                             // stats.php + analytics.php (old dashboard)
 
-  // Larkon operational sections — managers and admins.
-  products: MANAGE, category: MANAGE, inventory: MANAGE, orders: MANAGE,
-  purchases: MANAGE, attributes: MANAGE, invoice: MANAGE,
-  coupons: ['super_admin', 'admin', 'manager', 'editor'],
-  seller: MANAGE, customer: MANAGE, review: MANAGE, apps: MANAGE, support: MANAGE,
+  // Other tools
+  catalogue: ['super_admin', 'admin', 'manager', 'editor', 'employee'],   // products.php
+  stock: ['super_admin', 'admin', 'manager', 'employee'],                 // stock.php
+  pos: ['super_admin', 'admin', 'manager', 'employee'],                   // orders.php + stock.php
+  sales: ['super_admin', 'admin', 'manager', 'employee'],                 // orders.php + products.php
+  suppliers: MANAGE,                                                      // suppliers.php + stock.php
+  finance: MANAGE,                                                        // payments.php, export.php
+  analytics: MANAGE,                                                      // analytics.php
+  marketing: ['super_admin', 'admin', 'manager', 'editor'],               // marketing.php
+  studio: ALL,                                                            // ai.php, ai_image.php (any staff)
+  website: ['super_admin', 'admin', 'manager', 'editor'],                 // cms.php (Website CMS); profile and policy publishing owner-only on the server
+  content: MANAGE,                                                        // content.php (journal and testimonials)
+  channels: MANAGE,                                                       // settings.php
+  weather: ['super_admin', 'admin', 'manager', 'seller', 'employee'],     // weather.php
+  inbox: ['super_admin', 'admin', 'manager', 'editor', 'employee'],       // inbox.php, mail.php
+  whatsapp: ['super_admin', 'admin', 'manager', 'seller', 'editor', 'employee'], // whatsapp.php
+  loyalty: MANAGE,                                                        // loyalty.php, referrals.php
+  engage: MANAGE,                                                         // engage.php + customers.php birthdays
+  reviews: ['super_admin', 'admin', 'manager', 'editor'],                 // reviews.php
+  coupons: ['super_admin', 'admin', 'manager', 'editor'],                 // coupons.php
+  profile: ALL,                                                           // users.php self actions
+  // Phase 7 owner review: review.php answers super_admin only. (Replaces the
+  // Larkon kit product review key, which had no page or endpoint.)
+  review: OWNER_ONLY,
 
   // Platform administration — admins only.
-  team: ADMIN, role: ADMIN, permissions: ADMIN, settings: ADMIN,
-
-  // Kit demo / component galleries — admins only.
-  'base-ui': ADMIN, 'advanced-ul': ADMIN, charts: ADMIN, maps: ADMIN,
-  forms: ADMIN, tables: ADMIN, icons: ADMIN, widgets: ADMIN, pages: ADMIN,
+  team: ADMIN, permissions: ADMIN,                                        // users.php management
 };
 
 // Staff roles, in seniority order. 'customer' isn't a staff login.
@@ -60,35 +70,42 @@ export const ROLE_LABELS = {
 // The HeritOS modules shown in the Permissions matrix (real sidebar sections,
 // not Larkon kit demos), each with the roles allowed in from SECTIONS above.
 export const ACCESS_MATRIX = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'tailoring', label: 'Tailoring' },
+  { key: 'today', label: 'Today' },
+  { key: 'enquiries', label: 'Enquiries' },
+  { key: 'appointments', label: 'Appointments' },
+  { key: 'messages', label: 'Messages' },
+  { key: 'clients', label: 'Clients' },
+  { key: 'jobs', label: 'Jobs' },
+  { key: 'payments', label: 'Payments' },
+  { key: 'website', label: 'Website' },
+  { key: 'content', label: 'Journal & testimonials' },
+  { key: 'settings', label: 'Settings' },
+  { key: 'review', label: 'Owner review' },
+  { key: 'reports', label: 'Reports' },
   { key: 'catalogue', label: 'Catalogue' },
   { key: 'stock', label: 'Inventory' },
   { key: 'pos', label: 'Market Sales' },
   { key: 'suppliers', label: 'Suppliers' },
   { key: 'sales', label: 'Orders' },
-  { key: 'crm', label: 'Customers' },
-  { key: 'enquiries', label: 'Enquiries' },
   { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'inbox', label: 'Inbox' },
   { key: 'marketing', label: 'Marketing' },
   { key: 'coupons', label: 'Coupons' },
   { key: 'loyalty', label: 'Loyalty & Gifts' },
   { key: 'engage', label: 'Re-engagement' },
   { key: 'reviews', label: 'Reviews' },
   { key: 'studio', label: 'Brand Studio' },
-  { key: 'content', label: 'Content & Journal' },
   { key: 'finance', label: 'Finance' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'weather', label: 'Weather & Ops' },
   { key: 'channels', label: 'Store & Channels' },
   { key: 'team', label: 'Team & Access' },
-  { key: 'settings', label: 'Settings' },
 ].map((m) => ({ ...m, roles: SECTIONS[m.key] ?? ADMIN }));
 
-/** First URL segment, e.g. "/tailoring/5" → "tailoring". */
+/** First URL segment, e.g. "/jobs/5" → "jobs". */
 export const pathSection = (path = '') => {
   const seg = String(path).split('?')[0].split('/').filter(Boolean)[0];
-  return seg || 'dashboard';
+  return seg || 'today';
 };
 
 const rolesFor = (sectionKey) => SECTIONS[sectionKey] ?? ADMIN;
@@ -104,17 +121,18 @@ export const canAccessPath = (role, path) =>
 /** Where a role lands after login / when redirected from a forbidden page. */
 export const roleHome = (role) => {
   switch (role) {
-    case 'tailor': return '/tailoring';
+    case 'tailor': return '/jobs';
     case 'editor': return '/catalogue';
-    case 'seller': return '/catalogue';
+    case 'seller': return '/whatsapp';
     case 'employee': return '/enquiries';
-    default: return '/dashboard'; // super_admin, admin, manager
+    default: return '/today'; // super_admin, admin, manager
   }
 };
 
 /**
- * Filter the sidebar menu for a role. Drops items the role can't see, and any
- * section title left with no visible items under it.
+ * Filter the sidebar menu for a role. Drops items the role can't see, recurses
+ * into groups (children) and drops groups left empty, and drops any section
+ * title left with no visible items under it.
  */
 export const filterMenuByRole = (items, role) => {
   if (!role) return items;
@@ -122,6 +140,11 @@ export const filterMenuByRole = (items, role) => {
   for (const item of items) {
     if (item.isTitle) {
       out.push({ ...item, __title: true });
+      continue;
+    }
+    if (item.children) {
+      const children = filterMenuByRole(item.children, role);
+      if (children.length) out.push({ ...item, children });
       continue;
     }
     if (canAccessSection(role, item.key)) out.push(item);

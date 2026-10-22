@@ -8,28 +8,28 @@
     --#{$prefix}logo-lg-height:                24px;
     --#{$prefix}logo-sm-height:                26px;
 
-    --#{$prefix}main-nav-width:               280px;
+    --#{$prefix}main-nav-width:               248px;
     --#{$prefix}main-nav-width-sm:             75px; 
     --#{$prefix}main-nav-item-icon-size:       22px;
     --#{$prefix}main-nav-item-font-size:       15px;
     --#{$prefix}main-nav-item-padding-x:       25px;
     --#{$prefix}main-nav-item-padding-y:       10px;
 
-    --#{$prefix}topbar-height:                 100px;
+    --#{$prefix}topbar-height:                 64px;
     --#{$prefix}footer-height:                 60px;
     
     // Heading Variable — brand foreground (warm ink)
-    --#{$prefix}headings-color:                            #1a1714;
+    --#{$prefix}headings-color:                            var(--hc-text);
 
-    --#{$prefix}input-border-color:             #e8e3db;   // --input (warm hairline)
-    --#{$prefix}input-focus-border-color:       #262626;   // --ring (primary amber)
+    --#{$prefix}input-border-color:             var(--hc-control-border);
+    --#{$prefix}input-focus-border-color:       var(--hc-focus);
 }
 
 
 /* Color system - Dark Mode only */
 html[data-bs-theme="dark"], [data-bs-theme="dark"] {
 
-    --#{$prefix}border-color:                   #2E2A24;   // dark --border (warm-tinted)
+    --#{$prefix}border-color:                   var(--hc-divider);
 
     --#{$prefix}light:                     #{$body-tertiary-bg-dark};
     --#{$prefix}dark:                      #{$body-tertiary-color-dark};
@@ -38,43 +38,43 @@ html[data-bs-theme="dark"], [data-bs-theme="dark"] {
     --#{$prefix}dark-rgb:                  #{to-rgb($body-tertiary-color-dark)};
 
     // Heading Variable — dark --foreground (warm off-white for legibility)
-    --#{$prefix}headings-color:            #FFFBEB;
+    --#{$prefix}headings-color:            var(--hc-text);
 
-    --#{$prefix}input-border-color:             #2E2A24;   // dark --input
-    --#{$prefix}input-focus-border-color:       #F59E0B;   // --ring (accent peach for visibility on dark)
+    --#{$prefix}input-border-color:             var(--hc-control-border);
+    --#{$prefix}input-focus-border-color:       var(--hc-focus);
 }
 
 
 /* Main Menu Light — sidebar tokens */
 html[data-menu-color="light"]{
-    --#{$prefix}main-nav-bg:                               #FFFBEB;   // --sidebar (warm off-white)
-    --#{$prefix}main-nav-item-color:                       #443f3a;   // --muted-foreground (warm dark for legibility)
-    --#{$prefix}main-nav-item-hover-bg:                    #F1E9D2;   // --sidebar-accent (warm tint)
-    --#{$prefix}main-nav-item-hover-color:                 #262626;   // --sidebar-accent-foreground (primary amber)
-    --#{$prefix}main-nav-border-color:                     #E8E3DB;   // --sidebar-border
+    --#{$prefix}main-nav-bg:                               #{map-get($hc-light, 'surface')};
+    --#{$prefix}main-nav-item-color:                       #{map-get($hc-light, 'text-body')};
+    --#{$prefix}main-nav-item-hover-bg:                    #{map-get($hc-light, 'surface-alt')};
+    --#{$prefix}main-nav-item-hover-color:                 #{map-get($hc-light, 'text')};
+    --#{$prefix}main-nav-border-color:                     #{map-get($hc-light, 'divider')};
 }
 
 /* Main Menu Dark — dark sidebar tokens (espresso-rooted, accent gold for emphasis) */
 html[data-menu-color="dark"],
 html[data-bs-theme="dark"][data-menu-color="light"] {
-    --#{$prefix}main-nav-bg:                               #262320;   // dark --sidebar (espresso)
-    --#{$prefix}main-nav-item-color:                       #C9C2B5;   // dark --muted-foreground (clear on amber)
-    --#{$prefix}main-nav-item-hover-bg:                    #3A352E;   // dark --sidebar-accent (raised espresso)
-    --#{$prefix}main-nav-item-hover-color:                 #F59E0B;   // dark --sidebar-accent-foreground (accent gold)
-    --#{$prefix}main-nav-border-color:                     #3A352E;   // dark --sidebar-border
+    --#{$prefix}main-nav-bg:                               #{map-get($hc-dark, 'surface')};
+    --#{$prefix}main-nav-item-color:                       #{map-get($hc-dark, 'text-muted')};
+    --#{$prefix}main-nav-item-hover-bg:                    #{map-get($hc-dark, 'surface-alt')};
+    --#{$prefix}main-nav-item-hover-color:                 #{map-get($hc-dark, 'text')};
+    --#{$prefix}main-nav-border-color:                     #{map-get($hc-dark, 'divider')};
 }
 
 /* Topbar Light */
 html[data-topbar-color="light"] {
-    --#{$prefix}topbar-bg:                                 #ffffff;   // --background
-    --#{$prefix}topbar-item-color:                         #443f3a;   // --muted-foreground (warm dark)
-    --#{$prefix}topbar-search-bg:                          #FFFBEB;   // --muted (surface)
+    --#{$prefix}topbar-bg:                                 #{map-get($hc-light, 'surface')};
+    --#{$prefix}topbar-item-color:                         #{map-get($hc-light, 'text-body')};
+    --#{$prefix}topbar-search-bg:                          #{map-get($hc-light, 'surface-alt')};
 }
 
 /* Topbar Dark */
 html[data-topbar-color="dark"],
 html[data-bs-theme="dark"][data-topbar-color="light"]{
-    --#{$prefix}topbar-bg:                                 #262320;   // dark --background (espresso)
-    --#{$prefix}topbar-item-color:                         #FFFBEB;   // dark --foreground (surface for legibility)
-    --#{$prefix}topbar-search-bg:                          #3A352E;   // dark --card/muted (raised espresso)
+    --#{$prefix}topbar-bg:                                 #{map-get($hc-dark, 'surface')};
+    --#{$prefix}topbar-item-color:                         #{map-get($hc-dark, 'text')};
+    --#{$prefix}topbar-search-bg:                          #{map-get($hc-dark, 'surface-alt')};
 }

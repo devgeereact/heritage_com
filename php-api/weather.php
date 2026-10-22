@@ -34,7 +34,7 @@ curl_setopt_array($ch, [
 ]);
 $resp = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-if ($resp === false) fail('Weather request failed: ' . curl_error($ch), 502);
+if ($resp === false) fail('The weather service could not be reached.' . (cfg('GK_DEBUG', false) ? ' (' . curl_error($ch) . ')' : ''), 502);
 curl_close($ch);
 if ($httpCode >= 400) fail('Weather service error', 502);
 

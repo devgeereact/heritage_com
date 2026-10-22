@@ -36,13 +36,13 @@ if ($action === 'list' && method() === 'GET') {
 
 if ($action === 'create' && method() === 'POST') {
   $b = body();
-  $amount = (float)($b['amount'] ?? 0);
+  $amount = in_num($b, 'amount', 0);
   if ($amount <= 0) fail('Amount must be greater than zero');
-  $orderId = isset($b['order_id']) && $b['order_id'] !== '' ? (int)$b['order_id'] : null;
-  $customer = trim($b['customer_name'] ?? '');
+  $orderId = isset($b['order_id']) && $b['order_id'] !== '' ? in_int($b, 'order_id') : null;
+  $customer = trim(in_str($b, 'customer_name'));
   $method = in_array($b['method'] ?? '', $METHODS, true) ? $b['method'] : 'cash';
-  $reference = trim($b['reference'] ?? '');
-  $note = trim($b['note'] ?? '');
+  $reference = trim(in_str($b, 'reference'));
+  $note = trim(in_str($b, 'note'));
   $stmt = $conn->prepare('INSERT INTO payments (order_id, customer_name, amount, method, reference, note, created_by) VALUES (?,?,?,?,?,?,?)');
   $stmt->bind_param('isdsssi', $orderId, $customer, $amount, $method, $reference, $note, $user['id']);
   $stmt->execute();
@@ -67,12 +67,12 @@ if ($action === 'expenses' && method() === 'GET') {
 
 if ($action === 'expense_create' && method() === 'POST') {
   $b = body();
-  $amount = (float)($b['amount'] ?? 0);
+  $amount = in_num($b, 'amount', 0);
   if ($amount <= 0) fail('Amount must be greater than zero');
   $category = in_array($b['category'] ?? '', $CATEGORIES, true) ? $b['category'] : 'other';
-  $vendor = trim($b['vendor'] ?? '');
-  $note = trim($b['note'] ?? '');
-  $spentOn = trim($b['spent_on'] ?? '');
+  $vendor = trim(in_str($b, 'vendor'));
+  $note = trim(in_str($b, 'note'));
+  $spentOn = trim(in_str($b, 'spent_on'));
   if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $spentOn)) $spentOn = date('Y-m-d');
   $stmt = $conn->prepare('INSERT INTO expenses (category, amount, vendor, note, spent_on, created_by) VALUES (?,?,?,?,?,?)');
   $stmt->bind_param('sdsssi', $category, $amount, $vendor, $note, $spentOn, $user['id']);

@@ -14,7 +14,7 @@ const ROLE_BADGE = {
 };
 const STATUS_BADGE = { active: 'success', invited: 'warning', suspended: 'secondary' };
 
-// The auth cookie stores { token, user:{ id, ... } }.
+// The auth cookie stores { user:{ id, ... } } plus the token unless cookie auth is on.
 const currentUserId = (auth) => auth?.user?.user?.id ?? auth?.user?.id ?? null;
 
 const TeamPage = () => {

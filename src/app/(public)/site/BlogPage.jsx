@@ -1,55 +1,63 @@
-import { Link } from 'react-router-dom';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import SiteLayout from './SiteLayout';
-import { useBlog } from './content';
+import { Link } from 'react-router-dom'
+import SiteLayout from './SiteLayout'
+import { useJournal } from './content'
+import { Section, SectionHead } from './ui/Section'
+import Icon from './ui/Icon'
+import { LoadingPage, NotFoundPage } from './cmsBlocks'
+import { ClosingAction } from './sections'
+import useActions from './ui/useActions'
+import PrintArt from './ui/PrintArt'
+import { printAt } from './ui/printPatterns'
 
+/** One journal card over its African print: category, date, title link and excerpt. Shared with the post page. */
+export const JournalCard = ({ p, i = 0 }) => (
+  <article className="hc-journal-card" data-reveal="">
+    <PrintArt variant={p.print || printAt(i)} className="hc-journal-media" scale={0.9}>
+      {p.cat && <span className="hc-print-tag">{p.cat}</span>}
+    </PrintArt>
+    <div className="hc-journal-body">
+      {(p.cat || p.date) && <span className="hc-journal-date">{[p.cat, p.date].filter(Boolean).join(' · ')}</span>}
+      <h2 className="hc-h4">
+        <Link to={p.to}>{p.title}</Link>
+      </h2>
+      {p.excerpt && <p>{p.excerpt}</p>}
+      <Link to={p.to} className="hc-card-link" aria-hidden="true" tabIndex={-1}>
+        Read more <Icon name="arrow-right" />
+      </Link>
+    </div>
+  </article>
+)
+
+/**
+ * Journal list. Published posts only, and only while `journal_enabled` is on
+ * (site.php); otherwise a not-found page, so no empty promise is shown.
+ */
 const BlogPage = () => {
-  const posts = useBlog(48);
+  const { posts, enabled, ready } = useJournal(48)
+  const { primary, secondary } = useActions()
+  if (!ready) return <LoadingPage title="Journal" />
+  if (!enabled || !posts.length) return <NotFoundPage title="Journal" text="There are no journal posts to read yet." />
 
   return (
-    <SiteLayout title="Journal">
-      <section className="hc-pagehead">
-        <div className="hc-container">
-          <div className="hc-crumb"><Link to="/">Home</Link> / <span>Journal</span></div>
-          <h1 className="hc-h1">The Journal.</h1>
-          <p>Stories from the cutting table — heritage, craft and what goes on behind the seams.</p>
+    <SiteLayout title="Journal" seo={{ description: 'Notes from the Herit Clothing workroom in Lagos.' }}>
+      <Section className="hc-section--pagehead" edit={{ to: '/content', label: 'the journal' }}>
+        <SectionHead as="h1" eyebrow="Journal" title="Notes from the workroom" lead="Cloth, fit and care, written down as the work happens." />
+      </Section>
+      <Section tone="alt" aria-label="Posts">
+        <div className="hc-grid hc-grid--3">
+          {posts.map((p, i) => (
+            <JournalCard key={p.slug} p={p} i={i} />
+          ))}
         </div>
-      </section>
-
-      <section className="hc-section">
-        <div className="hc-container">
-          {posts.length === 0 ? (
-            <div className="hc-card hc-text-center" style={{ padding: '4rem 2rem', maxWidth: '34rem', margin: '0 auto' }}>
-              <span className="hc-card-ico" style={{ margin: '0 auto 1rem' }}><IconifyIcon icon="solar:notebook-bold" /></span>
-              <h3>Nothing here yet</h3>
-              <p className="hc-card-desc" style={{ margin: '0.5rem auto 0', maxWidth: '24rem' }}>
-                Our first stories are being written. Check back soon — or join the family to hear first.
-              </p>
-              <Link to="/contact" className="hc-btn hc-btn--primary hc-mt-4">Join the family</Link>
-            </div>
-          ) : (
-            <div className="hc-grid hc-grid--3">
-              {posts.map((p) => (
-                <article key={p.slug} className="hc-journal-card">
-                  <Link to={`/journal/${p.slug}`} className={`hc-journal-media ${p.tile}`}>
-                    {p.cat && <span className="hc-journal-cat">{p.cat}</span>}
-                  </Link>
-                  <div className="hc-journal-body">
-                    {p.date && <span className="hc-journal-date">{p.date}</span>}
-                    <h4><Link to={`/journal/${p.slug}`}>{p.title}</Link></h4>
-                    <p>{p.excerpt}</p>
-                    <Link to={`/journal/${p.slug}`} className="hc-card-link">
-                      Read more <IconifyIcon icon="solar:arrow-right-linear" />
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      </Section>
+      <ClosingAction
+        title="Tell us what you want to make."
+        text="Send a short message with the occasion and the date, and we will get back to you."
+        primary={{ to: primary.to, label: primary.label }}
+        secondary={secondary}
+      />
     </SiteLayout>
-  );
-};
+  )
+}
 
-export default BlogPage;
+export default BlogPage

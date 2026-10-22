@@ -1,432 +1,468 @@
 /* ============================================================
-   Herit Clothing — public-site section blueprints
-   Layout patterns borrowed from the Oxybuild construction template
-   (hero slider, stat counter, team/testimonial carousels, brand
-   strip, working-process step cards, services & lookbook sliders)
-   and rebuilt in the amber-heritage brand. All styling lives in
-   site.css under the "oxybuild-derived sections" banner.
+   Public page sections built from the UI kit (ui/). No counters,
+   marquees or logo strips (the home hero slider is the one carousel,
+   D-023): every section shows real data or is not rendered at all.
    ============================================================ */
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { A11y, Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
-import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import 'swiper/css';
-import 'swiper/css/effect-fade';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Section, SectionHead } from './ui/Section'
+import Button from './ui/Button'
+import Icon from './ui/Icon'
+import HcImage from './ui/HcImage'
+import PrintArt from './ui/PrintArt'
+import { printAt, printVariant } from './ui/printPatterns'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
+import { Rich } from './cmsBlocks'
+import { splitSections, hasSubheads } from './storySections'
 
-/* ---------- section header (eyebrow + title + optional lead) ---------- */
-export const SectionHead = ({ kicker, title, lead, center, light, children }) => (
-  <div className={`hc-head ${center ? 'hc-head--center' : ''}`} style={light ? { } : undefined}>
-    {kicker && <div className="hc-kicker">{kicker}</div>}
-    <h2 className="hc-h2" style={light ? { color: '#fff' } : undefined}>{title}</h2>
-    {lead && <p className="hc-lead">{lead}</p>}
-    {children}
-  </div>
-);
+gsap.registerPlugin(useGSAP)
 
-/* ---------- count-up number, animates once on scroll ---------- */
-const useCountUp = (end, duration = 1600) => {
-  const ref = useRef(null);
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return undefined;
-    if (typeof IntersectionObserver === 'undefined' ||
-        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setVal(end);
-      return undefined;
-    }
-    let raf;
-    let started = false;
-    const run = () => {
-      if (started) return;
-      started = true;
-      const start = performance.now();
-      const tick = (now) => {
-        const p = Math.min(1, (now - start) / duration);
-        const eased = 1 - (1 - p) ** 3; // easeOutCubic
-        setVal(Math.round(end * eased));
-        if (p < 1) raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-    };
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { io.unobserve(node); run(); } });
-    }, { threshold: 0.4 });
-    io.observe(node);
-    // Safety net: if the observer never fires (already in view on load, an
-    // environment that doesn't compute intersection, etc.) animate anyway so
-    // the number is never stranded at 0.
-    const safety = setTimeout(run, 2500);
-    return () => { io.disconnect(); clearTimeout(safety); if (raf) cancelAnimationFrame(raf); };
-  }, [end, duration]);
-  return [ref, val];
-};
+export { SectionHead }
 
-const CounterStat = ({ value, suffix = '', prefix = '', label }) => {
-  const [ref, val] = useCountUp(value);
+/* Published pieces from the live catalogue (shop only). Hidden when empty. */
+export const Lookbook = ({ eyebrow, title, products, formatNgn }) => {
+  if (!products?.length) return null
   return (
-    <div className="hc-counter-item" ref={ref}>
-      <div className="hc-counter-n">{prefix}{val.toLocaleString()}{suffix}</div>
-      <div className="hc-counter-l">{label}</div>
-    </div>
-  );
-};
-
-/* ---------- COUNTER band (4-up animated stats) — oxybuild "counter" ---------- */
-export const CounterBand = ({ stats }) => (
-  <section className="hc-section--tight hc-section--dark hc-counter">
-    <div className="hc-container">
-      <div className="hc-counter-grid">
-        {stats.map((s) => <CounterStat key={s.label} {...s} />)}
-      </div>
-    </div>
-  </section>
-);
-
-/* ---------- slider header with prev/next arrows — oxybuild section nav ---------- */
-const SliderNav = ({ prevClass, nextClass, light }) => (
-  <div className={`hc-slider-nav ${light ? 'hc-slider-nav--light' : ''}`}>
-    <button type="button" className={`hc-slider-arrow ${prevClass}`} aria-label="Previous">
-      <IconifyIcon icon="solar:arrow-left-linear" />
-    </button>
-    <button type="button" className={`hc-slider-arrow ${nextClass}`} aria-label="Next">
-      <IconifyIcon icon="solar:arrow-right-linear" />
-    </button>
-  </div>
-);
-
-/* ---------- LOOKBOOK carousel — oxybuild "latest project" slider.
-   Wired to the live storefront catalogue: each slide is a real published
-   piece (name, fabric, price) rendered with its own fabric-motif tile and
-   linking to its real /shop/:slug page — same card as the Shop grid. ---------- */
-export const Lookbook = ({ kicker, title, products, formatNgn }) => (
-  <section className="hc-section">
-    <div className="hc-container">
-      <div className="hc-slider-head">
-        <div>
-          <div className="hc-kicker">{kicker}</div>
-          <h2 className="hc-h2 hc-mt-2">{title}</h2>
-        </div>
-        <div className="hc-flex" style={{ alignItems: 'center', gap: '1.25rem' }}>
-          <Link to="/shop" className="hc-card-link" style={{ marginTop: 0 }}>
-            View all <IconifyIcon icon="solar:arrow-right-linear" />
+    <Section>
+      <SectionHead eyebrow={eyebrow} title={title}>
+        <p>
+          <Link to="/shop" className="hc-card-link">
+            View all pieces <Icon name="arrow-right" />
           </Link>
-          <SliderNav prevClass="hc-look-prev" nextClass="hc-look-next" />
-        </div>
-      </div>
-      <Swiper
-        modules={[A11y, Navigation]}
-        navigation={{ prevEl: '.hc-look-prev', nextEl: '.hc-look-next' }}
-        spaceBetween={20}
-        slidesPerView={1.15}
-        breakpoints={{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 1100: { slidesPerView: 4 } }}
-        className="hc-look-swiper"
-      >
+        </p>
+      </SectionHead>
+      <div className="hc-grid hc-grid--4">
         {products.map((p) => (
-          <SwiperSlide key={p.slug}>
-            <Link to={`/shop/${p.slug}`} className="hc-product hc-look-product">
-              <div className={`hc-tile ${p.tile} hc-product-media`}>
-                {p.premium && <span className="hc-tile-tag">Premium</span>}
-              </div>
-              <div className="hc-product-body">
-                <span className="hc-product-fab">{p.fabric}</span>
-                <span className="hc-product-name">{p.name}</span>
-                <span className="hc-product-price">
-                  {formatNgn(p.priceNgn)}{p.priceUsd ? <small> · ${p.priceUsd}</small> : null}
-                </span>
-              </div>
-            </Link>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
-  </section>
-);
-
-/* ---------- SERVICES carousel — oxybuild "homepage services" ---------- */
-export const ServicesCarousel = ({ kicker, title, lead, items }) => (
-  <section className="hc-section hc-section--paper">
-    <div className="hc-container">
-      <div className="hc-slider-head">
-        <div className="hc-head" style={{ marginBottom: 0 }}>
-          <div className="hc-kicker">{kicker}</div>
-          <h2 className="hc-h2 hc-mt-2">{title}</h2>
-          {lead && <p className="hc-lead hc-mt-2">{lead}</p>}
-        </div>
-        <SliderNav prevClass="hc-serv-prev" nextClass="hc-serv-next" />
-      </div>
-      <Swiper
-        modules={[A11y, Navigation]}
-        navigation={{ prevEl: '.hc-serv-prev', nextEl: '.hc-serv-next' }}
-        spaceBetween={24}
-        slidesPerView={1.1}
-        breakpoints={{ 640: { slidesPerView: 2 }, 992: { slidesPerView: 3 } }}
-        className="hc-serv-swiper"
-      >
-        {items.map((s) => (
-          <SwiperSlide key={s.title}>
-            <div className="hc-card hc-serv-card">
-              <span className="hc-card-ico"><IconifyIcon icon={s.icon} /></span>
-              <h3>{s.title}</h3>
-              <p className="hc-card-desc">{s.desc}</p>
-              <Link to={s.to || '/shop'} className="hc-card-link">
-                {s.cta || 'Explore'} <IconifyIcon icon="solar:arrow-right-linear" />
-              </Link>
+          <Link key={p.slug} to={`/shop/${p.slug}`} className="hc-product" data-reveal="">
+            <div className="hc-tile hc-product-media" />
+            <div className="hc-product-body">
+              {p.fabric && <span className="hc-product-fab">{p.fabric}</span>}
+              <span className="hc-product-name">{p.name}</span>
+              <span className="hc-product-price">{formatNgn(p.priceNgn)}</span>
             </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
-  </section>
-);
-
-/* ---------- WORKING PROCESS — oxybuild 4-up numbered step cards ---------- */
-export const ProcessSteps = ({ kicker, title, lead, steps, dark }) => (
-  <section className={`hc-section ${dark ? 'hc-section--dark' : ''}`}>
-    <div className="hc-container">
-      <div className="hc-head hc-head--center">
-        <div className="hc-kicker">{kicker}</div>
-        <h2 className="hc-h2" style={dark ? { color: '#fff' } : undefined}>{title}</h2>
-        {lead && <p className="hc-lead" style={{ margin: '1rem auto 0' }}>{lead}</p>}
-      </div>
-      <div className="hc-proc-grid">
-        {steps.map((s, i) => (
-          <div key={s.title} className="hc-proc-card">
-            <span className="hc-proc-n">{String(i + 1).padStart(2, '0')}</span>
-            <span className="hc-proc-ico"><IconifyIcon icon={s.icon} /></span>
-            <h4>{s.title}</h4>
-            <p>{s.desc}</p>
-          </div>
+          </Link>
         ))}
       </div>
-    </div>
-  </section>
-);
+    </Section>
+  )
+}
 
-/* ---------- TEAM carousel — oxybuild team cards w/ social hover ---------- */
-const initials = (name) => name.split(' ').map((p) => p[0]).slice(0, 2).join('');
-export const TeamCarousel = ({ kicker, title, lead, members }) => (
-  <section className="hc-section">
-    <div className="hc-container">
-      <div className="hc-slider-head">
-        <div className="hc-head" style={{ marginBottom: 0 }}>
-          <div className="hc-kicker">{kicker}</div>
-          <h2 className="hc-h2 hc-mt-2">{title}</h2>
-          {lead && <p className="hc-lead hc-mt-2">{lead}</p>}
-        </div>
-        <SliderNav prevClass="hc-team-prev" nextClass="hc-team-next" />
+/* ------------------------------------------------------------
+   Shared informative bands (D-023). Their copy describes how the
+   service really works in HeritOS (enquiry, appointment and quote,
+   fittings, collection, the online account, company orders); it
+   holds no numbers, offers or client claims (CONTENT.md, BR-20).
+   ------------------------------------------------------------ */
+
+const FACTS = [
+  { title: 'Made to your measurements', desc: 'A pattern is drafted from your own measurements, not a standard size.' },
+  { title: 'Fittings by appointment', desc: 'You choose the time. The date for your piece is agreed in the written quote.' },
+  { title: 'Follow your order online', desc: 'Your account shows the stage, the payments and the next fitting.' },
+]
+
+const PROCESS = [
+  { title: 'Tell us what you need', desc: 'Send an enquiry with the occasion, the date and any photos you like.' },
+  { title: 'Measurement appointment', desc: 'We meet, choose the cloth and take your measurements. You get a written quote before any work starts.' },
+  { title: 'Cutting and fittings', desc: 'Once the quote is agreed, the piece is cut to your pattern and fitted until it sits right.' },
+  { title: 'Collect', desc: 'Pay any balance and collect. Your account shows each stage along the way.' },
+]
+
+const COMPANY_POINTS = [
+  'One quote billed to your company',
+  'Each wearer measured and listed by name',
+  'The sample approved before production starts',
+  'Handover recorded item by item',
+]
+
+/* Statement beside three facts about the way the work is done. `children` (CMS rich text) replaces the default statement. */
+export const PromiseBand = ({ eyebrow = 'How we work', statement, tone = 'paper', edit, children }) => (
+  <Section tone={tone} className="hc-section--promise" aria-label={eyebrow} edit={edit}>
+    <div className="hc-promise">
+      <div className="hc-promise-copy" data-reveal="">
+        <p className="hc-eyebrow">{eyebrow}</p>
+        {children || <p className="hc-promise-statement">{statement}</p>}
       </div>
-      <Swiper
-        modules={[A11y, Navigation]}
-        navigation={{ prevEl: '.hc-team-prev', nextEl: '.hc-team-next' }}
-        spaceBetween={24}
-        slidesPerView={1.2}
-        breakpoints={{ 576: { slidesPerView: 2 }, 992: { slidesPerView: 3 }, 1200: { slidesPerView: 4 } }}
-      >
-        {members.map((m) => (
-          <SwiperSlide key={m.name}>
-            <div className="hc-team-card">
-              <div className={`hc-team-photo ${m.tile}`}>
-                <span className="hc-team-initials">{initials(m.name)}</span>
-                <div className="hc-team-social">
-                  <a href="https://instagram.com" aria-label="Instagram"><IconifyIcon icon="mdi:instagram" /></a>
-                  <a href="https://wa.me/234" aria-label="WhatsApp"><IconifyIcon icon="mdi:whatsapp" /></a>
-                  <a href="mailto:hello@heritclothing.com" aria-label="Email"><IconifyIcon icon="solar:letter-bold" /></a>
-                </div>
-              </div>
-              <div className="hc-team-meta">
-                <h4>{m.name}</h4>
-                <span>{m.role}</span>
-              </div>
+      <ul className="hc-facts-list" data-reveal="">
+        {FACTS.map((f) => (
+          <li key={f.title}>
+            <div>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
             </div>
-          </SwiperSlide>
+          </li>
         ))}
-      </Swiper>
+      </ul>
     </div>
-  </section>
-);
+  </Section>
+)
 
-/* ---------- TESTIMONIALS — oxybuild asymmetric text + quote carousel ---------- */
-export const Testimonials = ({ kicker, title, lead, ctaTo, ctaLabel, quotes }) => (
-  <section className="hc-section hc-section--paper">
-    <div className="hc-container">
-      <div className="hc-testi-grid">
-        <div className="hc-testi-aside">
-          <div className="hc-kicker">{kicker}</div>
-          <h2 className="hc-h2 hc-mt-2">{title}</h2>
-          {lead && <p className="hc-lead hc-mt-3">{lead}</p>}
-          {ctaTo && (
-            <Link to={ctaTo} className="hc-btn hc-btn--primary hc-mt-4">
-              {ctaLabel || 'Read more'} <IconifyIcon icon="solar:arrow-right-linear" />
-            </Link>
-          )}
-          <SliderNav prevClass="hc-testi-prev" nextClass="hc-testi-next" />
-        </div>
-        <div className="hc-testi-rail">
-          <Swiper
-            modules={[A11y, Navigation, Pagination]}
-            navigation={{ prevEl: '.hc-testi-prev', nextEl: '.hc-testi-next' }}
-            pagination={{ clickable: true, el: '.hc-testi-dots' }}
-            spaceBetween={20}
-            slidesPerView={1}
-            breakpoints={{ 768: { slidesPerView: 2 } }}
-          >
-            {quotes.map((q) => (
-              <SwiperSlide key={q.name}>
-                <figure className="hc-testi-card">
-                  <span className="hc-testi-mark">”</span>
-                  <blockquote>{q.text}</blockquote>
-                  <figcaption>
-                    <span className={`hc-testi-avatar ${q.tile}`}>{initials(q.name)}</span>
-                    <span>
-                      <strong>{q.name}</strong>
-                      <small>{q.role}</small>
-                    </span>
-                  </figcaption>
-                </figure>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-          <div className="hc-testi-dots" />
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-/* ---------- STOCKIST / BRAND strip — oxybuild logo carousel ---------- */
-export const BrandStrip = ({ label, brands }) => (
-  <section className="hc-section--tight hc-strip hc-brandstrip">
-    <div className="hc-container">
-      {label && <div className="hc-brandstrip-label">{label}</div>}
-      <div className="hc-brandstrip-row">
-        {brands.map((b) => (
-          <span key={b} className="hc-brandstrip-logo">{b}</span>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-/* ---------- JOURNAL slider — oxybuild "latest blog" ---------- */
-export const JournalCarousel = ({ kicker, title, lead, posts }) => (
-  <section className="hc-section">
-    <div className="hc-container">
-      <div className="hc-slider-head">
-        <div className="hc-head" style={{ marginBottom: 0 }}>
-          <div className="hc-kicker">{kicker}</div>
-          <h2 className="hc-h2 hc-mt-2">{title}</h2>
-          {lead && <p className="hc-lead hc-mt-2">{lead}</p>}
-        </div>
-        <SliderNav prevClass="hc-journal-prev" nextClass="hc-journal-next" />
-      </div>
-      <Swiper
-        modules={[A11y, Navigation]}
-        navigation={{ prevEl: '.hc-journal-prev', nextEl: '.hc-journal-next' }}
-        spaceBetween={24}
-        slidesPerView={1.1}
-        breakpoints={{ 640: { slidesPerView: 2 }, 992: { slidesPerView: 3 } }}
-      >
-        {posts.map((p) => (
-          <SwiperSlide key={p.title}>
-            <article className="hc-journal-card">
-              <Link to={p.to || '/'} className={`hc-journal-media ${p.tile}`}>
-                <span className="hc-journal-cat">{p.cat}</span>
-              </Link>
-              <div className="hc-journal-body">
-                <span className="hc-journal-date">{p.date}</span>
-                <h4><Link to={p.to || '/'}>{p.title}</Link></h4>
-                <p>{p.excerpt}</p>
-                <Link to={p.to || '/'} className="hc-card-link">
-                  Read more <IconifyIcon icon="solar:arrow-right-linear" />
-                </Link>
-              </div>
-            </article>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
-  </section>
-);
-
-/* ---------- HERO slider — oxybuild swiper hero ---------- */
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' &&
-  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-export const HeroSlider = ({ slides }) => {
-  // Honour reduced-motion: no autoplay, and a clean (non-fading) swap.
-  const reduce = prefersReducedMotion();
+/**
+ * Services as an index (Home): each row is one link with the service name
+ * and summary. From 992px a framed photograph beside the list shows the
+ * service under the pointer or keyboard focus; the new one wipes up over the
+ * old with GSAP (instant under reduced motion). Below 992px each row carries
+ * its own photograph. A service without a photograph shows its print.
+ */
+export const ServiceIndex = ({ services }) => {
+  const scope = useRef(null)
+  const [active, setActive] = useState(0)
+  const shown = useRef(0)
+  const { contextSafe } = useGSAP({ scope })
+  const show = contextSafe((i) => {
+    setActive(i)
+    if (i === shown.current) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const shots = gsap.utils.toArray('.hc-sindex-shot')
+    gsap.killTweensOf(shots)
+    shots.forEach((el, k) => {
+      if (k !== i && k !== shown.current) gsap.set(el, { autoAlpha: 0, zIndex: 0 })
+    })
+    gsap.set(shots[shown.current], { zIndex: 1 })
+    if (reduce) {
+      gsap.set(shots[shown.current], { autoAlpha: 0 })
+      gsap.set(shots[i], { autoAlpha: 1, zIndex: 2, clipPath: 'inset(0% 0% 0% 0%)' })
+    } else {
+      const prev = shots[shown.current]
+      gsap.fromTo(
+        shots[i],
+        { autoAlpha: 1, zIndex: 2, clipPath: 'inset(100% 0% 0% 0%)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'expo.out', onComplete: () => gsap.set(prev, { autoAlpha: 0 }) },
+      )
+      gsap.fromTo(shots[i].querySelector('.hc-sindex-zoom'), { scale: 1.12 }, { scale: 1, duration: 1.1, ease: 'expo.out' })
+    }
+    shown.current = i
+  })
+  useGSAP(
+    () => {
+      gsap.set('.hc-sindex-shot', { autoAlpha: 0 })
+      gsap.set('.hc-sindex-shot:first-child', { autoAlpha: 1, zIndex: 2 })
+    },
+    { scope, dependencies: [services.length] },
+  )
+  const art = (s, i, sizes) =>
+    s.image?.src ? (
+      <HcImage {...s.image} sizes={sizes} />
+    ) : (
+      <PrintArt variant={s.print || printAt(i)} label={`Illustration: ${s.title}`} scale={1.2} />
+    )
   return (
-  <section className="hc-hero hc-hero--bold hc-hero--slider" aria-roledescription="carousel" aria-label="Herit collections">
-    <div className="hc-hero-weave" aria-hidden="true" />
-    <div className="hc-hero-glow" aria-hidden="true" />
-    <span className="hc-hero-vlabel" aria-hidden="true">Est. 2024 — Wear your heritage</span>
-    <Swiper
-      modules={[A11y, Autoplay, EffectFade, Pagination]}
-      effect={reduce ? 'slide' : 'fade'}
-      fadeEffect={{ crossFade: true }}
-      speed={reduce ? 0 : 600}
-      autoplay={reduce ? false : { delay: 5500, disableOnInteraction: false, pauseOnMouseEnter: true }}
-      pagination={{ clickable: true, el: '.hc-hero-dots' }}
-      loop
-      className="hc-hero-swiper"
-    >
-      {slides.map((s) => (
-        <SwiperSlide key={s.title}>
-          <div className="hc-container">
-            <div className="hc-hero-grid">
-              <div className="hc-hero-left">
-                <div className="hc-hero-eyebrow">
-                  <span className="hc-hero-pulse" /> {s.eyebrow}
-                </div>
-                <h1 className="hc-hero-title">
-                  {s.title}
-                  <span className="hc-hero-em">{s.em}</span>
-                </h1>
-                <p className="hc-hero-sub">{s.sub}</p>
-                <div className="hc-hero-actions">
-                  <Link to={s.primaryTo} className="hc-btn hc-btn--gold hc-hero-cta">
-                    <IconifyIcon icon={s.primaryIcon || 'solar:bag-4-bold'} /> {s.primaryLabel}
-                  </Link>
-                  <Link to={s.secondaryTo} className="hc-btn hc-btn--glass">
-                    <IconifyIcon icon={s.secondaryIcon || 'solar:play-circle-bold'} /> {s.secondaryLabel}
-                  </Link>
-                </div>
-              </div>
-              <div className="hc-hero-right">
-                <div className="hc-fabric-stack">
-                  {s.fabrics.map((f, i) => (
-                    <div key={f.name} className={`hc-fabric-card ${f.tile}`} style={{ '--i': i }}>
-                      <span className="hc-fabric-tag">{f.tag}</span>
-                      <div className="hc-fabric-meta"><strong>{f.name}</strong><small>{f.sub}</small></div>
-                      {f.price && <span className="hc-fabric-price">{f.price}</span>}
-                    </div>
-                  ))}
-                </div>
-                <div className="hc-hero-place">
-                  <IconifyIcon icon="solar:map-point-bold" /> Ajuwon Market · Lagos, Nigeria
-                </div>
-              </div>
-            </div>
+    <div ref={scope} className="hc-sindex">
+      <ol className="hc-sindex-list">
+        {services.map((s, i) => (
+          <li key={s.to} data-reveal="" style={{ '--hc-reveal-delay': `${i * 70}ms` }}>
+            <Link to={s.to} className={`hc-sindex-row${i === active ? ' is-active' : ''}`} onPointerEnter={() => show(i)} onFocus={() => show(i)}>
+              <span className="hc-sindex-text">
+                <span className="hc-sindex-title">{s.title}</span>
+                {s.summary && <span className="hc-sindex-sum">{s.summary}</span>}
+                {s.meta && <span className="hc-sindex-meta">{s.meta}</span>}
+              </span>
+              <span className="hc-sindex-thumb" aria-hidden="true">
+                {art(s, i, '(max-width: 991px) 30vw, 1px')}
+              </span>
+              <Icon name="arrow-right" className="hc-sindex-arrow" />
+            </Link>
+          </li>
+        ))}
+      </ol>
+      <div className="hc-sindex-frame" aria-hidden="true">
+        {services.map((s, i) => (
+          <div key={s.to} className="hc-sindex-shot">
+            <div className="hc-sindex-zoom">{art(s, i, '(min-width: 992px) 40vw, 1px')}</div>
           </div>
-        </SwiperSlide>
-      ))}
-    </Swiper>
-    <div className="hc-container hc-hero-foot">
-      <div className="hc-hero-dots" />
-      <button
-        type="button"
-        className="hc-hero-scroll"
-        aria-label="Scroll to explore"
-        onClick={(e) => e.currentTarget.closest('section')?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-      >
-        Scroll <IconifyIcon icon="solar:alt-arrow-down-linear" />
-      </button>
+        ))}
+      </div>
     </div>
-  </section>
-  );
-};
+  )
+}
+
+/* Steps on a rail that fills amber as the steps are revealed. `steps` ([{title, desc}],
+   for example from the How it works page) replace the fixed four when given. */
+export const ProcessBand = ({ tone = 'paper', title = 'From first message to handover', lead, moreTo, steps, edit }) => (
+  <Section tone={tone} labelledBy="process-title" className="hc-section--process" edit={edit}>
+    <SectionHead id="process-title" eyebrow="How it works" title={title} lead={lead}>
+      {moreTo && (
+        <p>
+          <Link to={moreTo} className="hc-card-link">
+            The steps in full <Icon name="arrow-right" />
+          </Link>
+        </p>
+      )}
+    </SectionHead>
+    <ol className="hc-process">
+      {(steps?.length ? steps : PROCESS).map((s, i) => (
+        <li key={s.title} data-reveal="" style={{ '--hc-reveal-delay': `${i * 90}ms` }}>
+          <span className="hc-process-n">Step {i + 1}</span>
+          <h3>{s.title}</h3>
+          <p>{s.desc}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
+)
+
+/* Company orders: photograph, what a company gets, one action. */
+export const CompanyBand = ({ title, lead, image, to, tone, edit }) => (
+  <Section tone={tone || 'ink'} labelledBy="company-band" className="hc-section--band" edit={edit}>
+    <div className="hc-band">
+      {image?.src ? (
+        <HcImage {...image} ratio="5 / 6" sizes="(min-width: 1024px) 50vw, 100vw" className="hc-band-media" />
+      ) : (
+        <PrintArt variant="asooke" ratio="5 / 6" className="hc-band-media" />
+      )}
+      <div className="hc-band-copy" data-reveal="">
+        <p className="hc-eyebrow">For teams and events</p>
+        <h2 id="company-band" className="hc-h2">
+          {title || 'Uniforms and event wear for your whole team'}
+        </h2>
+        <p className="hc-lead">
+          {lead ||
+            'For teams, events and wedding parties: one brief, many wearers, and a clear record of who has been measured and who has collected.'}
+        </p>
+        <ul className="hc-ticks">
+          {COMPANY_POINTS.map((p) => (
+            <li key={p}>
+              <Icon name="check" /> <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+        <Button {...(String(to).startsWith('#') ? { href: to } : { to })} iconEnd="arrow-right">
+          Ask about a company order
+        </Button>
+      </div>
+    </div>
+  </Section>
+)
+
+/* Numbered steps with the amber rule that fills as each step is revealed. */
+export const ProcessSteps = ({ eyebrow, title, lead, steps, tone }) => (
+  <Section tone={tone}>
+    <SectionHead eyebrow={eyebrow} title={title} lead={lead} />
+    <ol className="hc-steps">
+      {steps.map((s) => (
+        <li key={s.title} data-reveal="">
+          <h3>{s.title}</h3>
+          <p>{s.desc}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
+)
+
+/*
+ * Consented, published testimonials only, as in the approved prototype: one
+ * large centred quote that rotates every 6.5s with dots to choose. It pauses
+ * on hover and focus, never moves under reduced motion, and is not rendered
+ * when there are no published reviews.
+ */
+export const Testimonials = ({ eyebrow = 'What clients say', quotes }) => {
+  const n = quotes?.length || 0
+  const [i, setI] = useState(0)
+  const [paused, setPaused] = useState(false)
+  // Stopped by the pause button or by choosing a review (WCAG 2.2.2).
+  const [stopped, setStopped] = useState(false)
+  const [still] = useState(() => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  const moving = n > 1 && !paused && !stopped && !still
+  useEffect(() => {
+    if (!moving) return undefined
+    const t = setInterval(() => setI((v) => (v + 1) % n), 6500)
+    return () => clearInterval(t)
+  }, [n, moving])
+  if (!n) return null
+  const q = quotes[i % n]
+  return (
+    <Section tone="alt" className="hc-section--voice" labelledBy="voice-title">
+      <div
+        className="hc-voice"
+        data-reveal=""
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}>
+        <h2 id="voice-title" className="hc-eyebrow">
+          {eyebrow}
+        </h2>
+        <figure key={i} className="hc-voice-quote" aria-live={moving ? 'off' : 'polite'}>
+          <blockquote>“{q.text}”</blockquote>
+          <figcaption>{[q.name, q.role || q.location].filter(Boolean).join(', ')}</figcaption>
+        </figure>
+        {n > 1 && (
+          <div className="hc-voice-dots" role="group" aria-label="Choose a review">
+            {quotes.map((r, k) => (
+              <button
+                key={`${r.name}-${k}`}
+                type="button"
+                aria-label={`Review ${k + 1} of ${n}`}
+                aria-pressed={k === i % n}
+                onClick={() => {
+                  setI(k)
+                  setStopped(true)
+                }}
+              />
+            ))}
+            {!still && (
+              <button
+                type="button"
+                className="hc-voice-toggle"
+                aria-label={stopped ? 'Play reviews' : 'Pause reviews'}
+                aria-pressed={stopped}
+                onClick={() => setStopped((v) => !v)}>
+                <Icon name={stopped ? 'play' : 'pause'} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </Section>
+  )
+}
+
+/* Published journal posts only, each over its African print. Not rendered when there are none. */
+export const JournalGrid = ({ eyebrow, title, lead, posts, moreTo, edit }) => {
+  if (!posts?.length) return null
+  return (
+    <Section edit={edit} labelledBy="journal-title">
+      <SectionHead id="journal-title" eyebrow={eyebrow} title={title} lead={lead}>
+        {moreTo && (
+          <p>
+            <Link to={moreTo} className="hc-card-link">
+              All posts <Icon name="arrow-right" />
+            </Link>
+          </p>
+        )}
+      </SectionHead>
+      <div className="hc-grid hc-grid--3">
+        {posts.slice(0, 3).map((p, i) => (
+          <article key={p.slug} className="hc-journal-card" data-reveal="">
+            <PrintArt variant={p.print || printAt(i)} className="hc-journal-media" scale={0.9} />
+            <div className="hc-journal-body">
+              {(p.cat || p.date) && <span className="hc-journal-date">{[p.cat, p.date].filter(Boolean).join(' · ')}</span>}
+              <h3 className="hc-h4">
+                <Link to={p.to || `/journal/${p.slug}`}>{p.title}</Link>
+              </h3>
+              {p.excerpt && <p>{p.excerpt}</p>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </Section>
+  )
+}
+
+/* Closing action: one primary, one secondary, over an optional dimmed photograph. */
+export const ClosingAction = ({ eyebrow = 'Start here', title, text, primary, secondary, image, print = 'adire', edit }) => (
+  <Section tone="ink" className="hc-section--closing hc-section--closing-media" edit={edit}>
+    <div className="hc-closing-media" aria-hidden="true">
+      {image?.src ? <HcImage {...image} alt="" sizes="100vw" /> : <PrintArt variant={print} scale={1.4} drift />}
+    </div>
+    <div className="hc-cta-band" data-reveal="">
+      {eyebrow && <p className="hc-eyebrow">{eyebrow}</p>}
+      <h2 className="hc-h2">{title}</h2>
+      {text && <p>{text}</p>}
+      <div className="hc-cta-actions">
+        {primary && (
+          <Button to={primary.to} iconEnd="arrow-right">
+            {primary.label}
+          </Button>
+        )}
+        {secondary && (
+          <Button to={secondary.to} variant="secondary">
+            {secondary.label}
+          </Button>
+        )}
+      </div>
+    </div>
+  </Section>
+)
+
+/* ------------------------------------------------------------
+   Fabric story (Home, the "fabrics" page) and story bands (About
+   and other page bodies). Words come from the CMS page body: each
+   "## Heading" in the Website editor becomes a card or a band.
+   ------------------------------------------------------------ */
+
+/* The cloths: one tall print card per "## Fabric" section of the page body. */
+export const FabricStory = ({ page, eyebrow = 'The cloth', edit }) => {
+  if (!page) return null
+  const { sections } = splitSections(page.body)
+  if (!sections.length) return null
+  return (
+    <Section tone="alt" labelledBy="fabric-title" className="hc-section--fabrics" edit={edit}>
+      <SectionHead id="fabric-title" eyebrow={eyebrow} title={page.headline} lead={page.intro || undefined} />
+      <div className={`hc-fabric-grid hc-fabric-grid--${Math.min(sections.length, 4)}`}>
+        {sections.map((f, i) => (
+          <article key={f.title} className="hc-fabric" data-reveal="" style={{ '--hc-reveal-delay': `${i * 90}ms` }}>
+            <PrintArt
+              variant={printVariant(f.title, printAt(i))}
+              label={`Illustration: ${f.title} print`}
+              ratio="4 / 5"
+              scale={1.25}
+              className="hc-fabric-art"
+            />
+            <div className="hc-fabric-copy">
+              <h3 className="hc-h4">{f.title}</h3>
+              <Rich html={f.html} />
+            </div>
+          </article>
+        ))}
+      </div>
+    </Section>
+  )
+}
+
+/* One "## Heading" section that holds "### Sub-heading" items: a grid of print-topped cards. */
+const StoryCards = ({ section, index, tone, edit }) => {
+  const { lead, sections: items } = splitSections(section.html, 'h3')
+  return (
+    <Section tone={tone} labelledBy={`story-${index}`} edit={edit}>
+      <SectionHead id={`story-${index}`} title={section.title} />
+      {lead && <Rich html={lead} className="hc-story-lead" />}
+      <ol className={`hc-story-cards hc-story-cards--${Math.min(items.length, 4)}`}>
+        {items.map((it, i) => (
+          <li key={it.title} className="hc-story-card" data-reveal="" style={{ '--hc-reveal-delay': `${i * 70}ms` }}>
+            <PrintArt variant={printAt(index + i)} className="hc-story-card-art" />
+            <h3 className="hc-h4">{it.title}</h3>
+            <Rich html={it.html} />
+          </li>
+        ))}
+      </ol>
+    </Section>
+  )
+}
+
+/* Short sections side by side (mission and vision), each under a strip of cloth. */
+const StoryStatements = ({ group, index, tone, edit }) => (
+  <Section tone={tone} aria-label={group.map((g) => g.title).join(', ')} edit={edit}>
+    <div className={`hc-statements hc-statements--${group.length}`}>
+      {group.map((g, i) => (
+        <div key={g.title} className="hc-statement" data-reveal="">
+          <PrintArt variant={printAt(index + i + 1)} className="hc-print-rule hc-statement-rule" />
+          <h2 className="hc-h3">{g.title}</h2>
+          <Rich html={g.html} className="hc-statement-text" />
+        </div>
+      ))}
+    </div>
+  </Section>
+)
+
+/**
+ * The "## Heading" sections of a page body laid out as bands: a section with
+ * "### items" becomes a card grid, and runs of up to two plain sections sit
+ * side by side. Text before the first heading is the caller's to show.
+ */
+export const StoryBands = ({ sections, edit }) => {
+  const groups = []
+  sections.forEach((s) => {
+    const last = groups[groups.length - 1]
+    if (hasSubheads(s.html)) groups.push({ cards: s })
+    else if (last?.plain && last.plain.length < 2) last.plain.push(s)
+    else groups.push({ plain: [s] })
+  })
+  return groups.map((g, i) =>
+    g.cards ? (
+      <StoryCards key={g.cards.title} section={g.cards} index={i} tone={i % 2 ? 'paper' : 'alt'} edit={edit} />
+    ) : (
+      <StoryStatements key={g.plain[0].title} group={g.plain} index={i} tone={i % 2 ? 'paper' : 'alt'} edit={edit} />
+    ),
+  )
+}
