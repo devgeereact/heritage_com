@@ -7,8 +7,8 @@
  * WebP, it is under MEDIA_MAX_MB and 40 megapixels. It is then decoded and
  * re-encoded with GD, which drops every metadata block (EXIF, GPS, XMP, ICC,
  * comments) and anything appended to the file. The original bytes are never
- * stored. Output: WebP at 800 and 1600 pixels wide (never upscaled) plus one
- * JPEG fallback at the largest width, all named <32 random hex>-w<width>.<ext>,
+ * stored. Output: WebP at 800, 1600 and 2400 pixels wide (never upscaled;
+ * quality 86 since D-030) plus one JPEG fallback at the largest width (88), all named <32 random hex>-w<width>.<ext>,
  * written with mode 0644 to PUBLIC_UPLOAD_DIR (default <doc root>/uploads/site),
  * a folder whose .htaccess refuses to run scripts. Without GD the upload is
  * refused (501), because metadata could not be stripped.
@@ -71,7 +71,10 @@ function media_ingest($path, $userId, $alt = '', $caption = '') {
 
   $sha = hash_file('sha256', $path);
   $dup = db_row('SELECT * FROM media_assets WHERE sha256 = ? AND deleted_at IS NULL LIMIT 1', 's', $sha);
-  if ($dup) return [(int)$dup['id'], true];
+  // A repeat upload of a known image keeps its row. When that row was made
+  // before the current sizes (D-030 added 2400px), the variants are made again
+  // from this upload, since the original bytes were never kept.
+  if ($dup && !media_needs_refresh($dup)) return [(int)$dup['id'], true];
 
   @ini_set('memory_limit', '256M');
   $im = match ($mime) {
@@ -107,7 +110,7 @@ function media_ingest($path, $userId, $alt = '', $caption = '') {
       if ($canWebp) {
         imagesavealpha($scaled, true);
         $name = "$base-w$tw.webp";
-        if (!imagewebp($scaled, "$dir/$name", 78)) throw new RuntimeException('webp write failed');
+        if (!imagewebp($scaled, "$dir/$name", MEDIA_WEBP_QUALITY)) throw new RuntimeException('webp write failed');
         $written[] = "$dir/$name"; $variants['webp'][(string)$tw] = $name;
       }
       if ($tw === end($plan)) {
@@ -117,7 +120,7 @@ function media_ingest($path, $userId, $alt = '', $caption = '') {
         imagecopy($flat, $scaled, 0, 0, 0, 0, $tw, $th);
         imageinterlace($flat, true);
         $name = "$base-w$tw.jpg";
-        if (!imagejpeg($flat, "$dir/$name", 82)) throw new RuntimeException('jpeg write failed');
+        if (!imagejpeg($flat, "$dir/$name", MEDIA_JPEG_QUALITY)) throw new RuntimeException('jpeg write failed');
         $written[] = "$dir/$name"; $variants['jpg'][(string)$tw] = $name;
         unset($flat);
       }
@@ -131,6 +134,17 @@ function media_ingest($path, $userId, $alt = '', $caption = '') {
   unset($im);
   foreach ($written as $f) @chmod($f, 0644);
 
+  if ($dup) {
+    // Swap in the new files, then remove the old ones; alt text and caption stay.
+    db_exec('UPDATE media_assets SET base_name = ?, width = ?, height = ?, variants = ? WHERE id = ?', 'siisi',
+      $base, $w, $h, json_encode($variants), (int)$dup['id']);
+    $old = json_decode((string)$dup['variants'], true) ?: [];
+    foreach (['webp', 'jpg'] as $k) foreach (($old[$k] ?? []) as $name) {
+      if (preg_match('/^[a-f0-9]{32}-w\d+\.(webp|jpg)$/', (string)$name)) @unlink("$dir/$name");
+    }
+    return [(int)$dup['id'], true];
+  }
+
   $alt = cms_text($alt); $caption = cms_text($caption);
   if (cms_len($alt) > 250) $alt = mb_substr($alt, 0, 250);
   if (cms_len($caption) > 250) $caption = mb_substr($caption, 0, 250);
@@ -141,6 +155,18 @@ function media_ingest($path, $userId, $alt = '', $caption = '') {
 }
 
 /** A resized copy that keeps transparency (imagescale() is not reliable on every GD build). */
+const MEDIA_WEBP_QUALITY = 86;
+const MEDIA_JPEG_QUALITY = 88;
+
+/** True when a stored image lacks a width the current plan would make for it. */
+function media_needs_refresh(array $m) {
+  $v = json_decode((string)($m['variants'] ?? ''), true) ?: [];
+  $have = array_map('intval', array_keys($v['webp'] ?? []));
+  if (!$have) return false;
+  foreach (image_variant_plan((int)$m['width']) as $t) if (!in_array($t, $have, true)) return true;
+  return false;
+}
+
 function media_resample($im, $tw, $th) {
   $out = imagecreatetruecolor($tw, $th);
   imagealphablending($out, false);

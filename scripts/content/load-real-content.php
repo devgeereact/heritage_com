@@ -16,7 +16,8 @@
  *   --base URL        API base (required). Only 127.0.0.1 or localhost unless
  *   --allow-remote    is given, and then only over https (for loading the live
  *                     site later, when the owner chooses).
- *   --images DIR      rendered images and manifest.json (default scripts/content/.out)
+ *   --images DIR      rendered images and manifest.json (default scripts/content/.out;
+ *                     scripts/content/.stock for the stock photographs, D-028)
  *   --update          overwrite items the owner has edited since the last load
  *   --dry-run         sign in and report what would change, without writing
  *
@@ -141,24 +142,26 @@ $existing = [];
 foreach ((must(api('GET', 'cms.php?action=media_list'), 'Image list')['items'] ?? []) as $m) $existing[(int)$m['id']] = $m;
 foreach ($manifest as $name => $m) {
   $path = rtrim($opt['images'], '/') . '/' . $m['file'];
+  // Stock photographs (scripts/content/stock-manifest.mjs) carry their own credit caption.
+  $cap = $m['caption'] ?? $content['caption'];
   $sha = hash_file('sha256', $path);
   $known = $state['media'][$name] ?? null;
   if ($known && $known['sha'] === $sha && isset($existing[$known['id']])) {
     $mediaIds[$name] = $known['id'];
     $cur = $existing[$known['id']];
-    if ($cur['alt_text'] === $m['alt'] && $cur['caption'] === $content['caption']) { $say('unchanged', "image $name (#{$known['id']})"); continue; }
+    if ($cur['alt_text'] === $m['alt'] && $cur['caption'] === $cap) { $say('unchanged', "image $name (#{$known['id']})"); continue; }
     if ($cur['alt_text'] !== ($known['alt'] ?? null) && !$opt['update']) { $say('kept', "image $name: alt text edited by the owner"); continue; }
-    if (!$opt['dry']) must(api('POST', "cms.php?action=media_update&id={$known['id']}", ['alt_text' => $m['alt'], 'caption' => $content['caption']]), "Alt text for $name");
+    if (!$opt['dry']) must(api('POST', "cms.php?action=media_update&id={$known['id']}", ['alt_text' => $m['alt'], 'caption' => $cap]), "Alt text for $name");
     $state['media'][$name]['alt'] = $m['alt'];
     $say('updated', "image $name alt text");
     continue;
   }
   if ($opt['dry']) { $say('created', "image $name (would upload {$m['file']})"); continue; }
-  [$code, $b] = api('POST', 'cms.php?action=media_upload', ['alt_text' => $m['alt'], 'caption' => $content['caption']], $path);
+  [$code, $b] = api('POST', 'cms.php?action=media_upload', ['alt_text' => $m['alt'], 'caption' => $cap], $path);
   if ($code !== 200 && $code !== 201) { $say('failed', "image $name ($code): " . ($b['error'] ?? '')); continue; }
   $id = (int)$b['media']['id'];
   if (!empty($b['duplicate']) && $b['media']['alt_text'] === '') {
-    must(api('POST', "cms.php?action=media_update&id=$id", ['alt_text' => $m['alt'], 'caption' => $content['caption']]), "Alt text for $name");
+    must(api('POST', "cms.php?action=media_update&id=$id", ['alt_text' => $m['alt'], 'caption' => $cap]), "Alt text for $name");
   }
   $mediaIds[$name] = $id;
   $state['media'][$name] = ['id' => $id, 'sha' => $sha, 'alt' => $m['alt']];
@@ -171,6 +174,17 @@ echo "Business details\n";
 $profile = must(api('GET', 'cms.php?action=profile_get'), 'Profile')['profile'] ?? [];
 $send = [];
 foreach ($content['profile'] as $k => $v) {
+  // Socials are an object: compare and store them as sorted JSON, merged over
+  // what the owner already has so a link they added is kept.
+  if (is_array($v)) {
+    $have = (array)($profile[$k] ?? []);
+    $v = array_merge($have, $v);
+    ksort($v); ksort($have);
+    $cur = json_encode($have, JSON_UNESCAPED_SLASHES);
+    if ($cur === json_encode($v, JSON_UNESCAPED_SLASHES)) continue;
+    $send[$k] = $v;
+    continue;
+  }
   $cur = (string)($profile[$k] ?? '');
   if ($cur === (string)$v) continue;
   $mine = ($state['profile'][$k] ?? null) === $cur;
@@ -182,7 +196,7 @@ foreach ($content['profile'] as $k => $v) {
 }
 if ($send) {
   if (!$opt['dry']) must(api('POST', 'cms.php?action=profile_save', $send), 'Profile save');
-  foreach ($send as $k => $v) $state['profile'][$k] = (string)$v;
+  foreach ($send as $k => $v) $state['profile'][$k] = is_array($v) ? json_encode($v, JSON_UNESCAPED_SLASHES) : (string)$v;
   $say('updated', 'profile: ' . implode(', ', array_keys($send)));
 } else {
   $say('unchanged', 'profile');

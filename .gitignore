@@ -52,3 +52,4 @@ release-manifest.json
 # Rendered print images for the content loader (scripts/content/render-prints.mjs)
 scripts/content/.out/
 scripts/content/.state/
+scripts/content/.stock/

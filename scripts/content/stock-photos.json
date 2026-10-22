@@ -1,0 +1,115 @@
+[
+  {
+    "name": "hero-adire",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/indigo-dyed-fabric-with-geometric-patterns-35197095/",
+    "photographer": "Cc Liu",
+    "licence": "Pexels License",
+    "alt": "Close-up of indigo-dyed cloth with pale resist-stitched stripes fading into deep blue"
+  },
+  {
+    "name": "hero-asooke",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/close-up-of-a-rolled-measuring-tape-on-wooden-surface-38321409/",
+    "photographer": "Jahra Tasfia Reza",
+    "licence": "Pexels License",
+    "alt": "A rolled tailor's tape measure on a dark wooden table"
+  },
+  {
+    "name": "hero-ankara",
+    "source": "Unsplash",
+    "page_url": "https://unsplash.com/photos/assorted-color-textiles-SfPOkp6-2eA",
+    "photographer": "Eva Blue",
+    "licence": "Unsplash License",
+    "alt": "Rows of rolled African wax print fabrics in bright patterns at a market stall"
+  },
+  {
+    "name": "hero-woven",
+    "source": "Unsplash",
+    "page_url": "https://unsplash.com/photos/a-large-bridge-over-a-body-of-water-at-night-Ww2j734hEcA",
+    "photographer": "Opeyemi Adisa",
+    "licence": "Unsplash License",
+    "alt": "The Lekki-Ikoyi Link Bridge in Lagos lit up at night over the lagoon"
+  },
+  {
+    "name": "page-home",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/brown-wooden-stick-2974110/",
+    "photographer": "Wallace Chuck",
+    "licence": "Pexels License",
+    "alt": "Tailoring tools, a tape measure and a sewing machine on a workbench"
+  },
+  {
+    "name": "page-about",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/a-person-cutting-a-black-fabric-with-a-pair-of-scissors-6461097/",
+    "photographer": "Pavel Danilyuk",
+    "licence": "Pexels License",
+    "alt": "Hands cutting dark cloth with scissors along chalk lines"
+  },
+  {
+    "name": "page-how-it-works",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/sewing-patterns-on-the-table-6461103/",
+    "photographer": "Pavel Danilyuk",
+    "licence": "Pexels License",
+    "alt": "Paper pattern pieces, tailor's chalk, a ruler and scissors laid on dark cloth"
+  },
+  {
+    "name": "page-company",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/clothes-in-a-warehouse-17329670/",
+    "photographer": "Kaan Keskin",
+    "licence": "Pexels License",
+    "alt": "Bolts of suiting fabric stacked on shelves in a dim warehouse"
+  },
+  {
+    "name": "page-services",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/close-up-of-a-sewing-machine-needle-in-action-36883230/",
+    "photographer": "Andranik Paradyan",
+    "licence": "Pexels License",
+    "alt": "A sewing machine needle and presser foot stitching cloth in warm light"
+  },
+  {
+    "name": "page-contact",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/colorful-sewing-threads-and-bobbins-on-wooden-surface-39081592/",
+    "photographer": "Jahra Tasfia Reza",
+    "licence": "Pexels License",
+    "alt": "Spools of coloured thread and bobbins on a dark wooden table"
+  },
+  {
+    "name": "service-made-to-measure",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/crop-male-artisan-cutting-piece-of-fabric-at-workbench-5830641/",
+    "photographer": "Anna Shvets",
+    "licence": "Pexels License",
+    "alt": "Hands cutting navy cloth with scissors along a chalk-marked curve"
+  },
+  {
+    "name": "service-aso-ebi",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/close-up-photo-of-african-fabrics-8655023/",
+    "photographer": "Iwaria",
+    "licence": "Pexels License",
+    "alt": "Neat stacks of folded African wax print fabric at a market stall",
+    "edit": "Cropped to the central and right stacks to leave out printed brand labels, then scaled to 2400px wide"
+  },
+  {
+    "name": "service-gifting",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/rolled-textile-on-wicker-table-6850482/",
+    "photographer": "Teona Swift",
+    "licence": "Pexels License",
+    "alt": "Rolled indigo-dyed cloth tied with twine on a woven mat"
+  },
+  {
+    "name": "service-company",
+    "source": "Pexels",
+    "page_url": "https://www.pexels.com/photo/close-up-of-black-fabric-rolls-stacked-in-factory-28460324/",
+    "photographer": "Beatriz Vilaça",
+    "licence": "Pexels License",
+    "alt": "Rows of identical dark fabric rolls stacked end on"
+  }
+]

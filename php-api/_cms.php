@@ -87,7 +87,8 @@ const PROFILE_KEYS = ['business_name', 'business_phone', 'business_whatsapp', 'b
   'business_address_public', 'business_area_text', 'business_hours_text', 'socials', 'journal_enabled'];
 
 const UPLOAD_MIME_EXT = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-const IMAGE_TARGET_WIDTHS = [800, 1600];
+// 2400 since D-030 so a full-width photograph stays sharp on a 2x screen.
+const IMAGE_TARGET_WIDTHS = [800, 1600, 2400];
 const IMAGE_MAX_PIXELS = 40000000;
 
 /* ---- Small text helpers --------------------------------------------------- */

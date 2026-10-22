@@ -132,8 +132,13 @@ $sx = @simplexml_load_string($xml);
 check('sitemap: valid XML with two URLs', $sx !== false && count($sx->url) === 2, true);
 check('sitemap: & escaped, lastmod as a date', [str_contains($xml, '&amp;y=2'), (string)$sx->url[1]->lastmod], [true, '2026-10-11']);
 check('upload mime: allowed types only', [upload_mime_ok('image/jpeg'), upload_mime_ok('image/webp'), upload_mime_ok('image/gif'), upload_mime_ok('text/x-php')], ['jpg', 'webp', null, null]);
-check('variant plan: large, mid, exact and small images', [image_variant_plan(3000), image_variant_plan(1200), image_variant_plan(800), image_variant_plan(500)],
-  [[800, 1600], [800, 1200], [800], [500]]);
+check('variant plan: large, mid, exact and small images', [image_variant_plan(3000), image_variant_plan(2400), image_variant_plan(1200), image_variant_plan(800), image_variant_plan(500)],
+  [[800, 1600, 2400], [800, 1600, 2400], [800, 1200], [800], [500]]);
+require_once __DIR__ . '/../_media.php';
+$mm = fn($w, $widths) => ['width' => $w, 'variants' => json_encode(['webp' => array_fill_keys(array_map('strval', $widths), 'x.webp')])];
+check('media refresh: a wide image made before 2400px is made again; current and small ones are not',
+  [media_needs_refresh($mm(2400, [800, 1600])), media_needs_refresh($mm(2400, [800, 1600, 2400])), media_needs_refresh($mm(1200, [800, 1200])), media_needs_refresh(['width' => 2400, 'variants' => '{}'])],
+  [true, false, false, false]);
 
 // ---- Home hero slides (schema_phase28.sql, D-023)
 check('slide: entity known', in_array('slide', CMS_ENTITIES, true), true);

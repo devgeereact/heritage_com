@@ -73,12 +73,12 @@ const tape = ({ x, y, w, rot }) => {
   const ticks = Array.from({ length: Math.floor(w / 12) }, (_, i) => {
     const big = i % 10 === 0
     const mid = i % 5 === 0
-    return `<line x1="${i * 12 + 6}" y1="0" x2="${i * 12 + 6}" y2="${big ? 34 : mid ? 24 : 14}" stroke="${INK}" stroke-width="${big ? 2.5 : 1.5}"/>${big && i ? `<text x="${i * 12 + 10}" y="58" font-family="Inter, Helvetica, sans-serif" font-size="18" fill="${INK}">${i / 10}</text>` : ''}`
+    return `<line x1="${i * 12 + 6}" y1="0" x2="${i * 12 + 6}" y2="${big ? 34 : mid ? 24 : 14}" stroke="${INK}" stroke-width="${big ? 2.5 : 1.5}"/>${big && i ? `<text x="${i * 12 + 10}" y="58" font-family="Hanken Grotesk, Helvetica, sans-serif" font-size="18" fill="${INK}">${i / 10}</text>` : ''}`
   }).join('')
   return `<div class="tape" style="left:${x}px;top:${y}px;width:${w}px;transform:rotate(${rot}deg)"><svg width="${w}" height="72" xmlns="http://www.w3.org/2000/svg"><rect width="${w}" height="72" fill="${C.gold}"/><rect y="66" width="${w}" height="6" fill="${AMBER}"/>${ticks}</svg></div>`
 }
 
-/** A small plaque with the wordmark and an optional line, set in Fraunces. */
+/** A small plaque with the wordmark and an optional line, set in Newsreader. */
 const plaque = ({ x, y, title, line, size = 64, align = 'left' }) =>
   `<div class="plaque" style="${align === 'center' ? 'left:50%;top:50%;transform:translate(-50%,-50%)' : `left:${x}px;top:${y}px`};text-align:${align}"><b style="font-size:${size}px">${title}</b>${line ? `<span>${line}</span>` : ''}</div>`
 
@@ -86,16 +86,16 @@ const thread = (d, width = 4) =>
   `<svg class="thread" xmlns="http://www.w3.org/2000/svg"><path d="${d}" fill="none" stroke="${AMBER}" stroke-width="${width}" stroke-linecap="round" stroke-dasharray="2 14"/></svg>`
 
 const page = (w, h, body, glow = '72% 40%') => `<!doctype html><html><head><meta charset="utf-8"><style>
-@font-face { font-family: 'Fraunces'; font-weight: 300 700; src: url(${pathToFileURL(join(ROOT, 'public/fonts/fraunces-normal-latin.woff2'))}) format('woff2'); }
-@font-face { font-family: 'Inter'; font-weight: 400 700; src: url(${pathToFileURL(join(ROOT, 'public/fonts/inter-normal-latin.woff2'))}) format('woff2'); }
+@font-face { font-family: 'Newsreader'; font-weight: 200 800; src: url(${pathToFileURL(join(ROOT, 'public/fonts/newsreader-normal-latin.woff2'))}) format('woff2'); }
+@font-face { font-family: 'Hanken Grotesk'; font-weight: 100 900; src: url(${pathToFileURL(join(ROOT, 'public/fonts/hanken-normal-latin.woff2'))}) format('woff2'); }
 html, body { margin: 0; width: ${w}px; height: ${h}px; overflow: hidden; }
-body { position: relative; background: radial-gradient(ellipse at ${glow}, #2b2112 0%, ${INK} 58%); font-family: Inter, Helvetica, sans-serif; }
+body { position: relative; background: radial-gradient(ellipse at ${glow}, #2b2112 0%, ${INK} 58%); font-family: 'Hanken Grotesk', Helvetica, sans-serif; }
 .panel { position: absolute; overflow: hidden; box-shadow: 0 40px 90px rgba(0,0,0,0.55), 0 8px 18px rgba(0,0,0,0.35); }
 .panel svg { position: absolute; inset: 0; }
 .panel i { position: absolute; inset: 0; }
 .tape { position: absolute; z-index: 20; height: 72px; box-shadow: 0 18px 40px rgba(0,0,0,0.45); transform-origin: left center; }
 .plaque { position: absolute; z-index: 30; color: ${IVORY}; background: rgba(14,13,11,0.82); padding: 28px 40px; border-radius: 14px; border: 1px solid rgba(243,238,228,0.18); }
-.plaque b { display: block; font-family: Fraunces, Georgia, serif; font-weight: 500; letter-spacing: 0.02em; line-height: 1; }
+.plaque b { display: block; font-family: Newsreader, Georgia, serif; font-weight: 500; letter-spacing: 0.02em; line-height: 1; }
 .plaque span { display: block; margin-top: 14px; font-size: 26px; letter-spacing: 0.04em; color: rgba(243,238,228,0.8); }
 .thread { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 25; }
 .vignette { position: absolute; inset: 0; z-index: 40; background: radial-gradient(ellipse at 60% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%); }
