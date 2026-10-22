@@ -4,6 +4,10 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Footer contact icons, 22 October 2026
+
+- Changed: Instagram, WhatsApp and the phone number move from the footer Visit column to icon-only links in the bottom bar, so the top columns align (D-033). Each link keeps the handle or number as its accessible name and tooltip; the Visit column now lists the address, hours and email only. The footer tests follow.
+
 ### Repository consolidation, 22 October 2026
 
 - Fixed: `e2e-phase4.sh` check U7 expected image variants 800 and 1600; since D-030 a 2000px upload also gets a 2000px variant (never upscaled), so it now expects 800, 1600 and 2000. Phase 4 e2e: 63 of 63.

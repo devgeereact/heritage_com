@@ -35,9 +35,10 @@ const igHandle = (url) => {
  * social links. Links follow the published-content flags; business details
  * come from useBusiness() (the Website profile) or the `business` prop, and
  * a column with nothing real to show is not rendered. The Visit column lists
- * the address one part per line, then hours, email, Instagram, WhatsApp and
- * phone, each with its icon; Instagram and WhatsApp shown there are left out
- * of the icon row at the bottom.
+ * the address one part per line, then hours and email, each with its icon.
+ * Instagram, WhatsApp and the phone number are icon-only links in the bottom
+ * bar (D-033), named for screen readers by the handle or number, so the
+ * columns above stay level.
  */
 const SiteFooter = ({ business: given }) => {
   const fromConfig = useBusiness()
@@ -68,11 +69,32 @@ const SiteFooter = ({ business: given }) => {
   const legal = [nav.privacy && { to: '/privacy', label: 'Privacy' }, nav.terms && { to: '/terms', label: 'Terms' }].filter(Boolean)
   const instagram = b.socials?.find((s) => s.key === 'instagram')
   const others = (b.socials || []).filter((s) => s.key !== 'instagram' && s.key !== 'whatsapp')
+  // Icon row in the bottom bar: Instagram, WhatsApp, phone, then the other platforms.
+  const contactIcons = [
+    instagram && {
+      key: 'instagram',
+      href: instagram.url,
+      icon: 'instagram',
+      text: igHandle(instagram.url),
+      name: `Instagram ${igHandle(instagram.url)} (opens in a new tab)`,
+      external: true,
+    },
+    b.whatsapp && {
+      key: 'whatsapp',
+      href: b.whatsapp,
+      icon: 'whatsapp',
+      text: waNumber(b.whatsapp),
+      name: `WhatsApp ${waNumber(b.whatsapp)} (opens in a new tab)`,
+      external: true,
+    },
+    b.phone && { key: 'phone', href: telHref(b.phone), icon: 'phone', text: b.phone, name: `Call ${b.phone}` },
+    ...others.map((s) => ({ key: s.key, href: s.url, icon: s.icon, text: s.label, name: `${s.label} (opens in a new tab)`, external: true })),
+  ].filter(Boolean)
   const place = String(b.address || b.area || '')
     .split(',')
     .map((x) => x.trim())
     .filter(Boolean)
-  const hasVisit = place.length || b.hours || b.phone || b.whatsapp || b.email || instagram
+  const hasVisit = place.length || b.hours || b.email
   const line = `Men's tailoring made to measure${b.area ? ` in ${b.area}` : ''}. Every piece is cut to your own measurements.`
 
   return (
@@ -139,35 +161,6 @@ const SiteFooter = ({ business: given }) => {
                     </a>
                   </li>
                 )}
-                {instagram && (
-                  <li>
-                    <a
-                      href={instagram.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Instagram ${igHandle(instagram.url)} (opens in a new tab)`}>
-                      <Icon name="instagram" /> <span>{igHandle(instagram.url)}</span>
-                    </a>
-                  </li>
-                )}
-                {b.whatsapp && (
-                  <li>
-                    <a
-                      href={b.whatsapp}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`WhatsApp ${waNumber(b.whatsapp)} (opens in a new tab)`}>
-                      <Icon name="whatsapp" /> <span>{waNumber(b.whatsapp)}</span>
-                    </a>
-                  </li>
-                )}
-                {b.phone && (
-                  <li>
-                    <a href={telHref(b.phone)}>
-                      <Icon name="phone" /> <span>{b.phone}</span>
-                    </a>
-                  </li>
-                )}
               </ul>
             </div>
           )}
@@ -191,12 +184,17 @@ const SiteFooter = ({ business: given }) => {
             ))}
             <Link to={isAuthenticated ? roleHome(user?.role) : '/auth/sign-in'}>{isAuthenticated ? 'Staff dashboard' : 'Staff sign in'}</Link>
           </nav>
-          {others.length > 0 && (
-            <ul className="hc-footer-socials" aria-label={`${b.name} on social media`}>
-              {others.map((s) => (
-                <li key={s.key}>
-                  <a href={s.url} className="hc-social" target="_blank" rel="noopener noreferrer">
-                    <Icon name={s.icon} label={s.label} />
+          {contactIcons.length > 0 && (
+            <ul className="hc-footer-socials" aria-label={`${b.name} contact and social links`}>
+              {contactIcons.map((c) => (
+                <li key={c.key}>
+                  <a
+                    href={c.href}
+                    className="hc-social"
+                    aria-label={c.name}
+                    title={c.text}
+                    {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                    <Icon name={c.icon} />
                   </a>
                 </li>
               ))}
