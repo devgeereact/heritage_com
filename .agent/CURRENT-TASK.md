@@ -32,6 +32,10 @@ Build the full Plans 2026 roadmap (owner instruction, 10 October 2026: "build ev
 
 Phase 6 (release, pilot, social publishing) and Phase 7 (learn and simplify) need the owner and live systems; this task prepares their checklists only.
 
+## Handoff: repository consolidation (22 October 2026)
+
+`feat/landing-wip` (the tip of the whole stack) is merged into `main` with a merge commit. Local checks on the merged tree: install, lint, 0 errors, tests, `check:php`, PHP helper tests, docs check and build all PASS. Nothing is deployed: the GitHub account is flagged, so Actions do not run, and the release needs the owner at cPanel (see the Release procedure in docs/DEPLOYMENT.md). Release decision stays NO-GO per qa/LAUNCH-CHECKLIST.md. The older PR rows above describe history; their branches are merged into `main`.
+
 ## Handoff: D-025 decisions (19 October 2026)
 
 State at handoff: the decisions, the policy-defaults import and the failed-saves count are on `feat/ceo-decisions`, stacked on PR #20 (`feat/phase7-review`); the pull request will be #21. The documentation step did not commit or push. Nothing is deployed and `main` is untouched.

@@ -4,6 +4,10 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Repository consolidation, 22 October 2026
+
+- Changed: the whole stacked branch chain (Phases 1 to 7, hardening, release readiness, landing redesign, CMS Workroom) is merged into `main` in one merge commit. Superseded local branches, stale agent branches and the stacked remote branches are retired; a full bundle backup was taken first.
+
 ### CMS Workroom on `feat/real-content`, 20 October 2026
 
 Decision D-032.
