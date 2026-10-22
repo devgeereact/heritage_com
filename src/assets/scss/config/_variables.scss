@@ -11,10 +11,10 @@ $prefix:                        'bs-';
 @import "../../tokens/tokens-map";
 
 
-// Font Family — Herit premium brand: Inter (UI/body), Source Serif 4 (serif display)
-$font-family-primary:                             "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-secondary:                           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-$font-family-serif:                               "Fraunces", Georgia, serif;
+// Font family (D-030): Hanken Grotesk (UI and body), Newsreader (serif display)
+$font-family-primary:                             "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-secondary:                           "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-serif:                               "Newsreader", Georgia, serif;
 
 
 //

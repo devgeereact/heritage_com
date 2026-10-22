@@ -9,6 +9,7 @@ import { join } from 'node:path';
 const STYLESHEETS = [
   'src/app/(public)/site/site.css',
   'src/app/(public)/site/ui/ui.css',
+  'src/app/(public)/site/landing.css',
   'src/app/(public)/site/portal/portal.css',
   'src/assets/scss/heritos-admin.css',
   'src/components/herit/herit-daily.css',

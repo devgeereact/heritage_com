@@ -1,7 +1,7 @@
 // Emits the HeritOS tokens as CSS custom properties.
 // :root holds everything (admin light first). Admin dark mode remaps colours only.
-// .hc (the public site wrapper) uses the dark site palette whatever the admin
-// theme is; .hc-paper bands inside it switch back to warm ivory. Printed
+// .hc (the public site wrapper) uses the warm paper site palette whatever the
+// admin theme is (D-030); .hc-ink bands inside it switch to near-black. Printed
 // documents (.hd-print) always use the light palette.
 @use 'sass:map';
 @import 'tokens-map';
@@ -29,19 +29,20 @@ html[data-bs-theme='dark'] {
 html[data-hc-public],
 .hc {
   @include hc-colours($hc-site);
-  color-scheme: dark;
-}
-
-/* An ink panel anywhere (sign-in side panel): the site palette, any theme. */
-.hc-ink {
-  @include hc-colours($hc-site);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 .hc .hc-paper,
 .hc-paper {
   @include hc-colours($hc-paper);
   color-scheme: light;
+}
+
+/* An ink band or panel anywhere (footer, company band, sign-in side panel). */
+.hc .hc-ink,
+.hc-ink {
+  @include hc-colours($hc-ink);
+  color-scheme: dark;
 }
 
 .hd-print {

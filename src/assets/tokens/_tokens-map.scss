@@ -3,115 +3,125 @@
 // variables (scss/config/_variables.scss) read the same maps, so a colour
 // change happens once (A23). Contract and measured contrast: docs/DESIGN-SYSTEM.md.
 
-// Dark luxury direction (D-023): near-black ink and warm ivory, amber the one
-// accent. Every map below holds the same keys so components never branch.
+// Warm paper direction (D-030, after the Oura DESIGN.md the owner chose on
+// 19 October 2026; supersedes the dark-first site of D-023): warm cream
+// paper is the resting surface, near-black ink is kept for a few bands
+// (footer, company band, photographs), and the logo gold #FFB800 is the one
+// accent, always with ink text on it. Every map holds the same keys so
+// components never branch.
 
-// Admin light theme and printed documents: warm ivory page, white cards.
+// Admin light theme and printed documents: warm paper page, white cards.
 $hc-light: (
   'surface':        #FFFFFF,
-  'surface-alt':    #F6F1E8,
-  'surface-raised': #FBF8F2,
-  'text':           #1A1713,
-  'text-body':      #3A342C,
-  'text-muted':     #5E574C,
+  'surface-alt':    #F7F1E8,
+  'surface-raised': #FBF8F3,
+  'text':           #1C1B1A,
+  'text-body':      #3D3A35,
+  'text-muted':     #66625B,
   'divider':        #E4DCCD,
-  'control-border': #8A8275,
-  'accent':         #F59E0B,
-  'accent-hover':   #D97706,
-  'on-accent':      #1A1713,
-  'accent-text':    #9A4A07,
-  'accent-tint':    #FDF0D5,
-  'focus':          #1A1713,
+  'control-border': #827C71,
+  'accent':         #FFB800,
+  'accent-hover':   #E6A600,
+  'on-accent':      #1C1B1A,
+  'accent-text':    #6E5000,
+  'accent-tint':    #FFF1CC,
+  'focus':          #1C1B1A,
   'success':        #15803D,
   'success-tint':   #F0FDF4,
-  'warning':        #9A4A07,
-  'warning-tint':   #FFFBEB,
+  'warning':        #6E5000,
+  'warning-tint':   #FFF7E0,
   'danger':         #991B1B,
   'danger-tint':    #FEF2F2,
-  'pending':        #5E574C,
-  'pending-tint':   #F6F1E8,
+  'pending':        #66625B,
+  'pending-tint':   #F7F1E8,
 );
 
-// Admin dark theme: ink surfaces, ivory text.
+// Admin dark theme: ink surfaces, cream text.
 $hc-dark: (
   'surface':        #171512,
   'surface-alt':    #0E0D0B,
   'surface-raised': #1F1C18,
-  'text':           #F3EEE4,
+  'text':           #F5EFE4,
   'text-body':      #D9D2C5,
   'text-muted':     #A79F92,
   'divider':        #2E2A24,
   'control-border': #6F685D,
-  'accent-text':    #F59E0B,
-  'accent-tint':    #2B2112,
-  'focus':          #F3EEE4,
+  'accent-text':    #FFB800,
+  'accent-tint':    #2B2410,
+  'focus':          #F5EFE4,
   'success':        #4ADE80,
   'success-tint':   #14261A,
-  'warning':        #FBBF24,
-  'warning-tint':   #2B2112,
+  'warning':        #FFC933,
+  'warning-tint':   #2B2410,
   'danger':         #FCA5A5,
   'danger-tint':    #2C1717,
   'pending':        #A79F92,
   'pending-tint':   #1F1C18,
 );
 
-// Public site (.hc): dark first.
+// Public site (.hc): warm paper first (Oura canvas #F7F1E8).
 $hc-site: (
+  'surface':        #F7F1E8,
+  'surface-alt':    #EFE7DA,
+  'surface-raised': #FFFFFF,
+  'text':           #1C1B1A,
+  'text-body':      #3D3A35,
+  'text-muted':     #66625B,
+  'divider':        #DED6C8,
+  'control-border': #827C71,
+  'accent':         #FFB800,
+  'accent-hover':   #E6A600,
+  'on-accent':      #1C1B1A,
+  'accent-text':    #6E5000,
+  'accent-tint':    #FFF1CC,
+  'focus':          #1C1B1A,
+  'success':        #166534,
+  'success-tint':   #F0FDF4,
+  'warning':        #6E5000,
+  'warning-tint':   #FFF7E0,
+  'danger':         #991B1B,
+  'danger-tint':    #FEF2F2,
+  'pending':        #66625B,
+  'pending-tint':   #EFE7DA,
+);
+
+// Paper bands (.hc-paper, <Section tone="paper">): the same paper, so long
+// reading text sits on the resting surface. Kept as its own map so a band
+// can change without touching the site.
+$hc-paper: $hc-site;
+
+// Ink bands inside the site (.hc-ink, <Section tone="ink">), the footer and
+// the sign-in side panel: near-black with cream text and the logo gold.
+$hc-ink: (
   'surface':        #0E0D0B,
   'surface-alt':    #171512,
   'surface-raised': #1F1C18,
-  'text':           #F3EEE4,
+  'text':           #F5EFE4,
   'text-body':      #D9D2C5,
   'text-muted':     #A79F92,
   'divider':        #2E2A24,
   'control-border': #6F685D,
-  'accent':         #F59E0B,
-  'accent-hover':   #FBBF24,
+  'accent':         #FFB800,
+  'accent-hover':   #FFC933,
   'on-accent':      #0E0D0B,
-  'accent-text':    #F59E0B,
-  'accent-tint':    #2B2112,
-  'focus':          #F3EEE4,
+  'accent-text':    #FFB800,
+  'accent-tint':    #2B2410,
+  'focus':          #F5EFE4,
   'success':        #4ADE80,
   'success-tint':   #14261A,
-  'warning':        #FBBF24,
-  'warning-tint':   #2B2112,
+  'warning':        #FFC933,
+  'warning-tint':   #2B2410,
   'danger':         #FCA5A5,
   'danger-tint':    #2C1717,
   'pending':        #A79F92,
   'pending-tint':   #1F1C18,
-);
-
-// Ivory "paper" bands inside the public site (.hc-paper remaps to these).
-$hc-paper: (
-  'surface':        #F6F1E8,
-  'surface-alt':    #ECE5D8,
-  'surface-raised': #FFFFFF,
-  'text':           #1A1713,
-  'text-body':      #3A342C,
-  'text-muted':     #5E574C,
-  'divider':        #D8CFBF,
-  'control-border': #8A8275,
-  'accent':         #F59E0B,
-  'accent-hover':   #D97706,
-  'on-accent':      #1A1713,
-  'accent-text':    #9A4A07,
-  'accent-tint':    #FDF0D5,
-  'focus':          #1A1713,
-  'success':        #166534,  // 6.34:1 on paper (#15803D was 4.46:1)
-  'success-tint':   #F0FDF4,
-  'warning':        #9A4A07,
-  'warning-tint':   #FFFBEB,
-  'danger':         #991B1B,
-  'danger-tint':    #FEF2F2,
-  'pending':        #5E574C,
-  'pending-tint':   #ECE5D8,
 );
 
 // Text and scrims over photographs: the same in every theme.
 $hc-media: (
-  'on-image':       #F3EEE4,
-  'on-image-muted': rgba(243, 238, 228, 0.82),
-  'on-image-line':  rgba(243, 238, 228, 0.28),
+  'on-image':       #F5EFE4,
+  'on-image-muted': rgba(245, 239, 228, 0.86),
+  'on-image-line':  rgba(245, 239, 228, 0.32),
   'scrim-strong':   rgba(14, 13, 11, 0.9),
   'scrim-mid':      rgba(14, 13, 11, 0.55),
   'scrim-clear':    rgba(14, 13, 11, 0),
@@ -123,12 +133,12 @@ $hc-media: (
 // src/app/(public)/site/ui/printPatterns.js, and read by
 // scripts/content/render-prints.mjs for the media library images. They are
 // illustration colours, never text or control colours; amber stays the one
-// interface accent. Same in every theme.
+// interface accent (the logo gold). Same in every theme.
 $hc-print: (
   'print-indigo':  #1B1F2E,  // Adire ground: indigo so deep it reads as ink
   'print-cream':   #E7D6B0,  // resist lines and rings
   'print-sand':    #CDB98A,
-  'print-amber':   #F59E0B,  // Herit amber inside the prints
+  'print-amber':   #FFB800,  // the logo gold inside the prints
   'print-red':     #8F2723,  // Ankara ground
   'print-rust':    #B45309,
   'print-ochre':   #9A4D12,  // Aso-Oke strips
@@ -144,8 +154,8 @@ $hc-overlay-shadow: rgba(14, 13, 11, 0.18);
 
 // Everything that is not colour.
 $hc-scale: (
-  'font-sans':  ('"Inter"', system-ui, -apple-system, '"Segoe UI"', Roboto, sans-serif),
-  'font-serif': ('"Fraunces"', Georgia, '"Times New Roman"', serif),
+  'font-sans':  ('"Hanken Grotesk"', system-ui, -apple-system, '"Segoe UI"', Roboto, sans-serif),
+  'font-serif': ('"Newsreader"', Georgia, '"Times New Roman"', serif),
   'font-mono':  (ui-monospace, SFMono-Regular, Menlo, Consolas, monospace),
 
   'text-xs':   0.8125rem,
@@ -178,16 +188,19 @@ $hc-scale: (
   'space-8': 64px,
   'space-9': 96px,
   'space-10': 128px,
-  'section-y': clamp(64px, 10vw, 140px),
+  'section-y': clamp(56px, 7vw, 112px),
 
   'container': 1240px,
   'measure':   65ch,
   'gutter':    clamp(16px, 4vw, 48px),
   'header-h':  76px,
 
-  'radius-control': 8px,
-  'radius-card':    14px,
-  'radius-chip':    999px,
+  // D-030: square-shouldered, never pill-shaped. Buttons and inputs 12px (owner,
+  // 19 October 2026), cards and framed images 8px, chips and tags 6px,
+  // full-bleed photographs 0.
+  'radius-control': 12px,
+  'radius-card':    8px,
+  'radius-chip':    6px,
 
   'touch':     44px,
   'control-h': 48px,

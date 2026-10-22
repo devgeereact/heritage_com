@@ -89,12 +89,13 @@ body,
   border-bottom: 1px solid var(--hc-divider);
   font-weight: var(--hc-w-semibold);
 }
-.row > [class*="col"] > .card { height: 100%; }
+/* Cards fill their grid cell only when they are its one card; stacked cards keep their own height. */
+.row > [class*="col"] > .card:only-child { height: 100%; }
 .card { display: flex; flex-direction: column; }
 .card > .card-body { flex: 1 1 auto; }
 .card-title, h5.card-title { letter-spacing: 0; }
 
-/* ---- page headings: Fraunces 600, sentence case ------------------------- */
+/* ---- page headings: Newsreader 600, sentence case ------------------------- */
 main .container-fluid > .d-flex h4,
 main .container-fluid > h4.mb-1 {
   font-family: var(--hc-font-serif);
@@ -320,3 +321,71 @@ summary:focus-visible {
   }
   .btn:active { transform: none; }
 }
+
+/* ============================================================
+   Workroom shell (D-031): an ink sidebar with a tape-measure edge
+   (.main-nav carries .hc-ink, so its tokens are the ink palette in
+   both admin themes) and the jump-to palette in the topbar.
+   ============================================================ */
+.main-nav.hc-ink {
+  --bs-main-nav-bg: var(--hc-surface);
+  --bs-main-nav-item-color: var(--hc-text-body);
+  --bs-main-nav-item-hover-color: var(--hc-text);
+  background: var(--hc-surface);
+  border-right: 0;
+  color: var(--hc-text-body);
+}
+.main-nav.hc-ink::after {
+  content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 9px; pointer-events: none; z-index: 2; opacity: .55;
+  background:
+    repeating-linear-gradient(180deg, var(--hc-text-muted) 0 1px, transparent 1px 10px) right / 3px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--hc-text-muted) 0 1px, transparent 1px 50px) right / 6px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--hc-accent) 0 1px, transparent 1px 100px) right / 9px 100% no-repeat;
+}
+.main-nav.hc-ink .logo-box { border-bottom-color: var(--hc-divider); }
+.main-nav.hc-ink .logo-box .logo-dark { display: none !important; }
+.main-nav.hc-ink .logo-box .logo-light { display: block !important; }
+.main-nav.hc-ink .side-nav-link,
+.main-nav.hc-ink .menu-arrow { color: var(--hc-text-body); }
+.main-nav.hc-ink .side-nav-link:hover { background: var(--hc-surface-raised); color: var(--hc-text); }
+.main-nav.hc-ink .side-nav-link.active,
+.main-nav.hc-ink.leftside-menu .side-nav .side-nav-item .side-nav-link.active,
+.main-nav.hc-ink .side-nav .side-nav-item .side-nav-link.active { background: var(--hc-surface-raised); color: var(--hc-text); }
+.main-nav.hc-ink .side-nav-link .nav-icon { color: var(--hc-text-muted); }
+.main-nav.hc-ink .side-nav-link.active .nav-icon,
+.main-nav.hc-ink .side-nav-link.active svg { color: var(--hc-accent); }
+.main-nav.hc-ink .side-nav-title,
+.main-nav.hc-ink .menu-title { color: var(--hc-text-muted); }
+.main-nav.hc-ink .button-sm-hover,
+.main-nav.hc-ink .button-sm-hover-icon { color: var(--hc-text-muted); }
+
+/* Jump-to button and palette (CommandPalette.jsx) */
+.hd-cmd {
+  align-items: center; gap: .6rem; min-width: 260px; min-height: 40px; padding: 0 .75rem;
+  border: 1px solid var(--hc-divider); border-radius: var(--hc-radius-control);
+  background: var(--hc-surface); color: var(--hc-text-muted); font-size: .875rem; cursor: pointer;
+  transition: border-color var(--hc-dur-ui) var(--hc-ease);
+}
+.hd-cmd:hover { border-color: var(--hc-control-border); }
+.hd-cmd kbd { margin-left: auto; padding: .15rem .4rem; border: 1px solid var(--hc-divider); border-radius: 5px; background: transparent; color: var(--hc-text-muted); font: 500 .6875rem/1.2 var(--hc-font-mono); }
+.hd-pal-back { position: fixed; inset: 0; z-index: 1060; display: grid; place-items: start center; padding: 12vh 1rem 0; background: var(--hc-scrim-mid); backdrop-filter: blur(3px); }
+.hd-pal { width: min(560px, 100%); overflow: hidden; border: 1px solid var(--hc-divider); border-radius: 14px; background: var(--hc-surface); box-shadow: 0 30px 60px -20px var(--hc-scrim-strong); }
+.hd-pal input { width: 100%; padding: 1rem 1.125rem; border: 0; border-bottom: 1px solid var(--hc-divider); background: transparent; color: var(--hc-text); font-size: 1rem; outline: none; }
+.hd-pal ul { list-style: none; margin: 0; padding: .375rem; max-height: 360px; overflow: auto; }
+.hd-pal li { display: flex; align-items: center; gap: .625rem; padding: .625rem .75rem; border-radius: 9px; color: var(--hc-text); font-size: .9375rem; cursor: pointer; }
+.hd-pal li svg { flex: none; color: var(--hc-text-muted); }
+.hd-pal li small { margin-left: auto; font: 500 .6875rem/1 var(--hc-font-mono); color: var(--hc-text-muted); }
+.hd-pal li[aria-selected='true'] { background: var(--hc-accent-tint); }
+.hd-pal .hd-pal-none { color: var(--hc-text-muted); cursor: default; }
+
+/* Ink sidebar: the menu's own links (.nav-link) in the ink palette. */
+.main-nav.hc-ink {
+  --bs-main-nav-item-active-bg: var(--hc-surface-raised);
+  --bs-main-nav-item-active-color: var(--hc-text);
+}
+.main-nav.hc-ink .nav-link { color: var(--hc-text-body); }
+.main-nav.hc-ink .nav-link:hover { color: var(--hc-text); background: var(--hc-surface-raised); }
+.main-nav.hc-ink .navbar-nav .nav-item .nav-link.active,
+.main-nav.hc-ink .nav-link.active { background: var(--hc-surface-raised); color: var(--hc-text); font-weight: var(--hc-w-semibold); }
+.main-nav.hc-ink .nav-link.active .nav-icon,
+.main-nav.hc-ink .nav-link.active svg { color: var(--hc-accent); }
