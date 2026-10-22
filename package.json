@@ -11,6 +11,7 @@
     "test": "vitest run",
     "staging:setup": "bash scripts/staging/setup.sh",
     "staging:serve": "bash scripts/staging/serve.sh",
+    "live:preview": "node scripts/live-preview/serve.mjs",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'",
     "docs:check": "node scripts/check-docs.mjs",
     "check:tokens": "node scripts/check-tokens.mjs",

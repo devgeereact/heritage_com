@@ -1,0 +1,16 @@
+[Unit]
+Description=Herit Clothing production build with live API (this computer only)
+Documentation=file://%h/WebstormProjects/heritage_com/scripts/live-preview/README.md
+
+[Service]
+Type=simple
+WorkingDirectory=%h/WebstormProjects/heritage_com
+Environment="PATH=%h/.local/share/mise/installs/node/lts/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/env node scripts/live-preview/serve.mjs 5112
+Restart=on-failure
+RestartSec=10s
+Nice=5
+MemoryMax=300M
+
+[Install]
+WantedBy=default.target
