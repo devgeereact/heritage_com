@@ -567,7 +567,7 @@ const WebsiteEditPage = () => {
           </Col>
           <Col xl={showPreview ? 6 : 4}>
             {showPreview ? (
-              <Card className="hd-card">
+              <Card className="hd-card hd-aside-card">
                 <Card.Body>
                   <h2 className="h6">Preview of the saved draft</h2>
                   {dirty && <p className="small text-muted">Save the draft to see your latest changes here.</p>}
@@ -575,7 +575,7 @@ const WebsiteEditPage = () => {
                 </Card.Body>
               </Card>
             ) : (
-              <Card className="hd-card">
+              <Card className="hd-card hd-aside-card">
                 <Card.Body className="small">
                   <h2 className="h6">Writing tips</h2>
                   <ul className="ps-3 mb-0">

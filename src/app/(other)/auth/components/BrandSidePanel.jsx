@@ -3,7 +3,7 @@ import logoLight from '@/assets/images/logo-light.svg'
 
 /**
  * Ink side panel for the staff sign-in screens (D-023): the site palette in
- * any admin theme, a Fraunces line, and the outline wordmark the public
+ * any admin theme, a Newsreader line, and the outline wordmark the public
  * footer uses. Styles in heritos-admin.css (.hc-auth-panel).
  */
 const BrandSidePanel = ({

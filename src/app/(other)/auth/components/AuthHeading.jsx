@@ -1,4 +1,4 @@
-/** Heading block for the staff auth screens: amber-rule eyebrow, Fraunces title, muted line. */
+/** Heading block for the staff auth screens: amber-rule eyebrow, Newsreader title, muted line. */
 const AuthHeading = ({ kicker, title, sub }) => (
   <div className="hc-auth-heading">
     {kicker && <div className="hc-auth-kicker">{kicker}</div>}

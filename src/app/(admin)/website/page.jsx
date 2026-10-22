@@ -8,6 +8,7 @@ import StatusChip from '@/components/herit/StatusChip'
 import heritApi from '@/helpers/heritApi'
 import { ENTITIES } from './components/cmsSchema'
 import HeroSlidesCard from './components/HeroSlidesCard'
+import HomeMapCard from './components/HomeMapCard'
 
 // Each missing business fact and what it hides on the website.
 const MISSING = {
@@ -80,13 +81,18 @@ const WebsitePage = () => {
         })()}
       {data && (
         <div className="mb-3">
+          <HomeMapCard />
+        </div>
+      )}
+      {data && (
+        <div className="mb-3">
           <HeroSlidesCard />
         </div>
       )}
       {data && (
         <Row className="g-3">
           <Col lg={5}>
-            <Card className="hd-card h-100">
+            <Card className="hd-card hd-aside-card">
               <Card.Body>
                 <h2 className="h5">Business details</h2>
                 {data.missing.length === 0 ? (

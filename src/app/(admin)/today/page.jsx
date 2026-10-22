@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Col, Row, Spinner } from 'react-bootstrap'
+import { Button, Card, Col, Row, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import PageTitle from '@/components/PageTitle'
 import IconifyIcon from '@/components/wrappers/IconifyIcon'
@@ -25,6 +25,7 @@ import InviteModal from '@/components/herit/InviteModal'
 import NewEnquiryModal from '@/app/(admin)/enquiries/components/NewEnquiryModal'
 import NewOrderModal from '@/app/(admin)/tailoring/components/NewOrderModal'
 import TodayBlock from './components/TodayBlock'
+import RollNumber from '@/components/herit/RollNumber'
 
 /** Lagos time-of-day greeting with the first name, as in the approved prototype. */
 const greeting = (name) => {
@@ -396,7 +397,9 @@ const TodayPage = () => {
                   <IconifyIcon icon={t.icon} />
                 </span>
               </span>
-              <b className="hd-stat-value tnum">{t.value}</b>
+              <b className="hd-stat-value tnum">
+                <RollNumber value={t.value} />
+              </b>
               <span className="hd-stat-sub">{t.sub}</span>
             </Link>
           ))}
@@ -404,13 +407,45 @@ const TodayPage = () => {
       )}
 
       {state === 'ready' && (
-        <Row className="g-3">
-          {ordered.map((blk) => (
-            <Col key={blk.id} xs={12} lg={6}>
-              <TodayBlock {...blk} />
-            </Col>
-          ))}
-        </Row>
+        <>
+          {/* Blocks with work get their own card; the empty ones share one compact
+              "All clear" card, so the page is not a wall of zeros. */}
+          {ordered.some((x) => x.count > 0) && (
+            <Row className="g-3 mb-3">
+              {ordered
+                .filter((x) => x.count > 0)
+                .map((blk) => (
+                  <Col key={blk.id} xs={12} lg={6}>
+                    <TodayBlock {...blk} />
+                  </Col>
+                ))}
+            </Row>
+          )}
+          {ordered.some((x) => x.count === 0) && (
+            <Card className="hd-card" as="section" aria-labelledby="tb-clear">
+              <Card.Header className="d-flex align-items-center justify-content-between gap-2 py-2">
+                <h2 id="tb-clear" className="h6 mb-0 d-flex align-items-center gap-2">
+                  <IconifyIcon icon="solar:check-circle-bold" aria-hidden="true" className="text-success" />
+                  All clear
+                </h2>
+                <span className="small text-muted">Nothing waiting in these lists</span>
+              </Card.Header>
+              <ul className="hd-clear-list">
+                {ordered
+                  .filter((x) => x.count === 0)
+                  .map((blk) => (
+                    <li key={blk.id}>
+                      <IconifyIcon icon={blk.icon} aria-hidden="true" />
+                      <span>
+                        <b>{blk.title}</b>
+                        <span>{blk.empty}</span>
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </Card>
+          )}
+        </>
       )}
 
       <NewEnquiryModal show={showEnquiry} onHide={() => setShowEnquiry(false)} onCreated={(id) => navigate(`/enquiries/${id}`)} />

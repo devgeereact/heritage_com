@@ -30,6 +30,13 @@ const SOCIALS = [
 ]
 
 /** Business details that drive the footer, Contact, the actions and search data. Owner saves. */
+/** A phone or WhatsApp number that looks made up: a run 1 to 9 or one digit repeated (K-32). */
+const looksLikePlaceholder = (key, v) => {
+  if (key !== 'business_phone' && key !== 'business_whatsapp') return false
+  const d = String(v || '').replace(/\D/g, '')
+  return d.length > 0 && (d.includes('123456789') || /(\d)\1{6,}/.test(d))
+}
+
 const WebsiteProfilePage = () => {
   const { user } = useAuthContext()
   const isOwner = OWNER.includes(user?.role)
@@ -110,6 +117,11 @@ const WebsiteProfilePage = () => {
                           onChange={(e) => set(f.k, e.target.value)}
                         />
                         {f.help && <Form.Text>{f.help}</Form.Text>}
+                        {looksLikePlaceholder(f.k, form[f.k]) && (
+                          <div className="hd-warnline" role="note">
+                            This number reads like a placeholder. Check it before visitors try to call or message it.
+                          </div>
+                        )}
                         <Form.Control.Feedback type="invalid">{errors[f.k]}</Form.Control.Feedback>
                       </Form.Group>
                     ))}
@@ -156,6 +168,34 @@ const WebsiteProfilePage = () => {
                       onChange={(e) => set('journal_enabled', e.target.checked ? '1' : '0')}
                     />
                     <Form.Text>Published posts appear only while this is on.</Form.Text>
+                  </Card.Body>
+                </Card>
+                <Card className="hd-card mt-3" aria-labelledby="bp-footer-preview">
+                  <Card.Body className="p-0">
+                    <h2 id="bp-footer-preview" className="h5 px-3 pt-3">
+                      How the footer shows it
+                    </h2>
+                    <div className="hd-footer-preview hc-ink">
+                      <b>{form.business_name || 'Business name'}</b>
+                      {form.business_address && ['1', true, 1].includes(form.business_address_public) && (
+                        <span>
+                          {String(form.business_address)
+                            .split(',')
+                            .map((x) => x.trim())
+                            .filter(Boolean)
+                            .map((x) => (
+                              <span key={x} className="d-block">
+                                {x}
+                              </span>
+                            ))}
+                        </span>
+                      )}
+                      {form.business_email && <span>{form.business_email}</span>}
+                      {form.socials?.instagram && <span>@{String(form.socials.instagram).replace(/\/+$/, '').split('/').pop()}</span>}
+                      {form.business_whatsapp && <span>WhatsApp +{String(form.business_whatsapp).replace(/\D/g, '')}</span>}
+                      {form.business_phone && <span>{form.business_phone}</span>}
+                      {!form.business_hours_text && <small>Opening hours are not set, so they are not shown.</small>}
+                    </div>
                   </Card.Body>
                 </Card>
               </Col>

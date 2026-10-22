@@ -74,6 +74,7 @@ const WebsiteProfile = lazy(() => import('@/app/(admin)/website/profile/page'))
 const WebsiteMedia = lazy(() => import('@/app/(admin)/website/media/page'))
 const WebsiteList = lazy(() => import('@/app/(admin)/website/list/page'))
 const WebsiteEdit = lazy(() => import('@/app/(admin)/website/edit/page'))
+const WebsiteHome = lazy(() => import('@/app/(admin)/website/home/page'))
 const Channels = lazy(() => import('@/app/(admin)/channels/page'))
 const Weather = lazy(() => import('@/app/(admin)/weather/page'))
 const Team = lazy(() => import('@/app/(admin)/team/page'))
@@ -408,6 +409,12 @@ const generalRoutes = [
     path: '/website/media',
     name: 'Website images',
     element: <WebsiteMedia />,
+  },
+  {
+    // Home studio (D-031): the landing page section by section; before :section.
+    path: '/website/home',
+    name: 'Website home studio',
+    element: <WebsiteHome />,
   },
   {
     path: '/website/:section',
