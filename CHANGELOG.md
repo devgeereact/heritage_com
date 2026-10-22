@@ -4,6 +4,44 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### CMS Workroom on `feat/real-content`, 20 October 2026
+
+Decision D-032.
+
+Added
+
+- Home studio at `/website/home`: the 13 Home sections as a map with their state, each section's fields saved as page drafts while you type, a preview in the site's look, and a bar that publishes every unpublished draft (D-032).
+- Jump-to palette (Ctrl or Cmd+K) in the topbar, limited to the screens the role may open (D-032).
+- Rolling Today figures (`RollNumber`); Business details warns on a placeholder-looking number (K-32) and previews the footer (D-032).
+
+Changed
+
+- The admin sidebar is ink with a tape-measure edge and line icons; the dead topbar search box is gone (D-032).
+- Grid cards stretch to their cell only when they are its one card, so stacked cards no longer overlap (D-032).
+
+### Home landing "the cutting table" on `feat/real-content`, 19 October 2026
+
+Decision D-031. Issue K-32.
+
+Added
+
+- Home sections in `landing.jsx`: two ways to order, the cloth (pinned sideways run from 1024px), the measurement docket (example values, cm and inches, rows light their line on the garment), how it works on a stitch line, the mission quote on ink, and the enquire band with business details and the enquiry form (D-031).
+- `homeMap.js`: every Home section, its CMS source, its edit link and when it shows; the Home page renders from it, and the Website hub lists it in a new "Home page, section by section" card (D-031).
+- Tape-measure scroll strip under the header on every public page (D-031).
+- Phone and WhatsApp +234123456789 in the real-content profile, to confirm before the live load (K-32).
+- Fuller real content: two-paragraph fabric sections, services with "At your appointment" and "Your quote and fittings" sections, a structured company orders page, a contact page with what to include, ten questions (six new) and journal posts with headed sections; no new claims, prices or durations (D-031).
+- Today: blocks with nothing waiting share one compact "All clear" card instead of one tall card each (D-031).
+
+Changed
+
+- Home no longer shows the promise band, the company band, the fabric card grid, the process rail or the closing action; their content moved into the new sections (D-031).
+- Header tape is always shown: a 16px ruler under the navigation with a number every 10cm, as in the approved concept (D-031).
+- The hero's place line moved from under the buttons into the slider bar beside the counter (D-031).
+- Footer: the woven print strip and the divider under the columns are gone, and the outlined wordmark is no longer clipped (D-031).
+- Forms: single-line inputs are 48px like selects, and the phone or email note runs under both fields, so paired fields line up (D-031).
+- Section spacing token `--hc-section-y` tightened to `clamp(56px, 7vw, 112px)`; the landing uses its own tighter rhythm (D-031).
+- CMS: card headings share one size and weight, links are ink with a quiet underline (gold on hover), side panels keep their own height and stay in view, and the admin footer drops the template heart icon (D-031).
+
 ### Real content and African prints on `feat/real-content`, 19 October 2026
 
 Stacked on #21. Decision D-026.
@@ -14,10 +52,19 @@ Added
 - Full landing built from the CMS: hero slides, fabric story (new `fabrics` page), services, how it works, company orders, about and mission, questions, journal, contact call to action.
 - Edit controls on public sections for signed-in staff, each opening the matching Website editor; the editor opens services and projects by web address.
 - `scripts/content/load-real-content.php` loads the real company content and 14 rendered print illustrations through the CMS API as the owner; idempotent, localhost only unless `--allow-remote`.
+- Royalty-free mood photographs (Unsplash and Pexels) for the 14 website image slots, listed with credits in `scripts/content/stock-photos.json`; `scripts/content/stock-manifest.mjs` checks them and writes the loader manifest; prints stay the fallback (D-028).
+- Warm paper design after the Oura reference (D-030): cream paper surfaces with ink bands, logo gold `#FFB800` as the one accent, Newsreader and Hanken Grotesk self-hosted (Fraunces and Inter removed), 12px button corners and 8px card corners, quiet overlines, light or dark logo by surface; admin themes take the same fonts and gold.
+- Footer Visit column: address one part per line (Ajuwon Market, Lagos State, Nigeria), then email, Instagram @heritclothing and the WhatsApp number, each with its icon; the loader now saves the Instagram link and merges social links with the owner's (`siteFooter.test.jsx`).
+- Website images: a 2400px WebP variant and quality 86 (JPEG 88); re-uploading an image made before rebuilds its variants (`_cms.php`, `_media.php`, D-030).
+- Lenis smooth scrolling on public pages, driven by GSAP's ticker; off under reduced motion and while the mobile menu is open (D-027).
 
 Changed
 
 - Fixed public copy speaks as "we", as on the live site.
+- Website copy rewritten without AI-sounding phrasing: slogan pairs, empty praise, repeated labels and the journal posts' set-piece lines, facts unchanged (D-029). Loaded with `load-real-content.php --update`.
+- Home: services shown as a numbered index beside one photograph that changes on hover or focus (GSAP); promise band facts numbered instead of icons; no accent stripe beside the mission; no print tags that repeat a title (D-029).
+- `load-real-content.php` takes each image's caption from its manifest when given, so photographs carry a credit instead of the illustration caption (D-028).
+- Home hero rebuilt on GSAP, still full screen: photograph settles in on load, wipe between slides, Ken Burns, React Bits SplitText headline, cleaner spacing and scrim, scroll drift from 1024px (D-027). New dependencies: `gsap`, `@gsap/react`, `lenis`.
 
 ### CEO decisions on `feat/ceo-decisions`, 19 October 2026
 

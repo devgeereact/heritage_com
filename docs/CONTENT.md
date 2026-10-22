@@ -75,7 +75,7 @@ Imported (Owner-confirmed by being live; the owner can edit each in the Website 
 
 | Where | What |
 |---|---|
-| Business details | Herit Clothing; hello@heritclothing.com; address "Ajuwon Market, Lagos, Nigeria" (shown); area "Lagos, Nigeria"; journal switched on. Phone, WhatsApp, hours and social links stay empty: the live site shows "+234 …" and bare `instagram.com/` links (A12) |
+| Business details | Herit Clothing; hello@heritclothing.com; address "Ajuwon Market, Lagos, Nigeria" (shown); area "Lagos, Nigeria"; journal switched on; Instagram @heritclothing; phone and WhatsApp +234123456789 (owner, 19 October 2026; confirm before the live load, K-32). Hours stay empty. Since 19 October 2026 (D-031) every page, service, question and journal post carries fuller copy built from how the service runs in HeritOS (appointment, written quote, measurement record, fittings, company sample and handover); no prices, durations or reviews are claimed |
 | Home page | "Wear your heritage.", "Your culture, cut for now.", founded 2024 in Ajuwon Market |
 | Fabric story (new page key `fabrics`, Home only) | Ankara (bold wax prints), Adire (hand-dyed indigo, resist patterns carry meaning), Aso-Oke (hand-woven strip cloth, ceremonial) |
 | About | The live story, mission and vision word for word; How we work (01 to 04), values, who we serve (Lagos and Nigeria, the diaspora, gifters) |
@@ -98,7 +98,7 @@ Left out on purpose:
 | Social links | No verified handle (A12) |
 | Our work and testimonials | No real photographs or consented quotes yet; both sections stay hidden |
 
-Images: 14 African print illustrations (4 hero slides, 4 services, 6 pages) rendered by `scripts/content/render-prints.mjs` and uploaded through `cms.php` `media_upload`, so they are processed into the 800 and 1600px WebP and JPEG variants like any owner upload. Each has alt text that describes the print as an illustration and the caption "Illustration of African print cloth (not a photograph)". The staging library held only synthetic swatches (staging projects and e2e navy swatches); these replace them by role, not one for one.
+Images: 14 African print illustrations (4 hero slides, 4 services, 6 pages) rendered by `scripts/content/render-prints.mjs` and uploaded through `cms.php` `media_upload`, so they are processed into the 800, 1600 and 2400px WebP variants and one JPEG like any owner upload (2400px and quality 86 since D-030; a repeat upload of an image made before then rebuilds its variants). Each has alt text that describes the print as an illustration and the caption "Illustration of African print cloth (not a photograph)". The staging library held only synthetic swatches (staging projects and e2e navy swatches); these replace them by role, not one for one.
 
 Re-running the loader changes nothing; an item the owner has edited since is kept unless `--update` is given. It refuses any host but `127.0.0.1` or `localhost` unless `--allow-remote` (https only), so the live site can be loaded later only when the owner chooses.
 
@@ -108,15 +108,16 @@ Verified in `src/app/(public)/site/sections.jsx`, 14 October 2026. These bands a
 
 | Band | Where | Text (summary) |
 |---|---|---|
-| `PromiseBand` | Home (statement from the business name and area, or the home page body), About and How it works (the page body) | Three facts: made to your measurements; fittings by appointment, the date agreed in the written quote; follow your order online in your account |
+| `PromiseBand` | Home (statement from the business name and area, or the home page body), About and How it works (the page body) | Label "How we work". Three numbered facts (no icons, D-029): made to your measurements; fittings by appointment, the date agreed in the written quote; follow your order online in your account |
 | `ProcessBand` | Home, Services, a service, Our work, About, How it works, Company orders | Four steps: tell me what you need; measurement appointment and written quote; cutting and fittings once the quote is agreed; pay any balance and collect, with each stage in your account. Heading "From first message to handover" unless the How it works page is published, then its headline |
-| `CompanyBand` | Home, Services, Company orders | "For teams, events and wedding parties", then four points: one quote billed to your company; each wearer measured and listed by name; the sample approved before production starts; handover recorded item by item. The action goes to `/company-orders` when published, otherwise `/contact?type=company` |
+| `CompanyBand` | Home, Services, Company orders | Label "For teams and events"; "For teams, events and wedding parties", then four points: one quote billed to your company; each wearer measured and listed by name; the sample approved before production starts; handover recorded item by item. The action goes to `/company-orders` when published, otherwise `/contact?type=company` |
 | Service "At a glance" card | A service page | The price note, or "Priced by quote: the cloth and the finish set the price"; measurements taken at your appointment; fittings by appointment; your order followed online |
 
 Photographs in these bands come only from published content (the company or about page, a service, or a work cover). Without any, the band is text only.
 
 ## Copy rules
 
+- No AI-sounding writing (D-029, 19 October 2026): no slogan pairs or triads ("X. Made for Y."), no "not just X, it is Y" contrasts, no one-line closers that repeat the brand line, no empty praise ("occasions that deserve it", "presentation that matches the meaning", "craft you can feel"), no small label that repeats the heading under it, and no claim the business has not made (a finish, a process, a promise). Say what is made, from which cloth, how it is ordered and what it costs to find out. The live-site wording was rewritten to these rules on 19 October 2026 in `scripts/content/real-content.php`; facts, the mission and vision statements and the tagline "Your culture, cut for now" are unchanged.
 - Specific captions: what was made, a useful fabric or fit detail, and the occasion where permission exists.
 - Useful information instead of repeated heritage slogans. Keep the local voice; since 19 October 2026 the site speaks as "we", as the live site did.
 - British and Nigerian spelling (colour, honour), readable sentences, honest examples. Sentence case for headings and buttons; only the wordmark is all caps; no all-caps paragraphs. Fabric names are proper nouns: Ankara, Adire, Aso-Oke, Kente. Naira as `₦18,500`.
@@ -126,6 +127,7 @@ Photographs in these bands come only from published content (the company or abou
 ## Photography
 
 - Genuine cloth and garment photographs: front, back and detail, ideally on a consistent neutral backdrop. Workshop moments: measuring, cutting, stitching, finishing.
+- Stock photographs (D-028) are mood only: cloth, tailoring tools, hands at work, workshop details and Lagos scenes, under the Unsplash or Pexels licence. Never a person wearing a finished garment, a garment shown as a product or as delivered work, a recognisable face as the subject, a logo or brand label, or any image on Our work, products or a project page. Alt text says what is shown and never claims it is Herit's work; a cloth whose origin is not known is not named as Adire, Aso-Oke or Ankara. Each one is listed with its source page, photographer, licence and any edit in `scripts/content/stock-photos.json`, and its media caption credits the photographer. Real photographs replace them as they arrive.
 - Never AI-made garments presented as delivered work. African print illustrations ([DESIGN-SYSTEM.md](DESIGN-SYSTEM.md#african-print-art)) are drawn cloth, used for mood and empty states and always described as illustrations in their alt text; they never stand in for a photograph of a real piece.
 - Client photos and reviews need explicit, separate publication permission ([BR-33](BUSINESS-RULES.md)).
 - Strip location metadata from public images; keep public derivatives separate from private originals.

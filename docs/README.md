@@ -130,4 +130,5 @@ Every section of the plan of record has a live home. The plan itself is not edit
 | 07: database table inventory | [DATA-MODEL.md](DATA-MODEL.md#table-inventory) |
 | 07: API source inventory | [API-SPEC.md](API-SPEC.md#endpoint-inventory) |
 | 07: application page inventory | [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory) (the pre-A18 list stays in the plan file) |
+| [OURA-DESIGN-REFERENCE.md](OURA-DESIGN-REFERENCE.md) | Reference for the warm paper direction (D-030); adopted values in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md#warm-paper-palette-d-030) |
 | TESLA-DESIGN-REFERENCE | Kept as reference; adopted values and deviations in [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md#what-the-tesla-reference-contributes) |

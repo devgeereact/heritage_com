@@ -83,6 +83,22 @@ Landing and staff edit controls (19 October 2026, `feat/real-content`):
 - About and other CMS pages lay their body out by its headings: text before the first "## Heading" in the promise band, sections with "### items" as card grids with print tops, other sections side by side (mission and vision). How it works puts its sections on the process rail.
 - Edit control (`ui/EditLink.jsx`): a small amber "Edit" pill at the top right of a section, only while a signed-in staff role that may open the target admin page is on the device (the profile cookie and `canAccessPath()` in `roles.js`). Visitors and crawlers get no markup; the link is `rel="nofollow"` and named "Edit <section>" for screen readers; it is a normal link, so keyboard reachable. Targets: hero slides `/website/slides`; home text `/website/pages/home`; fabric story `/website/pages/fabrics`; services `/website/services`; a service `/website/services/<slug>` (the editor finds the item by its web address); how it works, company, about, contact and services introduction `/website/pages/<key>`; questions `/website/faqs`; our work `/website/work`; journal and posts `/content`; footer and contact details `/website/profile`. The server still checks every save.
 
+Home "the cutting table" (19 October 2026, D-031, `feat/real-content`). Sections in order, each hidden while its content is missing, defined once in `src/app/(public)/site/homeMap.js`:
+
+1. Hero slides (Website > Hero slides, else the home page and services with a photograph).
+2. Two ways to order: the home page body as the lead, the made-to-measure service card and the company orders page card.
+3. The cloth: the fabric story page, one panel per "## Fabric" heading. From 1024px it pins and runs sideways as you scroll; narrower or under reduced motion the panels stack.
+4. Services (unchanged index).
+5. The measurement appointment: a docket with example values, a cm and inch switch, and rows that light their line on the kaftan outline on hover and focus. Fixed copy, not edited in the CMS.
+6. Our work, 7. How it works on a stitch line (the page's "## Step" headings, else the standard four), 8. Our mission (the about page's "## Our mission" section), 9. In stock now (shop only), 10. Reviews, 11. Questions, 12. Journal.
+13. Enquire: the contact page's headline and intro, the business details that are set (address, email, phone, WhatsApp, Instagram, hours) with copy buttons, and the enquiry form.
+
+CMS Workroom (20 October 2026, D-032): the sidebar is ink with a tape-measure edge and line icons. Ctrl or Cmd+K (or the topbar button) opens a jump-to list of every screen the role may open, the Website screens and each Home section; arrows move, Enter opens, Escape closes. `/website/home` shows the Home sections as a map (live, draft or hidden, with the reason), the chosen section's fields (saved as a page draft a moment after typing stops), a preview in the site's look at desktop or phone width, and a bar that names and publishes every unpublished draft; anything refused is listed with a link to fix it. The Website hub's section list opens the studio. Business details warns when a phone or WhatsApp number looks made up and previews the footer.
+
+Today (D-031): blocks with work keep their own cards at the top; blocks with nothing waiting are listed together in one "All clear" card, each with its empty-state line.
+
+The Website hub shows the same list with each section's state ("On the page" or "Hidden" and what brings it back) and a link to its editor.
+
 ## Required states
 
 Every screen and journey defines: loading; empty (one clear next step); success; validation error (inline plus summary, typed values kept); service error (plain message, Retry, technical detail in logs or console only); permission denied (plain message, no data leak); offline (writes blocked, see [ARCHITECTURE.md](ARCHITECTURE.md#offline-behaviour)); session expired (sign in again without losing typed values where possible).
