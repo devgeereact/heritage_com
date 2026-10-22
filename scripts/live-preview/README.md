@@ -12,6 +12,8 @@ npm run build
 npm run live:preview                    # http://127.0.0.1:5112/
 ```
 
+To point the same production build at local staging instead of the live site (every route works, nothing real is touched), start `npm run staging:serve` and run `HERIT_API=http://127.0.0.1:8088 npm run live:preview`.
+
 Pass another port with `node scripts/live-preview/serve.mjs 5113`. After changing code, run `npm run build` again and reload: the server reads `dist/` on every request.
 
 ## Run at boot (user service, this computer only)

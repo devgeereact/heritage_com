@@ -15,7 +15,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PORT = Number(process.argv[2] || 5112);
-const LIVE = 'heritclothing.com';
+// Upstream API. Default is the live site; HERIT_API=http://127.0.0.1:8088 points the
+// production build at local staging (npm run staging:serve) instead.
+const UP = new URL(process.env.HERIT_API || 'https://heritclothing.com');
+const LIVE = UP.host;
+const client = UP.protocol === 'http:' ? http : https;
 const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../dist');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
@@ -27,7 +31,7 @@ const TYPES = {
 
 function proxy(req, res) {
   const headers = { ...req.headers, host: LIVE };
-  const up = https.request({ host: LIVE, path: req.url, method: req.method, headers }, (r) => {
+  const up = client.request({ hostname: UP.hostname, port: UP.port || undefined, path: req.url, method: req.method, headers }, (r) => {
     res.writeHead(r.statusCode, r.headers);
     r.pipe(res);
   });
@@ -47,4 +51,4 @@ http.createServer((req, res) => {
   }
   res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
   fs.createReadStream(file).pipe(res);
-}).listen(PORT, '127.0.0.1', () => console.log(`Herit Clothing production build on http://127.0.0.1:${PORT}/ (API -> https://${LIVE})`));
+}).listen(PORT, '127.0.0.1', () => console.log(`Herit Clothing production build on http://127.0.0.1:${PORT}/ (API -> ${UP.origin})`));
