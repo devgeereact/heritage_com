@@ -4,6 +4,10 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Live-API preview of the production build, 22 October 2026
+
+- Added: `npm run live:preview` serves the production build (`dist/`) on 127.0.0.1:5112 and forwards the API paths to the live site, so the owner can see what a push to `main` will deploy. Requests pass through unchanged, so the live server's localhost CORS rule still applies. Files and boot-time service setup are in `scripts/live-preview/`.
+
 ### Repository consolidation, 22 October 2026
 
 - Fixed: `e2e-phase4.sh` check U7 expected image variants 800 and 1600; since D-030 a 2000px upload also gets a 2000px variant (never upscaled), so it now expects 800, 1600 and 2000. Phase 4 e2e: 63 of 63.
