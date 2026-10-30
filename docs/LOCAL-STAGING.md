@@ -45,4 +45,4 @@ Phase 2 API journey checks with `curl` and `jq` (48 checks, PASS on two runs on 
 
 `e2e-phase5.sh` adds 25 company-order checks (PASS, 12 October 2026): company job with five wearers and an idempotent create, the contact view carries no wearer, measurement, notes or staff code, a wearer sees only their own garment and no other portal action, sample approval only by an approver and recorded as `portal`, tailors record progress without money, an in-production edit needs a stated effect, partial handover (2 of 5), over-quantity refused, one row per request key, another company's reference answers like a missing one, the invoice and a sent quote carry the bill-to and PO, a deactivated contact and the switch turned off both lose access. It turns `company_portal_enabled` on for the run and restores the previous value.
 
-Results of every staging and browser run: [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md).
+Results of every staging and browser run: [docs/AUDIT.md](AUDIT.md).

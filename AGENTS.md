@@ -8,7 +8,7 @@ This existing project adopts the active shared GEE OS, minimum version 0.10.1. R
 2. `.agent/PROJECT.yml`, project routing and risk.
 3. `.agent/CURRENT-TASK.md`, current scope and evidence.
 4. `CLAUDE.md`, project essentials and golden rules.
-5. `docs/ROADMAP.md`, `KNOWN-ISSUES.md` and the Unreleased part of `CHANGELOG.md`, so you know what is already done or in progress.
+5. `docs/ROADMAP.md`, `docs/KNOWN-ISSUES.md` and the Unreleased part of `CHANGELOG.md`, so you know what is already done or in progress.
 6. `docs/README.md`, then only the files in `docs/` the task needs.
 
 ## Project sources of truth
@@ -23,14 +23,14 @@ Docs follow the GEE OS Standard application profile: flat `docs/*.md`, evidence 
 - Operations: `docs/DEPLOYMENT.md` (with backup and monitoring), `docs/LOCAL-STAGING.md`, `docs/NOTIFICATIONS-SPEC.md`
 - Live status and decisions: `docs/ROADMAP.md`, `docs/DECISIONS.md`
 - Approved plan of record: `docs/Plans 2026/` (read-only until the project ends; `ROADMAP.md` and `DECISIONS.md` win where they differ)
-- Open issues and changes: `KNOWN-ISSUES.md`, `CHANGELOG.md`
+- Open issues and changes: `docs/KNOWN-ISSUES.md`, `CHANGELOG.md`
 
 ## Keep the docs current
 
 Every agent follows `.claude/rules/docs-sync.md`. In short:
 
 - Before starting, read the files in step 5 of the read order and do not redo work they record as done.
-- In the same commit as any change, update the one doc that owns the changed fact, add a line under Unreleased in `CHANGELOG.md`, and move the status in `docs/ROADMAP.md` and `KNOWN-ISSUES.md` when a finding or issue changes.
+- In the same commit as any change, update the one doc that owns the changed fact, add a line under Unreleased in `CHANGELOG.md`, and move the status in `docs/ROADMAP.md` and `docs/KNOWN-ISSUES.md` when a finding or issue changes.
 - When a task ends, update `.agent/CURRENT-TASK.md`.
 - Link to a fact instead of copying it. Plain British English, no em dashes.
 - `node scripts/check-docs.mjs` must pass; CI runs it.

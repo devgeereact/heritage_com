@@ -138,7 +138,7 @@ Confirm current availability and terms through the provider's official source be
 
 ## PWA, offline and updates
 
-Whether HeritOS is a PWA, what its manifest and service worker do today, how it behaves offline and how updates arrive. Evidence goes in [qa/PERFORMANCE-AUDIT.md](../qa/PERFORMANCE-AUDIT.md#pwa).
+Whether HeritOS is a PWA, what its manifest and service worker do today, how it behaves offline and how updates arrive. Evidence goes in [docs/AUDIT.md](AUDIT.md#pwa).
 
 **Background sync: N/A.** No offline queue or background sync exists or is planned; the service worker is an offline shell and writes are blocked offline (D-016). Server-side duplicate protection still applies to online writes (request keys, `lock_version` conflicts; [DATA-MODEL.md](DATA-MODEL.md#rules)). Revisit only through a new decision backed by a repeated owner need.
 
@@ -150,7 +150,7 @@ Whether HeritOS is a PWA, what its manifest and service worker do today, how it 
 - **Registration:** `public/boot.js` (loaded from the `index.html` head; inline scripts are not allowed by the CSP, K-23) registers `/sw.js` on load in every environment except `localhost` and `127.0.0.1`, so local development and staging run without it. The same file adds the manifest link on staff pages and fades the staff splash.
 - **Installation and update experience:** no custom install prompt and no update prompt ([ARCHITECTURE.md](#updates)).
 
-The PWA release gate in [LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md) applies because the manifest and service worker ship to production.
+The PWA release gate in [LAUNCH-CHECKLIST.md](AUDIT.md) applies because the manifest and service worker ship to production.
 
 ### Offline behaviour
 
@@ -162,7 +162,7 @@ Decision D-016 (Plans 2026, approved 10 October 2026): the service worker is an 
 - API calls are never cached (`public/sw.js:25`), so every data request fails offline.
 - Some admin pages name their failed-request state "offline" in code (for example `tailoring/groups/page.jsx`); it means "request failed". Since PR #9 the daily pages show a plain message with Retry through the shared `LoadError` component (K-02 fixed).
 - Write blocking while offline (17 October 2026, A16, in code): every API call goes through `send()` in `src/helpers/heritApi.js`. A POST, or any non-GET, made while `navigator.onLine` is false is refused before anything is sent ("You are offline, so nothing was saved. Reconnect and try again."). A request that cannot reach the server becomes a plain error with `network = true` and status 0; for writes it says the change may not have been saved. Staff screens show `OfflineBanner` (`src/components/OfflineBanner.jsx`) while offline. The POS keeps its own offline sale queue, which now also recognises the `network` flag (`pos/offline.js`). Verified in Chromium offline mode on local staging: banner appears and clears; the contact form sends no request and shows the offline message. NOT TESTED: real phones, flaky rather than absent connections.
-- Failed loads and the error screen (`feat/offline-a16`, merged onto #14's implementation 18 October 2026): `networkError()` also sets `offline` when the browser reports no connection, and `LoadError` then says the page cannot load because the device is offline, with Retry. `src/components/AppErrorBoundary.jsx` (the root error screen from #14, K-24) shows an offline sentence when offline and the error is a page chunk that failed to load (`isChunkError`; any other error offline gets the general text, `feat/release-readiness`) and skips its one-time chunk reload then, and clears when the path changes (`resetKey` from `src/routes/router.jsx`), so a page whose code has not been downloaded on this device shows a plain screen instead of a blank app. #17's own `RouteErrorBoundary` and site-wide connection bar were not kept. Browser check of the merged code, 18 October 2026: banner, offline error screen and its clearing on Back PASS ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)); a real phone NOT TESTED.
+- Failed loads and the error screen (`feat/offline-a16`, merged onto #14's implementation 18 October 2026): `networkError()` also sets `offline` when the browser reports no connection, and `LoadError` then says the page cannot load because the device is offline, with Retry. `src/components/AppErrorBoundary.jsx` (the root error screen from #14, K-24) shows an offline sentence when offline and the error is a page chunk that failed to load (`isChunkError`; any other error offline gets the general text, `feat/release-readiness`) and skips its one-time chunk reload then, and clears when the path changes (`resetKey` from `src/routes/router.jsx`), so a page whose code has not been downloaded on this device shows a plain screen instead of a blank app. #17's own `RouteErrorBoundary` and site-wide connection bar were not kept. Browser check of the merged code, 18 October 2026: banner, offline error screen and its clearing on Back PASS ([docs/AUDIT.md](AUDIT.md#redesign-dark-luxury-13-october-2026)); a real phone NOT TESTED.
 
 #### Target behaviour
 
@@ -178,7 +178,7 @@ Rules:
 - Never imply a write succeeded before the server confirms it.
 - During outages keep unsent form values in memory and tell the user what happened. Do not persist private drafts on shared devices by default (Plans 2026, 04).
 - Cache allowlist stays limited to the shell and static assets; private data is never cached.
-- Behaviour on slow, intermittent and restored connections is NOT TESTED ([qa/PERFORMANCE-AUDIT.md](../qa/PERFORMANCE-AUDIT.md#pwa)).
+- Behaviour on slow, intermittent and restored connections is NOT TESTED ([docs/AUDIT.md](AUDIT.md#pwa)).
 
 ### Updates
 
@@ -191,4 +191,4 @@ How a new deployment reaches installed or cached copies of the app. Current beha
 - **Unsaved-work protection:** none specific to updates. Risk: same-origin static assets are cache-first (lines 34-43); Vite emits hashed asset names, so a new build normally requests new files, but an open tab can keep running old JavaScript until reload. Impact on a form in progress is NOT TESTED.
 - **Rollback path:** redeploy the previous build ([DEPLOYMENT.md](DEPLOYMENT.md#rollback)); navigations pick it up network-first. If a broken service worker ever ships, bump the cache name in a fixed build.
 
-Proposed (not decided): tie the cache name to the release version so each deploy clears old static files, and record the update check in the release checklist. Verify an upgrade from the previous production version; a clean install does not prove the update path ([qa/PERFORMANCE-AUDIT.md](../qa/PERFORMANCE-AUDIT.md#pwa)).
+Proposed (not decided): tie the cache name to the release version so each deploy clears old static files, and record the update check in the release checklist. Verify an upgrade from the previous production version; a clean install does not prove the update path ([docs/AUDIT.md](AUDIT.md#pwa)).

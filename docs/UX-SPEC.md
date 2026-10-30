@@ -17,7 +17,7 @@ Core navigation: Today, Enquiries, Appointments, Clients, Jobs, Payments, Websit
 | Website | Services, portfolio, reviews, business details, optional Journal | Preview or publish | Unpublish | Draft, published, failed publish | Under More | Sidebar |
 | Settings | Business details, hours, availability defaults | Save | None | Saving, saved, failed | Under More | Separate from core items |
 
-Purpose and primary action for the seven core screens come from the approved plan. Secondary actions, the per-screen state lists and the Settings row are Proposed, derived from the journeys; the owner usability review of the built screens is still to run ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
+Purpose and primary action for the seven core screens come from the approved plan. Secondary actions, the per-screen state lists and the Settings row are Proposed, derived from the journeys; the owner usability review of the built screens is still to run ([docs/AUDIT.md](AUDIT.md#usability)).
 
 On a phone, show Today, Jobs, Appointments and More. The daily page answers "What do I need to do next?" without revenue charts or setup prompts. Desktop uses a predictable sidebar with a clear current location.
 
@@ -37,7 +37,7 @@ Built on `feat/phase2-daily-records` (PR #9, open), 10 October 2026. Routes are 
 
 ### As built (Phase 3)
 
-Built on `feat/phase3-appointments-portal`, 11 October 2026. Browser journeys at 390px and 1280px: [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#phase-3-journeys-in-the-browser-11-october-2026).
+Built on `feat/phase3-appointments-portal`, 11 October 2026. Browser journeys at 390px and 1280px: [docs/AUDIT.md](AUDIT.md#phase-3-journeys-in-the-browser-11-october-2026).
 
 - **Navigation:** Messages `/messages` joins the DAILY sidebar group after Appointments and the phone More sheet after Enquiries (owner roles). The bell counts new enquiries plus unread client messages and links to Messages.
 - **Appointments `/appointments`:** primary action Book appointment. Tabs: Schedule (a seven-day week strip with counts, Day or Week list, previous, today and next week, a switch to show cancelled and expired), Requests (owner; confirm in one tap or decline with a reason; the tab shows the count) and Blocked time (whole days or times with a reason; existing bookings inside a block are reported, not moved). Each appointment opens a short dialog with details, history (from and to status or time, reason, who) and the actions its status allows: confirm, decline, mark completed, no-show, cancel with a reason, and move with a reason. Booking and moving offer free times from the slot list, a typed time, or a whole day; a typed time that clashes shows what clashes and asks for a reason before "Book anyway" or "Move anyway". `?id=` opens one appointment; `?tab=` and `?date=` keep the view. Tailors see the schedule only. `/apps/calendar` redirects here.
@@ -119,4 +119,4 @@ Persistent labels; help or example text below the field; required fields marked;
 
 Sentence case, British and Nigerian spelling, Naira as `₦18,500`, and the other copy rules in [CONTENT.md](CONTENT.md#copy-rules) apply inside the app as well.
 
-Test comprehension, navigation, form recovery, session expiry and permission denial ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)). Remove decorative complexity that competes with the user's next step.
+Test comprehension, navigation, form recovery, session expiry and permission denial ([docs/AUDIT.md](AUDIT.md#usability)). Remove decorative complexity that competes with the user's next step.

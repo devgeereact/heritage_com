@@ -40,7 +40,7 @@ Owner decisions of 10 October 2026 (men's tailoring scope, amber accent on a Tes
 
 ## Keep the docs current
 
-Follow [.claude/rules/docs-sync.md](.claude/rules/docs-sync.md): read [docs/ROADMAP.md](docs/ROADMAP.md), [KNOWN-ISSUES.md](KNOWN-ISSUES.md), the Unreleased part of [CHANGELOG.md](CHANGELOG.md) and [.agent/CURRENT-TASK.md](.agent/CURRENT-TASK.md) before starting; update the owning doc, the changelog and the status in the same commit as the change; run `node scripts/check-docs.mjs`.
+Follow [.claude/rules/docs-sync.md](.claude/rules/docs-sync.md): read [docs/ROADMAP.md](docs/ROADMAP.md), [KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md), the Unreleased part of [CHANGELOG.md](CHANGELOG.md) and [.agent/CURRENT-TASK.md](.agent/CURRENT-TASK.md) before starting; update the owning doc, the changelog and the status in the same commit as the change; run `node scripts/check-docs.mjs`.
 
 ## Where to look
 
@@ -58,8 +58,8 @@ Follow [.claude/rules/docs-sync.md](.claude/rules/docs-sync.md): read [docs/ROAD
 | Deploy, server config, backups, monitoring, troubleshooting | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | Website copy and SEO; social drafts | [docs/CONTENT.md](docs/CONTENT.md), [docs/SOCIAL.md](docs/SOCIAL.md) |
 | Phases, findings A01 to A24, status | [docs/ROADMAP.md](docs/ROADMAP.md) |
-| Launch checklist and release gate | [qa/LAUNCH-CHECKLIST.md](qa/LAUNCH-CHECKLIST.md) |
-| Audit evidence; open issues; changes | [qa/](qa/), [KNOWN-ISSUES.md](KNOWN-ISSUES.md), [CHANGELOG.md](CHANGELOG.md) |
+| Launch checklist and release gate | [docs/AUDIT.md](docs/AUDIT.md) |
+| Audit evidence; open issues; changes | [docs/AUDIT.md](docs/AUDIT.md), [KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md), [CHANGELOG.md](CHANGELOG.md) |
 | Current task and scope | [.agent/CURRENT-TASK.md](.agent/CURRENT-TASK.md) |
 
 ## Claude-specific notes

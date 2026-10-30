@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# HeritOS launch verification matrix checks (qa/LAUNCH-CHECKLIST.md) against
+# HeritOS launch verification matrix checks (docs/AUDIT.md) against
 # LOCAL STAGING only.
 #
 #   npm run staging:setup && npm run staging:serve   (in another terminal)

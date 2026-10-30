@@ -1,6 +1,6 @@
 # HeritOS documentation
 
-Documentation follows the GEE OS "Standard application" profile: one flat `docs/` folder, root `qa/` for evidence, and `CHANGELOG.md` and `KNOWN-ISSUES.md` at the root. Each fact has one home; other files link to it. The only subfolder is [Plans 2026/](Plans%202026/READ-ME-FIRST.md), the approved plan of record, kept unchanged until the project is finished. Live status and later decisions are in [ROADMAP.md](ROADMAP.md) and [DECISIONS.md](DECISIONS.md), which win where they differ (D-012, D-020).
+Documentation follows the GEE OS "Standard application" profile: one flat `docs/` folder, root `qa/` for evidence, and `CHANGELOG.md` and `docs/KNOWN-ISSUES.md` at the root. Each fact has one home; other files link to it. The only subfolder is [Plans 2026/](Plans%202026/READ-ME-FIRST.md), the approved plan of record, kept unchanged until the project is finished. Live status and later decisions are in [ROADMAP.md](ROADMAP.md) and [DECISIONS.md](DECISIONS.md), which win where they differ (D-012, D-020).
 
 ## Index
 
@@ -33,22 +33,22 @@ Outside `docs/`:
 
 | File | Role |
 |---|---|
-| [../qa/](../qa/) | Evidence: [functional and usability](../qa/FUNCTIONAL-AUDIT.md), [security](../qa/SECURITY-AUDIT.md), [accessibility](../qa/ACCESSIBILITY-AUDIT.md), [performance and PWA](../qa/PERFORMANCE-AUDIT.md), [regression](../qa/REGRESSION-AUDIT.md), and the [launch checklist](../qa/LAUNCH-CHECKLIST.md) with the production check and release decision |
+| [AUDIT.md](AUDIT.md) | Evidence: [functional and usability](AUDIT.md), [security](AUDIT.md), [accessibility](AUDIT.md), [performance and PWA](AUDIT.md), [regression](AUDIT.md), and the [launch checklist](AUDIT.md) with the production check and release decision |
 | [../CHANGELOG.md](../CHANGELOG.md) | Notable changes, by pull request |
-| [../KNOWN-ISSUES.md](../KNOWN-ISSUES.md) | Open findings and issues |
+| [../KNOWN-ISSUES.md](KNOWN-ISSUES.md) | Open findings and issues |
 | [../AGENTS.md](../AGENTS.md), [../CLAUDE.md](../CLAUDE.md), [../CODEX.md](../CODEX.md) | Agent entry points |
 | [../.claude/rules/docs-sync.md](../.claude/rules/docs-sync.md) | The rule that keeps these files current |
 | [../README.md](../README.md) | Repository front page |
 | [../.agent/PROJECT.yml](../.agent/PROJECT.yml), [../.agent/CURRENT-TASK.md](../.agent/CURRENT-TASK.md), [../.agent/MCP-PROFILE.yml](../.agent/MCP-PROFILE.yml) | GEE OS routing, current task, integration authority |
 | [../php-api/README.md](../php-api/README.md) | Server file notes |
-| [../scripts/staging/](../scripts/staging/) | Local staging scripts ([LOCAL-STAGING.md](LOCAL-STAGING.md)) |
+| [../scripts/staging/](../scripts/staging) | Local staging scripts ([LOCAL-STAGING.md](LOCAL-STAGING.md)) |
 | Source code | The evidence of what is built. Documentation is checked against it. |
 
 ## How the docs stay current
 
 Every agent, Claude or Codex, follows [.claude/rules/docs-sync.md](../.claude/rules/docs-sync.md); [AGENTS.md](../AGENTS.md#keep-the-docs-current) carries the short version. In brief:
 
-1. Before starting, read [ROADMAP.md](ROADMAP.md), [../KNOWN-ISSUES.md](../KNOWN-ISSUES.md), the Unreleased part of [../CHANGELOG.md](../CHANGELOG.md) and [../.agent/CURRENT-TASK.md](../.agent/CURRENT-TASK.md), so nothing already done is redone.
+1. Before starting, read [ROADMAP.md](ROADMAP.md), [../KNOWN-ISSUES.md](KNOWN-ISSUES.md), the Unreleased part of [../CHANGELOG.md](../CHANGELOG.md) and [../.agent/CURRENT-TASK.md](../.agent/CURRENT-TASK.md), so nothing already done is redone.
 2. In the same commit as a change, update the one file that owns the changed fact (the "Owns" column above), add a CHANGELOG line and move the ROADMAP status.
 3. `node scripts/check-docs.mjs` runs in CI and fails on broken links or anchors, em dashes in live docs, and mentions of `docs/` or `qa/` paths that do not exist.
 
@@ -82,9 +82,9 @@ Where each earlier file now lives. The numbered folders `00-foundation` to `09-r
 | 07-operations/BACKUP-RECOVERY.md, MONITORING.md | [DEPLOYMENT.md](DEPLOYMENT.md#backup-and-recovery), [DEPLOYMENT.md](DEPLOYMENT.md#monitoring) |
 | 07-operations/EMAIL-SPEC.md | [NOTIFICATIONS-SPEC.md](NOTIFICATIONS-SPEC.md#email) |
 | 08-change-management/ROADMAP.md, DECISIONS.md | Same names in `docs/` |
-| 09-release/LAUNCH-CHECKLIST.md, PRODUCTION-CHECK.md, RELEASE-REPORT.md | [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md) (the profile keeps the launch checklist in `qa/`) |
-| qa/UX-AUDIT.md | [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability) |
-| qa/PWA-AUDIT.md | [qa/PERFORMANCE-AUDIT.md](../qa/PERFORMANCE-AUDIT.md#pwa) |
+| 09-release/LAUNCH-CHECKLIST.md, PRODUCTION-CHECK.md, RELEASE-REPORT.md | [docs/AUDIT.md](AUDIT.md) (the profile keeps the launch checklist in `qa/`) |
+| qa/UX-AUDIT.md | [docs/AUDIT.md](AUDIT.md#usability) |
+| qa/PWA-AUDIT.md | [docs/AUDIT.md](AUDIT.md#pwa) |
 | Earlier flat files (PRODUCT, ARCHITECTURE, DESIGN, OPERATIONS, CONTENT-AND-SOCIAL, ROADMAP, GEE-OS) | [DECISIONS.md](DECISIONS.md#files-removed-by-decision) |
 
 ## Plans 2026 coverage
@@ -114,12 +114,12 @@ Every section of the plan of record has a live home. The plan itself is not edit
 | 04: private files and CMS safety | [SECURITY.md](SECURITY.md#private-files-and-content-safety) |
 | 04: Nigeria privacy and operating policies | [DATA-PRIVACY.md](DATA-PRIVACY.md) |
 | 04: environments, deployment, backups, monitoring | [DEPLOYMENT.md](DEPLOYMENT.md) |
-| 04: launch verification matrix | [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md) |
+| 04: launch verification matrix | [docs/AUDIT.md](AUDIT.md) |
 | 05: all sections | [SOCIAL.md](SOCIAL.md) |
 | 06: working contract | [DECISIONS.md](DECISIONS.md) D-007, D-011 |
 | 06: delivery in dependency order | [ROADMAP.md](ROADMAP.md#phases) |
-| 06: owner usability review | [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability) |
-| 06: release decision | [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#release-decision) |
+| 06: owner usability review | [docs/AUDIT.md](AUDIT.md#usability) |
+| 06: release decision | [docs/AUDIT.md](AUDIT.md#release-decision) |
 | 06: worktree and branch audit | [DEPLOYMENT.md](DEPLOYMENT.md#branches-worktrees-and-machines) |
 | 06: folder audit | [ARCHITECTURE.md](ARCHITECTURE.md#repository-layout) |
 | 06: proposed flat docs; post-approval migration | [DECISIONS.md](DECISIONS.md) D-012, D-018, D-020 |

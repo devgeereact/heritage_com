@@ -4,7 +4,7 @@ Applies to every agent (Claude Code and Codex) and every change, however small. 
 
 ## Before you start
 
-1. Read `docs/ROADMAP.md` (phases, findings A01 to A24), `KNOWN-ISSUES.md`, the Unreleased part of `CHANGELOG.md` and `.agent/CURRENT-TASK.md`.
+1. Read `docs/ROADMAP.md` (phases, findings A01 to A24), `docs/KNOWN-ISSUES.md`, the Unreleased part of `CHANGELOG.md` and `.agent/CURRENT-TASK.md`.
 2. If the work is already recorded as done or in progress, do not redo it. Verify it against the code instead, and correct the doc if the doc is wrong.
 
 ## In the same commit as the change
@@ -24,8 +24,8 @@ Update the one doc that owns the changed fact. Never leave it for a later commit
 | A decision by the owner | `docs/DECISIONS.md` (next D-number, dated) |
 | Auth, permissions or a security control | `docs/SECURITY.md` |
 | A test command or its result | `docs/TEST-STRATEGY.md`, evidence in the matching `qa/*.md` |
-| A fixed finding or issue | Its status in `docs/ROADMAP.md` and `KNOWN-ISSUES.md` |
-| A new defect you found and did not fix | A new K-number in `KNOWN-ISSUES.md` |
+| A fixed finding or issue | Its status in `docs/ROADMAP.md` and `docs/KNOWN-ISSUES.md` |
+| A new defect you found and did not fix | A new K-number in `docs/KNOWN-ISSUES.md` |
 
 Then, in the same commit:
 

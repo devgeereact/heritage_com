@@ -5,7 +5,7 @@ The app and website behind [heritclothing.com](https://heritclothing.com), for a
 ## Stack
 
 - **Frontend:** React 19, Vite, Bootstrap 5 (Larkon admin kit), JavaScript. Builds to `dist/`.
-- **API:** plain PHP endpoints with `mysqli` prepared statements, returning JSON. Source in [`php-api/`](php-api/).
+- **API:** plain PHP endpoints with `mysqli` prepared statements, returning JSON. Source in [`php-api/`](php-api).
 - **Database:** MySQL on cPanel.
 - **Deploy:** `npm run release` from the Mac over SSH (dry run, then `-- --go`): the build and every PHP file in `php-api/`, with a snapshot and automatic restore. Merging to `main` deploys nothing. `config.php`, `.htaccess` and SQL imports stay by hand ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
@@ -27,5 +27,5 @@ Checks: `npm run build`, `npm run lint`, `php php-api/tests/run.php`, `bash scri
 - [docs/README.md](docs/README.md): index of the flat documentation and which file owns each fact.
 - [docs/Plans 2026/](docs/Plans%202026/READ-ME-FIRST.md): the approved plan of record.
 - [docs/ROADMAP.md](docs/ROADMAP.md): what is built, what is next.
-- [qa/](qa/), [CHANGELOG.md](CHANGELOG.md) and [KNOWN-ISSUES.md](KNOWN-ISSUES.md): evidence, changes and open issues.
+- [docs/AUDIT.md](docs/AUDIT.md), [CHANGELOG.md](CHANGELOG.md) and [KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md): evidence, changes and open issues.
 - [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md): entry points for coding agents, including the rule that keeps these docs current.

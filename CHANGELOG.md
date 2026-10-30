@@ -15,7 +15,7 @@ Owner instruction "go". Backup first: `heritage_db_pre-release_20261030_040727.s
 - `dist/` built with the live Clerk key (no secret keys) uploaded; 0 differences afterwards.
 - `npm run release:smoke`: 21 passed, 1 failed. The failure (`/release-manifest.json` answers 200) is a false alarm: the file does not exist and any unknown path returns the app page, so nothing is served. The smoke script should accept the app shell for a missing file.
 - In a browser: `/auth/sign-in` shows Clerk's email-code form, with the staff PIN sign-in below it, and Clerk's script loads from `clerk.heritclothing.com` under the new policy.
-- NOT DONE: `release_check.php --db` and a manifest upload; a real sign-in; the owner's checks in `qa/LAUNCH-CHECKLIST.md`; restricting Clerk sign-up; Clerk users and `users` rows for real staff. The seed tailors `tunde@` and `bola@` remain active by owner choice.
+- NOT DONE: `release_check.php --db` and a manifest upload; a real sign-in; the owner's checks in `docs/AUDIT.md`; restricting Clerk sign-up; Clerk users and `users` rows for real staff. The seed tailors `tunde@` and `bola@` remain active by owner choice.
 
 ### Staff sign-in with Clerk, 30 October 2026
 
@@ -113,7 +113,7 @@ Added
 Changed
 
 - The release order is fixed (D-025): `STAFF_COOKIE_AUTH` is a required release step once HTTPS is confirmed (A15), `ALLOW_LEGACY_ORDER_CODE_LOOKUP` goes off 30 days after release (K-14), and `public_booking_enabled` stays off until the pilot is reviewed.
-- Launch checklist: release decision recorded as NO-GO today, with the conditions for GO ([qa/LAUNCH-CHECKLIST.md](qa/LAUNCH-CHECKLIST.md#release-decision)).
+- Launch checklist: release decision recorded as NO-GO today, with the conditions for GO ([docs/AUDIT.md](docs/AUDIT.md#release-decision)).
 - Roadmap: the sign-up and lock-screen kit screens are marked removed (commit `83a6d38`); the older module pages go after eight weeks with no visits on Owner review.
 - Data privacy, API, data model and product spec docs now state the D-025 retention periods, quote validity and deposit wording, and which owner decisions remain facts for the owner.
 
@@ -137,7 +137,7 @@ Stacked on PR #18 (`feat/hardening-2026-10-18`); the pull request will be #19. O
 Added
 
 - Release tools (A02, A20): `npm run release:manifest` (SHA-256 of every tracked server file, marked `ci` or `manual`, plus the schema files), `php-api/release_check.php` (command line only; MATCH, DIFFERENT or MISSING per file, `--db` reports which schema phases the database has), `npm run release:smoke` (GET and HEAD only), `scripts/release/backup.sh` (database dump, row counts, uploads archive, SHA-256 files; refuses a folder inside the document root) and `scripts/release/restore-check.sh` (restores into a scratch database and compares every table). The server `.htaccess` denies the command-line tools, the manifest and dump or archive files. Procedure: [Release procedure](docs/DEPLOYMENT.md#release-procedure). Local round trip: 58 of 58 tables match.
-- `scripts/staging/e2e-launch.sh`: 152 checks for the launch verification matrix ([qa/LAUNCH-CHECKLIST.md](qa/LAUNCH-CHECKLIST.md#launch-verification-matrix)): client and company isolation, booking integrity, session recovery, payment integrity, publication and failure handling.
+- `scripts/staging/e2e-launch.sh`: 152 checks for the launch verification matrix ([docs/AUDIT.md](docs/AUDIT.md#launch-verification-matrix)): client and company isolation, booking integrity, session recovery, payment integrity, publication and failure handling.
 - `npm run check:php` (`scripts/check-php-calls.mjs`), in `ci.yml` and `deploy.yml`: fails when a PHP endpoint calls a helper from a file it does not load (K-30).
 
 Changed
@@ -216,7 +216,7 @@ Fixed (merge of #14 audit fixes, 18 October 2026)
 
 ### Audit fixes on `feat/redesign-dark-luxury`, 17 October 2026
 
-Production-readiness and privacy audit. Evidence: [qa/SECURITY-AUDIT.md](qa/SECURITY-AUDIT.md), [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md), [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md#inventory-17-october-2026).
+Production-readiness and privacy audit. Evidence: [docs/AUDIT.md](docs/AUDIT.md), [docs/AUDIT.md](docs/AUDIT.md), [docs/DATA-PRIVACY.md](docs/DATA-PRIVACY.md#inventory-17-october-2026).
 
 Fixed
 
@@ -287,7 +287,7 @@ Changed
 
 Fixed
 
-- A 1px line under the transparent home header, the home questions list centred under a left-aligned heading, and the admin logo box taller than the topbar (found in the browser check, [qa/FUNCTIONAL-AUDIT.md](qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)).
+- A 1px line under the transparent home header, the home questions list centred under a left-aligned heading, and the admin logo box taller than the topbar (found in the browser check, [docs/AUDIT.md](docs/AUDIT.md#redesign-dark-luxury-13-october-2026)).
 
 ### PR #13 `feat/phase5-company-orders`, 12 October 2026
 
@@ -329,7 +329,7 @@ Changed
 
 Fixed
 
-- At 320px the Home hero was clipped to 352px by a button label that would not wrap; public buttons now wrap below 600px and the hero grid column cannot grow past the screen ([qa/ACCESSIBILITY-AUDIT.md](qa/ACCESSIBILITY-AUDIT.md#phase-4-cms-pages-11-october-2026)).
+- At 320px the Home hero was clipped to 352px by a button label that would not wrap; public buttons now wrap below 600px and the hero grid column cannot grow past the screen ([docs/AUDIT.md](docs/AUDIT.md#phase-4-cms-pages-11-october-2026)).
 - Contact form subjects (`order`, `product`, `custom`, `gifting`) were not types `contact.php` accepts, so every enquiry was stored as `general`; each subject now maps to `fitting`, `bespoke`, `wholesale` or `general` (the subject is kept in the message). Gifting page text was white on a light surface after the dark band was removed.
 
 Removed
@@ -338,7 +338,7 @@ Removed
 
 Performance
 
-- Admin CSS kept off public routes: layouts are lazy and each loads its own CSS (`PublicLayout` tokens only; `AuthLayout` and `AdminLayout` Bootstrap, Larkon and `heritos-admin.css`). Public home initial CSS fell from 63.0 KB to 6.5 KB gzip and JS from 155.7 KB to 107.4 KB gzip ([qa/PERFORMANCE-AUDIT.md](qa/PERFORMANCE-AUDIT.md)).
+- Admin CSS kept off public routes: layouts are lazy and each loads its own CSS (`PublicLayout` tokens only; `AuthLayout` and `AdminLayout` Bootstrap, Larkon and `heritos-admin.css`). Public home initial CSS fell from 63.0 KB to 6.5 KB gzip and JS from 155.7 KB to 107.4 KB gzip ([docs/AUDIT.md](docs/AUDIT.md)).
 - Public pages use bundled SVG icons (`site/ui/Icon.jsx`) instead of Iconify, so they make no request to api.iconify.design. Fonts: IBM Plex Mono dropped, Inter and Source Serif 4 as variable ranges with swap. The public site stays light whatever the staff theme is (`data-hc-public`). The staff splash is hidden on public paths; `lang` is `en-NG`.
 
 Added
@@ -401,7 +401,7 @@ Added
 
 Changed
 
-- Documentation flattened to the GEE OS Standard application profile: flat `docs/*.md`, `docs/Plans 2026/` the only subfolder; thin files merged (context and roles into PRODUCT-SPEC, integrations and PWA into ARCHITECTURE, auth and permissions into SECURITY, backup and monitoring into DEPLOYMENT, email into NOTIFICATIONS-SPEC, release files into `qa/LAUNCH-CHECKLIST.md`, UX and PWA audits into the functional and performance audits) (D-020).
+- Documentation flattened to the GEE OS Standard application profile: flat `docs/*.md`, `docs/Plans 2026/` the only subfolder; thin files merged (context and roles into PRODUCT-SPEC, integrations and PWA into ARCHITECTURE, auth and permissions into SECURITY, backup and monitoring into DEPLOYMENT, email into NOTIFICATIONS-SPEC, release files into `docs/AUDIT.md`, UX and PWA audits into the functional and performance audits) (D-020).
 - Every status brought up to date with PRs #6 to #9: roadmap phases, findings, known issues, navigation as built, endpoint and table inventories, test results.
 - The three tsconfig files replaced by one `jsconfig.json`.
 
@@ -436,7 +436,7 @@ Fixed
 
 Changed
 
-- Documentation moved into the GEE OS Full Product hierarchy, with root `qa/` audits, this changelog and `KNOWN-ISSUES.md` (D-012; flattened again by D-020).
+- Documentation moved into the GEE OS Full Product hierarchy, with root `qa/` audits, this changelog and `docs/KNOWN-ISSUES.md` (D-012; flattened again by D-020).
 - Plans 2026 restored as the standing plan of record (D-012).
 
 ### PR #7 `feat/phase1b-staging` (Phase 1b), 10 October 2026

@@ -25,7 +25,7 @@ HeritOS is the operations app and public website for Herit Clothing. This file o
 ### Boundaries
 
 - **Product boundary:** one owner, one business. No multi-tenant platform, marketplace, factory planning engine, payroll, CRM scoring or custom social network. Owner-confirmed 10 October 2026 (approval of Plans 2026).
-- **First release:** the launch core under [Scope](#scope), proved through a limited pilot ([release decision](../qa/LAUNCH-CHECKLIST.md#release-decision)).
+- **First release:** the launch core under [Scope](#scope), proved through a limited pilot ([release decision](AUDIT.md#release-decision)).
 - **Explicit exclusions:** framework migration, microservices, TypeScript or Laravel conversion, full accounting, and everything in the Defer row of the scope table ([DECISIONS.md](DECISIONS.md), D-007).
 - **Constraints:** Namecheap shared hosting with PHP and MySQL; pushing `main` deploys; credentials only in server `config.php` and GitHub secrets ([DEPLOYMENT.md](DEPLOYMENT.md)). Budget and dates: Unknown. Legal: Nigeria privacy review pending ([DATA-PRIVACY.md](DATA-PRIVACY.md)).
 - **Existing assets to preserve:** the React, Bootstrap, PHP and MySQL code; existing tailoring, customer, enquiry and CMS records; existing public URLs where practical. Keep the functional core, close unsafe data paths, connect the missing journeys and hide unused complexity rather than rebuilding (Plans 2026, 01 "Immediate interpretation").
@@ -66,8 +66,8 @@ HeritOS lets the owner of a one-person men's tailoring business in Lagos take an
 ## First-release proof
 
 - **User outcome to prove:** the owner completes a synthetic job from enquiry to handover with consistent records and recovery from errors (Phase 2 evidence), then a limited real pilot with a few consenting customers (Phase 6). Proposed.
-- **Evidence that counts:** the launch verification matrix in [LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md) and the owner usability review in [qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability). A passing `npm run build` never counts.
-- **Failure threshold:** any unresolved P0 finding, or any core gate in [qa/LAUNCH-CHECKLIST.md](../qa/LAUNCH-CHECKLIST.md#release-decision) without evidence, means NO-GO.
+- **Evidence that counts:** the launch verification matrix in [LAUNCH-CHECKLIST.md](AUDIT.md) and the owner usability review in [docs/AUDIT.md](AUDIT.md#usability). A passing `npm run build` never counts.
+- **Failure threshold:** any unresolved P0 finding, or any core gate in [docs/AUDIT.md](AUDIT.md#release-decision) without evidence, means NO-GO.
 
 ## Scope
 

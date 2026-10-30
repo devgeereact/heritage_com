@@ -4,7 +4,7 @@ This is the single design contract for the HeritOS app and the public website. I
 
 The direction since 13 October 2026 is **dark luxury** (D-023, which supersedes the white Tesla-style surfaces of D-002 and the Source Serif 4 choice of D-017): near-black ink and warm ivory, led by real photography, with Herit amber `#F59E0B` still the only accent. The owner approved it from two prototypes (a landing page and the admin) before the build. Built on `feat/redesign-dark-luxury`. Sections below that still describe the white palette are history unless they agree with [Dark luxury palette](#dark-luxury-palette-d-023).
 
-Contrast figures are calculated from token values with the WCAG formula on 10 October 2026. They are not measurements of rendered pages. Visual quality and cross-device behaviour are NOT TESTED until screenshots and device checks exist ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#usability)).
+Contrast figures are calculated from token values with the WCAG formula on 10 October 2026. They are not measurements of rendered pages. Visual quality and cross-device behaviour are NOT TESTED until screenshots and device checks exist ([docs/AUDIT.md](AUDIT.md#usability)).
 
 ## Principles
 
@@ -127,7 +127,7 @@ Rules for tokens: components inherit tokens and never hard-code a hex. A rebrand
 
 ### Themes
 
-Since D-023 the public site is always dark (`$hc-site` on `.hc`, with ivory `.hc-paper` bands), whatever the admin theme; the public layout still keeps `data-bs-theme` off the page while a public route is open (see [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)). The admin starts in its warm light theme (ivory page, white cards, an amber-tint active sidebar item) and its dark theme remaps only colour tokens to ink and ivory (`$hc-dark`). The amber fill and its ink button text stay the same everywhere. Figures are in [Dark luxury palette](#dark-luxury-palette-d-023). Rendered checks on 13 October 2026: Today in light and Jobs in dark at 1440px on local staging ([qa/FUNCTIONAL-AUDIT.md](../qa/FUNCTIONAL-AUDIT.md#redesign-dark-luxury-13-october-2026)); other admin screens in dark are NOT TESTED.
+Since D-023 the public site is always dark (`$hc-site` on `.hc`, with ivory `.hc-paper` bands), whatever the admin theme; the public layout still keeps `data-bs-theme` off the page while a public route is open (see [ARCHITECTURE.md](ARCHITECTURE.md#route-inventory)). The admin starts in its warm light theme (ivory page, white cards, an amber-tint active sidebar item) and its dark theme remaps only colour tokens to ink and ivory (`$hc-dark`). The amber fill and its ink button text stay the same everywhere. Figures are in [Dark luxury palette](#dark-luxury-palette-d-023). Rendered checks on 13 October 2026: Today in light and Jobs in dark at 1440px on local staging ([docs/AUDIT.md](AUDIT.md#redesign-dark-luxury-13-october-2026)); other admin screens in dark are NOT TESTED.
 
 ## Typography
 
