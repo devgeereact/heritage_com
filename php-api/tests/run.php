@@ -525,5 +525,8 @@ check('pair key: fits audit_log.entity', (bool) preg_match('/^acip:[0-9a-f]{32}$
 /* ---- Request rules: lost races and wrong-typed fields (_lib.php) ---------- */
 require __DIR__ . '/request_cases.php';
 
+/* ---- Clerk staff sign-in: token checks (_clerk.php) ---------------------- */
+require __DIR__ . '/clerk_cases.php';
+
 echo "\n$pass passed, $failed failed\n";
 exit($failed ? 1 : 0);

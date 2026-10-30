@@ -192,3 +192,41 @@ Existing Application. Workflow: Change Safety for every change.
 ## Previous task
 
 Plans 2026 batch 1: PR #6.
+
+## Handoff: staff sign-in with Clerk (30 October 2026, branch `move/cpanel-clerk`)
+
+Owner instruction: do heritage_com as EGO LIMITED was done (D-033). Built, not deployed: `php-api/_clerk.php`, `schema_phase33.sql`, `require_auth()` accepts a Clerk Bearer; sign-in page, `ClerkBridge`, `heritApi` token. Clerk app "Heritage Clothing" (production instance on heritclothing.com, DNS verified, email code only, session claim `email`, public key name `VITE_CLERK_PUBLISHABLE_KEY`). Test user gakinz101@gmail.com exists in Clerk production (no password).
+Evidence: `php php-api/tests/run.php` 786 passed; `clerk_link.php` 14 checks on a throwaway MariaDB; lint 0 errors; `npm test` 339 passed, 8 failed (`reviewPage.test.jsx`, the same 8 fail on the untouched tree); build with the live key OK, no secret keys in the bundle. `check-docs` fails on the clean tree too (graphify-out noise).
+NOT TESTED: a real sign-in; the live server. Nothing on the server touched. The live server's state is unknown (release decision NO-GO per qa/LAUNCH-CHECKLIST.md, many hand-uploads outstanding), so the egolimited-style server steps need `release_check.php --db` first.
+Open: PIN sign-in kept for now (owner to decide); remove password, reset and cookie code only after Clerk is proven live; sign-up restriction on the Clerk instance; test staff row for the owner's email.
+
+## Read-only server findings (30 October 2026)
+Live server is the 9 Oct build and the live database lacks schema phases 12 to 15 and 17 to 33; the full release plan is in docs/DEPLOYMENT.md ("Full release plan with Clerk sign-in"). Owner said deploy; not deployed because it would break the live site. Owner decisions: PIN sign-in stays; no staff emails yet.
+
+## Release step 1 done (30 October 2026, owner said yes)
+- DONE: backup in `~/heritage_backups` (mode 700): `heritage_db_20261030_001619.sql.gz` (32 tables, ends "Dump completed") and `heritage_files_20261030_001619.tar.gz` (whole `~/heritclothing.com`, 10 MB). Restore NOT drilled.
+- DONE: live `config.php` set from 644 to 600; home 200, `auth.php?action=me` answers "Not authenticated" (401) as before.
+- FOUND (pre-existing, not caused by me): `api.php` answers `{"error":"Server error"}` at both 644 and 600; live `error_log` shows "Constant IMAGE_PROVIDER already defined" at `config.php` line 72.
+- NEXT: lock the seed tailors (step 2), then dry runs and the schema import.
+
+## Two live defects fixed (30 October 2026, owner said FIX)
+- DONE: `config.php` defined `IMAGE_PROVIDER` twice (lines 70 and 72). Removed the second, which PHP ignored anyway (the first, 'openrouter', always won), so behaviour is unchanged. Saved before: `~/heritage_backups/config.php.before-dupfix`. Lints, mode 600, warning stopped.
+- DONE: `api.php` smoke endpoint returned "Server error": the live `items` table (empty, 0 rows, MyISAM, older layout) had `name` where the code reads `label`. Ran `ALTER TABLE items CHANGE name label VARCHAR(255) NOT NULL`. `api.php` now answers `[]` with HTTP 200. Data loss: none (0 rows); also covered by `heritage_db_20261030_001619.sql.gz`.
+- NOTE: live `items` is MyISAM latin1; `schema.sql` expects InnoDB utf8mb4. Harmless here (unused, empty); left as is.
+
+## Owner decision (30 October 2026)
+Seed tailors `tunde@` and `bola@heritclothing.com`: leave as they are (not locked). Open risk, owner's choice: they are active accounts from the seed data; remove or lock them before the shop goes public.
+
+## Heritage release in progress (30 October 2026, owner said go)
+- DONE: fresh backup `~/heritage_backups/heritage_db_pre-release_20261030_040727.sql.gz` (32 tables, "Dump completed") and `heritage_files_pre-release_20261030_040727.tar.gz`; live `.htaccess` copy `htaccess.live-before-release`; `config.php.before-clerk`. Restore NOT drilled.
+- DONE: `config.php` (mode 600) now has CLERK_ISSUER and CLERK_AUTHORIZED_PARTIES.
+- DONE: schema rehearsal on a throwaway local MariaDB built from the LIVE table structure only (no data): phases 12 to 15 and 17 to 33 applied in order with no errors and re-ran cleanly. Files and `run_schema.sh` staged in `~/heritage_release/` (outside the web root). Live database NOT touched yet.
+- PREPARED, not uploaded: merged `.htaccess` (live Cloudflare origin lock kept, then `php-api/.htaccess`); `dist/` built with the live Clerk key (no secret keys).
+- NEXT: owner runs `run_schema.sh` (the auto-mode classifier blocks production migrations); then PHP upload by checksum (30 new, 32 changed, no config files), `.htaccess`, `dist/`, then `npm run release:smoke -- https://heritclothing.com` and a real sign-in.
+
+## Heritage release done (30 October 2026)
+Live heritclothing.com is now the full current build with Clerk sign-in (details in CHANGELOG "Deployed"). Smoke test 21/22 (the one failure is a false alarm). Clerk sign-up on the heritage instance is still PUBLIC and no staff Clerk users exist: whoever can receive mail at dev@, tunde@ or bola@heritclothing.com can claim that role. Owner to say who gets Clerk users, then restrict sign-up. Rollback: restore `.htaccess` from `~/heritage_backups/htaccess.live-before-release`, the old PHP and bundle from the files archive; schema restore from the dump only if data is damaged.
+
+## Merged to main (30 Oct 2026)
+- `move/cpanel-clerk` (already live) merged into `main`, so `main` matches the server again.
+- `.github/workflows/deploy.yml` is now manual only (`workflow_dispatch`): no FTP deploy on push. Releases go over SSH (`pnpm release`, kit standard) once that script is added here.

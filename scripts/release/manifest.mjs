@@ -65,6 +65,7 @@ export const SCHEMA_MARKERS = {
   'schema_phase30.sql': { setting: 'retention_expired_tokens_days' },
   'schema_phase31.sql': { table: 'usage_daily' },
   'schema_phase32.sql': { setting: 'policy_defaults_d025' },
+  'schema_phase33.sql': { table: 'users', column: 'clerk_user_id' },
 }
 
 /** File names copied into dist/ by deploy.yml (`cp php-api/NAME dist/`), comments ignored. */

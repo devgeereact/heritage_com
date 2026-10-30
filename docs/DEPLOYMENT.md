@@ -123,6 +123,28 @@ The stacked pull requests merge in order (#6, #7, #8, #9) and each merge deploys
 
 The documentation clean-up branch `chore/cleanup-docs-sync` changes no server file and needs no owner action at merge.
 
+## Full release plan with Clerk sign-in (read-only findings of 30 October 2026)
+
+Status: PLANNED, nothing run. Read-only checks over `ssh cpanel` on 30 October 2026 (no file or row changed):
+
+- **Live files are the 9 October build.** `_lib.php`, `auth.php` and `index.html` are dated 2026-10-09; the app bundle is `index-DJxurDO_.js`. These are missing on the server: `_domain.php`, `_jobs.php`, `_portal.php`, `_cms.php`, `booking.php`, `portal.php`, `site.php` and the rest of the newer files (the repo has 64 PHP files).
+- **Live database has `schema.sql` to `schema_phase11.sql` and `schema_phase16.sql`; `schema_phase12.sql` to `schema_phase15.sql`, `schema_phase17.sql` to `schema_phase29.sql`, `schema_phase31.sql` and `schema_phase33.sql` are ABSENT** (phase 30 and 32 are settings markers, not checked; they need phase 29 and 31 first). So PIN sign-in (`users.pin_hash`) is not live yet either.
+- **Live data is small:** 3 users (`dev@`, `tunde@`, `bola@heritclothing.com`), 3 customers, 2 tailoring orders, 0 orders, 7 products, 1 enquiry.
+- **Backups:** none found for this site (no heritage dump in `~/backups`, no heritage cron entry). `config.php` on the server is mode 644 (world-readable): set it to 600.
+- The seed tailors `tunde@` and `bola@` are active: lock them first ([Audit fixes](SECURITY.md#audit-fixes-17-october-2026)).
+
+Because the new app needs the whole newer API and database, the Clerk sign-in cannot be deployed alone. One release, in this order, each step approved by the owner:
+
+1. **Backup before anything:** full database dump and a copy of the document root and `config.php` (outside the web root); check the dump opens. Set `config.php` to mode 600.
+2. **Lock the seed tailors** (the SQL in the audit-fixes note) and record who really needs access.
+3. **Dry runs:** upload and run `release_check.php --db`; run the dry-run `SELECT` at the top of each schema file and record the counts.
+4. **Schema:** import `schema_phase12.sql` to `schema_phase33.sql` in numeric order (phase 16 is already present; each file is re-runnable).
+5. **Config:** add `CLERK_ISSUER` and `CLERK_AUTHORIZED_PARTIES` (see `config.sample.php`), and the other settings the PR rows above list (for example `TOKEN_SECRET`).
+6. **Files:** upload the PHP files together (manual list from `npm run release:manifest`, then `release_check.php` must show every file MATCH), then the new `dist/` built with `VITE_CLERK_PUBLISHABLE_KEY` set to the live key.
+7. **Clerk users:** create a Clerk user for each real staff member and the owner, add their rows under Team & Access, then restrict sign-up in the Clerk production instance.
+8. **Smoke checks:** `npm run release:smoke`, one Clerk sign-in per role, one PIN sign-in, sign-out, public pages, `/track`, the shop closed.
+9. **Rollback:** restore the dump and the saved document root copy; the old login code is untouched until the owner confirms the new one.
+
 ## Branches, worktrees and machines
 
 - Pushing `main` deploys. Work on a feature branch, push the branch and open a pull request. Never push, merge or rebase `main` without explicit authority. Never force-push a shared branch.

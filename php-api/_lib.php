@@ -411,6 +411,15 @@ function require_auth($roles = null) {
   $cred = staff_credential();
   if (!$cred) fail('Not authenticated', 401);
   $tok = $cred['token'];
+  // Clerk session token (email-code sign-in). A bearer JWT is checked by _clerk.php; legacy 64-hex
+  // tokens (PIN sign-in, tokens issued before the move) fall through to the auth_tokens lookup below.
+  if ($cred['source'] === 'bearer' && substr_count($tok, '.') === 2) {
+    require_once __DIR__ . '/_clerk.php';
+    $user = clerk_user_from_token($conn, $tok);
+    if (!$user) fail('Session expired', 401);
+    if ($roles && !in_array($user['role'], (array)$roles, true)) fail('Forbidden', 403);
+    return $user;
+  }
   $stmt = $conn->prepare(
     "SELECT u.id, u.name, u.email, u.role
        FROM auth_tokens t JOIN users u ON u.id = t.user_id

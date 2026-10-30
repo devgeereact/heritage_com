@@ -53,3 +53,7 @@ release-manifest.json
 scripts/content/.out/
 scripts/content/.state/
 scripts/content/.stock/
+
+# local scratch (tests, temp, logs, recovery)
+.local-test/
+.local-state/

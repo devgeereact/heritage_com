@@ -59,6 +59,7 @@ How staff and customers sign in, how sessions live and end, and the approved tar
 
 ### Staff
 
+- **Clerk (D-033, branch `move/cpanel-clerk`, not deployed):** with `CLERK_ISSUER` and `CLERK_AUTHORIZED_PARTIES` set in `config.php`, `require_auth()` accepts a Clerk session token as the Bearer (three dot-separated parts), verified in `_clerk.php`. The token's `sub` must equal `users.clerk_user_id`; on first sign-in an active, non-suspended, non-customer row whose email equals the token's verified `email` claim is linked, and a row linked to another Clerk user is never re-linked. Unknown emails get 401 and sign-up never creates staff. Roles stay in `users`.
 - **Method:** email and password, or a staff PIN for a shared device (`users.pin_hash`, schema_phase12). `auth.php` issues a random token stored in `auth_tokens` with device, IP and last-seen columns.
 - **Throttling:** failed email and PIN logins are throttled (`LOGIN_*`, `PIN_*` settings, [DEPLOYMENT.md](DEPLOYMENT.md#server-configuration)).
 - **PIN scope (redesign branch):** `pin_login` refuses `super_admin` and `admin`, and `set_pin` answers 403 for them; owner-level roles sign in with email and password only.

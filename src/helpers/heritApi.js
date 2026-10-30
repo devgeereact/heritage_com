@@ -5,6 +5,7 @@
 // Dev hits the local staging API unless VITE_API_BASE says otherwise (constants.js);
 // production is same-origin.
 import { API_BASE } from '@/context/constants'
+import { clerkEnabled, clerkToken } from '@/helpers/clerk'
 
 /**
  * Pull the Bearer token from the session cookie (set by useAuthContext). With
@@ -71,9 +72,22 @@ async function send(url, init, { lookup = false } = {}) {
   }
 }
 
+/**
+ * Staff credentials for one request. A shop-floor PIN session (token in the profile cookie) keeps
+ * working; otherwise, with Clerk on, a fresh Clerk session token goes as the Bearer.
+ */
+async function authedHeaders(method, headers = {}) {
+  staffHeaders(method, headers)
+  if (!headers.Authorization && clerkEnabled) {
+    const r = await clerkToken()
+    if (r.kind === 'token') headers.Authorization = `Bearer ${r.token}`
+  }
+  return headers
+}
+
 async function request(path, { method = 'GET', body, auth = true, lookup = false } = {}) {
   const headers = { 'Content-Type': 'application/json' }
-  if (auth) staffHeaders(method, headers)
+  if (auth) await authedHeaders(method, headers)
   // credentials: 'include' so the staff session cookie travels to the local
   // staging API on another port too, and a sign-in answer can set it.
   const res = await send(
@@ -167,7 +181,7 @@ async function upload(path, file, fields = {}) {
   Object.entries(fields).forEach(([k, v]) => {
     if (v !== undefined && v !== null) form.append(k, v)
   })
-  const headers = staffHeaders('POST')
+  const headers = await authedHeaders('POST')
   const res = await send(`${API_BASE}${path}`, { method: 'POST', headers, credentials: 'include', body: form })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw apiError(res.status, data)

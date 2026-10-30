@@ -4,6 +4,36 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Deployed: the full build and Clerk sign-in to production, 30 October 2026 (by hand over ssh; PR #24 not merged)
+
+Owner instruction "go". Backup first: `heritage_db_pre-release_20261030_040727.sql.gz` (32 tables, restore not drilled), the document root, `.htaccess` and `config.php` copies in `~/heritage_backups/`.
+
+- `config.php` (mode 600): `CLERK_ISSUER`, `CLERK_AUTHORIZED_PARTIES` added.
+- Schema phases 12 to 15 and 17 to 33 applied by the owner with `~/heritage_release/run_schema.sh` after a rehearsal on a throwaway database built from the live table structure (no data): 59 tables, every marker present, row counts unchanged (3 users, 3 customers, 2 tailoring orders, 1 enquiry).
+- PHP uploaded by checksum (30 new, 32 changed, no config files); all 77 files lint on the server (PHP 8.4.27).
+- `.htaccess` merged: the live Cloudflare origin lock kept, then `php-api/.htaccess` (security headers, Clerk Content-Security-Policy, caching, HTTPS redirect). The old file is saved as `htaccess.live-before-release`.
+- `dist/` built with the live Clerk key (no secret keys) uploaded; 0 differences afterwards.
+- `npm run release:smoke`: 21 passed, 1 failed. The failure (`/release-manifest.json` answers 200) is a false alarm: the file does not exist and any unknown path returns the app page, so nothing is served. The smoke script should accept the app shell for a missing file.
+- In a browser: `/auth/sign-in` shows Clerk's email-code form, with the staff PIN sign-in below it, and Clerk's script loads from `clerk.heritclothing.com` under the new policy.
+- NOT DONE: `release_check.php --db` and a manifest upload; a real sign-in; the owner's checks in `qa/LAUNCH-CHECKLIST.md`; restricting Clerk sign-up; Clerk users and `users` rows for real staff. The seed tailors `tunde@` and `bola@` remain active by owner choice.
+
+### Staff sign-in with Clerk, 30 October 2026
+
+Decision D-033.
+
+Added
+
+- `php-api/_clerk.php`: checks a Clerk session token (RS256, signing keys cached, issuer, expiry, not-before and authorised-party checks) and maps it to an active staff row; `require_auth()` accepts it beside the existing tokens.
+- `schema_phase33.sql`: `users.clerk_user_id` (unique, nullable; additive, re-runnable); marker added to the release manifest; `_clerk.php` added to the CI upload list.
+- Sign-in page shows Clerk's email-code form when `VITE_CLERK_PUBLISHABLE_KEY` is set; unset keeps email and password. People whose email is not a staff record see "No access yet".
+- Tests: `php-api/tests/clerk_cases.php` (token checks), `clerk_link.php` (linking, throwaway database), `src/__tests__/clerk.test.js`.
+
+Changed
+
+- `php-api/.htaccess` Content-Security-Policy allows only the named Clerk hosts (`clerk.heritclothing.com`, `cdn.protect.clerk.com`, `challenges.cloudflare.com`, `clerk-telemetry.com`) and `worker-src blob:`; without it `script-src 'self'` blocks the sign-in form. NOT TESTED in a browser against the live policy.
+
+Not done: removing the old password, reset and cookie-session code; deciding whether the PIN sign-in stays; nothing is deployed.
+
 ### Repository consolidation, 22 October 2026
 
 - Fixed: `e2e-phase4.sh` check U7 expected image variants 800 and 1600; since D-030 a 2000px upload also gets a 2000px variant (never upscaled), so it now expects 800, 1600 and 2000. Phase 4 e2e: 63 of 63.

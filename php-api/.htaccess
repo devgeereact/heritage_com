@@ -39,7 +39,7 @@
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://clerk.heritclothing.com https://cdn.protect.clerk.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com https://clerk.heritclothing.com https://clerk-telemetry.com; frame-src https://challenges.cloudflare.com; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   # HSTS only on HTTPS answers; one year, no preload, no subdomains.
   Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
