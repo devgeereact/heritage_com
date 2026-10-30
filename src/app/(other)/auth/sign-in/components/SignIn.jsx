@@ -4,6 +4,8 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon'
 import { Card, Col, Row } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import LoginFrom from './LoginFrom'
+import ClerkSignIn from './ClerkSignIn'
+import { clerkEnabled } from '@/helpers/clerk'
 import PinLogin from './PinLogin'
 import BrandSidePanel from '../../components/BrandSidePanel'
 import AuthHeading from '../../components/AuthHeading'
@@ -31,7 +33,7 @@ const SignIn = () => {
                     sub="Sign in to run Herit Clothing: jobs, clients, appointments, payments and the website."
                   />
                   <div className="mb-3">
-                    <LoginFrom />
+                    {clerkEnabled ? <ClerkSignIn /> : <LoginFrom />}
                   </div>
                   <div className="mb-4">
                     <PinLogin />

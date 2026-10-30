@@ -4,6 +4,19 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Staff sign-in with Clerk, 30 October 2026
+
+Decision D-033.
+
+Added
+
+- `php-api/_clerk.php`: checks a Clerk session token (RS256, signing keys cached, issuer, expiry, not-before and authorised-party checks) and maps it to an active staff row; `require_auth()` accepts it beside the existing tokens.
+- `schema_phase33.sql`: `users.clerk_user_id` (unique, nullable; additive, re-runnable); marker added to the release manifest; `_clerk.php` added to the CI upload list.
+- Sign-in page shows Clerk's email-code form when `VITE_CLERK_PUBLISHABLE_KEY` is set; unset keeps email and password. People whose email is not a staff record see "No access yet".
+- Tests: `php-api/tests/clerk_cases.php` (token checks), `clerk_link.php` (linking, throwaway database), `src/__tests__/clerk.test.js`.
+
+Not done: removing the old password, reset and cookie-session code; deciding whether the PIN sign-in stays; nothing is deployed.
+
 ### Repository consolidation, 22 October 2026
 
 - Fixed: `e2e-phase4.sh` check U7 expected image variants 800 and 1600; since D-030 a 2000px upload also gets a 2000px variant (never upscaled), so it now expects 800, 1600 and 2000. Phase 4 e2e: 63 of 63.

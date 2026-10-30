@@ -36,7 +36,11 @@ jobs:
         run: node scripts/check-php-calls.mjs
       - name: PHP helper tests
         run: php php-api/tests/run.php
-      - run: npm run build
+      - name: Build
+        # Public Clerk key from a repository variable (not a secret). Unset keeps the email-and-password sign-in.
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+        run: npm run build
       - name: Stage PHP API alongside React build
         # Copy server-side PHP endpoints into dist/ so the FTP step uploads them
         # to the doc root. config.php is server-only (gitignored); config.sample.php,
@@ -48,6 +52,7 @@ jobs:
         # hand-managed copy on the server. See docs/DEPLOYMENT.md.
         run: |
           cp php-api/_lib.php       dist/
+          cp php-api/_clerk.php     dist/   # Clerk sign-in; _lib.php requires it, so it ships with it
           cp php-api/api.php        dist/
           cp php-api/auth.php       dist/
           cp php-api/ai.php         dist/

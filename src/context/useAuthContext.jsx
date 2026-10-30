@@ -2,6 +2,7 @@ import Cookies from 'js-cookie';
 import { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import heritApi from '@/helpers/heritApi';
+import { clerkEnabled, clerkSignOut } from '@/helpers/clerk';
 const AuthContext = createContext(undefined);
 export function useAuthContext() {
   const context = useContext(AuthContext);
@@ -48,6 +49,7 @@ export function AuthProvider({
     // are cleared. heritApi reads the token before this returns, so removing
     // the profile cookie straight after is safe; a failure still signs out here.
     heritApi.logout().catch(() => {});
+    if (clerkEnabled) clerkSignOut().catch(() => {});
     Cookies.remove(authSessionKey);
     setUser(undefined);
     navigate('/auth/sign-in');

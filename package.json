@@ -19,6 +19,7 @@
     "release:smoke": "bash scripts/release/smoke.sh"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.61.11",
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^5.2.2",
     "bootstrap": "^5.3.3",

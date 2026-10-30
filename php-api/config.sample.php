@@ -37,6 +37,12 @@ define('TOKEN_TTL_DAYS', 14);                             // session lifetime in
 // body and kept by the app, as before. Switching it back off is the rollback;
 // staff signed in under the cookie then sign out and in again. See DEPLOYMENT.md.
 define('STAFF_COOKIE_AUTH', false);
+// Clerk sign-in for staff (email code). CLERK_ISSUER is the Frontend API URL of the PRODUCTION
+// Clerk instance (https://clerk.heritclothing.com, no trailing slash). CLERK_AUTHORIZED_PARTIES are the
+// exact origins allowed to present a token: the live site and local-live. Nothing else.
+// CLERK_CACHE_DIR (optional) is a private writable folder outside the web root for the signing keys.
+define('CLERK_ISSUER', 'https://clerk.example.com');
+define('CLERK_AUTHORIZED_PARTIES', ['https://heritclothing.com', 'https://local.heritclothing.com']);
 // Login throttling (auth.php). Failed attempts are counted in audit_log over a
 // sliding window and answered with HTTP 429 once a limit is reached; 0 switches
 // a limit off. The values below are the built-in defaults, so these lines are optional.
