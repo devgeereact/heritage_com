@@ -606,3 +606,11 @@ Each material change, what it could break, and how it was checked. Strategy: [do
 | Documentation flattened; docs check added to CI (`chore/cleanup-docs-sync`) | Links in docs, entry files, workflows | None at runtime | `node scripts/check-docs.mjs` | PASS (10 Oct 2026) | `scripts/check-docs.mjs` |
 
 Record intentional changes separately from regressions. No regression has been reported so far.
+
+## 30 Oct 2026: config.php moved out of the web root
+
+- The real settings now live in `~/private-config/heritage_com/config.php` (0600, folder 0700). The web-root `config.php` is a stub (0600, no secrets) that loads it.
+- Original copy: `~/backups/heritage_com/config.php.before-private`.
+- Releases never upload `config.php` (PROTECT list), so deploys keep the stub.
+- Verified live after the move: the API check returned the expected status.
+- 14 dead template PHP files (academy, audit, certificates, clients, comms, compliance, contracts, dashboard, files, invoices, jobs, scheduling, timesheets, workers) moved out of the web root to `~/backups/heritage_com/stray-php-20261030/`. They needed a missing `lib.php` and only returned errors. `/dashboard.php` now returns 404.
