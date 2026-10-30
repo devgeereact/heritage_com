@@ -4,6 +4,19 @@ Notable changes to HeritOS, grouped by pull request. Dates are when the work was
 
 ## Unreleased
 
+### Deployed: the full build and Clerk sign-in to production, 30 October 2026 (by hand over ssh; PR #24 not merged)
+
+Owner instruction "go". Backup first: `heritage_db_pre-release_20261030_040727.sql.gz` (32 tables, restore not drilled), the document root, `.htaccess` and `config.php` copies in `~/heritage_backups/`.
+
+- `config.php` (mode 600): `CLERK_ISSUER`, `CLERK_AUTHORIZED_PARTIES` added.
+- Schema phases 12 to 15 and 17 to 33 applied by the owner with `~/heritage_release/run_schema.sh` after a rehearsal on a throwaway database built from the live table structure (no data): 59 tables, every marker present, row counts unchanged (3 users, 3 customers, 2 tailoring orders, 1 enquiry).
+- PHP uploaded by checksum (30 new, 32 changed, no config files); all 77 files lint on the server (PHP 8.4.27).
+- `.htaccess` merged: the live Cloudflare origin lock kept, then `php-api/.htaccess` (security headers, Clerk Content-Security-Policy, caching, HTTPS redirect). The old file is saved as `htaccess.live-before-release`.
+- `dist/` built with the live Clerk key (no secret keys) uploaded; 0 differences afterwards.
+- `npm run release:smoke`: 21 passed, 1 failed. The failure (`/release-manifest.json` answers 200) is a false alarm: the file does not exist and any unknown path returns the app page, so nothing is served. The smoke script should accept the app shell for a missing file.
+- In a browser: `/auth/sign-in` shows Clerk's email-code form, with the staff PIN sign-in below it, and Clerk's script loads from `clerk.heritclothing.com` under the new policy.
+- NOT DONE: `release_check.php --db` and a manifest upload; a real sign-in; the owner's checks in `qa/LAUNCH-CHECKLIST.md`; restricting Clerk sign-up; Clerk users and `users` rows for real staff. The seed tailors `tunde@` and `bola@` remain active by owner choice.
+
 ### Staff sign-in with Clerk, 30 October 2026
 
 Decision D-033.
