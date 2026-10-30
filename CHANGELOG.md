@@ -15,6 +15,10 @@ Added
 - Sign-in page shows Clerk's email-code form when `VITE_CLERK_PUBLISHABLE_KEY` is set; unset keeps email and password. People whose email is not a staff record see "No access yet".
 - Tests: `php-api/tests/clerk_cases.php` (token checks), `clerk_link.php` (linking, throwaway database), `src/__tests__/clerk.test.js`.
 
+Changed
+
+- `php-api/.htaccess` Content-Security-Policy allows only the named Clerk hosts (`clerk.heritclothing.com`, `cdn.protect.clerk.com`, `challenges.cloudflare.com`, `clerk-telemetry.com`) and `worker-src blob:`; without it `script-src 'self'` blocks the sign-in form. NOT TESTED in a browser against the live policy.
+
 Not done: removing the old password, reset and cookie-session code; deciding whether the PIN sign-in stays; nothing is deployed.
 
 ### Repository consolidation, 22 October 2026
