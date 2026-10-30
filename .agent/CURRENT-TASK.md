@@ -226,3 +226,7 @@ Seed tailors `tunde@` and `bola@heritclothing.com`: leave as they are (not locke
 
 ## Heritage release done (30 October 2026)
 Live heritclothing.com is now the full current build with Clerk sign-in (details in CHANGELOG "Deployed"). Smoke test 21/22 (the one failure is a false alarm). Clerk sign-up on the heritage instance is still PUBLIC and no staff Clerk users exist: whoever can receive mail at dev@, tunde@ or bola@heritclothing.com can claim that role. Owner to say who gets Clerk users, then restrict sign-up. Rollback: restore `.htaccess` from `~/heritage_backups/htaccess.live-before-release`, the old PHP and bundle from the files archive; schema restore from the dump only if data is damaged.
+
+## Merged to main (30 Oct 2026)
+- `move/cpanel-clerk` (already live) merged into `main`, so `main` matches the server again.
+- `.github/workflows/deploy.yml` is now manual only (`workflow_dispatch`): no FTP deploy on push. Releases go over SSH (`pnpm release`, kit standard) once that script is added here.
