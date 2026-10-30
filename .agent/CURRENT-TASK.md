@@ -202,3 +202,14 @@ Open: PIN sign-in kept for now (owner to decide); remove password, reset and coo
 
 ## Read-only server findings (30 October 2026)
 Live server is the 9 Oct build and the live database lacks schema phases 12 to 15 and 17 to 33; the full release plan is in docs/DEPLOYMENT.md ("Full release plan with Clerk sign-in"). Owner said deploy; not deployed because it would break the live site. Owner decisions: PIN sign-in stays; no staff emails yet.
+
+## Release step 1 done (30 October 2026, owner said yes)
+- DONE: backup in `~/heritage_backups` (mode 700): `heritage_db_20261030_001619.sql.gz` (32 tables, ends "Dump completed") and `heritage_files_20261030_001619.tar.gz` (whole `~/heritclothing.com`, 10 MB). Restore NOT drilled.
+- DONE: live `config.php` set from 644 to 600; home 200, `auth.php?action=me` answers "Not authenticated" (401) as before.
+- FOUND (pre-existing, not caused by me): `api.php` answers `{"error":"Server error"}` at both 644 and 600; live `error_log` shows "Constant IMAGE_PROVIDER already defined" at `config.php` line 72.
+- NEXT: lock the seed tailors (step 2), then dry runs and the schema import.
+
+## Two live defects fixed (30 October 2026, owner said FIX)
+- DONE: `config.php` defined `IMAGE_PROVIDER` twice (lines 70 and 72). Removed the second, which PHP ignored anyway (the first, 'openrouter', always won), so behaviour is unchanged. Saved before: `~/heritage_backups/config.php.before-dupfix`. Lints, mode 600, warning stopped.
+- DONE: `api.php` smoke endpoint returned "Server error": the live `items` table (empty, 0 rows, MyISAM, older layout) had `name` where the code reads `label`. Ran `ALTER TABLE items CHANGE name label VARCHAR(255) NOT NULL`. `api.php` now answers `[]` with HTTP 200. Data loss: none (0 rows); also covered by `heritage_db_20261030_001619.sql.gz`.
+- NOTE: live `items` is MyISAM latin1; `schema.sql` expects InnoDB utf8mb4. Harmless here (unused, empty); left as is.
