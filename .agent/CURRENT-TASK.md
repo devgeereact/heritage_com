@@ -199,3 +199,6 @@ Owner instruction: do heritage_com as EGO LIMITED was done (D-033). Built, not d
 Evidence: `php php-api/tests/run.php` 786 passed; `clerk_link.php` 14 checks on a throwaway MariaDB; lint 0 errors; `npm test` 339 passed, 8 failed (`reviewPage.test.jsx`, the same 8 fail on the untouched tree); build with the live key OK, no secret keys in the bundle. `check-docs` fails on the clean tree too (graphify-out noise).
 NOT TESTED: a real sign-in; the live server. Nothing on the server touched. The live server's state is unknown (release decision NO-GO per qa/LAUNCH-CHECKLIST.md, many hand-uploads outstanding), so the egolimited-style server steps need `release_check.php --db` first.
 Open: PIN sign-in kept for now (owner to decide); remove password, reset and cookie code only after Clerk is proven live; sign-up restriction on the Clerk instance; test staff row for the owner's email.
+
+## Read-only server findings (30 October 2026)
+Live server is the 9 Oct build and the live database lacks schema phases 12 to 15 and 17 to 33; the full release plan is in docs/DEPLOYMENT.md ("Full release plan with Clerk sign-in"). Owner said deploy; not deployed because it would break the live site. Owner decisions: PIN sign-in stays; no staff emails yet.
