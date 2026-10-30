@@ -216,3 +216,10 @@ Live server is the 9 Oct build and the live database lacks schema phases 12 to 1
 
 ## Owner decision (30 October 2026)
 Seed tailors `tunde@` and `bola@heritclothing.com`: leave as they are (not locked). Open risk, owner's choice: they are active accounts from the seed data; remove or lock them before the shop goes public.
+
+## Heritage release in progress (30 October 2026, owner said go)
+- DONE: fresh backup `~/heritage_backups/heritage_db_pre-release_20261030_040727.sql.gz` (32 tables, "Dump completed") and `heritage_files_pre-release_20261030_040727.tar.gz`; live `.htaccess` copy `htaccess.live-before-release`; `config.php.before-clerk`. Restore NOT drilled.
+- DONE: `config.php` (mode 600) now has CLERK_ISSUER and CLERK_AUTHORIZED_PARTIES.
+- DONE: schema rehearsal on a throwaway local MariaDB built from the LIVE table structure only (no data): phases 12 to 15 and 17 to 33 applied in order with no errors and re-ran cleanly. Files and `run_schema.sh` staged in `~/heritage_release/` (outside the web root). Live database NOT touched yet.
+- PREPARED, not uploaded: merged `.htaccess` (live Cloudflare origin lock kept, then `php-api/.htaccess`); `dist/` built with the live Clerk key (no secret keys).
+- NEXT: owner runs `run_schema.sh` (the auto-mode classifier blocks production migrations); then PHP upload by checksum (30 new, 32 changed, no config files), `.htaccess`, `dist/`, then `npm run release:smoke -- https://heritclothing.com` and a real sign-in.
