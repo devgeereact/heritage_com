@@ -4,6 +4,14 @@ How HeritOS reaches production, what the server holds, how schemas are imported,
 
 Confirm the actual account, project, branch and environment before any remote mutation.
 
+## How to release: `npm run release` (from this Mac, over SSH)
+
+Kit standard since 30 October 2026: no FTP, no GitHub Actions deploys. `.github/workflows/deploy.yml` is manual only and is removed, with its FTP secrets and the cPanel FTP account, after the first successful release below.
+
+1. `npm run release` (dry run): `main` clean and pushed, the checks, the build with the live public Clerk key, then a checksum list of every file that would change in `~/heritclothing.com`: `dist/` and `php-api/` (without tests, local configs and Markdown). Nothing changes.
+2. `npm run release -- --go`: copies every server file about to change to `~/backups/heritage_com/releases/<time>/` (newest 3 kept), uploads (entry files last, nothing deleted; `config.php`, `.htaccess`, `.env*`, dumps never), then smoke-tests `/`, `/api.php` (200) and `/auth.php?action=me` (401); a failure restores the copies automatically.
+3. Undo: `npm run release -- --rollback --go`. Database changes stay a separate, backed-up step.
+
 ## Hosting
 
 | Item | Value |

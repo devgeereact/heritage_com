@@ -230,3 +230,4 @@ Live heritclothing.com is now the full current build with Clerk sign-in (details
 ## Merged to main (30 Oct 2026)
 - `move/cpanel-clerk` (already live) merged into `main`, so `main` matches the server again.
 - `.github/workflows/deploy.yml` is now manual only (`workflow_dispatch`): no FTP deploy on push. Releases go over SSH (`pnpm release`, kit standard) once that script is added here.
+- 30 Oct 2026: `npm run release` added (kit `scripts/release.mjs`, `release.json`). FTP `deploy.yml`, FTP secrets and FTP account go after the first successful `--go`.

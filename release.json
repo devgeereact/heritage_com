@@ -1,0 +1,45 @@
+{
+  "host": "cpanel",
+  "project": "heritage_com",
+  "url": "https://heritclothing.com",
+  "checks": [
+    "npm run lint",
+    "npm run check:php",
+    "php php-api/tests/run.php"
+  ],
+  "build": "VITE_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsuaGVyaXRjbG90aGluZy5jb20k npm run build",
+  "parts": [
+    {
+      "from": "dist",
+      "to": "heritclothing.com",
+      "exclude": [
+        "/uploads/"
+      ]
+    },
+    {
+      "from": "php-api",
+      "to": "heritclothing.com",
+      "exclude": [
+        "/tests/",
+        "/uploads/",
+        "config.local.php",
+        "config.sample.php",
+        "*.md"
+      ]
+    }
+  ],
+  "smoke": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/api.php",
+      "status": 200
+    },
+    {
+      "path": "/auth.php?action=me",
+      "status": 401
+    }
+  ]
+}
