@@ -233,3 +233,4 @@ Live heritclothing.com is now the full current build with Clerk sign-in (details
 - 30 Oct 2026: `npm run release` added (kit `scripts/release.mjs`, `release.json`). FTP `deploy.yml`, FTP secrets and FTP account go after the first successful `--go`.
 - 30 Oct 2026: dry run showed the live server equal to `main`; FTP `deploy.yml` removed. Owner deletes GitHub FTP secrets and the FTP account with `~/Backups/scripts/remove-ftp-deploys.zsh`.
 - 30 Oct 2026: docs tidy: the six `qa/` audits and the launch checklist merged into `docs/AUDIT.md` (one audit file); `KNOWN-ISSUES.md` moved to `docs/`; every reference updated; `check-docs` clean apart from the ignored `graphify-out/`.
+- 30 Oct 2026 (owner asked): push to `main` deploys again, now over SSH: `.github/workflows/deploy.yml` runs `scripts/release.mjs --go` with a restricted deploy key. Owner runs `~/Backups/scripts/setup-github-deploy.zsh --apply` once to set the key and secrets.
