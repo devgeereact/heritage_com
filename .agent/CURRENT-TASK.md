@@ -213,3 +213,6 @@ Live server is the 9 Oct build and the live database lacks schema phases 12 to 1
 - DONE: `config.php` defined `IMAGE_PROVIDER` twice (lines 70 and 72). Removed the second, which PHP ignored anyway (the first, 'openrouter', always won), so behaviour is unchanged. Saved before: `~/heritage_backups/config.php.before-dupfix`. Lints, mode 600, warning stopped.
 - DONE: `api.php` smoke endpoint returned "Server error": the live `items` table (empty, 0 rows, MyISAM, older layout) had `name` where the code reads `label`. Ran `ALTER TABLE items CHANGE name label VARCHAR(255) NOT NULL`. `api.php` now answers `[]` with HTTP 200. Data loss: none (0 rows); also covered by `heritage_db_20261030_001619.sql.gz`.
 - NOTE: live `items` is MyISAM latin1; `schema.sql` expects InnoDB utf8mb4. Harmless here (unused, empty); left as is.
+
+## Owner decision (30 October 2026)
+Seed tailors `tunde@` and `bola@heritclothing.com`: leave as they are (not locked). Open risk, owner's choice: they are active accounts from the seed data; remove or lock them before the shop goes public.
