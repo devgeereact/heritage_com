@@ -7,7 +7,7 @@ The app and website behind [heritclothing.com](https://heritclothing.com), for a
 - **Frontend:** React 19, Vite, Bootstrap 5 (Larkon admin kit), JavaScript. Builds to `dist/`.
 - **API:** plain PHP endpoints with `mysqli` prepared statements, returning JSON. Source in [`php-api/`](php-api/).
 - **Database:** MySQL on cPanel.
-- **Deploy:** merging to `main` runs GitHub Actions, which uploads the build and the PHP files listed in `deploy.yml`; the rest of the server files are uploaded by hand ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
+- **Deploy:** `npm run release` from the Mac over SSH (dry run, then `-- --go`): the build and every PHP file in `php-api/`, with a snapshot and automatic restore. Merging to `main` deploys nothing. `config.php`, `.htaccess` and SQL imports stay by hand ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
 
 ## Develop
 
